@@ -65,18 +65,18 @@ export default function SodaLiveFeed({ events, className }: SodaLiveFeedProps) {
   }, [events.length]);
 
   const event = events[index] ?? events[0];
-  if (!event) return null;
-
-  const Icon = kindIcon[event.kind];
   const copy = DASHBOARD_SECTION_COPY.sodaLive;
 
-  const body = (
+  const body = event ? (
     <div
       key={`${event.id}-${tick}`}
       className="soda-live-fade-enter flex items-start gap-3"
     >
       <div className="soda-kpi-icon-pink flex size-10 shrink-0 items-center justify-center rounded-xl">
-        <Icon className="size-4" />
+        {(() => {
+          const Icon = kindIcon[event.kind];
+          return <Icon className="size-4" />;
+        })()}
       </div>
       <div className="min-w-0 flex-1 space-y-1">
         <div className="flex flex-wrap items-center gap-2">
@@ -95,6 +95,8 @@ export default function SodaLiveFeed({ events, className }: SodaLiveFeedProps) {
         </p>
       </div>
     </div>
+  ) : (
+    <p className="text-sm text-muted-foreground">No activity yet.</p>
   );
 
   return (
@@ -139,7 +141,7 @@ export default function SodaLiveFeed({ events, className }: SodaLiveFeedProps) {
         </div>
       </CardHeader>
       <CardContent className="min-h-[5.5rem]">
-        {event.href ? (
+        {event?.href ? (
           <Link
             href={event.href}
             className="block transition-opacity hover:opacity-90"

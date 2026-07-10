@@ -105,7 +105,11 @@ export function CrewList({ crew, performanceById }: CrewListProps) {
       </ul>
 
       {filtered.length === 0 ? (
-        <p className="text-sm text-muted-foreground">No crew members match.</p>
+        <p className="text-sm text-muted-foreground">
+          {localCrew.length === 0
+            ? "No crew members yet."
+            : "No crew members match."}
+        </p>
       ) : null}
     </div>
   );

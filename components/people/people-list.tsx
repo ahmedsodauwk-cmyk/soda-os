@@ -89,7 +89,9 @@ export function PeopleList({ people, performanceById }: PeopleListProps) {
       </ul>
 
       {filtered.length === 0 ? (
-        <p className="text-sm text-muted-foreground">No people match.</p>
+        <p className="text-sm text-muted-foreground">
+          {localPeople.length === 0 ? "No people yet." : "No people match."}
+        </p>
       ) : null}
     </div>
   );

@@ -729,11 +729,11 @@ export function getMoodMessage(
 
 export const EMPTY_STATES: Record<EmptyStateKey, EmptyStateCopy> = {
   orders: {
-    title: "No orders",
+    title: "No orders yet.",
     description: "",
   },
   clients: {
-    title: "No clients",
+    title: "No clients yet.",
     description: "",
   },
   workspaces: {
@@ -741,11 +741,11 @@ export const EMPTY_STATES: Record<EmptyStateKey, EmptyStateCopy> = {
     description: "",
   },
   projects: {
-    title: "No projects",
+    title: "No projects yet.",
     description: "",
   },
   files: {
-    title: "No files",
+    title: "No files yet.",
     description: "",
   },
   shoots: {
@@ -761,7 +761,7 @@ export const EMPTY_STATES: Record<EmptyStateKey, EmptyStateCopy> = {
     description: "",
   },
   payments: {
-    title: "No payments",
+    title: "No payments yet.",
     description: "",
   },
   team: {
