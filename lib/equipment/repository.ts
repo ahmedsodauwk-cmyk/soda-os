@@ -7,32 +7,30 @@ import {
   mockEquipmentAssignments,
 } from "@/lib/equipment/seed";
 
-let equipmentStore: EquipmentItem[] = [...mockEquipment];
-let assignmentStore: EquipmentAssignment[] = [...mockEquipmentAssignments];
-
+/** Source of truth is seed arrays — no separate copy that can retain stale demo rows. */
 export function getEquipment(): EquipmentItem[] {
-  return [...equipmentStore];
+  return [...mockEquipment];
 }
 
 export function getEquipmentById(id: string): EquipmentItem | undefined {
-  return equipmentStore.find((e) => e.id === id);
+  return mockEquipment.find((e) => e.id === id);
 }
 
 export function getAvailableEquipment(): EquipmentItem[] {
-  return equipmentStore.filter((e) => e.status === "available");
+  return mockEquipment.filter((e) => e.status === "available");
 }
 
 export function getEquipmentAssignments(): EquipmentAssignment[] {
-  return [...assignmentStore];
+  return [...mockEquipmentAssignments];
 }
 
 export function getActiveEquipmentForPerson(
   personId: string
 ): Array<EquipmentItem & { assignment: EquipmentAssignment }> {
-  return assignmentStore
+  return mockEquipmentAssignments
     .filter((a) => a.personId === personId && !a.returnedAt)
     .map((assignment) => {
-      const item = equipmentStore.find((e) => e.id === assignment.equipmentId);
+      const item = mockEquipment.find((e) => e.id === assignment.equipmentId);
       if (!item) return null;
       return { ...item, assignment };
     })
@@ -44,11 +42,11 @@ export function getActiveEquipmentForPerson(
 export function getEquipmentHistoryForPerson(
   personId: string
 ): Array<EquipmentItem & { assignment: EquipmentAssignment }> {
-  return assignmentStore
+  return mockEquipmentAssignments
     .filter((a) => a.personId === personId)
     .sort((a, b) => b.assignedAt.localeCompare(a.assignedAt))
     .map((assignment) => {
-      const item = equipmentStore.find((e) => e.id === assignment.equipmentId);
+      const item = mockEquipment.find((e) => e.id === assignment.equipmentId);
       if (!item) return null;
       return { ...item, assignment };
     })
@@ -60,7 +58,7 @@ export function getEquipmentHistoryForPerson(
 export function getAssignmentHistoryForEquipment(
   equipmentId: string
 ): Array<EquipmentAssignment & { personId: string }> {
-  return assignmentStore
+  return mockEquipmentAssignments
     .filter((a) => a.equipmentId === equipmentId)
     .sort((a, b) => b.assignedAt.localeCompare(a.assignedAt));
 }
@@ -71,7 +69,7 @@ export function assignEquipmentToPerson(
   personId: string,
   note?: string
 ): EquipmentAssignment | null {
-  const item = equipmentStore.find((e) => e.id === equipmentId);
+  const item = mockEquipment.find((e) => e.id === equipmentId);
   if (!item || item.status !== "available") return null;
 
   const assignment: EquipmentAssignment = {
@@ -81,9 +79,7 @@ export function assignEquipmentToPerson(
     assignedAt: new Date().toISOString().slice(0, 10),
     note,
   };
-  assignmentStore = [...assignmentStore, assignment];
-  equipmentStore = equipmentStore.map((e) =>
-    e.id === equipmentId ? { ...e, status: "assigned" as const } : e
-  );
+  mockEquipmentAssignments.push(assignment);
+  item.status = "assigned";
   return assignment;
 }

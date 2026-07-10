@@ -21,7 +21,7 @@ import {
 
 type SortKey = "name" | "projects" | "activity" | "progress";
 
-/** Commercial hub — business lanes (RTM, Palm Hills, Fashion, …). */
+/** Commercial hub — taxonomy business lanes (RTM, Weddings, Fashion, …). */
 export function CommercialHubContent() {
   const [summaries] = useState(getWorkspaceSummaries);
   const [search, setSearch] = useState("");

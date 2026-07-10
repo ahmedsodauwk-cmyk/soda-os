@@ -18,18 +18,17 @@ import { getProjects } from "@/lib/projects/repository";
 
 const ACTIVE_ORDER = new Set(["Pending", "Scheduled", "Shooting", "Editing"]);
 
-let peopleStore: Person[] = [...mockPeople];
-
+/** Source of truth is mockPeople — no separate in-memory copy that can retain stale seed. */
 export function getPeople(): Person[] {
-  return peopleStore.filter((p) => p.status !== "inactive");
+  return mockPeople.filter((p) => p.status !== "inactive");
 }
 
 export function getAllPeople(): Person[] {
-  return [...peopleStore];
+  return [...mockPeople];
 }
 
 export function getPersonById(id: string): Person | undefined {
-  return peopleStore.find((p) => p.id === id);
+  return mockPeople.find((p) => p.id === id);
 }
 
 export function createPerson(input: NewPersonInput): Person {
@@ -48,7 +47,7 @@ export function createPerson(input: NewPersonInput): Person {
     initials,
     createdAt: new Date().toISOString(),
   };
-  peopleStore = [...peopleStore, person];
+  mockPeople.push(person);
   return person;
 }
 

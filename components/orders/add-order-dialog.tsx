@@ -147,7 +147,7 @@ export function AddOrderDialog({ onAdd }: AddOrderDialogProps) {
                 value={form.clientName}
                 onChange={(e) => updateField("clientName", e.target.value)}
                 aria-invalid={!!errors.clientName}
-                placeholder="Ahmed Ali"
+                placeholder="Client name"
               />
               {errors.clientName && (
                 <p className="text-xs text-destructive">{errors.clientName}</p>

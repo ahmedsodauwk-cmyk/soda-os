@@ -225,7 +225,7 @@ export function AddClientDialog({ onAdd }: AddClientDialogProps) {
               value={form.name}
               onChange={(e) => updateField("name", e.target.value)}
               aria-invalid={!!errors.name}
-              placeholder={isCompany ? "Galaxy Company" : "Ahmed Ali"}
+              placeholder={isCompany ? "Company name" : "Client name"}
             />
             {errors.name && (
               <p className="text-xs text-destructive">{errors.name}</p>
