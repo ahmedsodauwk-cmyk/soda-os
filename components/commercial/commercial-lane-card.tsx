@@ -32,18 +32,18 @@ const iconMap = {
   briefcase: Briefcase,
 } as const;
 
-interface WorkspaceCardProps {
+interface CommercialLaneCardProps {
   workspace: WorkspaceSummary;
 }
 
-export function WorkspaceCard({ workspace }: WorkspaceCardProps) {
+export function CommercialLaneCard({ workspace }: CommercialLaneCardProps) {
   const Icon =
     (workspace.icon && iconMap[workspace.icon as keyof typeof iconMap]) ||
     FolderKanban;
 
   return (
     <Link href={`/commercial/${workspace.slug}`} className="group block">
-      <Card className="h-full transition-colors hover:bg-muted/30">
+      <Card className="soda-cc-card h-full">
         <CardHeader className="flex-row items-start justify-between gap-3 space-y-0">
           <div className="flex items-start gap-3">
             <div
@@ -65,7 +65,7 @@ export function WorkspaceCard({ workspace }: WorkspaceCardProps) {
                 <ArrowRight className="size-3.5 shrink-0 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
               </CardTitle>
               <CardDescription className="mt-1 line-clamp-2">
-                {workspace.description ?? "Studio production lane"}
+                {workspace.description ?? "Commercial production lane"}
               </CardDescription>
             </div>
           </div>

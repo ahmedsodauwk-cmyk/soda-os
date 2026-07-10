@@ -1,11 +1,6 @@
-import { AppShell } from "@/components/layout/app-shell";
-import { WorkspacesContent } from "@/components/workspaces/workspaces-content";
-import { getModuleSlogan } from "@/lib/brand/soda-voice";
+import { redirect } from "next/navigation";
 
-export default function WorkspacesPage() {
-  return (
-    <AppShell title="Workspaces" subtitle={getModuleSlogan("workspaces")}>
-      <WorkspacesContent />
-    </AppShell>
-  );
+/** Compatibility — Workspaces renamed to Commercial. */
+export default function WorkspacesRedirectPage() {
+  redirect("/commercial");
 }

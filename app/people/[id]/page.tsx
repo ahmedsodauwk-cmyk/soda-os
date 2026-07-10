@@ -1,15 +1,13 @@
-import { AppShell } from "@/components/layout/app-shell";
-import { PersonProfile } from "@/components/people/person-profile";
+import { redirect } from "next/navigation";
 
-export default async function PersonDetailPage({
-  params,
-}: {
+interface PeopleDetailRedirectProps {
   params: Promise<{ id: string }>;
-}) {
+}
+
+/** Compatibility — /people/:id → /crew/:id */
+export default async function PeopleDetailRedirect({
+  params,
+}: PeopleDetailRedirectProps) {
   const { id } = await params;
-  return (
-    <AppShell title="People" subtitle="Member profile">
-      <PersonProfile personId={id} />
-    </AppShell>
-  );
+  redirect(`/crew/${id}`);
 }

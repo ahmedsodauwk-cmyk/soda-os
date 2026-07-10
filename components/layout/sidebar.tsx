@@ -8,14 +8,13 @@ import {
   Briefcase,
   Heart,
   Users,
-  UserRound,
+  UsersRound,
   Calendar,
   DollarSign,
   Settings,
   LogOut,
   User,
   Info,
-  Sparkles,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -37,10 +36,10 @@ import { SODA_OPERATOR, SODA_OPERATOR_EN } from "@/lib/brand/soda-voice";
 const menu = [
   { title: "Dashboard", icon: LayoutDashboard, href: "/" },
   { title: "Orders", icon: ShoppingCart, href: "/orders" },
-  { title: "Workspaces", icon: Briefcase, href: "/workspaces" },
+  { title: "Commercial", icon: Briefcase, href: "/commercial" },
   { title: "Weddings", icon: Heart, href: "/orders/weddings" },
   { title: "Clients", icon: Users, href: "/clients" },
-  { title: "People", icon: UserRound, href: "/people" },
+  { title: "The Crew", icon: UsersRound, href: "/crew" },
   { title: "Calendar", icon: Calendar, href: "#" },
   { title: "Finance", icon: DollarSign, href: "#" },
   { title: "Settings", icon: Settings, href: "#" },
@@ -53,9 +52,6 @@ export function SidebarContent() {
     <>
       <div className="relative flex items-center gap-2.5 border-b border-sidebar-border px-4 py-5">
         <SodaLogo placement="sidebar" />
-        <span className="absolute end-3 top-1/2 -translate-y-1/2">
-          <Sparkles className="size-3.5 text-soda-pink/70" aria-hidden />
-        </span>
       </div>
 
       <ScrollArea className="flex-1 px-2 py-3">
@@ -66,7 +62,10 @@ export function SidebarContent() {
               item.href !== "#" &&
               (item.href === "/"
                 ? pathname === "/"
-                : pathname.startsWith(item.href));
+                : pathname.startsWith(item.href) ||
+                  (item.href === "/commercial" &&
+                    pathname.startsWith("/workspaces")) ||
+                  (item.href === "/crew" && pathname.startsWith("/people")));
 
             return (
               <Button
@@ -82,8 +81,8 @@ export function SidebarContent() {
                 className={cn(
                   "h-9 w-full justify-start gap-2.5 rounded-md px-3 font-normal transition-all",
                   isActive
-                    ? "border-l-[3px] border-soda-pink bg-sidebar-accent text-sidebar-accent-foreground shadow-[inset_0_0_20px_color-mix(in_oklch,var(--soda-purple)_18%,transparent)]"
-                    : "border-l-[3px] border-transparent text-muted-foreground hover:border-primary/30 hover:bg-sidebar-accent/60 hover:text-foreground"
+                    ? "border-l-[3px] border-soda-pink bg-sidebar-accent text-sidebar-accent-foreground"
+                    : "border-l-[3px] border-transparent text-muted-foreground hover:border-soda-pink/30 hover:bg-sidebar-accent/60 hover:text-foreground"
                 )}
               >
                 <Icon
@@ -113,7 +112,7 @@ export function SidebarContent() {
             className="flex w-full items-center gap-2.5 rounded-lg p-2 text-left outline-none transition-colors hover:bg-sidebar-accent focus-visible:ring-2 focus-visible:ring-sidebar-ring"
           >
             <Avatar size="sm">
-              <AvatarFallback className="bg-[linear-gradient(135deg,var(--soda-purple),var(--soda-pink))] text-xs font-medium text-white">
+              <AvatarFallback className="bg-[#2D1B4E] text-xs font-medium text-white">
                 JS
               </AvatarFallback>
             </Avatar>
@@ -154,14 +153,6 @@ export function SidebarContent() {
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
-
-        <Link
-          href="/about"
-          className="font-ar block text-center text-[11px] text-muted-foreground transition-colors hover:text-soda-pink"
-          dir="rtl"
-        >
-          عن SODA
-        </Link>
       </div>
     </>
   );

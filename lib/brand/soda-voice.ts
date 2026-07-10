@@ -279,22 +279,23 @@ function getCloser(
 /*  Module slogans — natural Egyptian Arabic, studio-internal                 */
 /* -------------------------------------------------------------------------- */
 
+/** Factual module subtitles only — no decorative studio fluff. */
 export const MODULE_SLOGANS: Record<ModuleSloganKey, string> = {
-  dashboard: "مركز القيادة — نبضة الستوديو من أول نظرة.",
-  orders: "من أول مكالمة لحد آخر تسليمة — كل Order في مكانه.",
-  projects: "كل فكرة عظيمة بدأت بـ Project. هنا بنتابعها.",
-  clients: "العميل المرتاح بيرجعلك. خلّي العلاقة واضحة.",
-  workspaces: "كل مساحة شغل ليها إيقاع — وانت بتشوفه هنا.",
-  projectHub: "قلب الـ Project — ملفات، فلوس، فريق، وكل حاجة.",
-  rtm: "المحتوى بيحصل دلوقتي — وإحنا جاهزين نمسكه.",
-  weddings: "يوم العمر — وإحنا بنصوّره صح من غير توتر.",
-  fashion: "جاهزين نطلع أحسن لوك؟ الستوديو فاتح.",
-  product: "المنتج بيتكلم — وإحنا بنخلّي الناس تسمع.",
-  events: "اللحظة بتمر مرة واحدة — وإحنا بنمسكها.",
-  commercial: "كل حملة ليها هدف — وإحنا بنوصّله.",
-  finance: "الفلوس واضحة — من غير لف ودوران.",
-  about: "قصة SODA — ليه بنعمل اللي بنعمله.",
-  login: "أهلاً بيك في الستوديو. ادخل وكمّل الشغل.",
+  dashboard: "Operational questions from live studio data.",
+  orders: "Commercial and wedding order lanes.",
+  projects: "Active and closed projects.",
+  clients: "Commercial companies and wedding clients.",
+  workspaces: "Commercial lanes — accounts, projects, and revenue.",
+  projectHub: "Orders, files, payments, crew, and journey.",
+  rtm: "RTM commercial lane.",
+  weddings: "Wedding orders by year and month.",
+  fashion: "Fashion commercial lane.",
+  product: "Product commercial lane.",
+  events: "Events commercial lane.",
+  commercial: "Commercial accounts and campaigns.",
+  finance: "Invoices, payments, and outstanding balances.",
+  about: "SODA Visuals Studio.",
+  login: "Sign in to SODA OS.",
 };
 
 /** Resolve slogan for a workspace id/slug (falls back to workspaces). */
@@ -394,17 +395,13 @@ export function getCompanyPulse(
     schedule: snapshot.schedule,
   });
   const insights: CompanyPulseInsight[] = [];
-  const n = toEasternDigits;
 
-  // Only real pressure / events — never filler “all good” copy
+  // Only real pressure / events — factual copy, no filler
   if (signals.overdueCount > 0) {
     insights.push({
       id: "editing-pressure",
       label: "Overdue deliveries",
-      insight:
-        signals.overdueCount === 1
-          ? "في تسليمة overdue واحدة بضاغطة على الـ editing — خلّيها أولوية."
-          : `ضغط editing: ${n(signals.overdueCount)} overdue محتاجين نظرة النهاردة.`,
+      insight: `${signals.overdueCount} overdue delivery${signals.overdueCount === 1 ? "" : "ies"} need action.`,
       tone: "pressure",
     });
   }
@@ -413,17 +410,14 @@ export function getCompanyPulse(
     insights.push({
       id: "payments-slowing",
       label: "Unpaid clients",
-      insight:
-        signals.unpaidCount === 1
-          ? "في Client واحد لسه unpaid — وقت follow-up."
-          : `التحصيل محتاج متابعة — ${n(signals.unpaidCount)} clients لسه unpaid.`,
+      insight: `${signals.unpaidCount} unpaid client balance${signals.unpaidCount === 1 ? "" : "s"}.`,
       tone: "watch",
     });
   } else if (snapshot.financial.outstanding > 0) {
     insights.push({
       id: "outstanding-balance",
       label: "Outstanding",
-      insight: `في مستحقات معلّقة بقيمة ${n(Math.round(snapshot.financial.outstanding))} — follow-up على الحسابات.`,
+      insight: `${Math.round(snapshot.financial.outstanding).toLocaleString("en-EG")} EGP outstanding.`,
       tone: "watch",
     });
   }
@@ -432,17 +426,14 @@ export function getCompanyPulse(
     insights.push({
       id: "shoots-today",
       label: "Shoots today",
-      insight:
-        signals.todayShoots === 1
-          ? "عندك shoot واحد النهاردة — خلّيه يطلع نظيف."
-          : `أسبوع تصوير سخن — ${n(signals.todayShoots)} shoots النهاردة.`,
+      insight: `${signals.todayShoots} shoot${signals.todayShoots === 1 ? "" : "s"} today.`,
       tone: signals.todayShoots >= 2 ? "watch" : "neutral",
     });
   } else if (signals.upcomingShoots >= 3) {
     insights.push({
       id: "shoots-ahead",
       label: "Upcoming shoots",
-      insight: `الجدول فيه ${n(signals.upcomingShoots)} shoots قريبة — جهّز الفريق.`,
+      insight: `${signals.upcomingShoots} upcoming shoots.`,
       tone: "watch",
     });
   }
@@ -451,10 +442,7 @@ export function getCompanyPulse(
     insights.push({
       id: "deliveries-today",
       label: "Deliveries today",
-      insight:
-        signals.todayDeliveries === 1
-          ? "فيه تسليمة النهاردة على الرادار."
-          : `فيه ${n(signals.todayDeliveries)} deliveries النهاردة.`,
+      insight: `${signals.todayDeliveries} delivery${signals.todayDeliveries === 1 ? "" : "ies"} due today.`,
       tone: "neutral",
     });
   }
@@ -464,7 +452,7 @@ export function getCompanyPulse(
     insights.push({
       id: "team-load",
       label: "Workload",
-      insight: `${topLoad.name} عليه ${n(topLoad.currentWorkload)} assignments نشطة — راقب التوزيع.`,
+      insight: `${topLoad.name}: ${topLoad.currentWorkload} active assignments.`,
       tone: "watch",
     });
   }
@@ -713,60 +701,60 @@ export function getMoodMessage(
 
 export const EMPTY_STATES: Record<EmptyStateKey, EmptyStateCopy> = {
   orders: {
-    title: "لسه مفيش Orders هنا...",
-    description: "يلا نفتح أول شغلانة ونخلي الـ pipeline يتحرك.",
+    title: "No orders",
+    description: "",
   },
   clients: {
-    title: "لسه مفيش Clients ظاهرين...",
-    description: "ضيف Client جديد، أو وسّع البحث شوية.",
+    title: "No clients",
+    description: "",
   },
   workspaces: {
-    title: "مفيش Workspaces مطابقة...",
-    description: "جرّب كلمة تانية — أو افتح lane من الـ sidebar.",
+    title: "No commercial lanes match",
+    description: "",
   },
   projects: {
-    title: "لسه مفيش Projects هنا...",
-    description: "كل فكرة عظيمة بتبدأ بـ Project — يلا نبدأ واحد.",
+    title: "No projects",
+    description: "",
   },
   files: {
-    title: "لسه مفيش Files...",
-    description: "أول ما ترفع حاجة، هتظهر هنا على طول.",
+    title: "No files",
+    description: "",
   },
   shoots: {
-    title: "مفيش shoots قريبة...",
-    description: "الجدول فاضي دلوقتي — فرصة ترتّب بهدوء.",
+    title: "No upcoming shoots",
+    description: "",
   },
   deliveries: {
-    title: "مفيش deliveries قريبة...",
-    description: "لما تقرب تسليمة، هتشوفها هنا.",
+    title: "No upcoming deliveries",
+    description: "",
   },
   deadlines: {
-    title: "مفيش deadlines في الـ ١٤ يوم الجايين...",
-    description: "هدوّة حلوة — استغلها ترتّب الشغل.",
+    title: "No deadlines in the next 14 days",
+    description: "",
   },
   payments: {
-    title: "لسه مفيش Payments مسجّلة...",
-    description: "لما يتسجّل Payment، هتشوفه هنا.",
+    title: "No payments",
+    description: "",
   },
   team: {
-    title: "مفيش فريق متعيّن لسه...",
-    description: "عيّن الفريق عشان الشغل يمشي أسرع.",
+    title: "No crew assigned",
+    description: "",
   },
   attentionClear: {
-    title: "كل حاجة تمام.",
-    description: "مفيش overdue ولا unpaid ولا deadlines ضاغطة — الستوديو مرتّب.",
+    title: "Nothing needs attention",
+    description: "",
   },
   notes: {
-    title: "لسه مفيش Notes...",
-    description: "اكتب ملاحظة سريعة عشان متضيعش الفكرة.",
+    title: "No notes",
+    description: "",
   },
   activity: {
-    title: "لسه مفيش Activity...",
-    description: "أول ما يحصل حركة على الـ Project، هتظهر هنا.",
+    title: "No activity",
+    description: "",
   },
   deliverables: {
-    title: "لسه مفيش Deliverables...",
-    description: "لما التسلمات تتحدد، هتلاقيها هنا.",
+    title: "No deliverables",
+    description: "",
   },
 };
 
@@ -791,12 +779,12 @@ export const WARNING_MESSAGES: Record<WarningKey, string> = {
 };
 
 export const LOADING_MESSAGES: Record<LoadingKey, string> = {
-  default: "ثواني... بنجهّزلك الصفحة",
-  dashboard: "بنجهّز Command Center...",
-  orders: "بنحمّل الـ Orders...",
-  clients: "بنحمّل الـ Clients...",
-  workspaces: "بنحمّل الـ Workspaces...",
-  project: "بنفتح الـ Project hub...",
+  default: "Loading…",
+  dashboard: "Loading Command Center…",
+  orders: "Loading orders…",
+  clients: "Loading clients…",
+  workspaces: "Loading commercial…",
+  project: "Loading project…",
 };
 
 export function getSuccessMessage(key: SuccessKey): string {
@@ -816,9 +804,9 @@ export function getLoadingMessage(key: LoadingKey = "default"): string {
 /* -------------------------------------------------------------------------- */
 
 export const NOTIFICATION_COPY = [
-  "راجع الـ overdue deliveries من Need Your Attention.",
-  "تابع unpaid clients من Clients → Commercial.",
-  "شوف المستحقات للناس من People.",
+  "Review overdue deliveries in Need Your Attention.",
+  "Follow up unpaid clients under Clients → Commercial.",
+  "Check crew pay outstanding under The Crew.",
 ] as const;
 
 /* -------------------------------------------------------------------------- */
@@ -828,117 +816,114 @@ export const NOTIFICATION_COPY = [
 export const DASHBOARD_SECTION_COPY: Record<DashboardSectionKey, SectionCopy> =
   {
     operations: {
-      title: "Today's Operations",
-      description: "إيه اللي شغّال النهاردة؟ أرقام الستوديو في نظرة واحدة.",
+      title: "What today?",
+      description: "Live KPIs from orders, projects, and schedule.",
     },
     kpis: {
-      title: "Today's Operations",
-      description: "إيه اللي شغّال النهاردة؟ أرقام الستوديو في نظرة واحدة.",
+      title: "What today?",
+      description: "Live KPIs from orders, projects, and schedule.",
     },
     attention: {
       title: "Need Your Attention",
-      description: "دول اللي بضاغطوا — خلّصهم الأول قبل أي حاجة.",
+      description: "Overdue, unpaid, and deadline pressure — data only.",
     },
     schedule: {
       title: "Today's Timeline",
-      description: "Shoots، deliveries، و deadlines على الرادار.",
+      description: "Shoots, deliveries, and deadlines.",
     },
     financial: {
       title: "Finance Snapshot",
-      description: "صورة الفلوس بوضوح — booked، outstanding، والباقي.",
+      description: "Booked, collected, and outstanding.",
     },
     recentOrders: {
-      title: "Orders Snapshot",
-      description: "آخر الحجوزات اللي دخلت النظام — نبضة الـ pipeline.",
+      title: "Recent Orders",
+      description: "Latest bookings in the system.",
     },
     projects: {
-      title: "Projects Snapshot",
-      description: "كل مساحة شغل... وقد إيه ماشية في الإنتاج.",
+      title: "Commercial lanes",
+      description: "Projects and revenue by commercial account lane.",
     },
     workspaces: {
-      title: "Projects Snapshot",
-      description: "كل مساحة شغل... وقد إيه ماشية في الإنتاج.",
+      title: "Commercial lanes",
+      description: "Projects and revenue by commercial account lane.",
     },
     team: {
-      title: "People Status",
-      description: "مين شادّ النهاردة من الـ assignments الفعلية.",
+      title: "The Crew — workload",
+      description: "Who worked most from order assignments this period.",
     },
     quickActions: {
       title: "Quick Actions",
-      description: "اختصارات سريعة — حرّك اليوم من هنا.",
+      description: "Jump to orders, commercial, clients, or crew.",
     },
     sodaLive: {
       title: "SODA LIVE",
-      description: "أحداث من البيانات الحقيقية — shoots، deliveries، والـ pipeline.",
+      description: "Real events from shoots, deliveries, and pipeline.",
     },
     companyPulse: {
-      title: "Company Pulse",
-      description: "تنبيهات من overdue و unpaid و shoots فقط — من غير حشو.",
+      title: "Operational alerts",
+      description: "Overdue, unpaid, shoots, and crew load only.",
     },
   };
 
-/** KPI card Arabic whispers — English title stays primary. */
+/** KPI titles — whispers are factual deltas only (empty when nothing to say). */
 export const KPI_COPY: Record<
   KpiCopyKey,
   { title: string; whisper: string }
 > = {
   revenueThisMonth: {
     title: "Revenue this month",
-    whisper: "الشهر ماشي... خلّينا نحافظ على النسق.",
+    whisper: "",
   },
   revenueLastMonth: {
     title: "Revenue last month",
-    whisper: "مرجع الشهر اللي فات — عشان نقارن بهدوء.",
+    whisper: "",
   },
   outstanding: {
     title: "Outstanding payments",
-    whisper: "فلوس لسه برّه... نلمّها من غير ضغط زيادة.",
+    whisper: "",
   },
   activeProjects: {
     title: "Active projects",
-    whisper: "كل حاجة ماشية حسب الخطة.",
+    whisper: "",
   },
   activeOrders: {
     title: "Active orders",
-    whisper: "الـ pipeline صاحي.",
+    whisper: "",
   },
   upcomingShoots: {
     title: "Upcoming shoots",
-    whisper: "جهّز الكاميرات... عندنا يوم شغل.",
+    whisper: "",
   },
   upcomingDeliveries: {
     title: "Upcoming deliveries",
-    whisper: "التسليمات الجاية على الرادار.",
+    whisper: "",
   },
   activeClients: {
     title: "Active clients",
-    whisper: "عملاء شغّالين معانا دلوقتي.",
+    whisper: "",
   },
 };
 
-/** Soft revenue whisper that adapts to MoM without new business logic. */
+/** MoM delta only — no decorative copy. */
 export function getRevenueWhisper(changePct: number | null): string {
-  if (changePct == null) return KPI_COPY.revenueThisMonth.whisper;
-  if (changePct >= 10)
-    return "الشهر ماشي كويس... خلينا نحافظ على النسق.";
-  if (changePct > 0) return "طالع شوية عن الشهر اللي فات — كمل بهدوء.";
-  if (changePct === 0) return "ثابت زي الشهر اللي فات.";
-  return "الشهر أهدى شوية — عادي، خلّينا نركّز.";
+  if (changePct == null) return "";
+  const sign = changePct > 0 ? "+" : "";
+  return `${sign}${changePct.toFixed(1)}% vs last month`;
 }
 
 export function getOutstandingWhisper(amount: number): string {
-  if (amount <= 0) return "مفيش مستحقات معلّقة.";
-  return KPI_COPY.outstanding.whisper;
+  if (amount <= 0) return "";
+  return `${amount.toLocaleString("en-EG")} EGP open`;
 }
 
 export function getActiveProjectsWhisper(count: number): string {
-  if (count === 0) return "فاضي شوية... فرصة لـ Project جديد.";
-  return KPI_COPY.activeProjects.whisper;
+  if (count === 0) return "";
+  return `${count} active`;
 }
 
 export function getUpcomingShootsWhisper(count: number): string {
-  if (count === 0) return "مفيش shoots قريبة دلوقتي.";
-  return KPI_COPY.upcomingShoots.whisper;
+  if (count === 0) return "";
+  return `${count} scheduled`;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -948,47 +933,47 @@ export function getUpcomingShootsWhisper(count: number): string {
 export const HUB_SECTION_COPY: Record<HubSectionCopyKey, SectionCopy> = {
   overview: {
     title: "Overview",
-    description: "صورة سريعة عن الـ Project من غير ما تغوص.",
+    description: "Status, journey, and key dates.",
   },
   orders: {
     title: "Orders",
-    description: "الحجوزات المربوطة بالـ Project ده.",
+    description: "Orders linked to this project.",
   },
   calendar: {
     title: "Calendar",
-    description: "Shoots، deliveries، والمواعيد المهمة.",
+    description: "Shoots, deliveries, and key dates.",
   },
   files: {
     title: "Files",
-    description: "الملفات والمستندات بتاعة الـ Project.",
+    description: "Project files and documents.",
   },
   payments: {
     title: "Payments",
-    description: "الفلوس الداخلة واللي لسه مستنية.",
+    description: "Collected and outstanding amounts.",
   },
   timeline: {
     title: "Timeline",
-    description: "محطات الـ Project من أول يوم.",
+    description: "Project milestones.",
   },
   team: {
-    title: "Assigned People",
-    description: "الناس اللي ماسكين الشغلانة دي.",
+    title: "Assigned Crew",
+    description: "Crew on this project from assignments.",
   },
   notes: {
     title: "Notes",
-    description: "ملاحظات سريعة... عشان متضيعش الفكرة.",
+    description: "Project notes.",
   },
   activity: {
     title: "Activity",
-    description: "آخر حركة حصلت على الـ Project.",
+    description: "Recent project activity.",
   },
   deliverables: {
     title: "Deliverables",
-    description: "إيه اللي المفروض يتسلّم... وإيه اللي خلص.",
+    description: "Required and completed deliverables.",
   },
   upcomingShoots: {
     title: "Upcoming Shoots",
-    description: "التصويرات الجاية على الـ Project.",
+    description: "Scheduled shoots on this project.",
   },
 };
 

@@ -1,31 +1,30 @@
 import Link from "next/link";
 import { Building2, Heart } from "lucide-react";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { getModuleSlogan } from "@/lib/brand/soda-voice";
+import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 const lanes = [
   {
-    href: "/orders/weddings",
-    title: "Wedding orders",
-    description: "Timeline by year and month — counts, delayed, delivered.",
-    icon: Heart,
-    whisper: "أيام العمر على الجدول.",
+    href: "/orders/commercial",
+    title: "Commercial",
+    description:
+      "Commercial client → projects → orders. Companies, invoices, outstanding.",
+    icon: Building2,
   },
   {
-    href: "/orders/commercial",
-    title: "Commercial orders",
-    description: "Company drill-down — projects, deliveries, invoices.",
-    icon: Building2,
-    whisper: "الحسابات التجارية من الشركة.",
+    href: "/orders/weddings",
+    title: "Wedding",
+    description:
+      "Year → month → orders with counts: this month, upcoming, delivered, delayed.",
+    icon: Heart,
   },
 ] as const;
 
 export function OrdersHub() {
   return (
     <div className="space-y-6">
-      <p className="font-ar max-w-2xl text-[0.9375rem] leading-[1.8] text-muted-foreground" dir="rtl">
-        {getModuleSlogan("orders")}
+      <p className="max-w-2xl text-sm text-muted-foreground">
+        Choose a lane. Orders are never one flat table.
       </p>
       <div className="grid gap-4 sm:grid-cols-2">
         {lanes.map((lane) => {
@@ -40,11 +39,6 @@ export function OrdersHub() {
                   <CardTitle>{lane.title}</CardTitle>
                   <CardDescription>{lane.description}</CardDescription>
                 </CardHeader>
-                <CardContent>
-                  <p className="font-ar text-sm text-muted-foreground" dir="rtl">
-                    {lane.whisper}
-                  </p>
-                </CardContent>
               </Card>
             </Link>
           );

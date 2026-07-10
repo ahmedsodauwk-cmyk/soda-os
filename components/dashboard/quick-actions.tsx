@@ -1,11 +1,11 @@
 import Link from "next/link";
 import {
   BarChart3,
+  Briefcase,
   CalendarDays,
-  FolderPlus,
   Plus,
   UserPlus,
-  UserRound,
+  UsersRound,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -33,15 +33,15 @@ const actions = [
     enabled: true,
   },
   {
-    label: "People",
-    href: "/people",
-    icon: UserRound,
+    label: "The Crew",
+    href: "/crew",
+    icon: UsersRound,
     enabled: true,
   },
   {
-    label: "New Project",
-    href: "/workspaces",
-    icon: FolderPlus,
+    label: "Commercial",
+    href: "/commercial",
+    icon: Briefcase,
     enabled: true,
   },
   {
@@ -65,10 +65,7 @@ export default function QuickActions() {
     <Card className="soda-cc-card">
       <CardHeader className="pb-3">
         <CardTitle>{DASHBOARD_SECTION_COPY.quickActions.title}</CardTitle>
-        <CardDescription
-          className="font-ar text-[0.9375rem] leading-[1.8] text-muted-foreground"
-          dir="rtl"
-        >
+        <CardDescription>
           {DASHBOARD_SECTION_COPY.quickActions.description}
         </CardDescription>
       </CardHeader>

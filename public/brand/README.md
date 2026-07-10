@@ -1,12 +1,18 @@
 # SODA brand assets
 
-## Current status
+## Source of truth
 
-`soda-mark.svg` and `soda-wordmark.svg` are **interim lockups** (stylized “S” mark + product word).
+- `soda-logo-master.png` — official lockup (white geometric صودا on Deep Dark Purple `#2D1B4E`, presented on Vibrant Pink `#E93D77`)
+- `soda-mark.svg` — app mark (white صودا on `#2D1B4E`, square, for favicon / sidebar)
+- `soda-mark-white.svg` — white mark only (transparent) for dark UI overlays
+- `soda-wordmark.svg` — mark + SODA OS word
 
-Replace these files with the final SODA Visuals Studio lockup when available:
+## Colors
 
-- `soda-mark.svg` — square app mark (viewBox square, no stretch)
-- `soda-wordmark.svg` — horizontal mark + word (preserve aspect ratio)
+| Role | Hex | Use |
+|------|-----|-----|
+| Deep Dark Purple | `#2D1B4E` | Mark field, supporting brand |
+| Vibrant Pink | `#E93D77` | Accents, CTAs, progress, notifications |
+| White | `#FFFFFF` | Mark + readability on dark |
 
 Do not crop or stretch in UI — components use `object-contain` and fixed aspect boxes.

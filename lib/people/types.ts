@@ -1,10 +1,41 @@
 /**
- * People OS — studio members (replaces informal “Team” label).
- * Payments are NEVER manual salary — always derived from order assignments.
+ * People / Crew OS — studio members.
+ * Product name: The Crew. Payments NEVER manual — from order assignments.
  */
 
 export const PERSON_STATUSES = ["active", "inactive", "on_leave"] as const;
 export type PersonStatus = (typeof PERSON_STATUSES)[number];
+
+export const EMPLOYMENT_TYPES = [
+  "full_time",
+  "part_time",
+  "freelance",
+  "contractor",
+] as const;
+export type EmploymentType = (typeof EMPLOYMENT_TYPES)[number];
+
+export const EMPLOYMENT_TYPE_LABELS: Record<EmploymentType, string> = {
+  full_time: "Full-time",
+  part_time: "Part-time",
+  freelance: "Freelance",
+  contractor: "Contractor",
+};
+
+/** What a crew member IS / is NOT responsible for */
+export const CREW_RESPONSIBILITIES = [
+  "Photography",
+  "Videography",
+  "Editing",
+  "Color Grading",
+  "Retouching",
+  "Drone",
+  "Lighting",
+  "Creative Direction",
+  "Assistant",
+  "Production",
+  "Client Relations",
+] as const;
+export type CrewResponsibility = (typeof CREW_RESPONSIBILITIES)[number];
 
 export interface Person {
   id: string;
@@ -12,8 +43,15 @@ export interface Person {
   nameAr: string;
   /** English legal / payroll name */
   nameEn: string;
+  /** Studio nickname (e.g. نيمو) */
+  nickname?: string;
   jobTitle: string;
   jobDescription: string;
+  employmentType?: EmploymentType;
+  /** Skills / crafts they ARE responsible for */
+  responsibilities?: CrewResponsibility[];
+  /** Explicitly NOT responsible for */
+  notResponsibleFor?: CrewResponsibility[];
   phone: string;
   email: string;
   joinDate: string;
@@ -35,6 +73,8 @@ export interface PersonPerformance {
   currentWorkload: number;
   /** Average days from shoot → delivery on completed assignments */
   avgDeliverySpeedDays: number | null;
+  lateDeliveries: number;
+  clientRating: number | null;
   /** Sum of final amounts owed (paid + remaining) */
   totalEarned: number;
   totalPaid: number;

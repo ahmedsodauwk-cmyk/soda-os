@@ -199,6 +199,21 @@ export function getPersonPerformance(
   const achievements: string[] = [];
   const warnings: string[] = [];
 
+  let lateDeliveries = 0;
+  for (const orderId of completedOrders) {
+    const o = orders.get(orderId);
+    if (!o) continue;
+    const shoot = Date.parse(`${o.shootDate}T12:00:00Z`);
+    const delivery = Date.parse(`${o.deliveryDate}T12:00:00Z`);
+    if (
+      !Number.isNaN(shoot) &&
+      !Number.isNaN(delivery) &&
+      (delivery - shoot) / (1000 * 60 * 60 * 24) > 45
+    ) {
+      lateDeliveries += 1;
+    }
+  }
+
   if (completedOrders.size >= 3) {
     achievements.push(
       `${completedOrders.size} orders delivered with this person assigned`
@@ -212,6 +227,9 @@ export function getPersonPerformance(
       `Outstanding crew pay: ${summary.totalOutstanding.toLocaleString("en-EG")} EGP`
     );
   }
+  if (lateDeliveries > 0) {
+    warnings.push(`${lateDeliveries} long-cycle deliveries (>45 days)`);
+  }
 
   return {
     personId,
@@ -219,6 +237,8 @@ export function getPersonPerformance(
     ordersCompleted: completedOrders.size,
     currentWorkload: workload,
     avgDeliverySpeedDays,
+    lateDeliveries,
+    clientRating: null,
     totalEarned: summary.totalEarned,
     totalPaid: summary.totalPaid,
     totalOutstanding: summary.totalOutstanding,

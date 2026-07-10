@@ -55,6 +55,7 @@ export {
   sodaMotion,
   sodaStatus,
   sodaChartPalette,
+  SODA_BRAND_HEX,
 } from "@/lib/brand/tokens";
 
 export {

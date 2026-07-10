@@ -26,7 +26,7 @@ export default function PeopleOwedCard() {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Wallet className="size-4 text-soda-pink" />
-          Owed to people
+          Owed to The Crew
         </CardTitle>
         <CardDescription>
           Outstanding crew pay from order assignments (e.g. Nemo).
@@ -36,7 +36,7 @@ export default function PeopleOwedCard() {
         {rows.map(({ person, outstanding }) => (
           <Link
             key={person.id}
-            href={`/people/${person.id}`}
+            href={`/crew/${person.id}`}
             className="flex items-center justify-between gap-3 rounded-xl border border-border/60 px-3 py-2.5 hover:border-soda-pink/35"
           >
             <PersonAvatar

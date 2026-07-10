@@ -26,28 +26,22 @@ export default function WorkspacePerformance({
     <Card className="soda-cc-card">
       <CardHeader>
         <CardTitle>{DASHBOARD_SECTION_COPY.workspaces.title}</CardTitle>
-        <CardDescription
-          className="font-ar text-[0.9375rem] leading-[1.8] text-muted-foreground"
-          dir="rtl"
-        >
+        <CardDescription>
           {DASHBOARD_SECTION_COPY.workspaces.description}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-3">
         {workspaces.length === 0 ? (
-          <div className="py-4 text-center" dir="rtl">
+          <div className="py-4 text-center">
             <p className="text-sm font-medium">
               {getEmptyState("workspaces").title}
-            </p>
-            <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-              {getEmptyState("workspaces").description}
             </p>
           </div>
         ) : (
           workspaces.map((ws) => (
             <Link
               key={ws.id}
-              href={`/workspaces/${ws.slug}`}
+              href={`/commercial/${ws.slug}`}
               className="block rounded-lg p-3 transition-colors hover:bg-muted/50"
             >
               <div className="mb-2 flex items-start justify-between gap-3">

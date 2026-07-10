@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" role="img" aria-label="SODA">
+  <!-- White-only geometric 5H/' mark for dark surfaces (transparent bg) -->
+  <g fill="#FFFFFF">
+    <path d="M14 16h4v-3h32v3h10v10H14V16z"/>
+    <rect x="14" y="26" width="10" height="26"/>
+    <path d="M28 30h26v22H28V30zm16 8v6h10v-6H44z"/>
+  </g>
+</svg>

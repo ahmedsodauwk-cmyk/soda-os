@@ -1,14 +1,13 @@
 /**
- * SODA Logo System — Experience v1.0 official usage rules.
+ * SODA Logo System — Sprint 11 official usage rules.
  *
- * Asset: `/public/brand/soda-mark.svg` (primary mark)
- * Fallback wordmark: `/public/brand/soda-wordmark.svg`
+ * Assets in `/public/brand/`:
+ * - `soda-mark.svg` — white geometric صودا on Deep Dark Purple (#2D1B4E)
+ * - `soda-mark-white.svg` — white mark only (transparent) for dark UI overlays
+ * - `soda-wordmark.svg` — mark + SODA OS word
+ * - `soda-logo-master.png` — official lockup master (source of truth)
  *
- * NOTE: Current SVGs are interim (stylized “S”). Replace files in
- * `public/brand/` with the final studio lockup — keep square mark +
- * horizontal wordmark viewBoxes; UI already uses object-contain.
- *
- * Inspired by Deep Purple + Vibrant Pink brand language.
+ * Colors: Deep Dark Purple #2D1B4E · Vibrant Pink #E93D77 · White
  *
  * ─────────────────────────────────────────────────────────────
  * PLACEMENTS (allowed)
@@ -21,20 +20,10 @@
  * ✓ Future PDF letterhead / reports cover
  *
  * ─────────────────────────────────────────────────────────────
- * PDF / DOCUMENT HEADER (future)
- * ─────────────────────────────────────────────────────────────
- * • Mark size: SODA_LOGO_SIZES.document (48px) at top-start
- * • Clear space: ≥ 0.25× mark height on all sides
- * • Wordmark optional beside mark; product name “SODA OS” in Outfit
- * • Do not recolor the mark; print on white or deep-purple field only
- * • Pink accent line (1–2pt) under header is allowed; never flood pink
- * • Footer may use mark at 24px + studio tagline; no drop shadows
- *
- * ─────────────────────────────────────────────────────────────
  * DO NOT
  * ─────────────────────────────────────────────────────────────
  * ✗ Repeat the logo inside every card / widget
- * ✗ Stretch, recolor arbitrarily, or add drop shadows on the mark
+ * ✗ Stretch, recolor arbitrarily, or crop the mark
  * ✗ Place the mark on busy photography without a dark scrim
  * ✗ Use pink as a full-bleed logo background (pink = accent only)
  *
@@ -42,10 +31,14 @@
  */
 
 export const SODA_LOGO = {
-  /** Primary mark path (SVG) */
+  /** Primary mark path (SVG) — purple tile + white صودا */
   markSrc: "/brand/soda-mark.svg",
-  /** Horizontal wordmark for splash / PDF (future) */
+  /** White-only mark for dark overlays */
+  markWhiteSrc: "/brand/soda-mark-white.svg",
+  /** Horizontal wordmark for splash / PDF */
   wordmarkSrc: "/brand/soda-wordmark.svg",
+  /** Official master PNG */
+  masterSrc: "/brand/soda-logo-master.png",
   /** Favicon / app icon */
   iconSrc: "/brand/soda-mark.svg",
   alt: "SODA",
@@ -80,7 +73,7 @@ export type SodaLogoPlacement =
   | "pdf"
   | "empty";
 
-/** Which asset + size to use per placement — future-ready constants */
+/** Which asset + size to use per placement */
 export const SODA_LOGO_PLACEMENTS: Record<
   SodaLogoPlacement,
   { src: string; size: number; showWord?: boolean }
@@ -101,7 +94,6 @@ export const SODA_LOGO_PLACEMENTS: Record<
 
 /**
  * Future PDF header layout rules (consume in report exporters).
- * No runtime PDF generation yet — constants only.
  */
 export const SODA_PDF_HEADER = {
   markSizePx: SODA_LOGO_SIZES.document,

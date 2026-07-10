@@ -88,7 +88,7 @@ export function buildSodaLiveItems(
       title: arName,
       body: `${topMember.role} · ${n(topMember.currentWorkload)} assignments نشطة · ${n(topMember.ordersCompleted)} orders مكتملة.`,
       at: snapshot.asOf,
-      href: `/people/${topMember.id}`,
+      href: `/crew/${topMember.id}`,
     });
   }
 

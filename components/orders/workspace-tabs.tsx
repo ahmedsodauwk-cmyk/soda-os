@@ -17,7 +17,7 @@ export function WorkspaceTabs({
   return (
     <div
       role="tablist"
-      aria-label="Workspace"
+      aria-label="Commercial lane"
       className="flex flex-wrap gap-1 border-b border-border/60 pb-px"
     >
       <TabButton

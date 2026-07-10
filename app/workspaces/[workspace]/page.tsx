@@ -1,30 +1,13 @@
-import { notFound } from "next/navigation";
+import { redirect } from "next/navigation";
 
-import { AppShell } from "@/components/layout/app-shell";
-import { WorkspaceDetailContent } from "@/components/workspaces/workspace-detail-content";
-import { getWorkspaceSlogan } from "@/lib/brand/soda-voice";
-import { getWorkspaceSummaryById } from "@/lib/workspaces/repository";
-
-interface WorkspaceDetailPageProps {
+interface WorkspaceDetailRedirectProps {
   params: Promise<{ workspace: string }>;
 }
 
-export default async function WorkspaceDetailPage({
+/** Compatibility — /workspaces/:id → /commercial/:id */
+export default async function WorkspaceDetailRedirect({
   params,
-}: WorkspaceDetailPageProps) {
-  const { workspace: workspaceParam } = await params;
-  const workspace = getWorkspaceSummaryById(workspaceParam);
-
-  if (!workspace) {
-    notFound();
-  }
-
-  return (
-    <AppShell
-      title={workspace.label}
-      subtitle={getWorkspaceSlogan(workspace.id)}
-    >
-      <WorkspaceDetailContent workspace={workspace} />
-    </AppShell>
-  );
+}: WorkspaceDetailRedirectProps) {
+  const { workspace } = await params;
+  redirect(`/commercial/${workspace}`);
 }

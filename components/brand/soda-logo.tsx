@@ -13,9 +13,8 @@ interface SodaLogoProps {
 }
 
 /**
- * Official SODA mark. Prefer this over ad-hoc Camera icons.
- * Keep usage sparse — sidebar / splash / documents / empty only.
- * Never stretch or crop the mark — square box + object-contain.
+ * Official SODA mark — geometric صودا on Deep Dark Purple.
+ * Never stretch or crop — square box + object-contain.
  */
 export function SodaLogo({
   placement = "sidebar",
@@ -33,21 +32,18 @@ export function SodaLogo({
       <img
         src={config.src}
         alt={SODA_LOGO.alt}
-        width={isWordmark ? Math.round(size * (200 / 48)) : size}
+        width={isWordmark ? Math.round(size * (220 / 64)) : size}
         height={size}
         className={cn(
           "shrink-0 object-contain object-center",
           isWordmark
             ? "h-auto w-auto max-h-full"
             : "aspect-square rounded-[22%]",
-          placement === "empty" && "opacity-40",
-          placement !== "empty" &&
-            !isWordmark &&
-            "shadow-[0_0_20px_color-mix(in_oklch,var(--soda-purple)_28%,transparent)]"
+          placement === "empty" && "opacity-40"
         )}
         style={
           isWordmark
-            ? { height: size, width: "auto", maxWidth: size * 3.2 }
+            ? { height: size, width: "auto", maxWidth: size * 3.4 }
             : { width: size, height: size }
         }
         draggable={false}

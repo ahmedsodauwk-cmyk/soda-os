@@ -112,7 +112,7 @@ export function ProjectHubContent({ project }: ProjectHubContentProps) {
           variant="ghost"
           size="sm"
           nativeButton={false}
-          render={<Link href={`/workspaces/${project.workspaceId}`} />}
+          render={<Link href={`/commercial/${project.workspaceId}`} />}
           className="-ml-2 h-8 gap-1.5 text-muted-foreground"
         >
           <ArrowLeft className="size-3.5" />
@@ -179,9 +179,10 @@ export function ProjectHubContent({ project }: ProjectHubContentProps) {
               <Progress value={project.progress} className="gap-0" />
             </div>
 
-            {project.journeyStage ? (
-              <JourneyStepper current={project.journeyStage} compact />
-            ) : null}
+            <JourneyStepper
+              current={project.journeyStage ?? "Inquiry"}
+              compact
+            />
           </CardContent>
         </Card>
       </div>

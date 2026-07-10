@@ -1,72 +1,71 @@
 /**
- * SODA Official Design System — Experience v1.0 token source of truth.
+ * SODA Official Design System — Sprint 11 token source of truth.
  *
  * CSS variables in `app/globals.css` are the runtime theme.
  * This module mirrors them for TS consumers (charts, docs, PDF, login).
  *
  * ─────────────────────────────────────────────────────────────
- * COLOR ROLES (Experience v1.0)
+ * COLOR ROLES (Sprint 11 — calm premium)
  * ─────────────────────────────────────────────────────────────
- * Purple = premium foundation
- *   surfaces, sidebar rail, cards, focus rings, chart base, brand shell
- * Pink = energy accents (intentional, not rainbow)
- *   primary action fill (CTAs), progress bars, selection highlight,
- *   chart accents, notification badges, active-nav pink edge,
- *   LIVE card accents, small highlights
- * Neutrals = ink / fog / mist for readable hierarchy
+ * Dark surfaces = primary foundation (void / charcoal cards)
+ * White = readability on dark UI
+ * Deep Dark Purple (#2D1B4E) = supporting brand (sidebar tint, mark field)
+ * Vibrant Pink (#E93D77) = accent only
+ *   CTAs, progress, selection, notifications, interactive highlights
  *
- * Primary buttons lean pink via `--soda-action` while purple remains
- * the surface/sidebar/foundation language.
+ * Do not flood purple across every surface — keep it supporting.
  */
 
 export const sodaColors = {
-  /** Deep Purple — foundation, surfaces, sidebar, brand shell */
+  /** Deep Dark Purple — brand foundation (mark field, supporting tint) */
   purple: {
-    50: "#F5F0FF",
-    100: "#E8DEFF",
-    200: "#D0BDFF",
-    300: "#B08FFF",
-    400: "#9461F8",
-    500: "#7C3AED",
-    600: "#6B21A8",
-    700: "#581C87",
-    800: "#3B0764",
-    900: "#2E0A4E",
-    950: "#1A0530",
+    50: "#F5F0FA",
+    100: "#E8DEEF",
+    200: "#C9B8D9",
+    300: "#9A7FB3",
+    400: "#6B4F8A",
+    500: "#4A3568",
+    /** Official foundation from brand lockup */
+    600: "#2D1B4E",
+    700: "#241640",
+    800: "#1A1030",
+    900: "#120B22",
+    950: "#0A0714",
   },
   /**
-   * Vibrant Pink — energy accents + primary actions.
-   * Expanded scale for highlights, progress, selection, charts.
+   * Vibrant Pink — energy accents + primary actions only.
+   * Official accent from brand lockup ≈ #E93D77
    */
   pink: {
-    50: "#FDF2F8",
-    100: "#FCE7F3",
-    200: "#FBCFE8",
-    300: "#F9A8D4",
-    400: "#F472B6",
-    500: "#EC4899",
-    600: "#DB2777",
-    700: "#BE185D",
-    800: "#9D174D",
-    900: "#831843",
+    50: "#FDF2F7",
+    100: "#FCE7F0",
+    200: "#F9C2D9",
+    300: "#F48BB8",
+    400: "#EF5A96",
+    /** Official accent */
+    500: "#E93D77",
+    600: "#D12A63",
+    700: "#B01E52",
+    800: "#8F1843",
+    900: "#6E1234",
   },
-  /** Neutrals / surfaces */
+  /** Neutrals / surfaces — dark foundation + white readability */
   ink: {
     white: "#FFFFFF",
     fog: "#F4F2F7",
     mist: "#C8C2D4",
     slate: "#8B8499",
-    charcoal: "#1C1626",
-    void: "#0E0B14",
+    charcoal: "#16121F",
+    void: "#0C0A12",
   },
 } as const;
 
 /** Semantic roles mapped to CSS custom properties */
 export const sodaSemantic = {
-  /** Purple foundation (surfaces, sidebar active fill) */
+  /** Supporting brand purple (not every surface) */
   primary: "var(--primary)",
   primaryForeground: "var(--primary-foreground)",
-  /** Pink-leaning action fill for CTAs */
+  /** Pink action fill for CTAs */
   action: "var(--soda-action)",
   actionForeground: "var(--soda-action-foreground)",
   accentPink: "var(--soda-pink)",
@@ -87,7 +86,7 @@ export const sodaSemantic = {
 } as const;
 
 /**
- * Type scale — English chrome (Outfit) + Arabic supporting (IBM Plex Sans Arabic).
+ * Type scale — English chrome (Outfit) + Arabic (Alexandria).
  * Arabic lines use `.font-ar` with stronger size/leading for readability.
  */
 export const sodaType = {
@@ -129,7 +128,7 @@ export const sodaRadius = {
   full: "9999px",
 } as const;
 
-/** Elevation */
+/** Elevation — restrained; pink glow only for intentional accents */
 export const sodaElevation = {
   none: "none",
   soft: "var(--soda-shadow-soft)",
@@ -156,7 +155,7 @@ export const sodaStatus = {
 } as const;
 
 /**
- * Chart palette — purple foundation + pink accents.
+ * Chart palette — dark purple foundation + pink accents.
  * chart-1/3/5 = purple family; chart-2/4 = pink energy.
  */
 export const sodaChartPalette = [
@@ -166,3 +165,10 @@ export const sodaChartPalette = [
   sodaColors.pink[400],
   sodaColors.purple[600],
 ] as const;
+
+/** Official lockup hex — use when hardcoding brand fills */
+export const SODA_BRAND_HEX = {
+  deepPurple: "#2D1B4E",
+  vibrantPink: "#E93D77",
+  white: "#FFFFFF",
+} as const;

@@ -71,11 +71,8 @@ export default function Home() {
                 >
                   Today&apos;s Operations
                 </h2>
-                <p
-                  className="font-ar mt-1 text-[0.9375rem] leading-[1.8] text-muted-foreground"
-                  dir="rtl"
-                >
-                  إيه اللي شغّال النهاردة؟ أرقام الستوديو في نظرة واحدة.
+                <p className="mt-1 text-sm text-muted-foreground">
+                  What today? Revenue, outstanding, shoots, and active work.
                 </p>
               </div>
             </div>

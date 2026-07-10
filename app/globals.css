@@ -5,8 +5,8 @@
 @custom-variant dark (&:is(.dark *));
 
 /* -------------------------------------------------------------------------- */
-/*  SODA Design System — Experience v1.0                                      */
-/*  Purple = foundation · Pink = energy / primary actions                     */
+/*  SODA Design System — Sprint 11                                            */
+/*  Dark surfaces = foundation · Purple = supporting · Pink = accent          */
 /* -------------------------------------------------------------------------- */
 
 @theme inline {
@@ -15,7 +15,7 @@
   --font-sans: var(--font-outfit);
   --font-mono: var(--font-geist-mono);
   --font-heading: var(--font-outfit);
-  --font-arabic: var(--font-cairo-arabic);
+  --font-arabic: var(--font-alexandria);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -63,59 +63,58 @@
 }
 
 /* -------------------------------------------------------------------------- */
-/*  Light — purple-forward (app defaults to .dark; light kept for completeness)*/
+/*  Light — calm; purple supporting, pink for actions                         */
 /* -------------------------------------------------------------------------- */
 
 :root {
-  /* Raw brand — deepened purple foundation */
-  --soda-purple: oklch(0.38 0.24 305);
-  --soda-purple-bright: oklch(0.52 0.26 305);
-  --soda-pink: oklch(0.66 0.22 350);
-  --soda-pink-muted: oklch(0.66 0.22 350 / 20%);
-  --soda-pink-soft: oklch(0.66 0.22 350 / 10%);
-  --soda-glow: oklch(0.5 0.26 305 / 38%);
-  /* Primary actions lean pink */
-  --soda-action: oklch(0.62 0.22 350);
-  --soda-action-foreground: oklch(0.99 0.01 350);
+  /* Official brand hex mirrored in oklch-friendly tokens */
+  --soda-purple: #2d1b4e;
+  --soda-purple-bright: #4a3568;
+  --soda-pink: #e93d77;
+  --soda-pink-muted: color-mix(in srgb, #e93d77 20%, transparent);
+  --soda-pink-soft: color-mix(in srgb, #e93d77 10%, transparent);
+  --soda-glow: color-mix(in srgb, #2d1b4e 28%, transparent);
+  --soda-action: #e93d77;
+  --soda-action-foreground: #ffffff;
 
-  --background: oklch(0.985 0.01 305);
-  --foreground: oklch(0.18 0.04 305);
-  --card: oklch(1 0.006 305);
-  --card-foreground: oklch(0.18 0.04 305);
-  --popover: oklch(1 0.006 305);
-  --popover-foreground: oklch(0.18 0.04 305);
-  --primary: oklch(0.38 0.24 305);
-  --primary-foreground: oklch(0.99 0.01 305);
-  --secondary: oklch(0.95 0.025 305);
-  --secondary-foreground: oklch(0.28 0.06 305);
-  --muted: oklch(0.95 0.018 305);
-  --muted-foreground: oklch(0.48 0.035 305);
-  --accent: oklch(0.94 0.04 350);
-  --accent-foreground: oklch(0.32 0.14 350);
-  --destructive: oklch(0.55 0.22 25);
-  --border: oklch(0.9 0.025 305);
-  --input: oklch(0.9 0.025 305);
-  --ring: oklch(0.55 0.2 305);
-  --chart-1: oklch(0.48 0.24 305);
-  --chart-2: oklch(0.66 0.22 350);
-  --chart-3: oklch(0.55 0.18 290);
-  --chart-4: oklch(0.7 0.16 330);
-  --chart-5: oklch(0.38 0.2 305);
+  --background: #f7f5f9;
+  --foreground: #16121f;
+  --card: #ffffff;
+  --card-foreground: #16121f;
+  --popover: #ffffff;
+  --popover-foreground: #16121f;
+  --primary: #2d1b4e;
+  --primary-foreground: #ffffff;
+  --secondary: #efeaf4;
+  --secondary-foreground: #241640;
+  --muted: #f0edf4;
+  --muted-foreground: #6b6578;
+  --accent: #fce7f0;
+  --accent-foreground: #b01e52;
+  --destructive: #c43a3a;
+  --border: #e4dfe8;
+  --input: #e4dfe8;
+  --ring: #e93d77;
+  --chart-1: #4a3568;
+  --chart-2: #e93d77;
+  --chart-3: #6b4f8a;
+  --chart-4: #ef5a96;
+  --chart-5: #2d1b4e;
   --radius: 0.625rem;
-  --sidebar: oklch(0.97 0.018 305);
-  --sidebar-foreground: oklch(0.2 0.04 305);
-  --sidebar-primary: oklch(0.38 0.24 305);
-  --sidebar-primary-foreground: oklch(0.99 0.01 305);
-  --sidebar-accent: oklch(0.93 0.05 305);
-  --sidebar-accent-foreground: oklch(0.26 0.1 305);
-  --sidebar-border: oklch(0.9 0.025 305);
-  --sidebar-ring: oklch(0.55 0.2 305);
+  --sidebar: #f3f0f6;
+  --sidebar-foreground: #16121f;
+  --sidebar-primary: #2d1b4e;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #efeaf4;
+  --sidebar-accent-foreground: #241640;
+  --sidebar-border: #e4dfe8;
+  --sidebar-ring: #e93d77;
 
-  --soda-shadow-soft: 0 1px 2px oklch(0.3 0.05 305 / 6%),
-    0 4px 16px oklch(0.3 0.08 305 / 8%);
-  --soda-shadow-lift: 0 8px 28px oklch(0.35 0.12 305 / 14%);
-  --soda-shadow-glow: 0 0 32px oklch(0.5 0.26 305 / 28%);
-  --soda-shadow-pink: 0 0 28px oklch(0.62 0.22 350 / 32%);
+  --soda-shadow-soft: 0 1px 2px rgb(12 10 18 / 6%),
+    0 4px 16px rgb(12 10 18 / 8%);
+  --soda-shadow-lift: 0 8px 28px rgb(12 10 18 / 12%);
+  --soda-shadow-glow: 0 0 28px color-mix(in srgb, #2d1b4e 18%, transparent);
+  --soda-shadow-pink: 0 0 24px color-mix(in srgb, #e93d77 28%, transparent);
   --soda-ease: cubic-bezier(0.22, 1, 0.36, 1);
   --soda-duration: 200ms;
   --soda-duration-slow: 320ms;
@@ -123,61 +122,60 @@
 }
 
 /* -------------------------------------------------------------------------- */
-/*  Dark — creative studio default · deepened purple void                     */
+/*  Dark — primary foundation: near-black surfaces, purple supporting         */
 /* -------------------------------------------------------------------------- */
 
 .dark {
-  --soda-purple: oklch(0.64 0.26 305);
-  --soda-purple-bright: oklch(0.72 0.24 305);
-  --soda-pink: oklch(0.74 0.2 350);
-  --soda-pink-muted: oklch(0.74 0.2 350 / 18%);
-  --soda-pink-soft: oklch(0.74 0.2 350 / 12%);
-  --soda-glow: oklch(0.55 0.26 305 / 45%);
-  --soda-action: oklch(0.7 0.2 350);
-  --soda-action-foreground: oklch(0.14 0.04 350);
+  --soda-purple: #6b4f8a;
+  --soda-purple-bright: #9a7fb3;
+  --soda-pink: #e93d77;
+  --soda-pink-muted: color-mix(in srgb, #e93d77 18%, transparent);
+  --soda-pink-soft: color-mix(in srgb, #e93d77 12%, transparent);
+  --soda-glow: color-mix(in srgb, #2d1b4e 35%, transparent);
+  --soda-action: #e93d77;
+  --soda-action-foreground: #ffffff;
 
-  /* Deeper purple-tinted void — not flat gray */
-  --background: oklch(0.11 0.035 305);
-  --foreground: oklch(0.97 0.012 305);
-  --card: oklch(0.155 0.04 305);
-  --card-foreground: oklch(0.97 0.012 305);
-  --popover: oklch(0.155 0.04 305);
-  --popover-foreground: oklch(0.97 0.012 305);
-  /* Primary = Deep Purple (surfaces, sidebar, foundation) */
-  --primary: oklch(0.64 0.26 305);
-  --primary-foreground: oklch(0.99 0.01 305);
-  --secondary: oklch(0.2 0.045 305);
-  --secondary-foreground: oklch(0.95 0.012 305);
-  --muted: oklch(0.2 0.04 305);
-  --muted-foreground: oklch(0.72 0.03 305);
-  /* Accent surface leans pink */
-  --accent: oklch(0.22 0.055 350);
-  --accent-foreground: oklch(0.94 0.05 350);
-  --destructive: oklch(0.7 0.18 22);
-  --border: oklch(0.95 0.03 305 / 10%);
-  --input: oklch(0.95 0.03 305 / 14%);
-  --ring: oklch(0.7 0.22 305);
-  /* Brand chart palette — purple + pink accents */
-  --chart-1: oklch(0.7 0.24 305);
-  --chart-2: oklch(0.74 0.2 350);
-  --chart-3: oklch(0.62 0.16 290);
-  --chart-4: oklch(0.78 0.14 330);
-  --chart-5: oklch(0.5 0.2 305);
-  /* Branded sidebar rail */
-  --sidebar: oklch(0.09 0.04 305);
-  --sidebar-foreground: oklch(0.96 0.012 305);
-  --sidebar-primary: oklch(0.64 0.26 305);
-  --sidebar-primary-foreground: oklch(0.99 0.01 305);
-  --sidebar-accent: oklch(0.18 0.06 305);
-  --sidebar-accent-foreground: oklch(0.97 0.012 305);
-  --sidebar-border: oklch(0.95 0.03 305 / 10%);
-  --sidebar-ring: oklch(0.7 0.22 305);
+  /* Dark foundation — not purple flood */
+  --background: #0c0a12;
+  --foreground: #f7f5f9;
+  --card: #16121f;
+  --card-foreground: #f7f5f9;
+  --popover: #16121f;
+  --popover-foreground: #f7f5f9;
+  /* Primary = supporting brand purple (buttons secondary / brand chrome) */
+  --primary: #6b4f8a;
+  --primary-foreground: #ffffff;
+  --secondary: #1e1a28;
+  --secondary-foreground: #f0edf4;
+  --muted: #1e1a28;
+  --muted-foreground: #a39aaf;
+  /* Accent surface leans pink for interactive */
+  --accent: #2a1520;
+  --accent-foreground: #f9c2d9;
+  --destructive: #e85a5a;
+  --border: rgb(247 245 249 / 9%);
+  --input: rgb(247 245 249 / 12%);
+  --ring: #e93d77;
+  --chart-1: #9a7fb3;
+  --chart-2: #e93d77;
+  --chart-3: #6b4f8a;
+  --chart-4: #ef5a96;
+  --chart-5: #4a3568;
+  /* Sidebar: deep purple brand field, not neon */
+  --sidebar: #120b22;
+  --sidebar-foreground: #f7f5f9;
+  --sidebar-primary: #2d1b4e;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #1a1030;
+  --sidebar-accent-foreground: #f7f5f9;
+  --sidebar-border: rgb(247 245 249 / 8%);
+  --sidebar-ring: #e93d77;
 
-  --soda-shadow-soft: 0 1px 2px oklch(0 0 0 / 45%),
-    0 4px 20px oklch(0.4 0.18 305 / 22%);
-  --soda-shadow-lift: 0 12px 40px oklch(0.35 0.2 305 / 32%);
-  --soda-shadow-glow: 0 0 44px oklch(0.55 0.26 305 / 40%);
-  --soda-shadow-pink: 0 0 36px oklch(0.7 0.2 350 / 38%);
+  --soda-shadow-soft: 0 1px 2px rgb(0 0 0 / 45%),
+    0 4px 20px rgb(0 0 0 / 28%);
+  --soda-shadow-lift: 0 12px 40px rgb(0 0 0 / 40%);
+  --soda-shadow-glow: 0 0 32px color-mix(in srgb, #2d1b4e 30%, transparent);
+  --soda-shadow-pink: 0 0 28px color-mix(in srgb, #e93d77 32%, transparent);
 }
 
 @layer base {
@@ -190,7 +188,6 @@
   html {
     @apply font-sans;
   }
-  /* English page / section titles — Outfit via --font-heading */
   h1,
   h2,
   h3,
@@ -200,20 +197,22 @@
   }
   /* Pink selection — energy accent */
   ::selection {
-    background: color-mix(in oklch, var(--soda-pink) 48%, transparent);
-    color: oklch(0.99 0.01 305);
+    background: color-mix(in srgb, var(--soda-pink) 42%, transparent);
+    color: #ffffff;
   }
 }
 
-/* Premium Arabic — Cairo: full glyph coverage + UI hierarchy */
+/* Premium Arabic — Alexandria (fallback: IBM Plex Sans Arabic via system) */
 .font-ar {
-  font-family: var(--font-cairo-arabic), var(--font-outfit), system-ui, sans-serif;
+  font-family: var(--font-alexandria), "IBM Plex Sans Arabic", var(--font-outfit),
+    system-ui, sans-serif;
   letter-spacing: 0;
-  line-height: 1.75;
+  line-height: 1.8;
   font-feature-settings: "kern" 1, "liga" 1;
-  word-spacing: 0.02em;
+  word-spacing: 0.04em;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
+  font-optical-sizing: auto;
 }
 
 .font-ar.font-semibold,
@@ -221,23 +220,22 @@
   letter-spacing: 0;
 }
 
-/* Hero / brief brand treatments */
+/* Hero / brief brand treatments — restrained purple + pink edge */
 .soda-brief-shell {
   position: relative;
-  border-color: color-mix(in oklch, var(--soda-purple) 40%, transparent);
+  border-color: color-mix(in srgb, #2d1b4e 45%, transparent);
   background:
     radial-gradient(
-      ellipse 80% 60% at 100% 0%,
-      color-mix(in oklch, var(--soda-pink) 14%, transparent) 0%,
+      ellipse 70% 50% at 100% 0%,
+      color-mix(in srgb, #e93d77 10%, transparent) 0%,
       transparent 55%
     ),
     linear-gradient(
       135deg,
-      color-mix(in oklch, var(--soda-purple) 22%, transparent) 0%,
-      color-mix(in oklch, var(--soda-pink) 8%, transparent) 38%,
-      var(--card) 72%
+      color-mix(in srgb, #2d1b4e 28%, transparent) 0%,
+      var(--card) 68%
     );
-  box-shadow: var(--soda-shadow-soft), var(--soda-shadow-glow);
+  box-shadow: var(--soda-shadow-soft);
 }
 
 .soda-brief-shell::before {
@@ -245,17 +243,12 @@
   position: absolute;
   inset-block: 0;
   inset-inline-start: 0;
-  width: 4px;
+  width: 3px;
   border-radius: 0 3px 3px 0;
-  background: linear-gradient(
-    180deg,
-    var(--soda-purple) 0%,
-    var(--soda-pink) 100%
-  );
+  background: linear-gradient(180deg, #2d1b4e 0%, #e93d77 100%);
   pointer-events: none;
 }
 
-/* Command Center card hover lift */
 .soda-cc-card {
   transition:
     border-color var(--soda-duration) var(--soda-ease),
@@ -266,34 +259,34 @@
 
 @media (prefers-reduced-motion: no-preference) {
   .soda-cc-card:hover {
-    border-color: color-mix(in oklch, var(--soda-purple) 35%, transparent);
+    border-color: color-mix(in srgb, #e93d77 28%, transparent);
     box-shadow: var(--soda-shadow-lift);
     transform: translateY(-1px);
   }
 }
 
 .soda-kpi-icon {
-  background: color-mix(in oklch, var(--soda-purple) 24%, transparent);
+  background: color-mix(in srgb, #2d1b4e 40%, transparent);
   color: var(--soda-purple-bright);
 }
 
 .soda-kpi-icon-pink {
-  background: color-mix(in oklch, var(--soda-pink) 18%, transparent);
+  background: color-mix(in srgb, #e93d77 16%, transparent);
   color: var(--soda-pink);
 }
 
 .soda-focus-ring {
-  box-shadow: 0 0 0 3px color-mix(in oklch, var(--ring) 45%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--ring) 40%, transparent);
 }
 
-/* Branded sidebar rail glow */
+/* Sidebar — deep purple brand field, calm */
 .soda-sidebar-rail {
   position: relative;
   background:
     linear-gradient(
       180deg,
-      color-mix(in oklch, var(--soda-purple) 12%, transparent) 0%,
-      transparent 28%
+      color-mix(in srgb, #2d1b4e 55%, transparent) 0%,
+      transparent 32%
     ),
     var(--sidebar);
 }
@@ -306,14 +299,13 @@
   width: 1px;
   background: linear-gradient(
     180deg,
-    color-mix(in oklch, var(--soda-pink) 45%, transparent) 0%,
-    color-mix(in oklch, var(--soda-purple) 30%, transparent) 40%,
+    color-mix(in srgb, #e93d77 40%, transparent) 0%,
+    color-mix(in srgb, #2d1b4e 40%, transparent) 45%,
     transparent 100%
   );
   pointer-events: none;
 }
 
-/* SODA LIVE crossfade */
 .soda-live-fade-enter {
   animation: soda-live-in var(--soda-duration-live) var(--soda-ease) both;
 }
@@ -329,7 +321,6 @@
   }
 }
 
-/* Page enter — subtle */
 .soda-page-enter {
   animation: soda-page-in var(--soda-duration-slow) var(--soda-ease) both;
 }
@@ -345,7 +336,6 @@
   }
 }
 
-/* Loading mark pulse */
 @keyframes soda-mark-pulse {
   0%,
   100% {
@@ -370,7 +360,6 @@
   }
 }
 
-/* Smooth interactive transitions */
 @media (prefers-reduced-motion: no-preference) {
   a,
   button,

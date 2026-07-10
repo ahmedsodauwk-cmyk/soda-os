@@ -1,14 +1,18 @@
 import type { Person } from "@/lib/people/types";
 
-/** Studio people — IDs align with legacy project team member ids (tm-*). */
+/** Studio crew — IDs align with legacy project team member ids (tm-*). */
 export const mockPeople: Person[] = [
   {
     id: "tm-ahmed",
-    nameAr: "نيمو",
+    nameAr: "أحمد حسن",
     nameEn: "Ahmed Hassan",
+    nickname: "نيمو",
     jobTitle: "Producer",
     jobDescription:
       "Owns production planning, crew coordination, and client delivery timelines across wedding and commercial lanes.",
+    employmentType: "full_time",
+    responsibilities: ["Production", "Creative Direction", "Client Relations"],
+    notResponsibleFor: ["Drone", "Color Grading"],
     phone: "+20 100 111 2201",
     email: "nemo@sodavisuals.com",
     joinDate: "2023-03-01",
@@ -19,11 +23,15 @@ export const mockPeople: Person[] = [
   },
   {
     id: "tm-sara",
-    nameAr: "سارة",
+    nameAr: "سارة نبيل",
     nameEn: "Sara Nabil",
+    nickname: "سارة",
     jobTitle: "Lead Photographer",
     jobDescription:
       "Lead stills photographer for weddings and commercial hero days; owns lighting look and shot lists.",
+    employmentType: "full_time",
+    responsibilities: ["Photography", "Lighting", "Creative Direction"],
+    notResponsibleFor: ["Videography", "Editing", "Drone"],
     phone: "+20 100 111 2202",
     email: "sara@sodavisuals.com",
     joinDate: "2023-05-15",
@@ -33,11 +41,15 @@ export const mockPeople: Person[] = [
   },
   {
     id: "tm-karim",
-    nameAr: "كريم",
+    nameAr: "كريم فؤاد",
     nameEn: "Karim Fouad",
+    nickname: "كريم",
     jobTitle: "Videographer",
     jobDescription:
       "Primary camera operator for motion; handles A-cam and client-facing on-set direction.",
+    employmentType: "full_time",
+    responsibilities: ["Videography", "Drone"],
+    notResponsibleFor: ["Photography", "Retouching", "Color Grading"],
     phone: "+20 100 111 2203",
     email: "karim@sodavisuals.com",
     joinDate: "2023-06-01",
@@ -47,11 +59,15 @@ export const mockPeople: Person[] = [
   },
   {
     id: "tm-layla",
-    nameAr: "ليلى",
+    nameAr: "ليلى منصور",
     nameEn: "Layla Mansour",
+    nickname: "ليلى",
     jobTitle: "Editor",
     jobDescription:
       "Post-production lead — wedding films, commercial cutdowns, and revision cycles.",
+    employmentType: "full_time",
+    responsibilities: ["Editing", "Color Grading", "Retouching"],
+    notResponsibleFor: ["Photography", "Drone", "Lighting"],
     phone: "+20 100 111 2204",
     email: "layla@sodavisuals.com",
     joinDate: "2023-08-20",
@@ -61,11 +77,15 @@ export const mockPeople: Person[] = [
   },
   {
     id: "tm-omar",
-    nameAr: "عمر",
+    nameAr: "عمر صالح",
     nameEn: "Omar Saleh",
+    nickname: "عمر",
     jobTitle: "Drone Operator",
     jobDescription:
       "Licensed drone pilot for aerials on compounds, weddings, and campaign exteriors.",
+    employmentType: "freelance",
+    responsibilities: ["Drone", "Videography"],
+    notResponsibleFor: ["Editing", "Retouching", "Client Relations"],
     phone: "+20 100 111 2205",
     email: "omar@sodavisuals.com",
     joinDate: "2024-01-10",
@@ -75,11 +95,15 @@ export const mockPeople: Person[] = [
   },
   {
     id: "tm-dina",
-    nameAr: "دينا",
+    nameAr: "دينا فريد",
     nameEn: "Dina Farid",
+    nickname: "دينا",
     jobTitle: "Client Lead",
     jobDescription:
       "Client relationship owner — briefs, approvals, and commercial account follow-up.",
+    employmentType: "full_time",
+    responsibilities: ["Client Relations", "Production"],
+    notResponsibleFor: ["Photography", "Videography", "Editing", "Drone"],
     phone: "+20 100 111 2206",
     email: "dina@sodavisuals.com",
     joinDate: "2024-02-01",
@@ -89,11 +113,15 @@ export const mockPeople: Person[] = [
   },
   {
     id: "tm-youssef",
-    nameAr: "يوسف",
+    nameAr: "يوسف أمير",
     nameEn: "Youssef Amir",
+    nickname: "يوسف",
     jobTitle: "Lighting Tech",
     jobDescription:
       "Gaffer / lighting tech for studio and location days; maintains lighting kit.",
+    employmentType: "part_time",
+    responsibilities: ["Lighting", "Assistant"],
+    notResponsibleFor: ["Editing", "Color Grading", "Client Relations"],
     phone: "+20 100 111 2207",
     email: "youssef@sodavisuals.com",
     joinDate: "2024-04-15",
@@ -103,11 +131,15 @@ export const mockPeople: Person[] = [
   },
   {
     id: "tm-nora",
-    nameAr: "نورا",
+    nameAr: "نورا خليل",
     nameEn: "Nora Khalil",
+    nickname: "نورا",
     jobTitle: "Second Shooter",
     jobDescription:
       "Second photographer / B-cam for weddings and multi-unit commercial shoots.",
+    employmentType: "freelance",
+    responsibilities: ["Photography", "Assistant"],
+    notResponsibleFor: ["Editing", "Color Grading", "Creative Direction"],
     phone: "+20 100 111 2208",
     email: "nora@sodavisuals.com",
     joinDate: "2024-09-01",
