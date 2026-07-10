@@ -88,6 +88,7 @@ export default function QuickActions() {
                 key={action.label}
                 variant="outline"
                 className={className}
+                nativeButton={false}
                 render={<Link href={action.href} />}
               >
                 <Icon className="size-4" />

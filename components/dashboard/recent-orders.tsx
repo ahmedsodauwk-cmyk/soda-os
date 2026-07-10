@@ -29,6 +29,7 @@ export default function RecentOrders({ orders }: RecentOrdersProps) {
             variant="ghost"
             size="sm"
             className="text-muted-foreground"
+            nativeButton={false}
             render={<Link href="/orders" />}
           >
             View all
