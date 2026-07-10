@@ -4,11 +4,12 @@ import FinancialOverviewCard from "@/components/dashboard/financial-overview";
 import KPIGrid from "@/components/dashboard/kpi-grid";
 import QuickActions from "@/components/dashboard/quick-actions";
 import RecentOrders from "@/components/dashboard/recent-orders";
+import SodaBrief from "@/components/dashboard/soda-brief";
 import TeamPerformance from "@/components/dashboard/team-performance";
 import UpcomingScheduleCard from "@/components/dashboard/upcoming-schedule";
 import WorkspacePerformance from "@/components/dashboard/workspace-performance";
+import { getModuleSlogan } from "@/lib/brand/soda-voice";
 import { getDashboardSnapshot } from "@/lib/dashboard";
-import { formatDate } from "@/lib/orders/utils";
 
 export default function Home() {
   const dashboard = getDashboardSnapshot();
@@ -16,9 +17,17 @@ export default function Home() {
   return (
     <AppShell
       title="Executive Dashboard"
-      subtitle={`Company health · as of ${formatDate(dashboard.asOf)}`}
+      subtitle={getModuleSlogan("dashboard")}
     >
       <div className="space-y-6">
+        <SodaBrief
+          dashboard={{
+            kpis: dashboard.kpis,
+            attention: dashboard.attention,
+            schedule: dashboard.schedule,
+          }}
+        />
+
         <QuickActions />
 
         <KPIGrid kpis={dashboard.kpis} />

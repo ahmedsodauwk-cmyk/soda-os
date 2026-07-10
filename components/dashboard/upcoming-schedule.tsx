@@ -9,6 +9,10 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import {
+  DASHBOARD_SECTION_COPY,
+  getEmptyState,
+} from "@/lib/brand/soda-voice";
 import type { ScheduleItem, UpcomingSchedule } from "@/lib/dashboard/types";
 import { formatDate } from "@/lib/orders/utils";
 
@@ -76,10 +80,10 @@ export default function UpcomingScheduleCard({
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Calendar className="size-4 text-muted-foreground" />
-          Upcoming Schedule
+          {DASHBOARD_SECTION_COPY.schedule.title}
         </CardTitle>
         <CardDescription>
-          As of {formatDate(schedule.asOf)} · shoots, deliveries, deadlines
+          {DASHBOARD_SECTION_COPY.schedule.description}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-5">
@@ -87,25 +91,25 @@ export default function UpcomingScheduleCard({
           title="Today's shoots"
           icon={Camera}
           items={schedule.todayShoots}
-          empty="No shoots scheduled today"
+          empty={getEmptyState("shoots").title}
         />
         <Section
           title="Tomorrow's shoots"
           icon={Camera}
           items={schedule.tomorrowShoots}
-          empty="No shoots scheduled tomorrow"
+          empty={getEmptyState("shoots").title}
         />
         <Section
           title="Deliveries"
           icon={Truck}
           items={schedule.deliveries}
-          empty="No upcoming deliveries"
+          empty="مفيش deliveries قريبة"
         />
         <Section
           title="Deadlines"
           icon={Flag}
           items={schedule.deadlines}
-          empty="No deadlines in the next 14 days"
+          empty="مفيش deadlines في الـ 14 يوم الجايين"
         />
       </CardContent>
     </Card>

@@ -20,6 +20,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { getEmptyState } from "@/lib/brand/soda-voice";
 import type { Client } from "@/lib/clients/types";
 import {
   formatDate,
@@ -34,11 +35,12 @@ interface ClientsTableProps {
 
 export function ClientsTable({ clients }: ClientsTableProps) {
   if (clients.length === 0) {
+    const empty = getEmptyState("clients");
     return (
       <div className="flex flex-col items-center justify-center rounded-xl border border-dashed py-16 text-center">
-        <p className="text-sm font-medium">No clients found</p>
+        <p className="text-sm font-medium">{empty.title}</p>
         <p className="mt-1 text-xs text-muted-foreground">
-          Try adjusting your search or filters.
+          {empty.description}
         </p>
       </div>
     );

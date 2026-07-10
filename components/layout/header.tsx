@@ -25,12 +25,10 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { SidebarContent } from "@/components/layout/sidebar";
-
-const notifications = [
-  "Wedding delivery tomorrow",
-  "Commercial shoot confirmed",
-  "Client Mamdouh paid deposit",
-];
+import {
+  getModuleSlogan,
+  NOTIFICATION_COPY,
+} from "@/lib/brand/soda-voice";
 
 interface HeaderProps {
   title?: string;
@@ -39,7 +37,7 @@ interface HeaderProps {
 
 export default function Header({
   title = "Dashboard",
-  subtitle = "Welcome back, Ahmed",
+  subtitle = getModuleSlogan("dashboard"),
 }: HeaderProps) {
   return (
     <header className="sticky top-0 z-10 flex h-14 items-center justify-between gap-4 border-b bg-background/80 px-4 backdrop-blur-sm sm:px-6">
@@ -87,7 +85,7 @@ export default function Header({
             >
               <Bell />
               <Badge className="absolute -top-0.5 -right-0.5 size-4 justify-center rounded-full p-0 text-[10px]">
-                3
+                {NOTIFICATION_COPY.length}
               </Badge>
               <span className="sr-only">Notifications</span>
             </TooltipTrigger>
@@ -97,7 +95,7 @@ export default function Header({
           <DropdownMenuContent align="end" className="w-72">
             <DropdownMenuLabel>Notifications</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            {notifications.map((item) => (
+            {NOTIFICATION_COPY.map((item) => (
               <DropdownMenuItem key={item} className="whitespace-normal">
                 {item}
               </DropdownMenuItem>

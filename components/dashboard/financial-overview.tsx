@@ -21,6 +21,7 @@ import type {
   FinancialOverview,
   MonthlyRevenuePoint,
 } from "@/lib/dashboard/types";
+import { DASHBOARD_SECTION_COPY } from "@/lib/brand/soda-voice";
 import { formatPrice } from "@/lib/orders/utils";
 
 interface FinancialOverviewCardProps {
@@ -81,9 +82,9 @@ export default function FinancialOverviewCard({
   return (
     <Card className="h-full">
       <CardHeader>
-        <CardTitle>Financial Overview</CardTitle>
+        <CardTitle>{DASHBOARD_SECTION_COPY.financial.title}</CardTitle>
         <CardDescription>
-          Booked revenue vs collections from payments
+          {DASHBOARD_SECTION_COPY.financial.description}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">

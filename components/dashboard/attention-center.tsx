@@ -14,6 +14,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+  DASHBOARD_SECTION_COPY,
+  getEmptyState,
+} from "@/lib/brand/soda-voice";
 import type { AttentionItem } from "@/lib/dashboard/types";
 import { formatPrice } from "@/lib/orders/utils";
 import { cn } from "@/lib/utils";
@@ -48,9 +52,9 @@ export default function AttentionCenter({
       <CardHeader>
         <div className="flex items-start justify-between gap-3">
           <div>
-            <CardTitle>Attention Center</CardTitle>
+            <CardTitle>{DASHBOARD_SECTION_COPY.attention.title}</CardTitle>
             <CardDescription>
-              Auto-detected issues from live studio data
+              {DASHBOARD_SECTION_COPY.attention.description}
             </CardDescription>
           </div>
           <Badge variant="outline" className="font-mono tabular-nums">
@@ -60,10 +64,14 @@ export default function AttentionCenter({
       </CardHeader>
       <CardContent className="space-y-2">
         {visible.length === 0 ? (
-          <p className="rounded-lg bg-emerald-500/10 px-3 py-4 text-sm text-emerald-400">
-            All clear — no overdue deliveries, unpaid clients, unassigned
-            projects, or near deadlines.
-          </p>
+          <div className="rounded-lg bg-emerald-500/10 px-3 py-4 text-emerald-400">
+            <p className="text-sm font-medium">
+              {getEmptyState("attentionClear").title}
+            </p>
+            <p className="mt-1 text-xs text-emerald-400/80">
+              {getEmptyState("attentionClear").description}
+            </p>
+          </div>
         ) : (
           visible.map((item) => {
             const Icon = categoryIcon[item.category];

@@ -15,6 +15,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { DASHBOARD_SECTION_COPY } from "@/lib/brand/soda-voice";
 import { cn } from "@/lib/utils";
 
 const actions = [
@@ -56,8 +57,10 @@ export default function QuickActions() {
   return (
     <Card>
       <CardHeader className="pb-3">
-        <CardTitle>Quick Actions</CardTitle>
-        <CardDescription>Jump into daily studio workflows</CardDescription>
+        <CardTitle>{DASHBOARD_SECTION_COPY.quickActions.title}</CardTitle>
+        <CardDescription>
+          {DASHBOARD_SECTION_COPY.quickActions.description}
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">

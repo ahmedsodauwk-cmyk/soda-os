@@ -10,6 +10,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+  DASHBOARD_SECTION_COPY,
+  getEmptyState,
+} from "@/lib/brand/soda-voice";
 import type { RecentOrderRow } from "@/lib/dashboard/types";
 import { statusStyles } from "@/lib/orders/status-styles";
 import { formatDate, formatPrice, getInitials } from "@/lib/orders/utils";
@@ -23,7 +27,7 @@ export default function RecentOrders({ orders }: RecentOrdersProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Recent Orders</CardTitle>
+        <CardTitle>{DASHBOARD_SECTION_COPY.recentOrders.title}</CardTitle>
         <CardAction>
           <Button
             variant="ghost"
@@ -39,7 +43,9 @@ export default function RecentOrders({ orders }: RecentOrdersProps) {
 
       <CardContent className="space-y-2">
         {orders.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No orders yet.</p>
+          <p className="text-sm text-muted-foreground">
+            {getEmptyState("orders").title}
+          </p>
         ) : (
           orders.map((order) => (
             <div

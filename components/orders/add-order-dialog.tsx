@@ -32,6 +32,7 @@ import {
   type ProjectType,
 } from "@/lib/orders/types";
 import { workspaceIdFromProjectType } from "@/lib/orders/utils";
+import { getSuccessMessage } from "@/lib/brand/soda-voice";
 
 const emptyForm: NewOrderInput = {
   clientName: "",
@@ -58,6 +59,7 @@ export function AddOrderDialog({ onAdd }: AddOrderDialogProps) {
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState<NewOrderInput>(emptyForm);
   const [errors, setErrors] = useState<Partial<Record<FormFields, string>>>({});
+  const [successNote, setSuccessNote] = useState<string | null>(null);
 
   function updateField<K extends FormFields>(field: K, value: NewOrderInput[K]) {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -96,6 +98,7 @@ export function AddOrderDialog({ onAdd }: AddOrderDialogProps) {
     onAdd(form);
     setForm(emptyForm);
     setErrors({});
+    setSuccessNote(getSuccessMessage("orderCreated"));
     setOpen(false);
   }
 
@@ -104,10 +107,21 @@ export function AddOrderDialog({ onAdd }: AddOrderDialogProps) {
     if (!nextOpen) {
       setForm(emptyForm);
       setErrors({});
+    } else {
+      setSuccessNote(null);
     }
   }
 
   return (
+    <>
+      {successNote ? (
+        <p
+          role="status"
+          className="order-first w-full text-center text-xs text-emerald-500 sm:order-none sm:w-auto sm:text-right"
+        >
+          {successNote}
+        </p>
+      ) : null}
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger
         render={<Button className="gap-1.5" />}
@@ -348,5 +362,6 @@ export function AddOrderDialog({ onAdd }: AddOrderDialogProps) {
         </form>
       </DialogContent>
     </Dialog>
+    </>
   );
 }

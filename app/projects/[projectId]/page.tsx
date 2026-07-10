@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 
 import { AppShell } from "@/components/layout/app-shell";
 import { ProjectHubContent } from "@/components/projects/project-hub-content";
+import { getModuleSlogan } from "@/lib/brand/soda-voice";
 import { getProjectById } from "@/lib/projects/repository";
 
 interface ProjectHubPageProps {
@@ -19,7 +20,7 @@ export default async function ProjectHubPage({ params }: ProjectHubPageProps) {
   return (
     <AppShell
       title={project.name}
-      subtitle={`${project.clientName} · Project hub`}
+      subtitle={getModuleSlogan("projectHub")}
     >
       <ProjectHubContent project={project} />
     </AppShell>

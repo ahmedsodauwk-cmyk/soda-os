@@ -13,6 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { getEmptyState } from "@/lib/brand/soda-voice";
 import {
   filterWorkspaceSummaries,
   getWorkspaceSummaries,
@@ -85,9 +86,11 @@ export function WorkspacesContent() {
       {filtered.length === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center justify-center gap-2 py-16 text-center">
-            <p className="text-sm font-medium">No workspaces found</p>
+            <p className="text-sm font-medium">
+              {getEmptyState("workspaces").title}
+            </p>
             <p className="text-xs text-muted-foreground">
-              Try a different search term.
+              {getEmptyState("workspaces").description}
             </p>
           </CardContent>
         </Card>

@@ -30,6 +30,7 @@ import {
 } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
+import { getEmptyState, getModuleSlogan } from "@/lib/brand/soda-voice";
 import { cn } from "@/lib/utils";
 import { formatDate, formatPrice, getInitials } from "@/lib/orders/utils";
 import type { OrderStatus } from "@/lib/orders/types";
@@ -124,6 +125,9 @@ export function ProjectHubContent({ project }: ProjectHubContentProps) {
                   <Badge variant="outline">{workspaceLabel}</Badge>
                 </div>
                 <p className="text-sm text-muted-foreground">
+                  {getModuleSlogan("projectHub")}
+                </p>
+                <p className="text-xs text-muted-foreground">
                   {project.clientName} · {project.id} · Updated{" "}
                   {formatRelativeActivity(project.lastActivity)}
                 </p>
@@ -235,7 +239,7 @@ export function ProjectHubContent({ project }: ProjectHubContentProps) {
             <CardContent className="space-y-3">
               {project.upcomingShoots.length === 0 ? (
                 <p className="text-sm text-muted-foreground">
-                  No upcoming shoots.
+                  {getEmptyState("shoots").title}
                 </p>
               ) : (
                 project.upcomingShoots.map((shoot) => (
@@ -333,7 +337,9 @@ export function ProjectHubContent({ project }: ProjectHubContentProps) {
           </CardHeader>
           <CardContent className="space-y-2">
             {project.files.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No files yet.</p>
+              <p className="text-sm text-muted-foreground">
+                {getEmptyState("files").title}
+              </p>
             ) : (
               project.files.map((file) => (
                 <div
@@ -392,7 +398,7 @@ export function ProjectHubContent({ project }: ProjectHubContentProps) {
             <CardContent className="space-y-2">
               {project.payments.length === 0 ? (
                 <p className="text-sm text-muted-foreground">
-                  No payments recorded (internal / non-billable).
+                  {getEmptyState("payments").title}
                 </p>
               ) : (
                 project.payments.map((payment) => (

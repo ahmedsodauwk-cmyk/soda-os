@@ -6,6 +6,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+  DASHBOARD_SECTION_COPY,
+  getEmptyState,
+} from "@/lib/brand/soda-voice";
 import type { TeamPerformanceRow } from "@/lib/dashboard/types";
 
 interface TeamPerformanceProps {
@@ -22,14 +26,16 @@ export default function TeamPerformance({
   return (
     <Card className="h-full">
       <CardHeader>
-        <CardTitle>Team Performance</CardTitle>
+        <CardTitle>{DASHBOARD_SECTION_COPY.team.title}</CardTitle>
         <CardDescription>
-          Most active members from project rosters
+          {DASHBOARD_SECTION_COPY.team.description}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-2">
         {rows.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No team assignments.</p>
+          <p className="text-sm text-muted-foreground">
+            {getEmptyState("team").title}
+          </p>
         ) : (
           rows.map((member, index) => (
             <div

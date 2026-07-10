@@ -19,6 +19,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { OrderStatusBadge } from "@/components/orders/order-status-badge";
+import { getEmptyState } from "@/lib/brand/soda-voice";
 import { formatDate, formatPrice, getInitials } from "@/lib/orders/utils";
 import type { Order } from "@/lib/orders/types";
 
@@ -28,11 +29,12 @@ interface OrdersTableProps {
 
 export function OrdersTable({ orders }: OrdersTableProps) {
   if (orders.length === 0) {
+    const empty = getEmptyState("orders");
     return (
       <div className="flex flex-col items-center justify-center rounded-xl border border-dashed py-16 text-center">
-        <p className="text-sm font-medium">No orders found</p>
+        <p className="text-sm font-medium">{empty.title}</p>
         <p className="mt-1 text-xs text-muted-foreground">
-          Try adjusting your search or filters.
+          {empty.description}
         </p>
       </div>
     );

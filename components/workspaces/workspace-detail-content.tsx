@@ -30,6 +30,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  getEmptyState,
+  getWorkspaceSlogan,
+} from "@/lib/brand/soda-voice";
 import { formatDate, formatPrice, getInitials } from "@/lib/orders/utils";
 import { getProjectsByWorkspace } from "@/lib/projects/repository";
 import {
@@ -84,8 +88,13 @@ export function WorkspaceDetailContent({
               {workspace.label}
             </h2>
             <p className="text-sm text-muted-foreground">
-              {workspace.description}
+              {getWorkspaceSlogan(workspace.id)}
             </p>
+            {workspace.description ? (
+              <p className="mt-1 text-xs text-muted-foreground/80">
+                {workspace.description}
+              </p>
+            ) : null}
           </div>
         </div>
       </div>
@@ -226,9 +235,11 @@ export function WorkspaceDetailContent({
         {filtered.length === 0 ? (
           <Card>
             <CardContent className="flex flex-col items-center justify-center gap-2 py-16 text-center">
-              <p className="text-sm font-medium">No projects found</p>
+              <p className="text-sm font-medium">
+                {getEmptyState("projects").title}
+              </p>
               <p className="text-xs text-muted-foreground">
-                Try adjusting search or status filters.
+                {getEmptyState("projects").description}
               </p>
             </CardContent>
           </Card>

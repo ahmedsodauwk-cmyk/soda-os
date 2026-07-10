@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 
 import { AppShell } from "@/components/layout/app-shell";
 import { WorkspaceDetailContent } from "@/components/workspaces/workspace-detail-content";
+import { getWorkspaceSlogan } from "@/lib/brand/soda-voice";
 import { getWorkspaceSummaryById } from "@/lib/workspaces/repository";
 
 interface WorkspaceDetailPageProps {
@@ -21,7 +22,7 @@ export default async function WorkspaceDetailPage({
   return (
     <AppShell
       title={workspace.label}
-      subtitle={`${workspace.projectCount} projects · ${workspace.ordersCount} orders`}
+      subtitle={getWorkspaceSlogan(workspace.id)}
     >
       <WorkspaceDetailContent workspace={workspace} />
     </AppShell>

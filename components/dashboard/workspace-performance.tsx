@@ -8,6 +8,10 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import {
+  DASHBOARD_SECTION_COPY,
+  getEmptyState,
+} from "@/lib/brand/soda-voice";
 import type { WorkspacePerformanceRow } from "@/lib/dashboard/types";
 import { formatPrice } from "@/lib/orders/utils";
 
@@ -21,14 +25,16 @@ export default function WorkspacePerformance({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Workspace Performance</CardTitle>
+        <CardTitle>{DASHBOARD_SECTION_COPY.workspaces.title}</CardTitle>
         <CardDescription>
-          Revenue, pipeline, and progress by production lane
+          {DASHBOARD_SECTION_COPY.workspaces.description}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-3">
         {workspaces.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No workspaces yet.</p>
+          <p className="text-sm text-muted-foreground">
+            {getEmptyState("workspaces").title}
+          </p>
         ) : (
           workspaces.map((ws) => (
             <Link

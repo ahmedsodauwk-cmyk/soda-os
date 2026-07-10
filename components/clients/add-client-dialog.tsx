@@ -29,6 +29,7 @@ import {
   type NewClientInput,
 } from "@/lib/clients/types";
 import { formatClientType } from "@/lib/clients/utils";
+import { getSuccessMessage } from "@/lib/brand/soda-voice";
 
 const emptyForm: NewClientInput = {
   type: "individual",
@@ -50,6 +51,7 @@ export function AddClientDialog({ onAdd }: AddClientDialogProps) {
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState<NewClientInput>(emptyForm);
   const [errors, setErrors] = useState<Partial<Record<FormFields, string>>>({});
+  const [successNote, setSuccessNote] = useState<string | null>(null);
 
   function updateField<K extends FormFields>(
     field: K,
@@ -128,6 +130,7 @@ export function AddClientDialog({ onAdd }: AddClientDialogProps) {
     onAdd(buildClientInput());
     setForm(emptyForm);
     setErrors({});
+    setSuccessNote(getSuccessMessage("clientCreated"));
     setOpen(false);
   }
 
@@ -136,12 +139,23 @@ export function AddClientDialog({ onAdd }: AddClientDialogProps) {
     if (!nextOpen) {
       setForm(emptyForm);
       setErrors({});
+    } else {
+      setSuccessNote(null);
     }
   }
 
   const isCompany = form.type === "company";
 
   return (
+    <>
+      {successNote ? (
+        <p
+          role="status"
+          className="order-first w-full text-center text-xs text-emerald-500 sm:order-none sm:w-auto sm:text-right"
+        >
+          {successNote}
+        </p>
+      ) : null}
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger render={<Button className="gap-1.5" />}>
         <Plus />
@@ -271,5 +285,6 @@ export function AddClientDialog({ onAdd }: AddClientDialogProps) {
         </form>
       </DialogContent>
     </Dialog>
+    </>
   );
 }
