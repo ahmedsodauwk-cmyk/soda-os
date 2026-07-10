@@ -115,27 +115,18 @@ export function getTodayVisitKey(now: Date = new Date()): string {
 
 export function getDayPeriod(date: Date = new Date()): DayPeriod {
   const hour = date.getHours();
+  if (hour >= 22 || hour < 5) return "late_night";
   if (hour < 12) return "morning";
   if (hour < 17) return "afternoon";
   return "evening";
 }
 
+/** Fixed hero greetings — one per period, no random fluff. */
 const GREETINGS: Record<DayPeriod, string[]> = {
-  morning: [
-    `صباح الفل يا ${SODA_OPERATOR}`,
-    `صباح الشغل الحلو يا ${SODA_OPERATOR}`,
-    `يا صباح الستوديو يا ${SODA_OPERATOR}`,
-  ],
-  afternoon: [
-    `نهارك أبيض يا ${SODA_OPERATOR}`,
-    `إزيك يا ${SODA_OPERATOR}... نص اليوم عدّى`,
-    `عامل إيه في الستوديو يا ${SODA_OPERATOR}`,
-  ],
-  evening: [
-    `مساء الفل يا ${SODA_OPERATOR}`,
-    `يوم طويل يا ${SODA_OPERATOR}... خلّينا نلخّص`,
-    `مساء الخير يا ${SODA_OPERATOR} — وقت الـ wrap`,
-  ],
+  morning: [`صباح الخير يا جونيور صودا`],
+  afternoon: [`نهارك أبيض يا جونيور صودا`],
+  evening: [`مساء الفل يا جونيور صودا`],
+  late_night: [`ليلة هادية يا جونيور صودا`],
 };
 
 const HOOKS: Record<DayPeriod, Record<BusinessMood, string[]>> = {
@@ -217,6 +208,16 @@ const HOOKS: Record<DayPeriod, Record<BusinessMood, string[]>> = {
       "وقت تلخّص وتريح. الستوديو تمام.",
     ],
   },
+  late_night: {
+    busy_day: [
+      "لسه في شغل على الرادار — خلّي الأولويات واضحة قبل ما تقفل.",
+    ],
+    quiet_day: ["الستوديو هادي دلوقتي — فرصة تلخّص بهدوء."],
+    great_month: ["الشهر ماشي كويس — قفّل بهدوء."],
+    overdue_heavy: ["في حاجات محتاجة نظرة — رتّبها لبكرة بدري."],
+    shoots_ahead: ["في shoots قريبة — الجدول ظاهر."],
+    steady: ["كل حاجة على السكة — نام مرتاح."],
+  },
 };
 
 const CLOSERS: Record<DayPeriod, Record<BusinessMood, string[]>> = {
@@ -249,6 +250,14 @@ const CLOSERS: Record<DayPeriod, Record<BusinessMood, string[]>> = {
     overdue_heavy: ["بكرة بدري... نفضّي الضغط.", "الأولويات جاهزة لبكرة."],
     shoots_ahead: ["بكرة يوم تصوير — ارتاح.", "الجدول جاهز... نام مرتاح."],
     steady: ["يوم تمام... بكرة أحلى.", "قفّل بهدوء."],
+  },
+  late_night: {
+    busy_day: ["بكرة نكمّل من مكان أوضح."],
+    quiet_day: ["نام بهدوء."],
+    great_month: ["قفّل وأنت راضي."],
+    overdue_heavy: ["الأولويات جاهزة لبكرة."],
+    shoots_ahead: ["الجدول جاهز — ارتاح."],
+    steady: ["قفّل بهدوء."],
   },
 };
 
@@ -383,6 +392,9 @@ export function getMoodLabel(mood: BusinessMood): string {
 /*  Company Pulse — health sentences from snapshot                            */
 /* -------------------------------------------------------------------------- */
 
+/** Stable empty-state copy for Company Pulse — exact string required. */
+export const COMPANY_PULSE_STABLE = "كل الأمور مستقرة حالياً.";
+
 export function getCompanyPulse(
   snapshot: Pick<
     DashboardSnapshot,
@@ -396,68 +408,77 @@ export function getCompanyPulse(
   });
   const insights: CompanyPulseInsight[] = [];
 
-  // Only real pressure / events — factual copy, no filler
+  // Only real operational alerts — no filler
   if (signals.overdueCount > 0) {
     insights.push({
-      id: "editing-pressure",
+      id: "overdue-deliveries",
       label: "Overdue deliveries",
       insight: `${signals.overdueCount} overdue delivery${signals.overdueCount === 1 ? "" : "ies"} need action.`,
       tone: "pressure",
     });
   }
 
+  if (signals.todayShoots >= 1) {
+    insights.push({
+      id: "shoots-today",
+      label: "Upcoming shoots",
+      insight: `${signals.todayShoots} shoot${signals.todayShoots === 1 ? "" : "s"} today.`,
+      tone: signals.todayShoots >= 2 ? "watch" : "neutral",
+    });
+  } else if (signals.upcomingShoots >= 1) {
+    insights.push({
+      id: "shoots-ahead",
+      label: "Upcoming shoots",
+      insight: `${signals.upcomingShoots} upcoming shoot${signals.upcomingShoots === 1 ? "" : "s"}.`,
+      tone: "watch",
+    });
+  }
+
   if (signals.unpaidCount > 0) {
     insights.push({
-      id: "payments-slowing",
+      id: "unpaid-clients",
       label: "Unpaid clients",
       insight: `${signals.unpaidCount} unpaid client balance${signals.unpaidCount === 1 ? "" : "s"}.`,
       tone: "watch",
     });
-  } else if (snapshot.financial.outstanding > 0) {
+  }
+
+  const overloaded = snapshot.team.filter((m) => m.currentWorkload >= 3);
+  if (overloaded.length > 0) {
+    const top = overloaded[0]!;
     insights.push({
-      id: "outstanding-balance",
-      label: "Outstanding",
-      insight: `${Math.round(snapshot.financial.outstanding).toLocaleString("en-EG")} EGP outstanding.`,
+      id: "crew-overload",
+      label: "Crew overload",
+      insight: `${top.name}: ${top.currentWorkload} active assignments.`,
       tone: "watch",
     });
   }
 
-  if (signals.todayShoots >= 1) {
+  const lateApprovals = snapshot.attention.filter(
+    (a) =>
+      a.category === "deadline_soon" &&
+      (a.severity === "critical" || a.severity === "warning")
+  );
+  if (lateApprovals.length > 0) {
     insights.push({
-      id: "shoots-today",
-      label: "Shoots today",
-      insight: `${signals.todayShoots} shoot${signals.todayShoots === 1 ? "" : "s"} today.`,
-      tone: signals.todayShoots >= 2 ? "watch" : "neutral",
+      id: "late-approvals",
+      label: "Late approvals",
+      insight: `${lateApprovals.length} item${lateApprovals.length === 1 ? "" : "s"} waiting on approval / deadline.`,
+      tone: "pressure",
     });
-  } else if (signals.upcomingShoots >= 3) {
+  }
+
+  if (snapshot.schedule.deadlines.length > 0) {
+    const next = snapshot.schedule.deadlines[0]!;
     insights.push({
-      id: "shoots-ahead",
-      label: "Upcoming shoots",
-      insight: `${signals.upcomingShoots} upcoming shoots.`,
+      id: "upcoming-deadlines",
+      label: "Upcoming deadlines",
+      insight: `${snapshot.schedule.deadlines.length} deadline${snapshot.schedule.deadlines.length === 1 ? "" : "s"} — next: ${next.title} (${next.date}).`,
       tone: "watch",
     });
   }
 
-  if (signals.todayDeliveries >= 1) {
-    insights.push({
-      id: "deliveries-today",
-      label: "Deliveries today",
-      insight: `${signals.todayDeliveries} delivery${signals.todayDeliveries === 1 ? "" : "ies"} due today.`,
-      tone: "neutral",
-    });
-  }
-
-  const topLoad = snapshot.team[0];
-  if (topLoad && topLoad.currentWorkload >= 3) {
-    insights.push({
-      id: "team-load",
-      label: "Workload",
-      insight: `${topLoad.name}: ${topLoad.currentWorkload} active assignments.`,
-      tone: "watch",
-    });
-  }
-
-  return insights.slice(0, 4);
+  return insights.slice(0, 6);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -485,35 +506,39 @@ export function getWelcomeBackCopy(
 function buildBriefLines(signals: VoiceSignals, mood: BusinessMood): string[] {
   const lines: string[] = [];
   const n = toEasternDigits;
+  void mood;
 
   if (signals.todayShoots > 0) {
-    const shootWord = signals.todayShoots === 1 ? "shoot" : "shoots";
-    lines.push(`عندك ${n(signals.todayShoots)} ${shootWord} النهاردة — جهّز الـ brief.`);
+    lines.push(
+      signals.todayShoots === 1
+        ? "عندك شوت واحد النهاردة"
+        : `عندك ${n(signals.todayShoots)} شوتات النهاردة`
+    );
   } else if (signals.upcomingShoots > 0) {
-    lines.push(`عندك ${n(signals.upcomingShoots)} shoot قريب في الجدول.`);
+    lines.push(`عندك ${n(signals.upcomingShoots)} شوتات قريبة في الجدول`);
   }
 
   if (signals.todayDeliveries > 0) {
     lines.push(
       signals.todayDeliveries === 1
-        ? "وفيه تسليمة النهاردة — متتنساش تتابعها قبل ما اليوم يعدّي."
-        : `وفيه ${n(signals.todayDeliveries)} deliveries النهاردة على الرادار.`
+        ? "فيه تسليم النهاردة"
+        : `فيه ${n(signals.todayDeliveries)} تسليم النهاردة`
     );
   } else if (signals.upcomingDeliveries > 0 && lines.length < 2) {
-    lines.push(`وفيه ${n(signals.upcomingDeliveries)} delivery قريبة — خلّيها في بالك.`);
+    lines.push(`فيه ${n(signals.upcomingDeliveries)} تسليمات قريبة`);
   }
 
   if (signals.overdueCount > 0) {
     lines.push(
       signals.overdueCount === 1
-        ? "في تسليمة overdue محتاجة نظرة — دي أولوية النهاردة."
-        : `في ${n(signals.overdueCount)} overdue محتاجين نظرة قبل أي حاجة تانية.`
+        ? "فيه تسليمة متأخرة محتاجة متابعة"
+        : `فيه ${n(signals.overdueCount)} تسليمات متأخرة`
     );
   } else if (signals.unpaidCount > 0 && lines.length < 3) {
     lines.push(
       signals.unpaidCount === 1
-        ? "في Client لسه unpaid — وقت follow-up هادي."
-        : `في ${n(signals.unpaidCount)} Clients لسه unpaid — لمّ الفلوس بهدوء.`
+        ? "فيه عميل مستني متابعة فلوس"
+        : `فيه ${n(signals.unpaidCount)} عملاء عليهم فلوس`
     );
   }
 
@@ -524,10 +549,9 @@ function buildBriefLines(signals: VoiceSignals, mood: BusinessMood): string[] {
   ) {
     const pct = signals.revenueMonthChangePct;
     const sign = pct >= 0 ? "+" : "";
-    lines.push(`Revenue الشهر ده ${sign}${n(pct)}٪ — الدنيا ماشية، خلّي الجودة ثابتة.`);
+    lines.push(`Revenue الشهر ده ${sign}${n(pct)}٪`);
   }
 
-  // No invented filler — empty brief lines when nothing is happening
   return lines.slice(0, 3);
 }
 
@@ -669,7 +693,7 @@ export function getBriefCopy(
   const label =
     period === "morning"
       ? "Morning Brief"
-      : period === "evening"
+      : period === "evening" || period === "late_night"
         ? "Evening Summary"
         : "Afternoon Check-in";
 

@@ -24,3 +24,25 @@ export {
   computeWorkspacePerformance,
 } from "@/lib/dashboard/stats";
 export { getDashboardSnapshot } from "@/lib/dashboard/repository";
+export {
+  buildActivityFeed,
+  getActivityFeedRotateMs,
+} from "@/lib/dashboard/activity-feed";
+export type {
+  ActivityFeedEvent,
+  ActivityFeedKind,
+} from "@/lib/dashboard/activity-feed";
+export {
+  buildRotatingSummaries,
+  getRotatingSummaryMs,
+} from "@/lib/dashboard/rotating-summaries";
+export type {
+  RotatingSummaryKey,
+  RotatingSummaryPanel,
+} from "@/lib/dashboard/rotating-summaries";
+export {
+  HERO_GREETINGS,
+  buildHeroOperationalLines,
+  getHeroDayPeriod,
+  getHeroGreeting,
+} from "@/lib/dashboard/hero-summary";

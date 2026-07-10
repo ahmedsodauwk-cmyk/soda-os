@@ -27,6 +27,7 @@ const periodIcon: Record<DayPeriod, typeof Sun> = {
   morning: Sun,
   afternoon: Sunset,
   evening: Moon,
+  late_night: Moon,
 };
 
 /**

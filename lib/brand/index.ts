@@ -12,6 +12,7 @@ export {
   KPI_COPY,
   HUB_SECTION_COPY,
   ABOUT_COPY,
+  COMPANY_PULSE_STABLE,
   toEasternDigits,
   getDayPeriod,
   getGreeting,

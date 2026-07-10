@@ -1,7 +1,7 @@
 import type { DashboardSnapshot } from "@/lib/dashboard/types";
 
 /** Time-of-day bucket for greetings and brief cards. */
-export type DayPeriod = "morning" | "afternoon" | "evening";
+export type DayPeriod = "morning" | "afternoon" | "evening" | "late_night";
 
 /** Business mood derived from existing dashboard numbers (read-only mapping). */
 export type BusinessMood =

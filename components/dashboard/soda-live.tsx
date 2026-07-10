@@ -1,16 +1,16 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import {
   Camera,
   Clapperboard,
-  Quote,
-  Sparkles,
-  Trophy,
+  FileUp,
+  GitBranch,
+  Package,
   Truck,
+  UserPlus,
   Wallet,
-  Workflow,
 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
@@ -21,75 +21,78 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { DASHBOARD_SECTION_COPY } from "@/lib/brand";
 import {
-  DASHBOARD_SECTION_COPY,
-  getSodaLiveRotateMs,
-} from "@/lib/brand";
-import type { SodaLiveItem, SodaLiveKind } from "@/lib/brand/types";
+  getActivityFeedRotateMs,
+  type ActivityFeedEvent,
+  type ActivityFeedKind,
+} from "@/lib/dashboard/activity-feed";
 import { cn } from "@/lib/utils";
 
-interface SodaLiveCardProps {
-  items: SodaLiveItem[];
+interface SodaLiveFeedProps {
+  events: ActivityFeedEvent[];
   className?: string;
 }
 
-const kindIcon: Record<SodaLiveKind, typeof Sparkles> = {
-  delivery: Truck,
+const kindIcon: Record<ActivityFeedKind, typeof Camera> = {
+  order: Package,
   payment: Wallet,
-  workspace: Workflow,
+  delivery: Truck,
   shoot: Camera,
-  achievement: Trophy,
-  milestone: Sparkles,
-  quote: Quote,
-  activity: Clapperboard,
+  journey: GitBranch,
+  file: FileUp,
+  assignment: UserPlus,
+  status: Clapperboard,
 };
 
 /**
- * SODA LIVE — one dynamic awareness card.
- * Rotates every ~17s with crossfade; never critical ops.
+ * SODA LIVE — chronological activity feed from real business events.
+ * Auto-rotates every ~10s; pauses on hover; fixed min-height to avoid layout shift.
  */
-export default function SodaLiveCard({ items, className }: SodaLiveCardProps) {
+export default function SodaLiveFeed({ events, className }: SodaLiveFeedProps) {
   const [index, setIndex] = useState(0);
   const [tick, setTick] = useState(0);
+  const paused = useRef(false);
 
   useEffect(() => {
-    if (items.length <= 1) return;
+    if (events.length <= 1) return;
     const id = window.setInterval(() => {
-      setIndex((i) => (i + 1) % items.length);
+      if (paused.current) return;
+      setIndex((i) => (i + 1) % events.length);
       setTick((t) => t + 1);
-    }, getSodaLiveRotateMs());
+    }, getActivityFeedRotateMs());
     return () => window.clearInterval(id);
-  }, [items.length]);
+  }, [events.length]);
 
-  const item = items[index] ?? items[0];
-  if (!item) return null;
+  const event = events[index] ?? events[0];
+  if (!event) return null;
 
-  const Icon = kindIcon[item.kind];
+  const Icon = kindIcon[event.kind];
   const copy = DASHBOARD_SECTION_COPY.sodaLive;
 
   const body = (
     <div
-      key={`${item.id}-${tick}`}
-      className="soda-live-fade-enter space-y-3"
+      key={`${event.id}-${tick}`}
+      className="soda-live-fade-enter flex items-start gap-3"
     >
-      <div className="flex items-start gap-3">
-        <div className="soda-kpi-icon-pink flex size-10 shrink-0 items-center justify-center rounded-xl">
-          <Icon className="size-4" />
-        </div>
-        <div className="min-w-0 flex-1 space-y-1.5">
-          <p className="text-[11px] font-medium tracking-[0.14em] text-soda-pink uppercase">
-            {item.eyebrow}
-          </p>
-          <p className="font-heading text-base font-semibold leading-snug tracking-tight">
-            {item.title}
-          </p>
-          <p
-            className="font-ar text-[0.9375rem] leading-[1.8] text-muted-foreground"
-            dir="rtl"
+      <div className="soda-kpi-icon-pink flex size-10 shrink-0 items-center justify-center rounded-xl">
+        <Icon className="size-4" />
+      </div>
+      <div className="min-w-0 flex-1 space-y-1">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="font-mono text-[11px] tabular-nums text-muted-foreground">
+            {event.timeLabel}
+          </span>
+          <Badge
+            variant="outline"
+            className="border-soda-pink/25 bg-soda-pink/8 text-[10px] font-medium tracking-wide text-soda-pink"
           >
-            {item.body}
-          </p>
+            {event.category}
+          </Badge>
         </div>
+        <p className="text-sm leading-snug font-medium text-foreground sm:text-[0.9375rem]">
+          {event.description}
+        </p>
       </div>
     </div>
   );
@@ -101,6 +104,12 @@ export default function SodaLiveCard({ items, className }: SodaLiveCardProps) {
         "bg-[linear-gradient(145deg,color-mix(in_oklch,var(--soda-pink)_10%,transparent)_0%,var(--card)_55%)]",
         className
       )}
+      onMouseEnter={() => {
+        paused.current = true;
+      }}
+      onMouseLeave={() => {
+        paused.current = false;
+      }}
     >
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between gap-3">
@@ -112,26 +121,26 @@ export default function SodaLiveCard({ items, className }: SodaLiveCardProps) {
               </span>
               {copy.title}
             </CardTitle>
-            <CardDescription
-              className="font-ar mt-1 text-[0.9375rem] leading-[1.8] text-muted-foreground"
-              dir="rtl"
-            >
+            <CardDescription className="mt-1 text-sm text-muted-foreground">
               {copy.description}
             </CardDescription>
           </div>
-          {items.length > 1 ? (
+          {events.length > 1 ? (
             <Badge
               variant="outline"
               className="border-soda-pink/30 bg-soda-pink/10 font-mono text-[10px] text-soda-pink"
             >
-              {index + 1}/{items.length}
+              {index + 1}/{events.length}
             </Badge>
           ) : null}
         </div>
       </CardHeader>
-      <CardContent>
-        {item.href ? (
-          <Link href={item.href} className="block transition-opacity hover:opacity-90">
+      <CardContent className="min-h-[5.5rem]">
+        {event.href ? (
+          <Link
+            href={event.href}
+            className="block transition-opacity hover:opacity-90"
+          >
             {body}
           </Link>
         ) : (
