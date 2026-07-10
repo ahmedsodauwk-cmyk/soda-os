@@ -1,6 +1,6 @@
 "use client";
 
-import { useSyncExternalStore } from "react";
+import { useEffect, useState } from "react";
 
 import {
   buildHeroOperationalLines,
@@ -12,17 +12,17 @@ interface DashboardHeroProps {
   dashboard: DashboardVoiceInput;
 }
 
-function subscribe() {
-  return () => {};
-}
-
 /** Client-only local time so greeting matches the owner's clock. */
 function useLocalNow(): Date {
-  return useSyncExternalStore(
-    subscribe,
-    () => new Date(),
-    () => new Date(0)
-  );
+  const [now, setNow] = useState(() => new Date(0));
+
+  useEffect(() => {
+    setNow(new Date());
+    const id = setInterval(() => setNow(new Date()), 60_000);
+    return () => clearInterval(id);
+  }, []);
+
+  return now;
 }
 
 /**
