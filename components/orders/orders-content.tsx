@@ -24,6 +24,7 @@ import {
   WORKSPACE_TAB_ORDER,
   workspaceIdFromProjectType,
 } from "@/lib/orders/utils";
+import { ensureOrderProjectLink } from "@/lib/business/link-order";
 import {
   getSubcategories,
   getWorkspaces,
@@ -77,13 +78,19 @@ export function OrdersContent() {
   }
 
   function handleAddOrder(input: NewOrderInput) {
+    const orderId = generateOrderId(orders.length);
+    const link = ensureOrderProjectLink(orderId, input);
     const workspaceId =
-      input.workspaceId || workspaceIdFromProjectType(input.projectType);
+      link.workspaceId ||
+      input.workspaceId ||
+      workspaceIdFromProjectType(input.projectType);
 
     setOrders((prev) => [
       {
-        id: generateOrderId(prev.length),
+        id: orderId,
         ...input,
+        projectId: link.projectId,
+        clientId: link.clientId,
         workspaceId,
       },
       ...prev,

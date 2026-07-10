@@ -1,3 +1,5 @@
+import { computeWorkspaceStats } from "@/lib/business/workspace-stats";
+import { getOrders } from "@/lib/orders/repository";
 import { getProjectsByWorkspace, getProjects } from "@/lib/projects/repository";
 import {
   averageProgress,
@@ -14,9 +16,11 @@ export function getWorkspaceDisplayLabel(workspaceId: string, fallback: string) 
 
 export function getWorkspaceSummaries(): WorkspaceSummary[] {
   const workspaces = getWorkspaces();
+  const allOrders = getOrders();
 
   return workspaces.map((workspace) => {
     const projects = getProjectsByWorkspace(workspace.id);
+    const stats = computeWorkspaceStats(workspace.id, projects, allOrders);
     const upcomingShootsCount = projects.reduce(
       (acc, p) => acc + p.upcomingShoots.length,
       0
@@ -29,11 +33,12 @@ export function getWorkspaceSummaries(): WorkspaceSummary[] {
       description: workspace.description,
       color: workspace.color,
       icon: workspace.icon,
-      projectCount: projects.length,
+      projectCount: stats.projects,
       progress: averageProgress(projects),
       lastActivity: latestActivity(projects),
-      revenue: projects.reduce((acc, p) => acc + p.revenue, 0),
-      ordersCount: projects.reduce((acc, p) => acc + p.ordersCount, 0),
+      revenue: stats.revenue,
+      ordersCount: stats.activeOrders,
+      activeClients: stats.activeClients,
       teamCount: uniqueTeamCount(projects),
       upcomingShootsCount,
     };

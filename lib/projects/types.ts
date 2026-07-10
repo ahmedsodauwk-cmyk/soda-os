@@ -90,23 +90,35 @@ export interface ProjectOverview {
   nextAction: string;
 }
 
+/**
+ * Core project fields persisted in mock seed.
+ * Computed exposures (ordersCount, revenue, progress, upcomingShoots, lastActivity)
+ * are filled by lib/business via the projects repository — do not treat seed values as source of truth.
+ */
 export interface Project {
   id: string;
   name: string;
   workspaceId: string;
   subcategoryId?: string;
   clientName: string;
-  clientId?: string;
+  /** Required — every Project belongs to exactly one Client */
+  clientId: string;
   status: ProjectStatus;
-  /** 0–100 completion */
+  /** Computed: 0–100 completion from child orders */
   progress: number;
+  /** Computed: child orders count */
   ordersCount: number;
+  /** Computed: sum of non-cancelled order prices */
   revenue: number;
+  /** Assigned team foundation (project-level roster) */
   team: ProjectTeamMember[];
+  /** Computed: upcoming shoots from child orders */
   upcomingShoots: ProjectShoot[];
+  /** Computed: latest activity across project + orders */
   lastActivity: string;
   description?: string;
   overview: ProjectOverview;
+  /** Prefer live stubs from orders repo; seed may hold transitional copies */
   orders: ProjectOrderStub[];
   calendar: ProjectCalendarEvent[];
   files: ProjectFile[];

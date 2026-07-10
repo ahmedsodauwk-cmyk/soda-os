@@ -22,10 +22,14 @@ export type ProjectType = (typeof PROJECT_TYPES)[number];
 
 export interface Order {
   id: string;
+  /** Required — Order belongs to exactly one Project */
+  projectId: string;
+  /** Denormalized from Project.clientId for UI / filters */
+  clientId?: string;
   clientName: string;
   phone: string;
   projectType: ProjectType;
-  /** Taxonomy workspace id (e.g. rtm, weddings) */
+  /** Denormalized taxonomy workspace id — Phase 2 filters keep working */
   workspaceId: string;
   /** Optional taxonomy subcategory id (e.g. rtm-future-city) */
   subcategoryId?: string;
@@ -39,7 +43,11 @@ export interface Order {
   notes: string;
 }
 
-export type NewOrderInput = Omit<Order, "id">;
+/** Form input — projectId/clientId may be assigned on submit via business helpers */
+export type NewOrderInput = Omit<Order, "id" | "projectId" | "clientId"> & {
+  projectId?: string;
+  clientId?: string;
+};
 
 export const TEAMS = [
   "Alpha Crew",
