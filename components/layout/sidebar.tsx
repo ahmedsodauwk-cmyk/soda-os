@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
   ShoppingCart,
@@ -29,17 +31,19 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 const menu = [
-  { title: "Dashboard", icon: LayoutDashboard, active: true },
-  { title: "Orders", icon: ShoppingCart },
-  { title: "Projects", icon: Briefcase },
-  { title: "Weddings", icon: Heart },
-  { title: "Clients", icon: Users },
-  { title: "Calendar", icon: Calendar },
-  { title: "Finance", icon: DollarSign },
-  { title: "Settings", icon: Settings },
+  { title: "Dashboard", icon: LayoutDashboard, href: "/" },
+  { title: "Orders", icon: ShoppingCart, href: "/orders" },
+  { title: "Projects", icon: Briefcase, href: "#" },
+  { title: "Weddings", icon: Heart, href: "#" },
+  { title: "Clients", icon: Users, href: "#" },
+  { title: "Calendar", icon: Calendar, href: "#" },
+  { title: "Finance", icon: DollarSign, href: "#" },
+  { title: "Settings", icon: Settings, href: "#" },
 ];
 
 export function SidebarContent() {
+  const pathname = usePathname();
+
   return (
     <>
       <div className="flex items-center gap-2.5 border-b border-sidebar-border px-4 py-4">
@@ -57,14 +61,26 @@ export function SidebarContent() {
         <nav className="space-y-0.5">
           {menu.map((item) => {
             const Icon = item.icon;
+            const isActive =
+              item.href !== "#" &&
+              (item.href === "/"
+                ? pathname === "/"
+                : pathname.startsWith(item.href));
 
             return (
               <Button
                 key={item.title}
                 variant="ghost"
+                nativeButton={false}
+                render={
+                  <Link
+                    href={item.href}
+                    aria-current={isActive ? "page" : undefined}
+                  />
+                }
                 className={cn(
                   "h-9 w-full justify-start gap-2.5 rounded-md px-3 font-normal",
-                  item.active
+                  isActive
                     ? "border-l-2 border-primary bg-sidebar-accent text-sidebar-accent-foreground"
                     : "border-l-2 border-transparent text-muted-foreground hover:text-foreground"
                 )}

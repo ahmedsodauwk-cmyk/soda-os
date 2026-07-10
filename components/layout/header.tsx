@@ -32,7 +32,15 @@ const notifications = [
   "Client Mamdouh paid deposit",
 ];
 
-export default function Header() {
+interface HeaderProps {
+  title?: string;
+  subtitle?: string;
+}
+
+export default function Header({
+  title = "Dashboard",
+  subtitle = "Welcome back, Ahmed",
+}: HeaderProps) {
   return (
     <header className="sticky top-0 z-10 flex h-14 items-center justify-between gap-4 border-b bg-background/80 px-4 backdrop-blur-sm sm:px-6">
       <div className="flex items-center gap-3">
@@ -55,10 +63,8 @@ export default function Header() {
         </Sheet>
 
         <div>
-          <h1 className="text-base font-semibold tracking-tight">Dashboard</h1>
-          <p className="text-xs text-muted-foreground">
-            Welcome back, Ahmed
-          </p>
+          <h1 className="text-base font-semibold tracking-tight">{title}</h1>
+          <p className="text-xs text-muted-foreground">{subtitle}</p>
         </div>
       </div>
 
