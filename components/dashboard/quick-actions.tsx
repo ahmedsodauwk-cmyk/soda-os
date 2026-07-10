@@ -58,7 +58,10 @@ export default function QuickActions() {
     <Card>
       <CardHeader className="pb-3">
         <CardTitle>{DASHBOARD_SECTION_COPY.quickActions.title}</CardTitle>
-        <CardDescription>
+        <CardDescription
+          className="text-xs leading-relaxed text-muted-foreground/80"
+          dir="rtl"
+        >
           {DASHBOARD_SECTION_COPY.quickActions.description}
         </CardDescription>
       </CardHeader>

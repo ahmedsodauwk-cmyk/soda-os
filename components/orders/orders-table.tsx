@@ -32,8 +32,13 @@ export function OrdersTable({ orders }: OrdersTableProps) {
     const empty = getEmptyState("orders");
     return (
       <div className="flex flex-col items-center justify-center rounded-xl border border-dashed py-16 text-center">
-        <p className="text-sm font-medium">{empty.title}</p>
-        <p className="mt-1 text-xs text-muted-foreground">
+        <p className="text-sm font-medium" dir="rtl">
+          {empty.title}
+        </p>
+        <p
+          className="mt-1.5 max-w-sm text-xs leading-relaxed text-muted-foreground"
+          dir="rtl"
+        >
           {empty.description}
         </p>
       </div>

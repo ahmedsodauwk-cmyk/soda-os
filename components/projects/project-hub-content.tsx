@@ -30,7 +30,11 @@ import {
 } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
-import { getEmptyState, getModuleSlogan } from "@/lib/brand/soda-voice";
+import {
+  getEmptyState,
+  getModuleSlogan,
+  HUB_SECTION_COPY,
+} from "@/lib/brand/soda-voice";
 import { cn } from "@/lib/utils";
 import { formatDate, formatPrice, getInitials } from "@/lib/orders/utils";
 import type { OrderStatus } from "@/lib/orders/types";
@@ -124,7 +128,10 @@ export function ProjectHubContent({ project }: ProjectHubContentProps) {
                   <ProjectStatusBadge status={project.status} />
                   <Badge variant="outline">{workspaceLabel}</Badge>
                 </div>
-                <p className="text-sm text-muted-foreground">
+                <p
+                  className="text-xs leading-relaxed text-muted-foreground/80 whitespace-pre-line"
+                  dir="rtl"
+                >
                   {getModuleSlogan("projectHub")}
                 </p>
                 <p className="text-xs text-muted-foreground">
@@ -203,8 +210,15 @@ export function ProjectHubContent({ project }: ProjectHubContentProps) {
         <div className="grid gap-4 lg:grid-cols-3">
           <Card className="lg:col-span-2">
             <CardHeader>
-              <CardTitle className="text-base">Overview</CardTitle>
-              <CardDescription>{project.overview.summary}</CardDescription>
+              <CardTitle className="text-base">
+                {HUB_SECTION_COPY.overview.title}
+              </CardTitle>
+              <CardDescription
+                className="text-xs leading-relaxed text-muted-foreground/80"
+                dir="rtl"
+              >
+                {HUB_SECTION_COPY.overview.description}
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
@@ -229,18 +243,36 @@ export function ProjectHubContent({ project }: ProjectHubContentProps) {
                 </p>
                 <p className="text-sm">{project.overview.nextAction}</p>
               </div>
+              {project.overview.summary ? (
+                <p className="text-sm leading-relaxed text-muted-foreground">
+                  {project.overview.summary}
+                </p>
+              ) : null}
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Upcoming shoots</CardTitle>
+              <CardTitle className="text-base">
+                {HUB_SECTION_COPY.upcomingShoots.title}
+              </CardTitle>
+              <CardDescription
+                className="text-xs leading-relaxed text-muted-foreground/80"
+                dir="rtl"
+              >
+                {HUB_SECTION_COPY.upcomingShoots.description}
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
               {project.upcomingShoots.length === 0 ? (
-                <p className="text-sm text-muted-foreground">
-                  {getEmptyState("shoots").title}
-                </p>
+                <div dir="rtl">
+                  <p className="text-sm font-medium">
+                    {getEmptyState("shoots").title}
+                  </p>
+                  <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                    {getEmptyState("shoots").description}
+                  </p>
+                </div>
               ) : (
                 project.upcomingShoots.map((shoot) => (
                   <div
@@ -262,9 +294,14 @@ export function ProjectHubContent({ project }: ProjectHubContentProps) {
       {section === "orders" && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Orders</CardTitle>
-            <CardDescription>
-              Bookings linked to this project (mock stubs)
+            <CardTitle className="text-base">
+              {HUB_SECTION_COPY.orders.title}
+            </CardTitle>
+            <CardDescription
+              className="text-xs leading-relaxed text-muted-foreground/80"
+              dir="rtl"
+            >
+              {HUB_SECTION_COPY.orders.description}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-2">
@@ -298,9 +335,14 @@ export function ProjectHubContent({ project }: ProjectHubContentProps) {
       {section === "calendar" && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Calendar</CardTitle>
-            <CardDescription>
-              Shoots, deliveries, and milestones for this project
+            <CardTitle className="text-base">
+              {HUB_SECTION_COPY.calendar.title}
+            </CardTitle>
+            <CardDescription
+              className="text-xs leading-relaxed text-muted-foreground/80"
+              dir="rtl"
+            >
+              {HUB_SECTION_COPY.calendar.description}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-2">
@@ -332,14 +374,26 @@ export function ProjectHubContent({ project }: ProjectHubContentProps) {
       {section === "files" && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Files</CardTitle>
-            <CardDescription>Project assets and documents</CardDescription>
+            <CardTitle className="text-base">
+              {HUB_SECTION_COPY.files.title}
+            </CardTitle>
+            <CardDescription
+              className="text-xs leading-relaxed text-muted-foreground/80"
+              dir="rtl"
+            >
+              {HUB_SECTION_COPY.files.description}
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-2">
             {project.files.length === 0 ? (
-              <p className="text-sm text-muted-foreground">
-                {getEmptyState("files").title}
-              </p>
+              <div dir="rtl">
+                <p className="text-sm font-medium">
+                  {getEmptyState("files").title}
+                </p>
+                <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                  {getEmptyState("files").description}
+                </p>
+              </div>
             ) : (
               project.files.map((file) => (
                 <div
@@ -393,13 +447,26 @@ export function ProjectHubContent({ project }: ProjectHubContentProps) {
 
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Payment schedule</CardTitle>
+              <CardTitle className="text-base">
+                {HUB_SECTION_COPY.payments.title}
+              </CardTitle>
+              <CardDescription
+                className="text-xs leading-relaxed text-muted-foreground/80"
+                dir="rtl"
+              >
+                {HUB_SECTION_COPY.payments.description}
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-2">
               {project.payments.length === 0 ? (
-                <p className="text-sm text-muted-foreground">
-                  {getEmptyState("payments").title}
-                </p>
+                <div dir="rtl">
+                  <p className="text-sm font-medium">
+                    {getEmptyState("payments").title}
+                  </p>
+                  <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                    {getEmptyState("payments").description}
+                  </p>
+                </div>
               ) : (
                 project.payments.map((payment) => (
                   <div
@@ -441,8 +508,15 @@ export function ProjectHubContent({ project }: ProjectHubContentProps) {
       {section === "timeline" && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Timeline</CardTitle>
-            <CardDescription>Key project events</CardDescription>
+            <CardTitle className="text-base">
+              {HUB_SECTION_COPY.timeline.title}
+            </CardTitle>
+            <CardDescription
+              className="text-xs leading-relaxed text-muted-foreground/80"
+              dir="rtl"
+            >
+              {HUB_SECTION_COPY.timeline.description}
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <ol className="relative space-y-4 border-l border-border/60 pl-4">
@@ -466,13 +540,28 @@ export function ProjectHubContent({ project }: ProjectHubContentProps) {
       {section === "team" && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Assigned Team</CardTitle>
-            <CardDescription>
-              Crew currently assigned to this project
+            <CardTitle className="text-base">
+              {HUB_SECTION_COPY.team.title}
+            </CardTitle>
+            <CardDescription
+              className="text-xs leading-relaxed text-muted-foreground/80"
+              dir="rtl"
+            >
+              {HUB_SECTION_COPY.team.description}
             </CardDescription>
           </CardHeader>
           <CardContent className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {project.team.map((member) => (
+            {project.team.length === 0 ? (
+              <div className="col-span-full py-4 text-center" dir="rtl">
+                <p className="text-sm font-medium">
+                  {getEmptyState("team").title}
+                </p>
+                <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                  {getEmptyState("team").description}
+                </p>
+              </div>
+            ) : (
+              project.team.map((member) => (
               <div
                 key={member.id}
                 className="flex items-center gap-3 rounded-lg border border-border/60 px-3 py-3"
@@ -487,7 +576,8 @@ export function ProjectHubContent({ project }: ProjectHubContentProps) {
                   <p className="text-xs text-muted-foreground">{member.role}</p>
                 </div>
               </div>
-            ))}
+              ))
+            )}
           </CardContent>
         </Card>
       )}
@@ -495,10 +585,28 @@ export function ProjectHubContent({ project }: ProjectHubContentProps) {
       {section === "notes" && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Notes</CardTitle>
+            <CardTitle className="text-base">
+              {HUB_SECTION_COPY.notes.title}
+            </CardTitle>
+            <CardDescription
+              className="text-xs leading-relaxed text-muted-foreground/80"
+              dir="rtl"
+            >
+              {HUB_SECTION_COPY.notes.description}
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
-            {project.notes.map((note) => (
+            {project.notes.length === 0 ? (
+              <div dir="rtl">
+                <p className="text-sm font-medium">
+                  {getEmptyState("notes").title}
+                </p>
+                <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                  {getEmptyState("notes").description}
+                </p>
+              </div>
+            ) : (
+              project.notes.map((note) => (
               <div
                 key={note.id}
                 className="rounded-lg border border-border/60 px-3 py-3"
@@ -511,7 +619,8 @@ export function ProjectHubContent({ project }: ProjectHubContentProps) {
                 </div>
                 <p className="text-sm text-muted-foreground">{note.body}</p>
               </div>
-            ))}
+              ))
+            )}
           </CardContent>
         </Card>
       )}
@@ -519,10 +628,28 @@ export function ProjectHubContent({ project }: ProjectHubContentProps) {
       {section === "activity" && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Activity</CardTitle>
+            <CardTitle className="text-base">
+              {HUB_SECTION_COPY.activity.title}
+            </CardTitle>
+            <CardDescription
+              className="text-xs leading-relaxed text-muted-foreground/80"
+              dir="rtl"
+            >
+              {HUB_SECTION_COPY.activity.description}
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
-            {project.activity.map((item) => (
+            {project.activity.length === 0 ? (
+              <div dir="rtl">
+                <p className="text-sm font-medium">
+                  {getEmptyState("activity").title}
+                </p>
+                <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                  {getEmptyState("activity").description}
+                </p>
+              </div>
+            ) : (
+              project.activity.map((item) => (
               <div
                 key={item.id}
                 className="flex flex-col gap-1 rounded-lg border border-border/60 px-3 py-3 sm:flex-row sm:items-center sm:justify-between"
@@ -537,7 +664,8 @@ export function ProjectHubContent({ project }: ProjectHubContentProps) {
                   {formatRelativeActivity(item.createdAt)}
                 </p>
               </div>
-            ))}
+              ))
+            )}
           </CardContent>
         </Card>
       )}
@@ -545,10 +673,28 @@ export function ProjectHubContent({ project }: ProjectHubContentProps) {
       {section === "deliverables" && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Deliverables</CardTitle>
+            <CardTitle className="text-base">
+              {HUB_SECTION_COPY.deliverables.title}
+            </CardTitle>
+            <CardDescription
+              className="text-xs leading-relaxed text-muted-foreground/80"
+              dir="rtl"
+            >
+              {HUB_SECTION_COPY.deliverables.description}
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-2">
-            {project.deliverables.map((item) => (
+            {project.deliverables.length === 0 ? (
+              <div dir="rtl">
+                <p className="text-sm font-medium">
+                  {getEmptyState("deliverables").title}
+                </p>
+                <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                  {getEmptyState("deliverables").description}
+                </p>
+              </div>
+            ) : (
+              project.deliverables.map((item) => (
               <div
                 key={item.id}
                 className="flex flex-col gap-2 rounded-lg border border-border/60 px-3 py-3 sm:flex-row sm:items-center sm:justify-between"
@@ -572,7 +718,8 @@ export function ProjectHubContent({ project }: ProjectHubContentProps) {
                   {deliverableLabel(item.status)}
                 </Badge>
               </div>
-            ))}
+              ))
+            )}
           </CardContent>
         </Card>
       )}

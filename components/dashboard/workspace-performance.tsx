@@ -26,15 +26,23 @@ export default function WorkspacePerformance({
     <Card>
       <CardHeader>
         <CardTitle>{DASHBOARD_SECTION_COPY.workspaces.title}</CardTitle>
-        <CardDescription>
+        <CardDescription
+          className="text-xs leading-relaxed text-muted-foreground/80"
+          dir="rtl"
+        >
           {DASHBOARD_SECTION_COPY.workspaces.description}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-3">
         {workspaces.length === 0 ? (
-          <p className="text-sm text-muted-foreground">
-            {getEmptyState("workspaces").title}
-          </p>
+          <div className="py-4 text-center" dir="rtl">
+            <p className="text-sm font-medium">
+              {getEmptyState("workspaces").title}
+            </p>
+            <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+              {getEmptyState("workspaces").description}
+            </p>
+          </div>
         ) : (
           workspaces.map((ws) => (
             <Link

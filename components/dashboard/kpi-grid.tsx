@@ -9,6 +9,13 @@ import {
 } from "lucide-react";
 
 import StatCard from "@/components/dashboard/stat-card";
+import {
+  KPI_COPY,
+  getActiveProjectsWhisper,
+  getOutstandingWhisper,
+  getRevenueWhisper,
+  getUpcomingShootsWhisper,
+} from "@/lib/brand/soda-voice";
 import type { DashboardKpis } from "@/lib/dashboard/types";
 import { formatPrice } from "@/lib/orders/utils";
 
@@ -43,60 +50,68 @@ export default function KPIGrid({ kpis }: KPIGridProps) {
   return (
     <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
       <StatCard
-        title="Revenue this month"
+        title={KPI_COPY.revenueThisMonth.title}
         value={compactMoney(kpis.revenueThisMonth)}
         icon={CircleDollarSign}
         change={mom.change}
         trend={mom.trend}
+        whisper={getRevenueWhisper(kpis.revenueMonthChangePct)}
       />
       <StatCard
-        title="Revenue last month"
+        title={KPI_COPY.revenueLastMonth.title}
         value={compactMoney(kpis.revenueLastMonth)}
         icon={Wallet}
         change="Cash collected"
         trend="neutral"
+        whisper={KPI_COPY.revenueLastMonth.whisper}
       />
       <StatCard
-        title="Outstanding payments"
+        title={KPI_COPY.outstanding.title}
         value={compactMoney(kpis.outstandingPayments)}
         icon={Wallet}
         change="Open client balances"
         trend={kpis.outstandingPayments > 0 ? "down" : "neutral"}
+        whisper={getOutstandingWhisper(kpis.outstandingPayments)}
       />
       <StatCard
-        title="Active projects"
+        title={KPI_COPY.activeProjects.title}
         value={String(kpis.activeProjects)}
         icon={FolderKanban}
         change="Active + on hold"
         trend="neutral"
+        whisper={getActiveProjectsWhisper(kpis.activeProjects)}
       />
       <StatCard
-        title="Active orders"
+        title={KPI_COPY.activeOrders.title}
         value={String(kpis.activeOrders)}
         icon={ClipboardList}
         change="In production pipeline"
         trend="neutral"
+        whisper={KPI_COPY.activeOrders.whisper}
       />
       <StatCard
-        title="Upcoming shoots"
+        title={KPI_COPY.upcomingShoots.title}
         value={String(kpis.upcomingShoots)}
         icon={Camera}
         change="From today onward"
         trend="up"
+        whisper={getUpcomingShootsWhisper(kpis.upcomingShoots)}
       />
       <StatCard
-        title="Upcoming deliveries"
+        title={KPI_COPY.upcomingDeliveries.title}
         value={String(kpis.upcomingDeliveries)}
         icon={Truck}
         change="Due from today"
         trend="neutral"
+        whisper={KPI_COPY.upcomingDeliveries.whisper}
       />
       <StatCard
-        title="Active clients"
+        title={KPI_COPY.activeClients.title}
         value={String(kpis.activeClients)}
         icon={Users}
         change="With live work or balance"
         trend="neutral"
+        whisper={KPI_COPY.activeClients.whisper}
       />
     </div>
   );

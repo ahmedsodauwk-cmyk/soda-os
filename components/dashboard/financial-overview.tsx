@@ -83,7 +83,10 @@ export default function FinancialOverviewCard({
     <Card className="h-full">
       <CardHeader>
         <CardTitle>{DASHBOARD_SECTION_COPY.financial.title}</CardTitle>
-        <CardDescription>
+        <CardDescription
+          className="text-xs leading-relaxed text-muted-foreground/80"
+          dir="rtl"
+        >
           {DASHBOARD_SECTION_COPY.financial.description}
         </CardDescription>
       </CardHeader>

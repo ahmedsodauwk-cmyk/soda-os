@@ -14,6 +14,8 @@ type StatCardProps = {
   icon: LucideIcon;
   change?: string;
   trend?: "up" | "down" | "neutral";
+  /** Soft Egyptian Arabic line under the English title */
+  whisper?: string;
 };
 
 export default function StatCard({
@@ -22,15 +24,26 @@ export default function StatCard({
   icon: Icon,
   change,
   trend = "neutral",
+  whisper,
 }: StatCardProps) {
   return (
     <Card className="transition-colors hover:bg-muted/30">
-      <CardHeader className="flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-normal text-muted-foreground">
-          {title}
-        </CardTitle>
+      <CardHeader className="flex-row items-start justify-between space-y-0 pb-2">
+        <div className="min-w-0 space-y-1">
+          <CardTitle className="text-sm font-normal text-muted-foreground">
+            {title}
+          </CardTitle>
+          {whisper ? (
+            <p
+              className="text-[11px] leading-relaxed text-muted-foreground/75"
+              dir="rtl"
+            >
+              {whisper}
+            </p>
+          ) : null}
+        </div>
 
-        <div className="flex size-8 items-center justify-center rounded-md bg-muted">
+        <div className="flex size-8 shrink-0 items-center justify-center rounded-md bg-muted">
           <Icon className="size-4 text-muted-foreground" />
         </div>
       </CardHeader>

@@ -2,15 +2,16 @@
 
 import { Moon, Sun, Sunset } from "lucide-react";
 
+import { Badge } from "@/components/ui/badge";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle,
 } from "@/components/ui/card";
 import {
   getBriefCopy,
+  getMoodLabel,
   type DashboardVoiceInput,
   type DayPeriod,
 } from "@/lib/brand/soda-voice";
@@ -28,52 +29,84 @@ const periodIcon: Record<DayPeriod, typeof Sun> = {
 };
 
 const periodAccent: Record<DayPeriod, string> = {
-  morning: "border-amber-500/20 bg-amber-500/[0.04]",
-  afternoon: "border-orange-500/15 bg-orange-500/[0.03]",
-  evening: "border-indigo-500/20 bg-indigo-500/[0.04]",
+  morning:
+    "border-amber-500/25 bg-gradient-to-br from-amber-500/[0.07] via-background to-background",
+  afternoon:
+    "border-orange-500/20 bg-gradient-to-br from-orange-500/[0.06] via-background to-background",
+  evening:
+    "border-indigo-500/25 bg-gradient-to-br from-indigo-500/[0.08] via-background to-background",
 };
 
 /**
- * Time-aware SODA voice card: Morning Brief / Midday Check-in / Evening Summary.
- * Greeting uses live local time; business lines map existing dashboard signals.
+ * Time-aware SODA hero: Morning Brief / Afternoon Check-in / Evening Summary.
+ * Large greeting + multi-line teammate copy from live dashboard signals.
  */
 export default function SodaBrief({ dashboard, className }: SodaBriefProps) {
   const brief = getBriefCopy(dashboard);
   const Icon = periodIcon[brief.period];
 
   return (
-    <Card className={cn(periodAccent[brief.period], className)}>
-      <CardHeader className="pb-2">
-        <div className="flex items-start justify-between gap-3">
-          <div className="space-y-1">
-            <CardDescription
-              className="flex items-center gap-1.5 text-[11px] font-medium tracking-wide uppercase"
-              suppressHydrationWarning
-            >
-              <Icon className="size-3.5" />
-              {brief.label}
-            </CardDescription>
-            <CardTitle
-              className="text-lg font-semibold tracking-tight"
-              suppressHydrationWarning
-            >
-              {brief.greeting}
-            </CardTitle>
-          </div>
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-2">
-        <p className="text-sm text-muted-foreground" suppressHydrationWarning>
-          {brief.body}
-        </p>
-        {brief.insight ? (
-          <p
-            className="rounded-md bg-muted/50 px-3 py-2 text-xs text-muted-foreground"
+    <Card
+      className={cn(
+        "overflow-hidden shadow-none",
+        periodAccent[brief.period],
+        className
+      )}
+    >
+      <CardHeader className="gap-5 pb-2 pt-6 sm:pt-8">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <CardDescription
+            className="flex items-center gap-1.5 text-[11px] font-medium tracking-[0.14em] text-muted-foreground uppercase"
             suppressHydrationWarning
           >
-            {brief.insight}
+            <Icon className="size-3.5 opacity-80" />
+            {brief.label}
+          </CardDescription>
+          <Badge
+            variant="outline"
+            className="font-normal tracking-wide text-muted-foreground"
+            suppressHydrationWarning
+          >
+            {getMoodLabel(brief.mood)}
+          </Badge>
+        </div>
+
+        <div className="space-y-3" dir="rtl">
+          <h2
+            className="font-heading text-2xl leading-snug font-semibold tracking-tight text-foreground sm:text-3xl sm:leading-tight"
+            suppressHydrationWarning
+          >
+            {brief.greeting}
+          </h2>
+          <p
+            className="text-base leading-relaxed text-muted-foreground sm:text-lg"
+            suppressHydrationWarning
+          >
+            {brief.hook}
           </p>
-        ) : null}
+        </div>
+      </CardHeader>
+
+      <CardContent className="space-y-6 pb-6 pt-2 sm:pb-8 sm:pt-4">
+        <div className="space-y-2.5" dir="rtl">
+          {brief.lines.map((line) => (
+            <p
+              key={line}
+              className="text-[15px] leading-relaxed text-foreground/85 sm:text-base"
+              suppressHydrationWarning
+            >
+              {line}
+            </p>
+          ))}
+        </div>
+
+        <p
+          className="text-base font-medium leading-relaxed tracking-tight text-foreground sm:text-lg"
+          dir="rtl"
+          suppressHydrationWarning
+        >
+          {brief.closer}
+        </p>
       </CardContent>
     </Card>
   );

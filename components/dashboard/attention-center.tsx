@@ -53,7 +53,10 @@ export default function AttentionCenter({
         <div className="flex items-start justify-between gap-3">
           <div>
             <CardTitle>{DASHBOARD_SECTION_COPY.attention.title}</CardTitle>
-            <CardDescription>
+            <CardDescription
+              className="text-xs leading-relaxed text-muted-foreground/80"
+              dir="rtl"
+            >
               {DASHBOARD_SECTION_COPY.attention.description}
             </CardDescription>
           </div>
@@ -65,10 +68,13 @@ export default function AttentionCenter({
       <CardContent className="space-y-2">
         {visible.length === 0 ? (
           <div className="rounded-lg bg-emerald-500/10 px-3 py-4 text-emerald-400">
-            <p className="text-sm font-medium">
+            <p className="text-sm font-medium" dir="rtl">
               {getEmptyState("attentionClear").title}
             </p>
-            <p className="mt-1 text-xs text-emerald-400/80">
+            <p
+              className="mt-1 text-xs leading-relaxed text-emerald-400/80"
+              dir="rtl"
+            >
               {getEmptyState("attentionClear").description}
             </p>
           </div>

@@ -19,7 +19,7 @@ export default function Home() {
       title="Executive Dashboard"
       subtitle={getModuleSlogan("dashboard")}
     >
-      <div className="space-y-6">
+      <div className="space-y-6 sm:space-y-8">
         <SodaBrief
           dashboard={{
             kpis: dashboard.kpis,

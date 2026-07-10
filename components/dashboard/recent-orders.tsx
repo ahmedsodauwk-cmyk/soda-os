@@ -7,6 +7,7 @@ import {
   Card,
   CardAction,
   CardContent,
+  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -24,10 +25,18 @@ interface RecentOrdersProps {
 }
 
 export default function RecentOrders({ orders }: RecentOrdersProps) {
+  const empty = getEmptyState("orders");
+
   return (
     <Card>
       <CardHeader>
         <CardTitle>{DASHBOARD_SECTION_COPY.recentOrders.title}</CardTitle>
+        <CardDescription
+          className="text-xs leading-relaxed text-muted-foreground/80"
+          dir="rtl"
+        >
+          {DASHBOARD_SECTION_COPY.recentOrders.description}
+        </CardDescription>
         <CardAction>
           <Button
             variant="ghost"
@@ -43,9 +52,12 @@ export default function RecentOrders({ orders }: RecentOrdersProps) {
 
       <CardContent className="space-y-2">
         {orders.length === 0 ? (
-          <p className="text-sm text-muted-foreground">
-            {getEmptyState("orders").title}
-          </p>
+          <div className="py-6 text-center" dir="rtl">
+            <p className="text-sm font-medium">{empty.title}</p>
+            <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+              {empty.description}
+            </p>
+          </div>
         ) : (
           orders.map((order) => (
             <div

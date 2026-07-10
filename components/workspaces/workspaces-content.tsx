@@ -86,10 +86,13 @@ export function WorkspacesContent() {
       {filtered.length === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center justify-center gap-2 py-16 text-center">
-            <p className="text-sm font-medium">
+            <p className="text-sm font-medium" dir="rtl">
               {getEmptyState("workspaces").title}
             </p>
-            <p className="text-xs text-muted-foreground">
+            <p
+              className="max-w-sm text-xs leading-relaxed text-muted-foreground"
+              dir="rtl"
+            >
               {getEmptyState("workspaces").description}
             </p>
           </CardContent>

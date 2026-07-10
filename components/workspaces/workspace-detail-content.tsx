@@ -87,7 +87,10 @@ export function WorkspaceDetailContent({
             <h2 className="text-xl font-semibold tracking-tight">
               {workspace.label}
             </h2>
-            <p className="text-sm text-muted-foreground">
+            <p
+              className="text-xs leading-relaxed text-muted-foreground/80 whitespace-pre-line"
+              dir="rtl"
+            >
               {getWorkspaceSlogan(workspace.id)}
             </p>
             {workspace.description ? (
@@ -164,8 +167,11 @@ export function WorkspaceDetailContent({
               <Calendar className="size-4 text-muted-foreground" />
               Upcoming shoots
             </CardTitle>
-            <CardDescription>
-              Next scheduled production days in this workspace
+            <CardDescription
+              className="text-xs leading-relaxed text-muted-foreground/80"
+              dir="rtl"
+            >
+              📸 التصويرات الجاية في الـ Workspace ده.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
@@ -235,10 +241,13 @@ export function WorkspaceDetailContent({
         {filtered.length === 0 ? (
           <Card>
             <CardContent className="flex flex-col items-center justify-center gap-2 py-16 text-center">
-              <p className="text-sm font-medium">
+              <p className="text-sm font-medium" dir="rtl">
                 {getEmptyState("projects").title}
               </p>
-              <p className="text-xs text-muted-foreground">
+              <p
+                className="max-w-sm text-xs leading-relaxed text-muted-foreground"
+                dir="rtl"
+              >
                 {getEmptyState("projects").description}
               </p>
             </CardContent>

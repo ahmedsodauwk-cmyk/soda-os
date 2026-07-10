@@ -40,8 +40,8 @@ export default function Header({
   subtitle = getModuleSlogan("dashboard"),
 }: HeaderProps) {
   return (
-    <header className="sticky top-0 z-10 flex h-14 items-center justify-between gap-4 border-b bg-background/80 px-4 backdrop-blur-sm sm:px-6">
-      <div className="flex items-center gap-3">
+    <header className="sticky top-0 z-10 flex min-h-16 items-center justify-between gap-4 border-b bg-background/80 px-4 py-3 backdrop-blur-sm sm:px-6">
+      <div className="flex min-w-0 items-center gap-3">
         <Sheet>
           <SheetTrigger
             render={
@@ -60,9 +60,16 @@ export default function Header({
           </SheetContent>
         </Sheet>
 
-        <div>
-          <h1 className="text-base font-semibold tracking-tight">{title}</h1>
-          <p className="text-xs text-muted-foreground">{subtitle}</p>
+        <div className="min-w-0 space-y-0.5">
+          <h1 className="font-heading text-xl font-semibold tracking-tight sm:text-2xl">
+            {title}
+          </h1>
+          <p
+            className="max-w-xl text-[11px] leading-relaxed whitespace-pre-line text-muted-foreground/80 sm:text-xs sm:leading-relaxed"
+            dir="rtl"
+          >
+            {subtitle}
+          </p>
         </div>
       </div>
 

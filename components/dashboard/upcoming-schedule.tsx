@@ -46,7 +46,9 @@ function Section({
         </p>
       </div>
       {items.length === 0 ? (
-        <p className="py-2 text-sm text-muted-foreground">{empty}</p>
+        <p className="py-2 text-sm text-muted-foreground" dir="rtl">
+          {empty}
+        </p>
       ) : (
         <div className="space-y-0">
           {items.map((item, index) => (
@@ -82,7 +84,10 @@ export default function UpcomingScheduleCard({
           <Calendar className="size-4 text-muted-foreground" />
           {DASHBOARD_SECTION_COPY.schedule.title}
         </CardTitle>
-        <CardDescription>
+        <CardDescription
+          className="text-xs leading-relaxed text-muted-foreground/80"
+          dir="rtl"
+        >
           {DASHBOARD_SECTION_COPY.schedule.description}
         </CardDescription>
       </CardHeader>
@@ -103,13 +108,13 @@ export default function UpcomingScheduleCard({
           title="Deliveries"
           icon={Truck}
           items={schedule.deliveries}
-          empty="مفيش deliveries قريبة"
+          empty={getEmptyState("deliveries").title}
         />
         <Section
           title="Deadlines"
           icon={Flag}
           items={schedule.deadlines}
-          empty="مفيش deadlines في الـ 14 يوم الجايين"
+          empty={getEmptyState("deadlines").title}
         />
       </CardContent>
     </Card>

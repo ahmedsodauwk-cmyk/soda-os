@@ -27,15 +27,23 @@ export default function TeamPerformance({
     <Card className="h-full">
       <CardHeader>
         <CardTitle>{DASHBOARD_SECTION_COPY.team.title}</CardTitle>
-        <CardDescription>
+        <CardDescription
+          className="text-xs leading-relaxed text-muted-foreground/80"
+          dir="rtl"
+        >
           {DASHBOARD_SECTION_COPY.team.description}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-2">
         {rows.length === 0 ? (
-          <p className="text-sm text-muted-foreground">
-            {getEmptyState("team").title}
-          </p>
+          <div className="py-4 text-center" dir="rtl">
+            <p className="text-sm font-medium">
+              {getEmptyState("team").title}
+            </p>
+            <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+              {getEmptyState("team").description}
+            </p>
+          </div>
         ) : (
           rows.map((member, index) => (
             <div
