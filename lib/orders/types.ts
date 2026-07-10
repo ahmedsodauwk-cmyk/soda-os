@@ -25,6 +25,10 @@ export interface Order {
   clientName: string;
   phone: string;
   projectType: ProjectType;
+  /** Taxonomy workspace id (e.g. rtm, weddings) */
+  workspaceId: string;
+  /** Optional taxonomy subcategory id (e.g. rtm-future-city) */
+  subcategoryId?: string;
   shootDate: string;
   location: string;
   deliveryDate: string;

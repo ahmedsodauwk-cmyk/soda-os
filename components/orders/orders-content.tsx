@@ -5,6 +5,8 @@ import { Search } from "lucide-react";
 
 import { AddOrderDialog } from "@/components/orders/add-order-dialog";
 import { OrdersTable } from "@/components/orders/orders-table";
+import { WorkspaceSidePanel } from "@/components/orders/workspace-side-panel";
+import { WorkspaceTabs } from "@/components/orders/workspace-tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
@@ -16,64 +18,145 @@ import {
 } from "@/components/ui/select";
 import { mockOrders } from "@/lib/orders/mock-data";
 import { ORDER_STATUSES, type NewOrderInput } from "@/lib/orders/types";
-import { filterOrders, generateOrderId } from "@/lib/orders/utils";
+import {
+  filterOrders,
+  generateOrderId,
+  WORKSPACE_TAB_ORDER,
+  workspaceIdFromProjectType,
+} from "@/lib/orders/utils";
+import {
+  getSubcategories,
+  getWorkspaces,
+} from "@/lib/taxonomy/repository";
 
 export function OrdersContent() {
   const [orders, setOrders] = useState(mockOrders);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
-
-  const filteredOrders = useMemo(
-    () => filterOrders(orders, search, statusFilter),
-    [orders, search, statusFilter]
+  const [workspaceFilter, setWorkspaceFilter] = useState<string>("all");
+  const [subcategoryFilter, setSubcategoryFilter] = useState<string | null>(
+    null
   );
 
+  const workspaces = useMemo(() => {
+    const byId = new Map(getWorkspaces().map((w) => [w.id, w]));
+    return WORKSPACE_TAB_ORDER.map((id) => byId.get(id)).filter(
+      (w): w is NonNullable<typeof w> => Boolean(w)
+    );
+  }, []);
+
+  const activeWorkspace = useMemo(
+    () => workspaces.find((w) => w.id === workspaceFilter),
+    [workspaces, workspaceFilter]
+  );
+
+  const showSidePanel = Boolean(
+    activeWorkspace?.hasSubcategories && workspaceFilter === "rtm"
+  );
+
+  const rtmSubcategories = useMemo(
+    () => (showSidePanel ? getSubcategories("rtm") : []),
+    [showSidePanel]
+  );
+
+  const filteredOrders = useMemo(
+    () =>
+      filterOrders(
+        orders,
+        search,
+        statusFilter,
+        workspaceFilter,
+        subcategoryFilter
+      ),
+    [orders, search, statusFilter, workspaceFilter, subcategoryFilter]
+  );
+
+  function handleWorkspaceSelect(id: string) {
+    setWorkspaceFilter(id);
+    setSubcategoryFilter(null);
+  }
+
   function handleAddOrder(input: NewOrderInput) {
+    const workspaceId =
+      input.workspaceId || workspaceIdFromProjectType(input.projectType);
+
     setOrders((prev) => [
-      { id: generateOrderId(prev.length), ...input },
+      {
+        id: generateOrderId(prev.length),
+        ...input,
+        workspaceId,
+      },
       ...prev,
     ]);
   }
 
   return (
     <div className="space-y-6">
-      <Card className="transition-colors hover:bg-muted/30">
-        <CardContent className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex w-full flex-col gap-2 sm:flex-row sm:items-center">
-            <div className="relative flex-1 sm:max-w-xs">
-              <Search className="absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                placeholder="Search orders..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="h-8 pl-8"
+      <WorkspaceTabs
+        workspaces={workspaces}
+        activeId={workspaceFilter}
+        onSelect={handleWorkspaceSelect}
+      />
+
+      <div className={showSidePanel ? "flex flex-col gap-4 sm:flex-row" : undefined}>
+        {showSidePanel && (
+          <Card className="h-fit sm:w-52">
+            <CardContent className="p-3">
+              <WorkspaceSidePanel
+                title="RTM"
+                subcategories={rtmSubcategories}
+                activeId={subcategoryFilter}
+                onSelect={setSubcategoryFilter}
               />
-            </div>
+            </CardContent>
+          </Card>
+        )}
 
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="h-8 w-full sm:w-40" size="sm">
-                <SelectValue placeholder="Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All statuses</SelectItem>
-                {ORDER_STATUSES.map((status) => (
-                  <SelectItem key={status} value={status}>
-                    {status}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+        <div className="min-w-0 flex-1 space-y-4">
+          <Card className="transition-colors hover:bg-muted/30">
+            <CardContent className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex w-full flex-col gap-2 sm:flex-row sm:items-center">
+                <div className="relative flex-1 sm:max-w-xs">
+                  <Search className="absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    placeholder="Search orders..."
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    className="h-8 pl-8"
+                  />
+                </div>
 
-          <AddOrderDialog onAdd={handleAddOrder} />
-        </CardContent>
-      </Card>
+                <Select
+                  value={statusFilter}
+                  onValueChange={(value) => {
+                    if (value) setStatusFilter(value);
+                  }}
+                >
+                  <SelectTrigger className="h-8 w-full sm:w-40" size="sm">
+                    <SelectValue placeholder="Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All statuses</SelectItem>
+                    {ORDER_STATUSES.map((status) => (
+                      <SelectItem key={status} value={status}>
+                        {status}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
 
-      <Card>
-        <CardContent className="p-4">
-          <OrdersTable orders={filteredOrders} />
-        </CardContent>
-      </Card>
+              <AddOrderDialog onAdd={handleAddOrder} />
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-4">
+              <OrdersTable orders={filteredOrders} />
+            </CardContent>
+          </Card>
+        </div>
+      </div>
     </div>
   );
 }

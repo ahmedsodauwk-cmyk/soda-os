@@ -31,11 +31,13 @@ import {
   type OrderStatus,
   type ProjectType,
 } from "@/lib/orders/types";
+import { workspaceIdFromProjectType } from "@/lib/orders/utils";
 
 const emptyForm: NewOrderInput = {
   clientName: "",
   phone: "",
   projectType: "Wedding",
+  workspaceId: workspaceIdFromProjectType("Wedding"),
   shootDate: "",
   location: "",
   deliveryDate: "",
@@ -158,9 +160,22 @@ export function AddOrderDialog({ onAdd }: AddOrderDialogProps) {
               <Label>Project Type</Label>
               <Select
                 value={form.projectType}
-                onValueChange={(value) =>
-                  updateField("projectType", value as ProjectType)
-                }
+                onValueChange={(value) => {
+                  if (!value) return;
+                  const projectType = value as ProjectType;
+                  setForm((prev) => ({
+                    ...prev,
+                    projectType,
+                    workspaceId: workspaceIdFromProjectType(projectType),
+                  }));
+                  if (errors.projectType) {
+                    setErrors((prev) => {
+                      const next = { ...prev };
+                      delete next.projectType;
+                      return next;
+                    });
+                  }
+                }}
               >
                 <SelectTrigger aria-invalid={!!errors.projectType}>
                   <SelectValue />
@@ -182,9 +197,9 @@ export function AddOrderDialog({ onAdd }: AddOrderDialogProps) {
               <Label>Status</Label>
               <Select
                 value={form.status}
-                onValueChange={(value) =>
-                  updateField("status", value as OrderStatus)
-                }
+                onValueChange={(value) => {
+                  if (value) updateField("status", value as OrderStatus);
+                }}
               >
                 <SelectTrigger aria-invalid={!!errors.status}>
                   <SelectValue />
@@ -288,7 +303,9 @@ export function AddOrderDialog({ onAdd }: AddOrderDialogProps) {
               <Label>Team</Label>
               <Select
                 value={form.team}
-                onValueChange={(value) => updateField("team", value)}
+                onValueChange={(value) => {
+                  if (value) updateField("team", value);
+                }}
               >
                 <SelectTrigger aria-invalid={!!errors.team}>
                   <SelectValue />
