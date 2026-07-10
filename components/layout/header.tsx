@@ -1,10 +1,10 @@
 "use client";
 
-import { Bell, Menu, Search, Settings } from "lucide-react";
+import { Bell, Menu, Settings } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { HeaderSearch } from "@/components/layout/header-search";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -74,10 +74,7 @@ export default function Header({
       </div>
 
       <div className="flex items-center gap-2">
-        <div className="relative hidden sm:block">
-          <Search className="absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
-          <Input placeholder="Search..." className="h-8 w-48 pl-8 lg:w-64" />
-        </div>
+        <HeaderSearch />
 
         <DropdownMenu>
           <Tooltip>

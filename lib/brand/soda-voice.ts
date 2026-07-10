@@ -303,6 +303,7 @@ export const MODULE_SLOGANS: Record<ModuleSloganKey, string> = {
   events: "Events commercial lane.",
   commercial: "Commercial accounts and campaigns.",
   finance: "Invoices, payments, and outstanding balances.",
+  quotations: "Inquiry to deposit — sales pipeline and quote builder.",
   about: "SODA Visuals Studio.",
   login: "Sign in to SODA OS.",
 };

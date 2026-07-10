@@ -17,9 +17,12 @@ function useLocalNow(): Date {
   const [now, setNow] = useState(() => new Date(0));
 
   useEffect(() => {
-    setNow(new Date());
-    const id = setInterval(() => setNow(new Date()), 60_000);
-    return () => clearInterval(id);
+    const boot = window.setTimeout(() => setNow(new Date()), 0);
+    const id = window.setInterval(() => setNow(new Date()), 60_000);
+    return () => {
+      window.clearTimeout(boot);
+      window.clearInterval(id);
+    };
   }, []);
 
   return now;

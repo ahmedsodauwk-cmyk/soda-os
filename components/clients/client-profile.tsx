@@ -13,9 +13,75 @@ import { getClientById } from "@/lib/clients/repository";
 import { getOrders } from "@/lib/orders/repository";
 import { getPayments } from "@/lib/payments/repository";
 import { getProjects } from "@/lib/projects/repository";
+import { getClientQuotationStats } from "@/lib/quotations";
+import {
+  formatEgp as formatQuoteEgp,
+  formatShortDate,
+} from "@/lib/quotations/utils";
 
 function egp(n: number) {
   return `${n.toLocaleString("en-EG")} EGP`;
+}
+
+function ClientQuotationsSection({ clientId }: { clientId: string }) {
+  const stats = getClientQuotationStats(clientId);
+  if (stats.totalCount === 0) return null;
+
+  return (
+    <section className="space-y-3">
+      <h3 className="font-heading text-base font-semibold">Quotations</h3>
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        {[
+          ["Total quotes", String(stats.totalCount)],
+          [
+            "Win / loss",
+            stats.winLossRatio == null
+              ? "—"
+              : `${Math.round(stats.winLossRatio * 100)}% (${stats.wonCount}/${stats.wonCount + stats.lostCount})`,
+          ],
+          ["Quote value", formatQuoteEgp(stats.totalQuotationValue)],
+          [
+            "Avg project size",
+            stats.averageProjectSize == null
+              ? "—"
+              : formatQuoteEgp(stats.averageProjectSize),
+          ],
+        ].map(([label, value]) => (
+          <Card key={label}>
+            <CardHeader className="pb-1">
+              <CardTitle className="text-xs font-medium text-muted-foreground">
+                {label}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="font-mono text-lg font-semibold">{value}</p>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+      <ul className="space-y-2">
+        {stats.quotations.map((q) => (
+          <li key={q.id}>
+            <Link
+              href={`/quotations/${q.id}`}
+              className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border/60 px-3.5 py-3 hover:border-soda-pink/35"
+            >
+              <div>
+                <p className="font-medium">
+                  {q.number} · {q.projectInfo.title || q.category}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {q.pipelineStage} · {q.approvalStatus} · close{" "}
+                  {formatShortDate(q.expectedClosingDate)}
+                </p>
+              </div>
+              <Badge variant="outline">{formatQuoteEgp(q.estimatedValue)}</Badge>
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
 }
 
 interface ClientProfileProps {
@@ -95,6 +161,8 @@ export function ClientProfile({ clientId }: ClientProfileProps) {
             </Card>
           ))}
         </div>
+
+        <ClientQuotationsSection clientId={clientId} />
 
         <MonthlyAccountPanel
           account={profile.monthlyAccount}
@@ -300,6 +368,9 @@ export function ClientProfile({ clientId }: ClientProfileProps) {
           </CardContent>
         </Card>
       </div>
+
+      <ClientQuotationsSection clientId={clientId} />
+
       <section className="space-y-2">
         <h3 className="font-heading text-base font-semibold">Projects</h3>
         {projects.map((p) => (

@@ -29,6 +29,7 @@ export type ModuleSloganKey =
   | "events"
   | "commercial"
   | "finance"
+  | "quotations"
   | "about"
   | "login";
 

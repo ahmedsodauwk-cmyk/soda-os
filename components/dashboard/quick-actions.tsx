@@ -3,6 +3,7 @@ import {
   BarChart3,
   Briefcase,
   CalendarDays,
+  FileText,
   Plus,
   UserPlus,
   UsersRound,
@@ -20,6 +21,12 @@ import { DASHBOARD_SECTION_COPY } from "@/lib/brand/soda-voice";
 import { cn } from "@/lib/utils";
 
 const actions = [
+  {
+    label: "New Quotation",
+    href: "/quotations/new",
+    icon: FileText,
+    enabled: true,
+  },
   {
     label: "New Order",
     href: "/orders",

@@ -6,11 +6,13 @@ import { buildWeddingOrdersOverview } from "@/lib/business/wedding-orders";
 import type { DashboardSnapshot } from "@/lib/dashboard/types";
 import { getOrders } from "@/lib/orders/repository";
 import { getPayments } from "@/lib/payments/repository";
+import { computeQuotationMetrics } from "@/lib/quotations";
 
 export type RotatingSummaryKey =
   | "operations"
   | "weddings"
   | "commercial"
+  | "quotations"
   | "deliveries"
   | "payments"
   | "crew"
@@ -105,6 +107,38 @@ export function buildRotatingSummaries(
         label: w.label,
         value: `${w.activeProjects} projects · ${egp(w.revenue)}`,
       })),
+    });
+  }
+
+  // Quotation pipeline
+  const quoteMetrics = computeQuotationMetrics(snapshot.asOf);
+  if (
+    quoteMetrics.pendingCount > 0 ||
+    quoteMetrics.waitingClientCount > 0 ||
+    quoteMetrics.pipelineValue > 0
+  ) {
+    panels.push({
+      key: "quotations",
+      title: "Quotation Pipeline",
+      description: "Sales pipeline from the quotation repository.",
+      lines: [
+        {
+          label: "Pending",
+          value: String(quoteMetrics.pendingCount),
+        },
+        {
+          label: "Waiting client",
+          value: String(quoteMetrics.waitingClientCount),
+        },
+        {
+          label: "Pipeline value",
+          value: egp(quoteMetrics.pipelineValue),
+        },
+        {
+          label: "Won / lost (month)",
+          value: `${quoteMetrics.wonThisMonth} / ${quoteMetrics.lostThisMonth}`,
+        },
+      ],
     });
   }
 

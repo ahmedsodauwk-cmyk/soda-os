@@ -11,6 +11,7 @@ import SodaLiveFeed from "@/components/dashboard/soda-live";
 import TeamPerformance from "@/components/dashboard/team-performance";
 import UpcomingScheduleCard from "@/components/dashboard/upcoming-schedule";
 import { WelcomeGate } from "@/components/dashboard/welcome-gate";
+import { QuotationPipelineCard } from "@/components/quotations/quotation-pipeline-card";
 import { getCompanyPulse, getModuleSlogan } from "@/lib/brand";
 import { buildActivityFeed } from "@/lib/dashboard/activity-feed";
 import { getDashboardSnapshot } from "@/lib/dashboard";
@@ -56,6 +57,8 @@ export default function Home() {
           </div>
 
           <QuickActions />
+
+          <QuotationPipelineCard />
 
           {rotatingPanels.length > 0 ? (
             <RotatingSummary panels={rotatingPanels} />

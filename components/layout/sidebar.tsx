@@ -15,6 +15,7 @@ import {
   LogOut,
   User,
   Info,
+  FileText,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -35,6 +36,7 @@ import { SODA_OPERATOR, SODA_OPERATOR_EN } from "@/lib/brand/soda-voice";
 
 const menu = [
   { title: "Dashboard", icon: LayoutDashboard, href: "/" },
+  { title: "Quotations", icon: FileText, href: "/quotations" },
   { title: "Orders", icon: ShoppingCart, href: "/orders" },
   { title: "Commercial", icon: Briefcase, href: "/commercial" },
   { title: "Weddings", icon: Heart, href: "/orders/weddings" },
