@@ -25,6 +25,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { SidebarContent } from "@/components/layout/sidebar";
+import { HumanTitle } from "@/components/brand/human-title";
 import {
   getModuleSlogan,
   NOTIFICATION_COPY,
@@ -60,17 +61,12 @@ export default function Header({
           </SheetContent>
         </Sheet>
 
-        <div className="min-w-0 space-y-1.5">
-          <h1 className="font-heading text-xl font-semibold tracking-tight text-foreground sm:text-[1.65rem]">
-            {title}
-          </h1>
-          <p
-            className="font-ar max-w-xl text-[0.9375rem] leading-[1.85] whitespace-pre-line text-muted-foreground sm:text-base sm:leading-[1.8]"
-            dir="rtl"
-          >
-            {subtitle}
-          </p>
-        </div>
+        <HumanTitle
+          title={title}
+          explanation={subtitle}
+          as="h1"
+          size="page"
+        />
       </div>
 
       <div className="flex items-center gap-2">

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { MonthlyAccountPanel } from "@/components/business/monthly-account-panel";
+import { HumanExplanation } from "@/components/brand/human-title";
 import { OrderStatusBadge } from "@/components/orders/order-status-badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -122,6 +123,7 @@ export function CommercialCompanyOrders({
         <Card>
           <CardHeader>
             <CardTitle className="text-base">Deliveries</CardTitle>
+            <HumanExplanation layer="deliveries" size="compact" />
           </CardHeader>
           <CardContent className="space-y-2">
             {deliveries.length === 0 ? (
@@ -141,6 +143,7 @@ export function CommercialCompanyOrders({
         <Card>
           <CardHeader>
             <CardTitle className="text-base">Invoices</CardTitle>
+            <HumanExplanation layer="invoices" size="compact" />
           </CardHeader>
           <CardContent className="space-y-2">
             {invoices.length === 0 ? (

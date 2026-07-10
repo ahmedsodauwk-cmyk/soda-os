@@ -21,7 +21,7 @@ import type {
   FinancialOverview,
   MonthlyRevenuePoint,
 } from "@/lib/dashboard/types";
-import { DASHBOARD_SECTION_COPY } from "@/lib/brand/soda-voice";
+import { DASHBOARD_SECTION_COPY, HUMAN_LAYER } from "@/lib/brand";
 import { formatPrice } from "@/lib/orders/utils";
 
 interface FinancialOverviewCardProps {
@@ -51,21 +51,24 @@ function ChartTooltip({
 function Metric({
   label,
   value,
-  hint,
+  layerHint,
 }: {
   label: string;
   value: string;
-  hint?: string;
+  layerHint: string;
 }) {
   return (
     <div className="rounded-lg border border-primary/15 bg-primary/[0.05] px-3 py-2.5 first:border-soda-pink/25 first:bg-soda-pink/[0.06]">
       <p className="text-xs text-muted-foreground">{label}</p>
+      <p
+        className="font-ar mt-0.5 text-[11px] leading-[1.7] text-muted-foreground"
+        dir="rtl"
+      >
+        {layerHint}
+      </p>
       <p className="mt-0.5 font-mono text-lg font-semibold tracking-tight tabular-nums">
         {value}
       </p>
-      {hint ? (
-        <p className="mt-0.5 text-[11px] text-muted-foreground">{hint}</p>
-      ) : null}
     </div>
   );
 }
@@ -95,22 +98,22 @@ export default function FinancialOverviewCard({
           <Metric
             label="Revenue"
             value={formatPrice(financial.revenue)}
-            hint="Booked (orders)"
+            layerHint={HUMAN_LAYER.revenue}
           />
           <Metric
             label="Outstanding"
             value={formatPrice(financial.outstanding)}
-            hint="Unpaid balances"
+            layerHint={HUMAN_LAYER.outstanding}
           />
           <Metric
             label="Deposits"
             value={formatPrice(financial.deposits)}
-            hint="Paid deposits"
+            layerHint={HUMAN_LAYER.deposits}
           />
           <Metric
             label="Remaining"
             value={formatPrice(financial.remainingBalance)}
-            hint="Still due"
+            layerHint={HUMAN_LAYER.remaining}
           />
         </div>
 

@@ -26,7 +26,10 @@ export default function WorkspacePerformance({
     <Card className="soda-cc-card">
       <CardHeader>
         <CardTitle>{DASHBOARD_SECTION_COPY.workspaces.title}</CardTitle>
-        <CardDescription>
+        <CardDescription
+          className="font-ar text-[0.9375rem] leading-[1.8] text-muted-foreground"
+          dir="rtl"
+        >
           {DASHBOARD_SECTION_COPY.workspaces.description}
         </CardDescription>
       </CardHeader>

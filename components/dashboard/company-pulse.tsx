@@ -71,7 +71,10 @@ export default function CompanyPulse({ insights }: CompanyPulseProps) {
         <div className="flex items-start justify-between gap-3">
           <div>
             <CardTitle>{copy.title}</CardTitle>
-            <CardDescription className="mt-1 text-sm text-muted-foreground">
+            <CardDescription
+              className="font-ar mt-1 text-[0.9375rem] leading-[1.8] text-muted-foreground"
+              dir="rtl"
+            >
               {copy.description}
             </CardDescription>
           </div>

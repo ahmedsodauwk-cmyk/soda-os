@@ -2,10 +2,12 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { MonthlyAccountPanel } from "@/components/business/monthly-account-panel";
+import { HumanExplanation } from "@/components/brand/human-title";
 import { OrderStatusBadge } from "@/components/orders/order-status-badge";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { HUMAN_LAYER } from "@/lib/brand";
 import { BUSINESS_TODAY } from "@/lib/business/types";
 import { getCommercialClientProfile } from "@/lib/business/commercial-account";
 import { computeClientStats } from "@/lib/business/client-stats";
@@ -29,7 +31,10 @@ function ClientQuotationsSection({ clientId }: { clientId: string }) {
 
   return (
     <section className="space-y-3">
-      <h3 className="font-heading text-base font-semibold">Quotations</h3>
+      <div>
+        <h3 className="font-heading text-base font-semibold">Quotations</h3>
+        <HumanExplanation layer="quotations" size="compact" />
+      </div>
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {[
           ["Total quotes", String(stats.totalCount)],
@@ -142,18 +147,30 @@ export function ClientProfile({ clientId }: ClientProfileProps) {
         </div>
 
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-          {[
-            ["Revenue", egp(profile.revenue)],
-            ["Projects", String(profile.projectCount)],
-            ["Orders", String(profile.orderCount)],
-            ["Avg project", egp(profile.avgProjectValue)],
-            ["Outstanding", egp(profile.totalOutstanding)],
-          ].map(([label, value]) => (
+          {(
+            [
+              ["Revenue", egp(profile.revenue), HUMAN_LAYER.revenue],
+              ["Projects", String(profile.projectCount), HUMAN_LAYER.projects],
+              ["Orders", String(profile.orderCount), HUMAN_LAYER.orders],
+              ["Avg project", egp(profile.avgProjectValue), HUMAN_LAYER.projects],
+              [
+                "Outstanding",
+                egp(profile.totalOutstanding),
+                HUMAN_LAYER.outstandingBalance,
+              ],
+            ] as const
+          ).map(([label, value, layer]) => (
             <Card key={label}>
               <CardHeader className="pb-1">
                 <CardTitle className="text-xs font-medium text-muted-foreground">
                   {label}
                 </CardTitle>
+                <p
+                  className="font-ar text-[11px] leading-[1.7] text-muted-foreground"
+                  dir="rtl"
+                >
+                  {layer}
+                </p>
               </CardHeader>
               <CardContent>
                 <p className="font-mono text-lg font-semibold">{value}</p>
@@ -190,7 +207,10 @@ export function ClientProfile({ clientId }: ClientProfileProps) {
         ) : null}
 
         <section className="space-y-2">
-          <h3 className="font-heading text-base font-semibold">Projects</h3>
+          <div>
+            <h3 className="font-heading text-base font-semibold">Projects</h3>
+            <HumanExplanation layer="projectsSection" size="compact" />
+          </div>
           <ul className="space-y-2">
             {profile.projects.map((p) => (
               <li key={p.id}>
@@ -212,7 +232,10 @@ export function ClientProfile({ clientId }: ClientProfileProps) {
         </section>
 
         <section className="space-y-2">
-          <h3 className="font-heading text-base font-semibold">Orders</h3>
+          <div>
+            <h3 className="font-heading text-base font-semibold">Orders</h3>
+            <HumanExplanation layer="ordersSection" size="compact" />
+          </div>
           <ul className="space-y-2">
             {profile.orders.map((o) => (
               <li
@@ -235,6 +258,7 @@ export function ClientProfile({ clientId }: ClientProfileProps) {
           <Card>
             <CardHeader>
               <CardTitle className="text-base">Invoices & payments</CardTitle>
+              <HumanExplanation layer="invoicesPayments" size="compact" />
             </CardHeader>
             <CardContent className="space-y-2">
               {profile.invoices.map((inv) => (
@@ -254,6 +278,7 @@ export function ClientProfile({ clientId }: ClientProfileProps) {
           <Card>
             <CardHeader>
               <CardTitle className="text-base">Deliveries & files</CardTitle>
+              <HumanExplanation layer="deliveriesFiles" size="compact" />
             </CardHeader>
             <CardContent className="space-y-2">
               {profile.deliveries.map((d) => (
@@ -342,6 +367,7 @@ export function ClientProfile({ clientId }: ClientProfileProps) {
         <Card>
           <CardHeader className="pb-1">
             <CardTitle className="text-xs text-muted-foreground">Orders</CardTitle>
+            <HumanExplanation layer="orders" size="compact" />
           </CardHeader>
           <CardContent>
             <p className="font-mono text-xl font-semibold">{stats.totalOrders}</p>
@@ -350,6 +376,7 @@ export function ClientProfile({ clientId }: ClientProfileProps) {
         <Card>
           <CardHeader className="pb-1">
             <CardTitle className="text-xs text-muted-foreground">Revenue</CardTitle>
+            <HumanExplanation layer="revenue" size="compact" />
           </CardHeader>
           <CardContent>
             <p className="font-mono text-xl font-semibold">{egp(stats.revenue)}</p>
@@ -360,6 +387,7 @@ export function ClientProfile({ clientId }: ClientProfileProps) {
             <CardTitle className="text-xs text-muted-foreground">
               Outstanding
             </CardTitle>
+            <HumanExplanation layer="outstandingBalance" size="compact" />
           </CardHeader>
           <CardContent>
             <p className="font-mono text-xl font-semibold text-soda-pink">
@@ -372,7 +400,10 @@ export function ClientProfile({ clientId }: ClientProfileProps) {
       <ClientQuotationsSection clientId={clientId} />
 
       <section className="space-y-2">
-        <h3 className="font-heading text-base font-semibold">Projects</h3>
+        <div>
+          <h3 className="font-heading text-base font-semibold">Projects</h3>
+          <HumanExplanation layer="projectsSection" size="compact" />
+        </div>
         {projects.map((p) => (
           <Link
             key={p.id}
@@ -384,7 +415,10 @@ export function ClientProfile({ clientId }: ClientProfileProps) {
         ))}
       </section>
       <section className="space-y-2">
-        <h3 className="font-heading text-base font-semibold">Orders</h3>
+        <div>
+          <h3 className="font-heading text-base font-semibold">Orders</h3>
+          <HumanExplanation layer="ordersSection" size="compact" />
+        </div>
         {orders.map((o) => (
           <div
             key={o.id}

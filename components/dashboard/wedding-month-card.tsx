@@ -8,6 +8,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { HUMAN_LAYER } from "@/lib/brand";
 import { buildWeddingOrdersOverview } from "@/lib/business/wedding-orders";
 import { getOrders } from "@/lib/orders/repository";
 
@@ -26,8 +27,11 @@ export default function WeddingMonthCard() {
           <Heart className="size-4 text-soda-pink" />
           Weddings this month
         </CardTitle>
-        <CardDescription>
-          Booked shoot revenue and pipeline from wedding orders.
+        <CardDescription
+          className="font-ar text-[0.9375rem] leading-[1.8] text-muted-foreground"
+          dir="rtl"
+        >
+          {HUMAN_LAYER.weddings}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-3">

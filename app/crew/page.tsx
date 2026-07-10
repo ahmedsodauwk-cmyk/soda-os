@@ -1,6 +1,7 @@
 import { AppShell } from "@/components/layout/app-shell";
 import { CrewList } from "@/components/crew/crew-list";
 import { getCrew, getCrewPerformance } from "@/lib/crew";
+import { getModuleSlogan } from "@/lib/brand";
 
 export default function CrewPage() {
   const crew = getCrew();
@@ -9,10 +10,7 @@ export default function CrewPage() {
   );
 
   return (
-    <AppShell
-      title="The Crew"
-      subtitle="Operational database — roles, equipment, assignments, and pay."
-    >
+    <AppShell title="The Crew" subtitle={getModuleSlogan("crew")}>
       <CrewList crew={crew} performanceById={performanceById} />
     </AppShell>
   );

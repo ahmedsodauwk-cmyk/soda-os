@@ -21,6 +21,7 @@ import type {
   WelcomeMode,
 } from "@/lib/brand/types";
 import type { DashboardSnapshot } from "@/lib/dashboard/types";
+import { HUMAN_LAYER } from "@/lib/brand/human-layer";
 
 export type {
   BriefAction,
@@ -285,27 +286,29 @@ function getCloser(
 }
 
 /* -------------------------------------------------------------------------- */
-/*  Module slogans — natural Egyptian Arabic, studio-internal                 */
+/*  Module slogans — SODA Human Layer (Egyptian Arabic business explanations) */
 /* -------------------------------------------------------------------------- */
 
-/** Factual module subtitles only — no decorative studio fluff. */
+/** Under English module titles — ops-manager voice, not fluff. */
 export const MODULE_SLOGANS: Record<ModuleSloganKey, string> = {
-  dashboard: "Operational questions from live studio data.",
-  orders: "Commercial and wedding order lanes.",
-  projects: "Active and closed projects.",
-  clients: "Commercial companies and wedding clients.",
-  workspaces: "Commercial lanes — accounts, projects, and revenue.",
-  projectHub: "Orders, files, payments, crew, and journey.",
-  rtm: "RTM commercial lane.",
-  weddings: "Wedding orders by year and month.",
-  fashion: "Fashion commercial lane.",
-  product: "Product commercial lane.",
-  events: "Events commercial lane.",
-  commercial: "Commercial accounts and campaigns.",
-  finance: "Invoices, payments, and outstanding balances.",
-  quotations: "Inquiry to deposit — sales pipeline and quote builder.",
-  about: "SODA Visuals Studio.",
-  login: "Sign in to SODA OS.",
+  dashboard: HUMAN_LAYER.dashboard,
+  orders: HUMAN_LAYER.orders,
+  projects: HUMAN_LAYER.projects,
+  clients: HUMAN_LAYER.clients,
+  workspaces: HUMAN_LAYER.workspaces,
+  projectHub: HUMAN_LAYER.projectHub,
+  rtm: HUMAN_LAYER.rtm,
+  weddings: HUMAN_LAYER.weddings,
+  fashion: HUMAN_LAYER.fashion,
+  product: HUMAN_LAYER.product,
+  events: HUMAN_LAYER.events,
+  commercial: HUMAN_LAYER.commercial,
+  finance: HUMAN_LAYER.finance,
+  quotations: HUMAN_LAYER.quotations,
+  about: HUMAN_LAYER.about,
+  login: HUMAN_LAYER.login,
+  crew: HUMAN_LAYER.crew,
+  crewProfile: HUMAN_LAYER.crewProfile,
 };
 
 /** Resolve slogan for a workspace id/slug (falls back to workspaces). */
@@ -842,90 +845,90 @@ export const DASHBOARD_SECTION_COPY: Record<DashboardSectionKey, SectionCopy> =
   {
     operations: {
       title: "What today?",
-      description: "Live KPIs from orders, projects, and schedule.",
+      description: HUMAN_LAYER.operations,
     },
     kpis: {
       title: "What today?",
-      description: "Live KPIs from orders, projects, and schedule.",
+      description: HUMAN_LAYER.operations,
     },
     attention: {
       title: "Need Your Attention",
-      description: "Overdue, unpaid, and deadline pressure — data only.",
+      description: HUMAN_LAYER.attention,
     },
     schedule: {
       title: "Today's Timeline",
-      description: "Shoots, deliveries, and deadlines.",
+      description: HUMAN_LAYER.schedule,
     },
     financial: {
-      title: "Finance Snapshot",
-      description: "Booked, collected, and outstanding.",
+      title: "Financial Summary",
+      description: HUMAN_LAYER.financialSummary,
     },
     recentOrders: {
       title: "Recent Orders",
-      description: "Latest bookings in the system.",
+      description: HUMAN_LAYER.recentOrders,
     },
     projects: {
       title: "Commercial lanes",
-      description: "Projects and revenue by commercial account lane.",
+      description: HUMAN_LAYER.commercialLanes,
     },
     workspaces: {
       title: "Commercial lanes",
-      description: "Projects and revenue by commercial account lane.",
+      description: HUMAN_LAYER.commercialLanes,
     },
     team: {
       title: "The Crew — workload",
-      description: "Who worked most from order assignments this period.",
+      description: HUMAN_LAYER.crewWorkload,
     },
     quickActions: {
       title: "Quick Actions",
-      description: "Jump to orders, commercial, clients, or crew.",
+      description: HUMAN_LAYER.quickActions,
     },
     sodaLive: {
       title: "SODA LIVE",
-      description: "Real events from shoots, deliveries, and pipeline.",
+      description: HUMAN_LAYER.sodaLive,
     },
     companyPulse: {
-      title: "Operational alerts",
-      description: "Overdue, unpaid, shoots, and crew load only.",
+      title: "Company Pulse",
+      description: HUMAN_LAYER.companyPulse,
     },
   };
 
-/** KPI titles — whispers are factual deltas only (empty when nothing to say). */
+/** KPI titles — Human Layer whisper under English label. */
 export const KPI_COPY: Record<
   KpiCopyKey,
   { title: string; whisper: string }
 > = {
   revenueThisMonth: {
     title: "Revenue this month",
-    whisper: "",
+    whisper: HUMAN_LAYER.revenueThisMonth,
   },
   revenueLastMonth: {
     title: "Revenue last month",
-    whisper: "",
+    whisper: HUMAN_LAYER.revenueLastMonth,
   },
   outstanding: {
     title: "Outstanding payments",
-    whisper: "",
+    whisper: HUMAN_LAYER.outstandingPayments,
   },
   activeProjects: {
     title: "Active projects",
-    whisper: "",
+    whisper: HUMAN_LAYER.activeProjects,
   },
   activeOrders: {
     title: "Active orders",
-    whisper: "",
+    whisper: HUMAN_LAYER.activeOrders,
   },
   upcomingShoots: {
     title: "Upcoming shoots",
-    whisper: "",
+    whisper: HUMAN_LAYER.upcomingShoots,
   },
   upcomingDeliveries: {
     title: "Upcoming deliveries",
-    whisper: "",
+    whisper: HUMAN_LAYER.upcomingDeliveries,
   },
   activeClients: {
     title: "Active clients",
-    whisper: "",
+    whisper: HUMAN_LAYER.activeClients,
   },
 };
 
@@ -958,47 +961,47 @@ export function getUpcomingShootsWhisper(count: number): string {
 export const HUB_SECTION_COPY: Record<HubSectionCopyKey, SectionCopy> = {
   overview: {
     title: "Overview",
-    description: "Status, journey, and key dates.",
+    description: HUMAN_LAYER.hubOverview,
   },
   orders: {
     title: "Orders",
-    description: "Orders linked to this project.",
+    description: HUMAN_LAYER.hubOrders,
   },
   calendar: {
     title: "Calendar",
-    description: "Shoots, deliveries, and key dates.",
+    description: HUMAN_LAYER.hubCalendar,
   },
   files: {
     title: "Files",
-    description: "Project files and documents.",
+    description: HUMAN_LAYER.hubFiles,
   },
   payments: {
     title: "Payments",
-    description: "Collected and outstanding amounts.",
+    description: HUMAN_LAYER.hubPayments,
   },
   timeline: {
     title: "Timeline",
-    description: "Project milestones.",
+    description: HUMAN_LAYER.hubTimeline,
   },
   team: {
     title: "Assigned Crew",
-    description: "Crew on this project from assignments.",
+    description: HUMAN_LAYER.hubTeam,
   },
   notes: {
     title: "Notes",
-    description: "Project notes.",
+    description: HUMAN_LAYER.hubNotes,
   },
   activity: {
     title: "Activity",
-    description: "Recent project activity.",
+    description: HUMAN_LAYER.hubActivity,
   },
   deliverables: {
     title: "Deliverables",
-    description: "Required and completed deliverables.",
+    description: HUMAN_LAYER.hubDeliverables,
   },
   upcomingShoots: {
     title: "Upcoming Shoots",
-    description: "Scheduled shoots on this project.",
+    description: HUMAN_LAYER.hubUpcomingShoots,
   },
 };
 

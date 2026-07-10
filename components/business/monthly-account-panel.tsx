@@ -1,4 +1,5 @@
 import type { MonthlyAccountSummary } from "@/lib/business/commercial-account";
+import { HUMAN_LAYER } from "@/lib/brand";
 import { cn } from "@/lib/utils";
 
 function egp(n: number) {
@@ -34,20 +35,44 @@ export function MonthlyAccountPanel({
           <h3 className="font-heading mt-1 text-xl font-semibold tracking-tight">
             {account.periodMonth}
           </h3>
+          <p
+            className="font-ar mt-1 text-[13px] leading-[1.75] text-muted-foreground"
+            dir="rtl"
+          >
+            {HUMAN_LAYER.monthlyAccount}
+          </p>
         </div>
         <div className="grid grid-cols-3 gap-4 text-right">
           <div>
             <p className="text-[11px] text-muted-foreground">Invoiced</p>
+            <p
+              className="font-ar text-[10px] leading-[1.6] text-muted-foreground"
+              dir="rtl"
+            >
+              {HUMAN_LAYER.totalDue}
+            </p>
             <p className="font-mono text-sm font-medium">{egp(account.invoiced)}</p>
           </div>
           <div>
             <p className="text-[11px] text-muted-foreground">Collected</p>
+            <p
+              className="font-ar text-[10px] leading-[1.6] text-muted-foreground"
+              dir="rtl"
+            >
+              {HUMAN_LAYER.collected}
+            </p>
             <p className="font-mono text-sm font-medium text-emerald-400">
               {egp(account.collected)}
             </p>
           </div>
           <div>
             <p className="text-[11px] text-muted-foreground">Outstanding</p>
+            <p
+              className="font-ar text-[10px] leading-[1.6] text-muted-foreground"
+              dir="rtl"
+            >
+              {HUMAN_LAYER.outstanding}
+            </p>
             <p className="font-mono text-sm font-medium text-soda-pink">
               {egp(account.outstanding)}
             </p>

@@ -2,18 +2,19 @@ import Link from "next/link";
 import { Building2, Heart } from "lucide-react";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { HUMAN_LAYER } from "@/lib/brand";
 
 const lanes = [
   {
     href: "/clients/weddings",
     title: "Wedding clients",
-    description: "Search, recent, upcoming, and past couples.",
+    layer: HUMAN_LAYER.weddingClients,
     icon: Heart,
   },
   {
     href: "/clients/commercial",
     title: "Commercial clients",
-    description: "Company list → full account profile.",
+    layer: HUMAN_LAYER.commercialClients,
     icon: Building2,
   },
 ] as const;
@@ -31,7 +32,12 @@ export function ClientsHub() {
                   <Icon className="size-4" />
                 </div>
                 <CardTitle>{lane.title}</CardTitle>
-                <CardDescription>{lane.description}</CardDescription>
+                <CardDescription
+                  className="font-ar text-[0.9375rem] leading-[1.8] text-muted-foreground"
+                  dir="rtl"
+                >
+                  {lane.layer}
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <p className="text-xs text-muted-foreground">Open lane →</p>

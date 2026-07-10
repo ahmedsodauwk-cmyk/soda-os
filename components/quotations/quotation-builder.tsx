@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 
 import { VersionHistory } from "@/components/quotations/version-history";
+import { HumanExplanation } from "@/components/brand/human-title";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -46,10 +47,26 @@ import {
   type Quotation,
   type QuotationLineItem,
 } from "@/lib/quotations";
+import type { HumanLayerKey } from "@/lib/brand";
 import { cn } from "@/lib/utils";
 
 interface QuotationBuilderProps {
   quotationId: string;
+}
+
+function SectionHead({
+  title,
+  layer,
+}: {
+  title: string;
+  layer: HumanLayerKey;
+}) {
+  return (
+    <div className="space-y-1">
+      <CardTitle className="text-base">{title}</CardTitle>
+      <HumanExplanation layer={layer} size="compact" />
+    </div>
+  );
 }
 
 function emptyLine(): QuotationLineItem {
@@ -385,7 +402,7 @@ export function QuotationBuilder({ quotationId }: QuotationBuilderProps) {
       {/* Approval + convert actions */}
       <Card className="print:hidden">
         <CardHeader className="pb-2">
-          <CardTitle className="text-base">Approval & conversion</CardTitle>
+          <SectionHead title="Approval & conversion" layer="quotationApproval" />
         </CardHeader>
         <CardContent className="flex flex-wrap gap-2">
           <Select
@@ -466,7 +483,7 @@ export function QuotationBuilder({ quotationId }: QuotationBuilderProps) {
         {/* Project info */}
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-base">Project info</CardTitle>
+            <SectionHead title="Project info" layer="quotationProjectInfo" />
           </CardHeader>
           <CardContent className="grid gap-3 sm:grid-cols-2">
             <div className="space-y-1.5 sm:col-span-2">
@@ -601,7 +618,7 @@ export function QuotationBuilder({ quotationId }: QuotationBuilderProps) {
         {/* Services + notes */}
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-base">Services & notes</CardTitle>
+            <SectionHead title="Services & notes" layer="quotationServices" />
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="space-y-1.5">
@@ -677,7 +694,7 @@ export function QuotationBuilder({ quotationId }: QuotationBuilderProps) {
       <div className="grid gap-4 lg:grid-cols-3 print:hidden">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-base">Discount & tax</CardTitle>
+            <SectionHead title="Discount & tax" layer="quotationDiscountTax" />
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="grid grid-cols-2 gap-2">
@@ -761,7 +778,7 @@ export function QuotationBuilder({ quotationId }: QuotationBuilderProps) {
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-base">Timeline</CardTitle>
+            <SectionHead title="Timeline" layer="quotationTimeline" />
           </CardHeader>
           <CardContent className="grid gap-2">
             {(
@@ -791,7 +808,7 @@ export function QuotationBuilder({ quotationId }: QuotationBuilderProps) {
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-base">Deliverables</CardTitle>
+            <SectionHead title="Deliverables" layer="quotationDeliverables" />
           </CardHeader>
           <CardContent>
             <Textarea
@@ -815,7 +832,7 @@ export function QuotationBuilder({ quotationId }: QuotationBuilderProps) {
       <div className="grid gap-4 lg:grid-cols-2 print:hidden">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-base">Payment plan</CardTitle>
+            <SectionHead title="Payment plan" layer="quotationPaymentPlan" />
           </CardHeader>
           <CardContent className="space-y-2">
             {draft.paymentPlan.length === 0 ? (
@@ -872,7 +889,7 @@ export function QuotationBuilder({ quotationId }: QuotationBuilderProps) {
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-base">Terms</CardTitle>
+            <SectionHead title="Terms" layer="quotationTerms" />
           </CardHeader>
           <CardContent>
             <Textarea
@@ -897,7 +914,7 @@ export function QuotationBuilder({ quotationId }: QuotationBuilderProps) {
       {/* Print-friendly preview */}
       <Card className="quotation-print-preview">
         <CardHeader className="pb-2">
-          <CardTitle className="text-base">Preview</CardTitle>
+          <SectionHead title="Preview" layer="quotationPreview" />
           <p className="text-xs text-muted-foreground print:hidden">
             Print / PDF export uses this structured preview.
           </p>

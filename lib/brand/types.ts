@@ -31,7 +31,9 @@ export type ModuleSloganKey =
   | "finance"
   | "quotations"
   | "about"
-  | "login";
+  | "login"
+  | "crew"
+  | "crewProfile";
 
 export type EmptyStateKey =
   | "orders"

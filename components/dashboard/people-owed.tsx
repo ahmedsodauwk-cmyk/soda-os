@@ -9,6 +9,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { PersonAvatar } from "@/components/business/person-avatar";
+import { HUMAN_LAYER } from "@/lib/brand";
 import { getPeopleOwedSummary } from "@/lib/people/repository";
 
 function egp(n: number) {
@@ -28,8 +29,11 @@ export default function PeopleOwedCard() {
           <Wallet className="size-4 text-soda-pink" />
           Owed to The Crew
         </CardTitle>
-        <CardDescription>
-          Outstanding crew pay from order assignments (e.g. Nemo).
+        <CardDescription
+          className="font-ar text-[0.9375rem] leading-[1.8] text-muted-foreground"
+          dir="rtl"
+        >
+          {HUMAN_LAYER.owedToCrew}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-2">

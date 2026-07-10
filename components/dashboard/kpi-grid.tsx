@@ -9,13 +9,7 @@ import {
 } from "lucide-react";
 
 import StatCard from "@/components/dashboard/stat-card";
-import {
-  KPI_COPY,
-  getActiveProjectsWhisper,
-  getOutstandingWhisper,
-  getRevenueWhisper,
-  getUpcomingShootsWhisper,
-} from "@/lib/brand/soda-voice";
+import { KPI_COPY } from "@/lib/brand/soda-voice";
 import type { DashboardKpis } from "@/lib/dashboard/types";
 import { formatPrice } from "@/lib/orders/utils";
 
@@ -48,14 +42,14 @@ export default function KPIGrid({ kpis }: KPIGridProps) {
         };
 
   return (
-    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+    <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
       <StatCard
         title={KPI_COPY.revenueThisMonth.title}
         value={compactMoney(kpis.revenueThisMonth)}
         icon={CircleDollarSign}
         change={mom.change}
         trend={mom.trend}
-        whisper={getRevenueWhisper(kpis.revenueMonthChangePct)}
+        whisper={KPI_COPY.revenueThisMonth.whisper}
       />
       <StatCard
         title={KPI_COPY.revenueLastMonth.title}
@@ -71,7 +65,7 @@ export default function KPIGrid({ kpis }: KPIGridProps) {
         icon={Wallet}
         change="Open client balances"
         trend={kpis.outstandingPayments > 0 ? "down" : "neutral"}
-        whisper={getOutstandingWhisper(kpis.outstandingPayments)}
+        whisper={KPI_COPY.outstanding.whisper}
       />
       <StatCard
         title={KPI_COPY.activeProjects.title}
@@ -79,7 +73,7 @@ export default function KPIGrid({ kpis }: KPIGridProps) {
         icon={FolderKanban}
         change="Active + on hold"
         trend="neutral"
-        whisper={getActiveProjectsWhisper(kpis.activeProjects)}
+        whisper={KPI_COPY.activeProjects.whisper}
       />
       <StatCard
         title={KPI_COPY.activeOrders.title}
@@ -95,7 +89,7 @@ export default function KPIGrid({ kpis }: KPIGridProps) {
         icon={Camera}
         change="From today onward"
         trend="up"
-        whisper={getUpcomingShootsWhisper(kpis.upcomingShoots)}
+        whisper={KPI_COPY.upcomingShoots.whisper}
       />
       <StatCard
         title={KPI_COPY.upcomingDeliveries.title}

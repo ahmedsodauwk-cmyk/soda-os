@@ -14,6 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { HumanExplanation } from "@/components/brand/human-title";
 import {
   Select,
   SelectContent,
@@ -254,6 +255,7 @@ export function QuotationsHub() {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-base">All quotations</CardTitle>
+            <HumanExplanation layer="allQuotations" size="compact" />
           </CardHeader>
           <CardContent className="overflow-x-auto p-0">
             <table className="w-full min-w-[960px] text-left text-sm">

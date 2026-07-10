@@ -37,6 +37,14 @@ export {
   getUpcomingShootsWhisper,
 } from "@/lib/brand/soda-voice";
 
+export {
+  HUMAN_LAYER,
+  getHumanLayer,
+  isHumanLayerKey,
+} from "@/lib/brand/human-layer";
+
+export type { HumanLayerKey } from "@/lib/brand/human-layer";
+
 export { SODA_QUOTES } from "@/lib/brand/quotes";
 
 export {

@@ -121,7 +121,10 @@ export default function SodaLiveFeed({ events, className }: SodaLiveFeedProps) {
               </span>
               {copy.title}
             </CardTitle>
-            <CardDescription className="mt-1 text-sm text-muted-foreground">
+            <CardDescription
+              className="font-ar mt-1 text-[0.9375rem] leading-[1.8] text-muted-foreground"
+              dir="rtl"
+            >
               {copy.description}
             </CardDescription>
           </div>

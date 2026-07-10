@@ -72,7 +72,10 @@ export default function QuickActions() {
     <Card className="soda-cc-card">
       <CardHeader className="pb-3">
         <CardTitle>{DASHBOARD_SECTION_COPY.quickActions.title}</CardTitle>
-        <CardDescription>
+        <CardDescription
+          className="font-ar text-[0.9375rem] leading-[1.8] text-muted-foreground"
+          dir="rtl"
+        >
           {DASHBOARD_SECTION_COPY.quickActions.description}
         </CardDescription>
       </CardHeader>

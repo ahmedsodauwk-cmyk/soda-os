@@ -2,6 +2,7 @@
 
 import { formatShortDate } from "@/lib/quotations/utils";
 import type { QuotationVersion } from "@/lib/quotations/types";
+import { HumanExplanation } from "@/components/brand/human-title";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -24,6 +25,7 @@ export function VersionHistory({
     <Card>
       <CardHeader className="pb-2">
         <CardTitle className="text-base">Version history</CardTitle>
+        <HumanExplanation layer="versionHistory" size="compact" />
         <p className="text-xs text-muted-foreground">
           Current: v{currentVersion}. Restore creates a new version from the
           selected snapshot.

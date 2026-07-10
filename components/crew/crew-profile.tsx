@@ -4,10 +4,12 @@ import { notFound } from "next/navigation";
 import { EquipmentList } from "@/components/business/equipment-list";
 import { PaymentLineItems } from "@/components/business/payment-line-items";
 import { PersonAvatar } from "@/components/business/person-avatar";
+import { HumanExplanation } from "@/components/brand/human-title";
 import { AssignEquipmentDialog } from "@/components/crew/assign-equipment-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { HUMAN_LAYER } from "@/lib/brand";
 import {
   EMPLOYMENT_TYPE_LABELS,
   getCrewMemberById,
@@ -189,29 +191,51 @@ export function CrewProfile({ personId }: CrewProfileProps) {
             <h3 className="font-heading text-base font-semibold">
               Order-based payments
             </h3>
-            <p className="text-xs text-muted-foreground">
-              From assignments only — no manual salary entry.
-            </p>
+            <HumanExplanation layer="orderBasedPayments" size="compact" />
           </div>
           <div className="grid grid-cols-2 gap-4 text-right text-xs sm:grid-cols-4">
             <div>
               <p className="text-muted-foreground">Earned</p>
+              <p
+                className="font-ar text-[10px] leading-[1.6] text-muted-foreground"
+                dir="rtl"
+              >
+                {HUMAN_LAYER.currentMonthEarnings}
+              </p>
               <p className="font-mono font-medium">{egp(payments.totalEarned)}</p>
             </div>
             <div>
               <p className="text-muted-foreground">Paid</p>
+              <p
+                className="font-ar text-[10px] leading-[1.6] text-muted-foreground"
+                dir="rtl"
+              >
+                {HUMAN_LAYER.paid}
+              </p>
               <p className="font-mono font-medium text-emerald-400">
                 {egp(payments.totalPaid)}
               </p>
             </div>
             <div>
               <p className="text-muted-foreground">Outstanding</p>
+              <p
+                className="font-ar text-[10px] leading-[1.6] text-muted-foreground"
+                dir="rtl"
+              >
+                {HUMAN_LAYER.outstanding}
+              </p>
               <p className="font-mono font-medium text-soda-pink">
                 {egp(payments.totalOutstanding)}
               </p>
             </div>
             <div>
               <p className="text-muted-foreground">Prev / current</p>
+              <p
+                className="font-ar text-[10px] leading-[1.6] text-muted-foreground"
+                dir="rtl"
+              >
+                {HUMAN_LAYER.totalDue}
+              </p>
               <p className="font-mono font-medium">
                 {egp(payments.previousBalance)} / {egp(payments.currentBalance)}
               </p>

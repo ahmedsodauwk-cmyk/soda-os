@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { HumanExplanation } from "@/components/brand/human-title";
 import {
   Select,
   SelectContent,
@@ -85,6 +86,7 @@ export function NewQuotationForm() {
       <Card>
         <CardHeader>
           <CardTitle>New quotation</CardTitle>
+          <HumanExplanation layer="newQuotation" size="compact" />
           <p className="text-sm text-muted-foreground">
             Starts in New Inquiry. Add line items in the builder.
           </p>

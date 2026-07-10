@@ -16,6 +16,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { HUMAN_LAYER } from "@/lib/brand";
 import { computeQuotationMetrics } from "@/lib/quotations";
 import { formatEgp } from "@/lib/quotations/utils";
 import { BUSINESS_TODAY } from "@/lib/business/types";
@@ -27,8 +28,11 @@ export function QuotationPipelineCard() {
     <Card className="soda-cc-card">
       <CardHeader className="pb-3">
         <CardTitle>Quotation pipeline</CardTitle>
-        <CardDescription>
-          Live metrics from the quotation repository · as of {m.asOf}
+        <CardDescription
+          className="font-ar text-[0.9375rem] leading-[1.8] text-muted-foreground"
+          dir="rtl"
+        >
+          {HUMAN_LAYER.quotationPipeline}
         </CardDescription>
       </CardHeader>
       <CardContent>
