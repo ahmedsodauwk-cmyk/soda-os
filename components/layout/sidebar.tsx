@@ -33,9 +33,9 @@ import {
 const menu = [
   { title: "Dashboard", icon: LayoutDashboard, href: "/" },
   { title: "Orders", icon: ShoppingCart, href: "/orders" },
-  { title: "Projects", icon: Briefcase, href: "#" },
+  { title: "Workspaces", icon: Briefcase, href: "/workspaces" },
   { title: "Weddings", icon: Heart, href: "#" },
-  { title: "Clients", icon: Users, href: "#" },
+  { title: "Clients", icon: Users, href: "/clients" },
   { title: "Calendar", icon: Calendar, href: "#" },
   { title: "Finance", icon: DollarSign, href: "#" },
   { title: "Settings", icon: Settings, href: "#" },
