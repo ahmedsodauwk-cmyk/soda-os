@@ -12,6 +12,9 @@ export type BusinessMood =
   | "shoots_ahead"
   | "steady";
 
+/** Welcome gate mode from last-visit localStorage. */
+export type WelcomeMode = "morning_brief" | "welcome_back" | "command_center";
+
 export type ModuleSloganKey =
   | "dashboard"
   | "orders"
@@ -25,7 +28,9 @@ export type ModuleSloganKey =
   | "product"
   | "events"
   | "commercial"
-  | "finance";
+  | "finance"
+  | "about"
+  | "login";
 
 export type EmptyStateKey =
   | "orders"
@@ -69,6 +74,7 @@ export type KpiCopyKey =
   | "upcomingDeliveries"
   | "activeClients";
 
+/** Command Center widget keys — Experience v1.0 */
 export type DashboardSectionKey =
   | "quickActions"
   | "kpis"
@@ -77,7 +83,11 @@ export type DashboardSectionKey =
   | "workspaces"
   | "team"
   | "schedule"
-  | "recentOrders";
+  | "recentOrders"
+  | "operations"
+  | "projects"
+  | "sodaLive"
+  | "companyPulse";
 
 export type HubSectionCopyKey =
   | "overview"
@@ -166,3 +176,37 @@ export type DashboardVoiceInput = Pick<
   DashboardSnapshot,
   "kpis" | "attention" | "schedule"
 >;
+
+/** Company Pulse — health sentences from snapshot (no new math). */
+export interface CompanyPulseInsight {
+  id: string;
+  /** English metric label OK */
+  label: string;
+  /** Arabic / mixed brand-voice insight */
+  insight: string;
+  tone: "good" | "watch" | "pressure" | "neutral";
+}
+
+/** SODA LIVE awareness item — never critical ops. */
+export type SodaLiveKind =
+  | "delivery"
+  | "payment"
+  | "workspace"
+  | "shoot"
+  | "achievement"
+  | "milestone"
+  | "quote"
+  | "activity";
+
+export interface SodaLiveItem {
+  id: string;
+  kind: SodaLiveKind;
+  /** English chrome eyebrow */
+  eyebrow: string;
+  title: string;
+  /** Arabic / mixed body */
+  body: string;
+  /** ISO-ish date for newest-first sort; null = evergreen (quotes) */
+  at: string | null;
+  href?: string;
+}

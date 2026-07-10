@@ -14,7 +14,7 @@ interface SodaLogoProps {
 
 /**
  * Official SODA mark. Prefer this over ad-hoc Camera icons.
- * Keep usage sparse — sidebar / splash / documents only.
+ * Keep usage sparse — sidebar / splash / documents / empty only.
  */
 export function SodaLogo({
   placement = "sidebar",
@@ -26,21 +26,24 @@ export function SodaLogo({
   const withWord = showWord ?? config.showWord ?? false;
 
   return (
-    <div className={cn("flex items-center gap-2.5", className)}>
+    <div className={cn("flex items-center gap-3", className)}>
       {/* eslint-disable-next-line @next/next/no-img-element -- brand SVG mark */}
       <img
         src={config.src}
         alt={SODA_LOGO.alt}
         width={size}
         height={size}
-        className="shrink-0 rounded-[22%]"
+        className={cn(
+          "shrink-0 rounded-[22%] shadow-[0_0_24px_color-mix(in_oklch,var(--soda-purple)_35%,transparent)]",
+          placement === "empty" && "opacity-40 shadow-none"
+        )}
       />
       {withWord ? (
         <div className="min-w-0 leading-tight">
-          <p className="font-heading text-sm font-semibold tracking-tight text-sidebar-foreground">
+          <p className="font-heading text-[0.9375rem] font-semibold tracking-tight text-sidebar-foreground">
             {SODA_LOGO.productName}
           </p>
-          <p className="text-[11px] tracking-wide text-muted-foreground">
+          <p className="mt-0.5 text-[11px] tracking-[0.12em] text-soda-pink/80 uppercase">
             {SODA_LOGO.studioTagline}
           </p>
         </div>

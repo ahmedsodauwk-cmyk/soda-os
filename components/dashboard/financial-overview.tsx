@@ -58,7 +58,7 @@ function Metric({
   hint?: string;
 }) {
   return (
-    <div className="rounded-lg border border-primary/10 bg-primary/[0.04] px-3 py-2.5">
+    <div className="rounded-lg border border-primary/15 bg-primary/[0.05] px-3 py-2.5 first:border-soda-pink/25 first:bg-soda-pink/[0.06]">
       <p className="text-xs text-muted-foreground">{label}</p>
       <p className="mt-0.5 font-mono text-lg font-semibold tracking-tight tabular-nums">
         {value}
@@ -80,11 +80,11 @@ export default function FinancialOverviewCard({
   }));
 
   return (
-    <Card className="h-full">
+    <Card className="soda-cc-card h-full">
       <CardHeader>
         <CardTitle>{DASHBOARD_SECTION_COPY.financial.title}</CardTitle>
         <CardDescription
-          className="font-ar text-[0.9375rem] leading-[1.75] text-muted-foreground"
+          className="font-ar text-[0.9375rem] leading-[1.8] text-muted-foreground"
           dir="rtl"
         >
           {DASHBOARD_SECTION_COPY.financial.description}
@@ -122,7 +122,12 @@ export default function FinancialOverviewCard({
                   <stop
                     offset="0%"
                     stopColor="var(--chart-1)"
-                    stopOpacity={0.3}
+                    stopOpacity={0.35}
+                  />
+                  <stop
+                    offset="55%"
+                    stopColor="var(--chart-2)"
+                    stopOpacity={0.12}
                   />
                   <stop
                     offset="100%"

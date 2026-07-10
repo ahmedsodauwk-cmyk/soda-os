@@ -1,6 +1,7 @@
 export {
   SODA_OPERATOR,
   SODA_OPERATOR_EN,
+  SODA_LAST_VISIT_KEY,
   MODULE_SLOGANS,
   EMPTY_STATES,
   SUCCESS_MESSAGES,
@@ -10,6 +11,7 @@ export {
   DASHBOARD_SECTION_COPY,
   KPI_COPY,
   HUB_SECTION_COPY,
+  ABOUT_COPY,
   toEasternDigits,
   getDayPeriod,
   getGreeting,
@@ -20,6 +22,10 @@ export {
   getMoodLabel,
   getMoodMessage,
   getBriefCopy,
+  getWelcomeBackCopy,
+  getCompanyPulse,
+  resolveWelcomeMode,
+  getTodayVisitKey,
   getEmptyState,
   getSuccessMessage,
   getWarningMessage,
@@ -29,6 +35,13 @@ export {
   getActiveProjectsWhisper,
   getUpcomingShootsWhisper,
 } from "@/lib/brand/soda-voice";
+
+export { SODA_QUOTES } from "@/lib/brand/quotes";
+
+export {
+  buildSodaLiveItems,
+  getSodaLiveRotateMs,
+} from "@/lib/brand/soda-live";
 
 export { getTeamDisplayName } from "@/lib/brand/team-names";
 
@@ -48,6 +61,7 @@ export {
   SODA_LOGO,
   SODA_LOGO_SIZES,
   SODA_LOGO_PLACEMENTS,
+  SODA_PDF_HEADER,
 } from "@/lib/brand/logo";
 
 export type { SodaLogoPlacement } from "@/lib/brand/logo";
@@ -58,6 +72,7 @@ export type {
   BriefPriority,
   BriefSummaryStat,
   BusinessMood,
+  CompanyPulseInsight,
   DashboardSectionKey,
   DashboardVoiceInput,
   DayPeriod,
@@ -68,7 +83,10 @@ export type {
   LoadingKey,
   ModuleSloganKey,
   SectionCopy,
+  SodaLiveItem,
+  SodaLiveKind,
   SuccessKey,
   VoiceSignals,
   WarningKey,
+  WelcomeMode,
 } from "@/lib/brand/types";

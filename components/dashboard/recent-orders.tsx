@@ -28,11 +28,11 @@ export default function RecentOrders({ orders }: RecentOrdersProps) {
   const empty = getEmptyState("orders");
 
   return (
-    <Card>
+    <Card className="soda-cc-card">
       <CardHeader>
         <CardTitle>{DASHBOARD_SECTION_COPY.recentOrders.title}</CardTitle>
         <CardDescription
-          className="font-ar text-[0.9375rem] leading-[1.75] text-muted-foreground"
+          className="font-ar text-[0.9375rem] leading-[1.8] text-muted-foreground"
           dir="rtl"
         >
           {DASHBOARD_SECTION_COPY.recentOrders.description}
@@ -41,7 +41,7 @@ export default function RecentOrders({ orders }: RecentOrdersProps) {
           <Button
             variant="ghost"
             size="sm"
-            className="text-muted-foreground"
+            className="text-soda-pink hover:text-soda-pink"
             nativeButton={false}
             render={<Link href="/orders" />}
           >
@@ -52,11 +52,21 @@ export default function RecentOrders({ orders }: RecentOrdersProps) {
 
       <CardContent className="space-y-2">
         {orders.length === 0 ? (
-          <div className="py-6 text-center" dir="rtl">
-            <p className="text-sm font-medium">{empty.title}</p>
-            <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-              {empty.description}
-            </p>
+          <div className="flex flex-col items-center gap-3 py-6 text-center">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/brand/soda-mark.svg"
+              alt=""
+              width={28}
+              height={28}
+              className="opacity-35"
+            />
+            <div dir="rtl">
+              <p className="font-ar text-sm font-medium">{empty.title}</p>
+              <p className="font-ar mt-1 text-xs leading-relaxed text-muted-foreground">
+                {empty.description}
+              </p>
+            </div>
           </div>
         ) : (
           orders.map((order) => (

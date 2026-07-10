@@ -13,6 +13,8 @@ import {
   Settings,
   LogOut,
   User,
+  Info,
+  Sparkles,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -29,7 +31,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { SodaLogo } from "@/components/brand/soda-logo";
+import { SODA_OPERATOR, SODA_OPERATOR_EN } from "@/lib/brand/soda-voice";
 
+/** Same IA — do not reshuffle hrefs / items. */
 const menu = [
   { title: "Dashboard", icon: LayoutDashboard, href: "/" },
   { title: "Orders", icon: ShoppingCart, href: "/orders" },
@@ -46,8 +50,11 @@ export function SidebarContent() {
 
   return (
     <>
-      <div className="flex items-center gap-2.5 border-b border-sidebar-border px-4 py-4">
+      <div className="relative flex items-center gap-2.5 border-b border-sidebar-border px-4 py-5">
         <SodaLogo placement="sidebar" />
+        <span className="absolute end-3 top-1/2 -translate-y-1/2">
+          <Sparkles className="size-3.5 text-soda-pink/70" aria-hidden />
+        </span>
       </div>
 
       <ScrollArea className="flex-1 px-2 py-3">
@@ -72,16 +79,16 @@ export function SidebarContent() {
                   />
                 }
                 className={cn(
-                  "h-9 w-full justify-start gap-2.5 rounded-md px-3 font-normal",
+                  "h-9 w-full justify-start gap-2.5 rounded-md px-3 font-normal transition-all",
                   isActive
-                    ? "border-l-2 border-sidebar-primary bg-sidebar-accent text-sidebar-accent-foreground"
-                    : "border-l-2 border-transparent text-muted-foreground hover:bg-sidebar-accent/60 hover:text-foreground"
+                    ? "border-l-[3px] border-soda-pink bg-sidebar-accent text-sidebar-accent-foreground shadow-[inset_0_0_20px_color-mix(in_oklch,var(--soda-purple)_18%,transparent)]"
+                    : "border-l-[3px] border-transparent text-muted-foreground hover:border-primary/30 hover:bg-sidebar-accent/60 hover:text-foreground"
                 )}
               >
                 <Icon
                   className={cn(
                     "size-4",
-                    isActive && "text-sidebar-primary"
+                    isActive ? "text-soda-pink" : "opacity-80"
                   )}
                 />
                 <span>{item.title}</span>
@@ -95,25 +102,27 @@ export function SidebarContent() {
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <p className="text-xs font-medium text-muted-foreground">Storage</p>
-            <p className="text-xs text-muted-foreground">75%</p>
+            <p className="font-mono text-xs text-soda-pink">75%</p>
           </div>
           <Progress value={75} className="gap-0" />
         </div>
 
         <DropdownMenu>
           <DropdownMenuTrigger
-            className="flex w-full items-center gap-2.5 rounded-lg p-2 text-left outline-none hover:bg-sidebar-accent focus-visible:ring-2 focus-visible:ring-sidebar-ring"
+            className="flex w-full items-center gap-2.5 rounded-lg p-2 text-left outline-none transition-colors hover:bg-sidebar-accent focus-visible:ring-2 focus-visible:ring-sidebar-ring"
           >
             <Avatar size="sm">
-              <AvatarFallback className="bg-primary text-xs font-medium text-primary-foreground">
+              <AvatarFallback className="bg-[linear-gradient(135deg,var(--soda-purple),var(--soda-pink))] text-xs font-medium text-white">
                 JS
               </AvatarFallback>
             </Avatar>
 
             <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-medium">Junior Soda</p>
+              <p className="font-ar truncate text-sm font-medium" dir="rtl">
+                {SODA_OPERATOR}
+              </p>
               <p className="truncate text-xs text-muted-foreground">
-                Administrator
+                Administrator · {SODA_OPERATOR_EN}
               </p>
             </div>
           </DropdownMenuTrigger>
@@ -129,6 +138,14 @@ export function SidebarContent() {
               <Settings />
               Settings
             </DropdownMenuItem>
+            <DropdownMenuItem render={<Link href="/about" />}>
+              <Info />
+              About SODA
+            </DropdownMenuItem>
+            <DropdownMenuItem render={<Link href="/login" />}>
+              <LogOut />
+              Login shell
+            </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem variant="destructive">
               <LogOut />
@@ -136,6 +153,14 @@ export function SidebarContent() {
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
+
+        <Link
+          href="/about"
+          className="font-ar block text-center text-[11px] text-muted-foreground transition-colors hover:text-soda-pink"
+          dir="rtl"
+        >
+          عن SODA
+        </Link>
       </div>
     </>
   );
@@ -143,7 +168,7 @@ export function SidebarContent() {
 
 export default function Sidebar() {
   return (
-    <aside className="hidden h-screen w-60 shrink-0 flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground lg:flex">
+    <aside className="soda-sidebar-rail hidden h-screen w-60 shrink-0 flex-col border-r border-sidebar-border text-sidebar-foreground lg:flex">
       <SidebarContent />
     </aside>
   );

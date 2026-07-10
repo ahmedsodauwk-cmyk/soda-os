@@ -23,8 +23,8 @@ const ibmPlexArabic = IBM_Plex_Sans_Arabic({
 });
 
 export const metadata: Metadata = {
-  title: "SODA OS",
-  description: "Visuals Studio — creative operations",
+  title: "SODA OS — Command Center",
+  description: "SODA Visuals Studio — creative operations · Experience v1.0",
   icons: {
     icon: [{ url: "/brand/soda-mark.svg", type: "image/svg+xml" }],
   },

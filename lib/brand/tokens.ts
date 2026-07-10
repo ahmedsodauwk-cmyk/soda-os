@@ -1,14 +1,26 @@
 /**
- * SODA Official Design System — token source of truth.
+ * SODA Official Design System — Experience v1.0 token source of truth.
  *
  * CSS variables in `app/globals.css` are the runtime theme.
- * This module mirrors them for TS consumers (charts, docs, future PDF/login).
+ * This module mirrors them for TS consumers (charts, docs, PDF, login).
  *
- * Palette inspired by the SODA mark: Deep Purple (primary) + Vibrant Pink (accent).
+ * ─────────────────────────────────────────────────────────────
+ * COLOR ROLES (Experience v1.0)
+ * ─────────────────────────────────────────────────────────────
+ * Purple = premium foundation
+ *   surfaces, sidebar rail, cards, focus rings, chart base, brand shell
+ * Pink = energy accents (intentional, not rainbow)
+ *   primary action fill (CTAs), progress bars, selection highlight,
+ *   chart accents, notification badges, active-nav pink edge,
+ *   LIVE card accents, small highlights
+ * Neutrals = ink / fog / mist for readable hierarchy
+ *
+ * Primary buttons lean pink via `--soda-action` while purple remains
+ * the surface/sidebar/foundation language.
  */
 
 export const sodaColors = {
-  /** Deep Purple — primary brand, CTAs, focus, sidebar active */
+  /** Deep Purple — foundation, surfaces, sidebar, brand shell */
   purple: {
     50: "#F5F0FF",
     100: "#E8DEFF",
@@ -22,11 +34,21 @@ export const sodaColors = {
     900: "#2E0A4E",
     950: "#1A0530",
   },
-  /** Vibrant Pink — premium accent only (never flood the UI) */
+  /**
+   * Vibrant Pink — energy accents + primary actions.
+   * Expanded scale for highlights, progress, selection, charts.
+   */
   pink: {
+    50: "#FDF2F8",
+    100: "#FCE7F3",
+    200: "#FBCFE8",
+    300: "#F9A8D4",
     400: "#F472B6",
     500: "#EC4899",
     600: "#DB2777",
+    700: "#BE185D",
+    800: "#9D174D",
+    900: "#831843",
   },
   /** Neutrals / surfaces */
   ink: {
@@ -41,10 +63,15 @@ export const sodaColors = {
 
 /** Semantic roles mapped to CSS custom properties */
 export const sodaSemantic = {
+  /** Purple foundation (surfaces, sidebar active fill) */
   primary: "var(--primary)",
   primaryForeground: "var(--primary-foreground)",
+  /** Pink-leaning action fill for CTAs */
+  action: "var(--soda-action)",
+  actionForeground: "var(--soda-action-foreground)",
   accentPink: "var(--soda-pink)",
   accentPinkMuted: "var(--soda-pink-muted)",
+  accentPinkSoft: "var(--soda-pink-soft)",
   ring: "var(--ring)",
   background: "var(--background)",
   foreground: "var(--foreground)",
@@ -59,17 +86,25 @@ export const sodaSemantic = {
   ],
 } as const;
 
-/** Type scale — English chrome + Arabic supporting */
+/**
+ * Type scale — English chrome (Outfit) + Arabic supporting (IBM Plex Sans Arabic).
+ * Arabic lines use `.font-ar` with stronger size/leading for readability.
+ */
 export const sodaType = {
   pageTitle: {
-    en: "text-xl font-semibold tracking-tight sm:text-2xl",
-    ar: "font-ar text-base leading-[1.8] sm:text-[1.0625rem] sm:leading-[1.75]",
+    en: "font-heading text-xl font-semibold tracking-tight sm:text-[1.65rem]",
+    ar: "font-ar text-[0.9375rem] leading-[1.85] sm:text-base sm:leading-[1.8]",
   },
-  sectionTitle: "text-base font-semibold tracking-tight",
-  sectionWhisper: "font-ar text-sm leading-[1.75] text-muted-foreground",
+  sectionTitle: "font-heading text-base font-semibold tracking-tight",
+  sectionWhisper:
+    "font-ar text-[0.9375rem] leading-[1.8] text-muted-foreground sm:text-base sm:leading-[1.75]",
   body: "text-sm leading-relaxed",
+  bodyAr: "font-ar text-[0.9375rem] leading-[1.8]",
   caption: "text-xs leading-relaxed text-muted-foreground",
+  captionAr: "font-ar text-[13px] leading-[1.75] text-muted-foreground",
   kpiValue: "font-mono text-2xl font-semibold tracking-tight tabular-nums",
+  heroAr:
+    "font-ar text-[1.75rem] leading-[1.35] font-semibold tracking-tight sm:text-[2.05rem] sm:leading-[1.3]",
 } as const;
 
 /** Spacing rhythm (rem) */
@@ -100,13 +135,15 @@ export const sodaElevation = {
   soft: "var(--soda-shadow-soft)",
   lift: "var(--soda-shadow-lift)",
   glow: "var(--soda-shadow-glow)",
+  pinkGlow: "var(--soda-shadow-pink)",
 } as const;
 
-/** Motion */
+/** Motion — premium subtle */
 export const sodaMotion = {
   fast: "120ms",
   base: "200ms",
   slow: "320ms",
+  live: "480ms",
   ease: "cubic-bezier(0.22, 1, 0.36, 1)",
 } as const;
 
@@ -118,7 +155,10 @@ export const sodaStatus = {
   info: "oklch(0.72 0.12 250)",
 } as const;
 
-/** Chart palette (brand-aligned) for Recharts / future reports */
+/**
+ * Chart palette — purple foundation + pink accents.
+ * chart-1/3/5 = purple family; chart-2/4 = pink energy.
+ */
 export const sodaChartPalette = [
   sodaColors.purple[400],
   sodaColors.pink[500],

@@ -15,7 +15,9 @@ export function AppShell({ title, subtitle, children }: AppShellProps) {
       <section className="flex flex-1 flex-col overflow-y-auto">
         <Header title={title} subtitle={subtitle} />
 
-        <div className="mx-auto w-full max-w-[1600px] p-5 sm:p-6 lg:p-7">{children}</div>
+        <div className="soda-page-enter mx-auto w-full max-w-[1600px] p-5 sm:p-6 lg:p-7">
+          {children}
+        </div>
       </section>
     </main>
   );

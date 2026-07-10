@@ -4,6 +4,7 @@ import type {
   BriefPriority,
   BriefSummaryStat,
   BusinessMood,
+  CompanyPulseInsight,
   DashboardSectionKey,
   DashboardVoiceInput,
   DayPeriod,
@@ -17,7 +18,9 @@ import type {
   SuccessKey,
   VoiceSignals,
   WarningKey,
+  WelcomeMode,
 } from "@/lib/brand/types";
+import type { DashboardSnapshot } from "@/lib/dashboard/types";
 
 export type {
   BriefAction,
@@ -25,6 +28,7 @@ export type {
   BriefPriority,
   BriefSummaryStat,
   BusinessMood,
+  CompanyPulseInsight,
   DashboardSectionKey,
   DashboardVoiceInput,
   DayPeriod,
@@ -38,11 +42,15 @@ export type {
   SuccessKey,
   VoiceSignals,
   WarningKey,
+  WelcomeMode,
 } from "@/lib/brand/types";
 
 /** Always address the operator as Junior Soda — Arabic voice uses چونيور صودا. */
 export const SODA_OPERATOR = "چونيور صودا";
 export const SODA_OPERATOR_EN = "Junior Soda";
+
+/** localStorage key for last Command Center visit (date YYYY-MM-DD). */
+export const SODA_LAST_VISIT_KEY = "soda-os:last-visit";
 
 /* -------------------------------------------------------------------------- */
 /*  Helpers                                                                   */
@@ -67,6 +75,40 @@ function daySeed(now: Date): number {
   );
 }
 
+function toDateKey(date: Date): string {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
+function daysBetween(a: string, b: string): number {
+  const ms = Date.parse(b) - Date.parse(a);
+  return Math.round(ms / (1000 * 60 * 60 * 24));
+}
+
+/**
+ * Resolve welcome mode from last-visit date.
+ * - No visit today → Morning Brief (first launch today)
+ * - Gap ≥ 3 days → Welcome Back
+ * - Same day return → Command Center directly
+ */
+export function resolveWelcomeMode(
+  lastVisitKey: string | null,
+  now: Date = new Date()
+): WelcomeMode {
+  const today = toDateKey(now);
+  if (!lastVisitKey) return "morning_brief";
+  if (lastVisitKey === today) return "command_center";
+  const gap = daysBetween(lastVisitKey, today);
+  if (gap >= 3) return "welcome_back";
+  return "morning_brief";
+}
+
+export function getTodayVisitKey(now: Date = new Date()): string {
+  return toDateKey(now);
+}
+
 /* -------------------------------------------------------------------------- */
 /*  Time of day                                                               */
 /* -------------------------------------------------------------------------- */
@@ -81,60 +123,60 @@ export function getDayPeriod(date: Date = new Date()): DayPeriod {
 const GREETINGS: Record<DayPeriod, string[]> = {
   morning: [
     `صباح الفل يا ${SODA_OPERATOR}`,
-    `صباح النور يا ${SODA_OPERATOR}`,
-    `يا صباح الشغل الحلو يا ${SODA_OPERATOR}`,
+    `صباح الشغل الحلو يا ${SODA_OPERATOR}`,
+    `يا صباح الستوديو يا ${SODA_OPERATOR}`,
   ],
   afternoon: [
     `نهارك أبيض يا ${SODA_OPERATOR}`,
     `إزيك يا ${SODA_OPERATOR}... نص اليوم عدّى`,
-    `عامل إيه يا ${SODA_OPERATOR}`,
+    `عامل إيه في الستوديو يا ${SODA_OPERATOR}`,
   ],
   evening: [
     `مساء الفل يا ${SODA_OPERATOR}`,
-    `مساء الخير يا ${SODA_OPERATOR}`,
     `يوم طويل يا ${SODA_OPERATOR}... خلّينا نلخّص`,
+    `مساء الخير يا ${SODA_OPERATOR} — وقت الـ wrap`,
   ],
 };
 
 const HOOKS: Record<DayPeriod, Record<BusinessMood, string[]>> = {
   morning: {
     busy_day: [
-      "اليوم مليان... خلّينا نرتّب الأولويات بدري.",
-      "زحمة حلوة قدامنا — ركّز وهنعدّيها.",
+      "اليوم مليان طاقة — رتّب الأولويات بدري وخلّي الإيقاع معاك.",
+      "زحمة حلوة قدامنا. ركّز على اللي بضاغط الأول.",
     ],
     quiet_day: [
-      "يوم هادي... فرصة ترتّب الـ pipeline بهدوء.",
-      "الستوديو هادي — استغل الهدوء صح.",
+      "يوم هادي في الستوديو — فرصة ترتّب الـ pipeline بهدوء.",
+      "الهدوء ده مش فراغ... استغلّه تجهّز اللي جاي.",
     ],
     great_month: [
-      "الشهر ماشي كويس... خلينا نحافظ على النسق.",
-      "الإيقاع حلو — جاهزين نكمّل بنفس الطاقة؟",
+      "الشهر ماشي بإيقاع قوي — خلّينا نحافظ على الجودة زي الزحمة.",
+      "الأرقام بتقول إنكم كويسين. جاهزين نكمّل بنفس الطاقة؟",
     ],
     overdue_heavy: [
-      "في حاجات محتاجة نظرة الأول — خلّينا نفضّي الضغط.",
-      "قبل الزحمة... نخلّص المتأخر.",
+      "في حاجات محتاجة نظرة الأول — نفضّي الضغط قبل ما اليوم يسخن.",
+      "قبل الزحمة... خلّص المتأخر. الستوديو هيرتاح.",
     ],
     shoots_ahead: [
-      "الكاميرات هتشتغل النهاردة — جهّز نفسك.",
-      "يوم shoots قدامنا... يلا نكون جاهزين.",
+      "الكاميرات هتشتغل النهاردة — جهّز الـ brief والفريق.",
+      "يوم shoots قدامنا. يلا نكون جاهزين من بدري.",
     ],
     steady: [
-      "يوم ثابت — خلّينا نخليه مظبوط.",
-      "كل حاجة على السكة... يلا نبدأ بهدوء.",
+      "يوم ثابت — خلّينا نخليه مظبوط من غير دراما.",
+      "كل حاجة على السكة. ابدأ بهدوء وتركيز.",
     ],
   },
   afternoon: {
     busy_day: [
-      "نص اليوم عدّى والإيقاع لسه عالي.",
-      "لسه في شغل قدامنا — كمّل بنفس التركيز.",
+      "نص اليوم عدّى والإيقاع لسه عالي — كمّل بنفس التركيز.",
+      "لسه في شغل قدامنا. متفرّقش الطاقة.",
     ],
     quiet_day: [
-      "الستوديو هادي شوية دلوقتي — فرصة تراجع.",
+      "الستوديو هادي شوية دلوقتي — فرصة تراجع وتلمّ.",
       "هدوء حلو... رتّب اللي باقي بهدوء.",
     ],
     great_month: [
-      "الأرقام بتقول إنكم كويسين — متوقفش.",
-      "كمّل بنفس الـ vibe... الشهر بتاعكم.",
+      "الأرقام ماشية كويس — متوقفش عند الحلو.",
+      "كمّل بنفس الـ vibe. الشهر بتاعكم.",
     ],
     overdue_heavy: [
       "لسه في overdue محتاج قرار قبل المغرب.",
@@ -151,12 +193,12 @@ const HOOKS: Record<DayPeriod, Record<BusinessMood, string[]>> = {
   },
   evening: {
     busy_day: [
-      "يوم كان مليان... خلّينا نلخّص بهدوء.",
+      "يوم كان مليان... خلّينا نلخّص بهدوء قبل ما تقفل.",
       "قبل ما تقفل — نظرة سريعة على الأولويات؟",
     ],
     quiet_day: [
       "يوم هادي خلص بهدوء — يستاهل راحة حلوة.",
-      "وقت الـ wrap-up الخفيف.",
+      "وقت الـ wrap-up الخفيف. بكرة صفحة جديدة.",
     ],
     great_month: [
       "قفّلنا يوم على شهر قوي — بكرة نزوّد.",
@@ -172,7 +214,7 @@ const HOOKS: Record<DayPeriod, Record<BusinessMood, string[]>> = {
     ],
     steady: [
       "خلّصنا اليوم بهدوء — بكرة أحلى.",
-      "وقت تلخّص وتريح.",
+      "وقت تلخّص وتريح. الستوديو تمام.",
     ],
   },
 };
@@ -186,7 +228,7 @@ const CLOSERS: Record<DayPeriod, Record<BusinessMood, string[]>> = {
       "كمّل بنفس الطاقة.",
     ],
     overdue_heavy: [
-      "نبدأ من Attention Center.",
+      "نبدأ من Need Your Attention.",
       "أولوية النهاردة: نخلّص المتأخر.",
     ],
     shoots_ahead: ["جهّز الكاميرات... يلا.", "يوم تصوير حلو قدامكم."],
@@ -234,23 +276,25 @@ function getCloser(
 }
 
 /* -------------------------------------------------------------------------- */
-/*  Module slogans                                                            */
+/*  Module slogans — natural Egyptian Arabic, studio-internal                 */
 /* -------------------------------------------------------------------------- */
 
 export const MODULE_SLOGANS: Record<ModuleSloganKey, string> = {
-  dashboard: "نبضة الستوديو... واضحة من أول نظرة.",
-  orders: "من أول مكالمة...\nلحد آخر تسليمة.",
-  projects: "كل فكرة عظيمة...\nبدأت بـ Project.",
-  clients: "العميل المرتاح...\nبيرجعلك تاني.",
-  workspaces: "كل مساحة شغل...\nليها إيقاع.",
-  projectHub: "هنا قلب الـ Project...\nكل حاجة في مكانها.",
-  rtm: "المحتوى بيحصل دلوقتي...\nوإحنا جاهزين.",
-  weddings: "يوم العمر...\nوإحنا بنصوّره صح.",
-  fashion: "جاهزين نطلع أحسن لوك؟",
-  product: "المنتج بيتكلم...\nوإحنا بنخلّي الناس تسمع.",
-  events: "اللحظة بتمر مرة واحدة...\nوإحنا بنمسكها.",
-  commercial: "كل حملة ليها هدف...\nوإحنا بنوصله.",
-  finance: "الفلوس واضحة...\nمن غير لف ودوران.",
+  dashboard: "مركز القيادة — نبضة الستوديو من أول نظرة.",
+  orders: "من أول مكالمة لحد آخر تسليمة — كل Order في مكانه.",
+  projects: "كل فكرة عظيمة بدأت بـ Project. هنا بنتابعها.",
+  clients: "العميل المرتاح بيرجعلك. خلّي العلاقة واضحة.",
+  workspaces: "كل مساحة شغل ليها إيقاع — وانت بتشوفه هنا.",
+  projectHub: "قلب الـ Project — ملفات، فلوس، فريق، وكل حاجة.",
+  rtm: "المحتوى بيحصل دلوقتي — وإحنا جاهزين نمسكه.",
+  weddings: "يوم العمر — وإحنا بنصوّره صح من غير توتر.",
+  fashion: "جاهزين نطلع أحسن لوك؟ الستوديو فاتح.",
+  product: "المنتج بيتكلم — وإحنا بنخلّي الناس تسمع.",
+  events: "اللحظة بتمر مرة واحدة — وإحنا بنمسكها.",
+  commercial: "كل حملة ليها هدف — وإحنا بنوصّله.",
+  finance: "الفلوس واضحة — من غير لف ودوران.",
+  about: "قصة SODA — ليه بنعمل اللي بنعمله.",
+  login: "أهلاً بيك في الستوديو. ادخل وكمّل الشغل.",
 };
 
 /** Resolve slogan for a workspace id/slug (falls back to workspaces). */
@@ -335,6 +379,122 @@ export function getMoodLabel(mood: BusinessMood): string {
 }
 
 /* -------------------------------------------------------------------------- */
+/*  Company Pulse — health sentences from snapshot                            */
+/* -------------------------------------------------------------------------- */
+
+export function getCompanyPulse(
+  snapshot: Pick<
+    DashboardSnapshot,
+    "kpis" | "attention" | "schedule" | "financial" | "team"
+  >
+): CompanyPulseInsight[] {
+  const signals = extractVoiceSignals({
+    kpis: snapshot.kpis,
+    attention: snapshot.attention,
+    schedule: snapshot.schedule,
+  });
+  const insights: CompanyPulseInsight[] = [];
+  const n = toEasternDigits;
+
+  if (signals.overdueCount > 0) {
+    insights.push({
+      id: "editing-pressure",
+      label: "Editing pressure",
+      insight:
+        signals.overdueCount === 1
+          ? "في تسليمة overdue واحدة بضاغطة على الـ editing — خلّيها أولوية."
+          : `ضغط editing: ${n(signals.overdueCount)} overdue محتاجين نظرة النهاردة.`,
+      tone: "pressure",
+    });
+  } else {
+    insights.push({
+      id: "on-schedule",
+      label: "On schedule",
+      insight: "التسليمات على السكة — مفيش overdue بضاغط دلوقتي.",
+      tone: "good",
+    });
+  }
+
+  if (signals.unpaidCount > 0 || snapshot.financial.outstanding > 0) {
+    insights.push({
+      id: "payments-slowing",
+      label: "Payments",
+      insight:
+        signals.unpaidCount > 0
+          ? `التحصيل محتاج متابعة — ${n(signals.unpaidCount)} client لسه unpaid.`
+          : "في مستحقات معلّقة — وقت follow-up هادي من غير ضغط زيادة.",
+      tone: "watch",
+    });
+  } else {
+    insights.push({
+      id: "cash-healthy",
+      label: "Cash flow",
+      insight: "التحصيل مرتّب — مفيش balances بتضايق الستوديو.",
+      tone: "good",
+    });
+  }
+
+  if (signals.todayShoots >= 2 || signals.upcomingShoots >= 5) {
+    insights.push({
+      id: "busy-shooting",
+      label: "Shooting week",
+      insight:
+        signals.todayShoots >= 2
+          ? `أسبوع تصوير سخن — ${n(signals.todayShoots)} shoots النهاردة لوحدها.`
+          : `الجدول مليان shoots قريبة (${n(signals.upcomingShoots)}) — جهّز الفريق.`,
+      tone: "watch",
+    });
+  } else if (signals.todayShoots === 1) {
+    insights.push({
+      id: "one-shoot",
+      label: "Today's shoot",
+      insight: "عندك shoot واحد النهاردة — خلّيه يطلع نظيف.",
+      tone: "neutral",
+    });
+  } else {
+    insights.push({
+      id: "pipeline-calm",
+      label: "Pipeline",
+      insight:
+        signals.activeOrders > 0
+          ? `الـ pipeline صاحي بـ ${n(signals.activeOrders)} order نشط — إيقاع ثابت.`
+          : "الـ pipeline هادي شوية — فرصة ترتّب وتفتح شغل جديد.",
+      tone: "neutral",
+    });
+  }
+
+  const topLoad = snapshot.team[0];
+  if (topLoad && topLoad.currentWorkload >= 3) {
+    insights.push({
+      id: "team-load",
+      label: "Team load",
+      insight: `الفريق شادّ — أعلى load عند رقم ${n(topLoad.currentWorkload)}. راقب التوزيع.`,
+      tone: "watch",
+    });
+  }
+
+  return insights.slice(0, 4);
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Welcome Back copy                                                         */
+/* -------------------------------------------------------------------------- */
+
+export function getWelcomeBackCopy(
+  input: DashboardVoiceInput,
+  now: Date = new Date()
+): BriefCardCopy {
+  const brief = getBriefCopy(input, now);
+  return {
+    ...brief,
+    label: "Welcome Back",
+    greeting: `منوّر تاني يا ${SODA_OPERATOR}`,
+    hook: "غبت كام يوم — خلّينا نرجّعك على السكة بسرعة.",
+    closer: "يلا ندخل Command Center ونشوف إيه اللي بضاغط.",
+  };
+}
+
+/* -------------------------------------------------------------------------- */
 /*  Brief cards (Morning / Afternoon / Evening) — hero voice                  */
 /* -------------------------------------------------------------------------- */
 
@@ -344,7 +504,7 @@ function buildBriefLines(signals: VoiceSignals, mood: BusinessMood): string[] {
 
   if (signals.todayShoots > 0) {
     const shootWord = signals.todayShoots === 1 ? "shoot" : "shoots";
-    lines.push(`عندك ${n(signals.todayShoots)} ${shootWord} النهاردة.`);
+    lines.push(`عندك ${n(signals.todayShoots)} ${shootWord} النهاردة — جهّز الـ brief.`);
   } else if (signals.upcomingShoots > 0) {
     lines.push(`عندك ${n(signals.upcomingShoots)} shoot قريب في الجدول.`);
   }
@@ -352,42 +512,42 @@ function buildBriefLines(signals: VoiceSignals, mood: BusinessMood): string[] {
   if (signals.todayDeliveries > 0) {
     lines.push(
       signals.todayDeliveries === 1
-        ? "وفيه تسليمة النهاردة — متتنساش تتابعها."
-        : `وفيه ${n(signals.todayDeliveries)} deliveries النهاردة.`
+        ? "وفيه تسليمة النهاردة — متتنساش تتابعها قبل ما اليوم يعدّي."
+        : `وفيه ${n(signals.todayDeliveries)} deliveries النهاردة على الرادار.`
     );
   } else if (signals.upcomingDeliveries > 0 && lines.length < 2) {
-    lines.push(`وفيه ${n(signals.upcomingDeliveries)} delivery قريبة.`);
+    lines.push(`وفيه ${n(signals.upcomingDeliveries)} delivery قريبة — خلّيها في بالك.`);
   }
 
   if (signals.overdueCount > 0) {
     lines.push(
       signals.overdueCount === 1
-        ? "في تسليمة overdue محتاجة نظرة."
-        : `في ${n(signals.overdueCount)} overdue محتاجين نظرة.`
+        ? "في تسليمة overdue محتاجة نظرة — دي أولوية النهاردة."
+        : `في ${n(signals.overdueCount)} overdue محتاجين نظرة قبل أي حاجة تانية.`
     );
-  } else if (signals.unpaidCount > 0 && lines.length < 2) {
+  } else if (signals.unpaidCount > 0 && lines.length < 3) {
     lines.push(
       signals.unpaidCount === 1
-        ? "في Client لسه unpaid — وقت الـ follow-up."
-        : `في ${n(signals.unpaidCount)} Clients لسه unpaid.`
+        ? "في Client لسه unpaid — وقت follow-up هادي."
+        : `في ${n(signals.unpaidCount)} Clients لسه unpaid — لمّ الفلوس بهدوء.`
     );
   }
 
   if (
     mood === "great_month" &&
     signals.revenueMonthChangePct != null &&
-    lines.length < 2
+    lines.length < 3
   ) {
     const pct = signals.revenueMonthChangePct;
     const sign = pct >= 0 ? "+" : "";
-    lines.push(`Revenue الشهر ده ${sign}${n(pct)}٪ — الدنيا ماشية.`);
+    lines.push(`Revenue الشهر ده ${sign}${n(pct)}٪ — الدنيا ماشية، خلّي الجودة ثابتة.`);
   }
 
   if (lines.length === 0) {
     if (mood === "quiet_day") {
-      lines.push("الجدول فاضي شوية — فرصة ترتّب الـ pipeline.");
+      lines.push("الجدول فاضي شوية — فرصة ترتّب الـ pipeline وتفتح شغل جديد.");
     } else {
-      lines.push("كل حاجة تحت السيطرة دلوقتي.");
+      lines.push("كل حاجة تحت السيطرة دلوقتي — ركّز على الجودة.");
     }
   }
 
@@ -405,7 +565,7 @@ function buildBriefSummary(
       value: signals.todayShoots,
       whisper:
         signals.todayShoots > 0
-          ? "الكاميرات شغّالة."
+          ? "الكاميرات شغّالة النهاردة."
           : "مفيش shoot النهاردة.",
     },
     {
@@ -495,22 +655,22 @@ function buildBriefActions(
     return [
       { label: "Review attention", href: "#attention", emphasis: "primary" },
       { label: "Open orders", href: "/orders", emphasis: "secondary" },
-      { label: "View schedule", href: "#schedule", emphasis: "secondary" },
+      { label: "View timeline", href: "#schedule", emphasis: "secondary" },
     ];
   }
 
   if (signals.todayShoots > 0 || signals.upcomingShoots > 0) {
     return [
-      { label: "View schedule", href: "#schedule", emphasis: "primary" },
+      { label: "View timeline", href: "#schedule", emphasis: "primary" },
       { label: "Open orders", href: "/orders", emphasis: "secondary" },
       { label: "Review attention", href: "#attention", emphasis: "secondary" },
     ];
   }
 
   return [
-    { label: "Open orders", href: "/orders", emphasis: "primary" },
-    { label: "View schedule", href: "#schedule", emphasis: "secondary" },
-    { label: "Review attention", href: "#attention", emphasis: "secondary" },
+    { label: "Enter Command Center", href: "#command-core", emphasis: "primary" },
+    { label: "Open orders", href: "/orders", emphasis: "secondary" },
+    { label: "View timeline", href: "#schedule", emphasis: "secondary" },
   ];
 }
 
@@ -643,7 +803,7 @@ export const WARNING_MESSAGES: Record<WarningKey, string> = {
 
 export const LOADING_MESSAGES: Record<LoadingKey, string> = {
   default: "ثواني... بنجهّزلك الصفحة",
-  dashboard: "بنجهّز نبضة الستوديو...",
+  dashboard: "بنجهّز Command Center...",
   orders: "بنحمّل الـ Orders...",
   clients: "بنحمّل الـ Clients...",
   workspaces: "بنحمّل الـ Workspaces...",
@@ -663,52 +823,68 @@ export function getLoadingMessage(key: LoadingKey = "default"): string {
 }
 
 /* -------------------------------------------------------------------------- */
-/*  Notifications (header)                                                    */
+/*  Notifications (header) — pink-accent awareness                            */
 /* -------------------------------------------------------------------------- */
 
 export const NOTIFICATION_COPY = [
-  "تسليمة Wedding بكرة — متتنساش تراجع الـ files.",
-  "Commercial shoot اتأكد — الفريق جاهز.",
+  "تسليمة Wedding بكرة — متتنساش تراجع الـ files قبل التسليم.",
+  "Commercial shoot اتأكد — الفريق جاهز والـ brief واصل.",
   "الـ Client دفع الـ deposit... فلوس دخلت الستوديو.",
 ] as const;
 
 /* -------------------------------------------------------------------------- */
-/*  Dashboard section microcopy                                               */
+/*  Command Center section microcopy                                          */
 /* -------------------------------------------------------------------------- */
 
 export const DASHBOARD_SECTION_COPY: Record<DashboardSectionKey, SectionCopy> =
   {
-    quickActions: {
-      title: "Quick Actions",
-      description: "اختصارات سريعة... ابدأ من هنا وخلّي اليوم يتحرك.",
+    operations: {
+      title: "Today's Operations",
+      description: "إيه اللي شغّال النهاردة؟ أرقام الستوديو في نظرة واحدة.",
     },
     kpis: {
-      title: "Key Metrics",
-      description: "نبضة الستوديو في نظرة واحدة — أرقام بتتكلم.",
-    },
-    financial: {
-      title: "Financial Overview",
-      description: "صورة الفلوس بوضوح — من غير لف ودوران.",
+      title: "Today's Operations",
+      description: "إيه اللي شغّال النهاردة؟ أرقام الستوديو في نظرة واحدة.",
     },
     attention: {
-      title: "Attention Center",
-      description: "تعالى نخلّص دول الأول — دول اللي بضاغطوا.",
-    },
-    workspaces: {
-      title: "Workspace Performance",
-      description: "كل مساحة شغل... وقد إيه ماشية.",
-    },
-    team: {
-      title: "Team Performance",
-      description: "مين شادّ النهاردة... ومين محتاج دعم.",
+      title: "Need Your Attention",
+      description: "دول اللي بضاغطوا — خلّصهم الأول قبل أي حاجة.",
     },
     schedule: {
-      title: "Upcoming Schedule",
-      description: "Shoots، deliveries، و deadlines الجاية على الرادار.",
+      title: "Today's Timeline",
+      description: "Shoots، deliveries، و deadlines على الرادار.",
+    },
+    financial: {
+      title: "Finance Snapshot",
+      description: "صورة الفلوس بوضوح — booked، outstanding، والباقي.",
     },
     recentOrders: {
-      title: "Recent Orders",
-      description: "آخر الحجوزات اللي دخلت النظام.",
+      title: "Orders Snapshot",
+      description: "آخر الحجوزات اللي دخلت النظام — نبضة الـ pipeline.",
+    },
+    projects: {
+      title: "Projects Snapshot",
+      description: "كل مساحة شغل... وقد إيه ماشية في الإنتاج.",
+    },
+    workspaces: {
+      title: "Projects Snapshot",
+      description: "كل مساحة شغل... وقد إيه ماشية في الإنتاج.",
+    },
+    team: {
+      title: "Team Status",
+      description: "مين شادّ النهاردة... ومين محتاج دعم.",
+    },
+    quickActions: {
+      title: "Quick Actions",
+      description: "اختصارات سريعة — حرّك اليوم من هنا.",
+    },
+    sodaLive: {
+      title: "SODA LIVE",
+      description: "نبضات خفيفة من الستوديو — مش قرارات حرجة.",
+    },
+    companyPulse: {
+      title: "Company Pulse",
+      description: "صحة الستوديو في جمل قصيرة — مش charts فاضية.",
     },
   };
 
@@ -719,7 +895,7 @@ export const KPI_COPY: Record<
 > = {
   revenueThisMonth: {
     title: "Revenue this month",
-    whisper: "الشهر ماشي كويس... خلينا نحافظ على النسق.",
+    whisper: "الشهر ماشي... خلّينا نحافظ على النسق.",
   },
   revenueLastMonth: {
     title: "Revenue last month",
@@ -826,3 +1002,41 @@ export const HUB_SECTION_COPY: Record<HubSectionCopyKey, SectionCopy> = {
     description: "التصويرات الجاية على الـ Project.",
   },
 };
+
+/* -------------------------------------------------------------------------- */
+/*  About page copy                                                           */
+/* -------------------------------------------------------------------------- */
+
+export const ABOUT_COPY = {
+  eyebrow: "About SODA",
+  headline: "بنحوّل اللحظة لقصة تفضل.",
+  missionTitle: "Mission",
+  mission:
+    "نساعد الستوديو يشتغل بإيقاع واضح — من أول مكالمة لحد آخر تسليمة — من غير ما الإبداع يتوه في الزحمة.",
+  visionTitle: "Vision",
+  vision:
+    "SODA OS يبقى نظام التشغيل بتاع كل creative studio عايز شغل مرتّب وطاقة عالية في نفس الوقت.",
+  valuesTitle: "Values",
+  values: [
+    {
+      title: "Clarity",
+      body: "كل قرار واضح. كل deadline ظاهر. مفيش شغل بيتوه.",
+    },
+    {
+      title: "Craft",
+      body: "الجودة مش option — دي هوية الستوديو.",
+    },
+    {
+      title: "Rhythm",
+      body: "إيقاع الشغل أهم من الزحمة. نشتغل صح، مش بس كتير.",
+    },
+    {
+      title: "Team",
+      body: "الكاميرا بتتصور... والناس هي اللي بتخلي الصورة SODA.",
+    },
+  ],
+  teamTitle: "The crew",
+  teamWhisper: "أسماء الستوديو — الأدوار بالإنجليزي، الأسماء بالعربي.",
+  partnersTitle: "Partners",
+  partnersWhisper: "مساحة للشركاء قريب — لسه بنجهّز القائمة.",
+} as const;

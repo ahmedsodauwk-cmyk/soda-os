@@ -27,7 +27,7 @@ export default function StatCard({
   whisper,
 }: StatCardProps) {
   return (
-    <Card className="border-border/70 transition-colors hover:border-primary/25 hover:bg-primary/[0.04]">
+    <Card className="soda-cc-card border-border/70 transition-colors hover:border-primary/30 hover:bg-primary/[0.04]">
       <CardHeader className="flex-row items-start justify-between space-y-0 pb-2">
         <div className="min-w-0 space-y-1">
           <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -35,7 +35,7 @@ export default function StatCard({
           </CardTitle>
           {whisper ? (
             <p
-              className="font-ar text-[13px] leading-[1.7] text-muted-foreground"
+              className="font-ar text-[13px] leading-[1.75] text-muted-foreground"
               dir="rtl"
             >
               {whisper}

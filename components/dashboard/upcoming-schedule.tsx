@@ -78,14 +78,14 @@ export default function UpcomingScheduleCard({
   schedule,
 }: UpcomingScheduleCardProps) {
   return (
-    <Card className="h-full">
+    <Card className="soda-cc-card h-full">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Calendar className="size-4 text-muted-foreground" />
+          <Calendar className="size-4 text-soda-pink" />
           {DASHBOARD_SECTION_COPY.schedule.title}
         </CardTitle>
         <CardDescription
-          className="font-ar text-[0.9375rem] leading-[1.75] text-muted-foreground"
+          className="font-ar text-[0.9375rem] leading-[1.8] text-muted-foreground"
           dir="rtl"
         >
           {DASHBOARD_SECTION_COPY.schedule.description}

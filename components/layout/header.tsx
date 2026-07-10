@@ -65,7 +65,7 @@ export default function Header({
             {title}
           </h1>
           <p
-            className="font-ar max-w-xl text-[0.9375rem] leading-[1.8] whitespace-pre-line text-muted-foreground sm:text-base sm:leading-[1.75]"
+            className="font-ar max-w-xl text-[0.9375rem] leading-[1.85] whitespace-pre-line text-muted-foreground sm:text-base sm:leading-[1.8]"
             dir="rtl"
           >
             {subtitle}
@@ -91,7 +91,7 @@ export default function Header({
               }
             >
               <Bell />
-              <Badge className="absolute -top-0.5 -right-0.5 size-4 justify-center rounded-full p-0 text-[10px]">
+              <Badge className="absolute -top-0.5 -right-0.5 size-4 justify-center rounded-full border-0 bg-soda-pink p-0 text-[10px] text-soda-action-foreground">
                 {NOTIFICATION_COPY.length}
               </Badge>
               <span className="sr-only">Notifications</span>
@@ -103,7 +103,11 @@ export default function Header({
             <DropdownMenuLabel>Notifications</DropdownMenuLabel>
             <DropdownMenuSeparator />
             {NOTIFICATION_COPY.map((item) => (
-              <DropdownMenuItem key={item} className="whitespace-normal">
+              <DropdownMenuItem
+                key={item}
+                className="font-ar whitespace-normal leading-[1.75]"
+                dir="rtl"
+              >
                 {item}
               </DropdownMenuItem>
             ))}

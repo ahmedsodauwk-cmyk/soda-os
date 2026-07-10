@@ -48,19 +48,22 @@ export default function AttentionCenter({
   const remaining = Math.max(0, items.length - visible.length);
 
   return (
-    <Card className="h-full">
+    <Card className="soda-cc-card h-full">
       <CardHeader>
         <div className="flex items-start justify-between gap-3">
           <div>
             <CardTitle>{DASHBOARD_SECTION_COPY.attention.title}</CardTitle>
             <CardDescription
-              className="font-ar text-[0.9375rem] leading-[1.75] text-muted-foreground"
+              className="font-ar text-[0.9375rem] leading-[1.8] text-muted-foreground"
               dir="rtl"
             >
               {DASHBOARD_SECTION_COPY.attention.description}
             </CardDescription>
           </div>
-          <Badge variant="outline" className="font-mono tabular-nums">
+          <Badge
+            variant="outline"
+            className="border-soda-pink/30 bg-soda-pink/10 font-mono tabular-nums text-soda-pink"
+          >
             {items.length}
           </Badge>
         </div>
