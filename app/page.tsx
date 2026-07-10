@@ -1,37 +1,49 @@
-import Sidebar from "@/components/layout/sidebar";
-import Header from "@/components/layout/header";
-
+import { AppShell } from "@/components/layout/app-shell";
+import AttentionCenter from "@/components/dashboard/attention-center";
+import FinancialOverviewCard from "@/components/dashboard/financial-overview";
 import KPIGrid from "@/components/dashboard/kpi-grid";
+import QuickActions from "@/components/dashboard/quick-actions";
 import RecentOrders from "@/components/dashboard/recent-orders";
-import TeamStatus from "@/components/dashboard/team-status";
-import RevenueChart from "@/components/dashboard/revenue-chart";
-import CalendarWidget from "@/components/dashboard/calendar-widget";
-import Notifications from "@/components/dashboard/notifications";
+import TeamPerformance from "@/components/dashboard/team-performance";
+import UpcomingScheduleCard from "@/components/dashboard/upcoming-schedule";
+import WorkspacePerformance from "@/components/dashboard/workspace-performance";
+import { getDashboardSnapshot } from "@/lib/dashboard";
+import { formatDate } from "@/lib/orders/utils";
 
 export default function Home() {
+  const dashboard = getDashboardSnapshot();
+
   return (
-    <main className="flex min-h-screen bg-background">
-      <Sidebar />
+    <AppShell
+      title="Executive Dashboard"
+      subtitle={`Company health · as of ${formatDate(dashboard.asOf)}`}
+    >
+      <div className="space-y-6">
+        <QuickActions />
 
-      <section className="flex flex-1 flex-col overflow-y-auto">
-        <Header />
+        <KPIGrid kpis={dashboard.kpis} />
 
-        <div className="mx-auto w-full max-w-[1600px] space-y-6 p-6">
-          <KPIGrid />
-
-          <div className="grid grid-cols-1 gap-4 lg:gap-6 xl:grid-cols-2">
-            <RecentOrders />
-            <TeamStatus />
+        <div className="grid grid-cols-1 gap-4 lg:gap-6 xl:grid-cols-5">
+          <div className="xl:col-span-3">
+            <FinancialOverviewCard
+              financial={dashboard.financial}
+              monthlyRevenue={dashboard.monthlyRevenue}
+            />
           </div>
-
-          <div className="grid grid-cols-1 gap-4 lg:gap-6 xl:grid-cols-2">
-            <RevenueChart />
-            <CalendarWidget />
+          <div className="xl:col-span-2">
+            <AttentionCenter items={dashboard.attention} />
           </div>
-
-          <Notifications />
         </div>
-      </section>
-    </main>
+
+        <WorkspacePerformance workspaces={dashboard.workspaces} />
+
+        <div className="grid grid-cols-1 gap-4 lg:gap-6 xl:grid-cols-2">
+          <TeamPerformance team={dashboard.team} />
+          <UpcomingScheduleCard schedule={dashboard.schedule} />
+        </div>
+
+        <RecentOrders orders={dashboard.recentOrders} />
+      </div>
+    </AppShell>
   );
 }
