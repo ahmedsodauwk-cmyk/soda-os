@@ -1,10 +1,10 @@
 /**
  * Arabic display names for studio team — IDs/logic stay English.
- * First-name style so the dashboard feels like a teammate roll call.
+ * Roles remain English in the UI; names feel like a teammate roll call.
  */
 
 const BY_ID: Record<string, string> = {
-  "tm-ahmed": "أحمد",
+  "tm-ahmed": "نيمو",
   "tm-sara": "سارة",
   "tm-karim": "كريم",
   "tm-layla": "ليلى",
@@ -15,7 +15,7 @@ const BY_ID: Record<string, string> = {
 };
 
 const BY_ENGLISH_NAME: Record<string, string> = {
-  "Ahmed Hassan": "أحمد",
+  "Ahmed Hassan": "نيمو",
   "Sara Nabil": "سارة",
   "Karim Fouad": "كريم",
   "Layla Mansour": "ليلى",
@@ -23,6 +23,7 @@ const BY_ENGLISH_NAME: Record<string, string> = {
   "Dina Farid": "دينا",
   "Youssef Amir": "يوسف",
   "Nora Khalil": "نورا",
+  "Junior Soda": "چونيور صودا",
 };
 
 /** Resolve Arabic display name; falls back to the English name if unmapped. */

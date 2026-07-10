@@ -58,7 +58,7 @@ function Metric({
   hint?: string;
 }) {
   return (
-    <div className="rounded-lg bg-muted/40 px-3 py-2.5">
+    <div className="rounded-lg border border-primary/10 bg-primary/[0.04] px-3 py-2.5">
       <p className="text-xs text-muted-foreground">{label}</p>
       <p className="mt-0.5 font-mono text-lg font-semibold tracking-tight tabular-nums">
         {value}
@@ -84,7 +84,7 @@ export default function FinancialOverviewCard({
       <CardHeader>
         <CardTitle>{DASHBOARD_SECTION_COPY.financial.title}</CardTitle>
         <CardDescription
-          className="font-ar text-sm leading-[1.7] text-muted-foreground/90"
+          className="font-ar text-[0.9375rem] leading-[1.75] text-muted-foreground"
           dir="rtl"
         >
           {DASHBOARD_SECTION_COPY.financial.description}

@@ -24,7 +24,8 @@ export type ModuleSloganKey =
   | "fashion"
   | "product"
   | "events"
-  | "commercial";
+  | "commercial"
+  | "finance";
 
 export type EmptyStateKey =
   | "orders"

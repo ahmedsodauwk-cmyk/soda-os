@@ -40,8 +40,9 @@ export type {
   WarningKey,
 } from "@/lib/brand/types";
 
-/** Always address the operator as Junior Soda — never a real name. */
-export const SODA_OPERATOR = "Junior Soda";
+/** Always address the operator as Junior Soda — Arabic voice uses چونيور صودا. */
+export const SODA_OPERATOR = "چونيور صودا";
+export const SODA_OPERATOR_EN = "Junior Soda";
 
 /* -------------------------------------------------------------------------- */
 /*  Helpers                                                                   */
@@ -80,59 +81,116 @@ export function getDayPeriod(date: Date = new Date()): DayPeriod {
 const GREETINGS: Record<DayPeriod, string[]> = {
   morning: [
     `صباح الفل يا ${SODA_OPERATOR}`,
-    `صباح الخير يا ${SODA_OPERATOR}`,
-    `يا صباح النشاط يا ${SODA_OPERATOR}`,
+    `صباح النور يا ${SODA_OPERATOR}`,
+    `يا صباح الشغل الحلو يا ${SODA_OPERATOR}`,
   ],
   afternoon: [
     `نهارك أبيض يا ${SODA_OPERATOR}`,
-    `إزيك يا ${SODA_OPERATOR}`,
-    `نص اليوم عدّى يا ${SODA_OPERATOR}`,
+    `إزيك يا ${SODA_OPERATOR}... نص اليوم عدّى`,
+    `عامل إيه يا ${SODA_OPERATOR}`,
   ],
   evening: [
     `مساء الفل يا ${SODA_OPERATOR}`,
     `مساء الخير يا ${SODA_OPERATOR}`,
-    `يوم طويل يا ${SODA_OPERATOR}`,
+    `يوم طويل يا ${SODA_OPERATOR}... خلّينا نلخّص`,
   ],
 };
 
 const HOOKS: Record<DayPeriod, Record<BusinessMood, string[]>> = {
   morning: {
-    busy_day: ["جاهز ليوم مليان؟", "اليوم هيبقى زحمة حلوة."],
-    quiet_day: ["يوم هادي... فرصة ترتّب.", "جاهز ليوم هادي ومنظّم؟"],
-    great_month: ["الشهر ماشي تمام — نكمّل؟", "جاهز نكمل الإيقاع الحلو؟"],
-    overdue_heavy: ["في حاجات محتاجة نظرة الأول.", "خلّينا نفضّي الضغط بدري."],
-    shoots_ahead: ["الكاميرات هتشتغل النهاردة.", "جاهز ليوم shoots؟"],
-    steady: ["جاهز ليوم جديد؟", "يلا نبدأ بهدوء وثبات."],
+    busy_day: [
+      "اليوم مليان... خلّينا نرتّب الأولويات بدري.",
+      "زحمة حلوة قدامنا — ركّز وهنعدّيها.",
+    ],
+    quiet_day: [
+      "يوم هادي... فرصة ترتّب الـ pipeline بهدوء.",
+      "الستوديو هادي — استغل الهدوء صح.",
+    ],
+    great_month: [
+      "الشهر ماشي كويس... خلينا نحافظ على النسق.",
+      "الإيقاع حلو — جاهزين نكمّل بنفس الطاقة؟",
+    ],
+    overdue_heavy: [
+      "في حاجات محتاجة نظرة الأول — خلّينا نفضّي الضغط.",
+      "قبل الزحمة... نخلّص المتأخر.",
+    ],
+    shoots_ahead: [
+      "الكاميرات هتشتغل النهاردة — جهّز نفسك.",
+      "يوم shoots قدامنا... يلا نكون جاهزين.",
+    ],
+    steady: [
+      "يوم ثابت — خلّينا نخليه مظبوط.",
+      "كل حاجة على السكة... يلا نبدأ بهدوء.",
+    ],
   },
   afternoon: {
-    busy_day: ["نص اليوم عدّى... والإيقاع عالي.", "لسه في شغل قدامنا."],
-    quiet_day: ["الستوديو هادي شوية دلوقتي.", "فرصة تراجع الـ pipeline."],
-    great_month: ["الأرقام بتقول إنكم كويسين.", "كمّل بنفس الـ vibe."],
-    overdue_heavy: ["لسه في overdue محتاج قرار.", "نفضّي دول قبل المغرب؟"],
-    shoots_ahead: ["الجدول لسه مليان طاقة.", "الـ shoots الجاية مستنياك."],
-    steady: ["كل حاجة ماشية تمام.", "نص اليوم... وإحنا على السكة."],
+    busy_day: [
+      "نص اليوم عدّى والإيقاع لسه عالي.",
+      "لسه في شغل قدامنا — كمّل بنفس التركيز.",
+    ],
+    quiet_day: [
+      "الستوديو هادي شوية دلوقتي — فرصة تراجع.",
+      "هدوء حلو... رتّب اللي باقي بهدوء.",
+    ],
+    great_month: [
+      "الأرقام بتقول إنكم كويسين — متوقفش.",
+      "كمّل بنفس الـ vibe... الشهر بتاعكم.",
+    ],
+    overdue_heavy: [
+      "لسه في overdue محتاج قرار قبل المغرب.",
+      "نفضّي الضغط دلوقتي = راحة بكرة.",
+    ],
+    shoots_ahead: [
+      "الجدول لسه مليان طاقة — الـ shoots مستنياك.",
+      "اتأكد إن الـ brief جاهز قبل ما اليوم يعدّي.",
+    ],
+    steady: [
+      "كل حاجة ماشية تمام — نص اليوم وإحنا على السكة.",
+      "ثابت ومظبوط... كمّل بهدوء.",
+    ],
   },
   evening: {
-    busy_day: ["يوم كان مليان... خلّينا نلخّص.", "قبل ما تقفل — نظرة سريعة؟"],
-    quiet_day: ["يوم هادي خلص بهدوء.", "وقت الـ wrap-up الخفيف."],
-    great_month: ["قفّلنا يوم على شهر قوي.", "نهاردة زوّدت على الإيقاع الحلو."],
-    overdue_heavy: ["قبل ما تنام — في حاجات لبكرة.", "خلّي الأولويات جاهزة لبكرة."],
-    shoots_ahead: ["بكرة فيه shoots... نام وأنت مرتّب.", "الجدول بكرة مليان."],
-    steady: ["خلّصنا اليوم بهدوء.", "وقت تلخّص وتريح."],
+    busy_day: [
+      "يوم كان مليان... خلّينا نلخّص بهدوء.",
+      "قبل ما تقفل — نظرة سريعة على الأولويات؟",
+    ],
+    quiet_day: [
+      "يوم هادي خلص بهدوء — يستاهل راحة حلوة.",
+      "وقت الـ wrap-up الخفيف.",
+    ],
+    great_month: [
+      "قفّلنا يوم على شهر قوي — بكرة نزوّد.",
+      "نهاردة زوّدت على الإيقاع الحلو.",
+    ],
+    overdue_heavy: [
+      "قبل ما تنام — في حاجات لبكرة، خلّيها جاهزة.",
+      "الأولويات جاهزة لبكرة... نام وأنت مرتّب.",
+    ],
+    shoots_ahead: [
+      "بكرة فيه shoots... نام وأنت عارف الجدول.",
+      "الجدول بكرة مليان — ارتاح عشان تكون جاهز.",
+    ],
+    steady: [
+      "خلّصنا اليوم بهدوء — بكرة أحلى.",
+      "وقت تلخّص وتريح.",
+    ],
   },
 };
 
 const CLOSERS: Record<DayPeriod, Record<BusinessMood, string[]>> = {
   morning: {
-    busy_day: ["يلا نكسر الدنيا.", "ركّز... وهنعدّي اليوم ده."],
+    busy_day: ["يلا نكسر الدنيا بهدوء وتركيز.", "ركّز... وهنعدّي اليوم ده."],
     quiet_day: ["استغل الهدوء... ورتّب كويس.", "يوم هادي = شغل ذكي."],
-    great_month: ["كمّل بنفس الطاقة.", "الشهر بتاعكم — خلّوه أقوى."],
+    great_month: [
+      "الشهر ماشي كويس... خلينا نحافظ على النسق.",
+      "كمّل بنفس الطاقة.",
+    ],
     overdue_heavy: [
       "نبدأ من Attention Center.",
       "أولوية النهاردة: نخلّص المتأخر.",
     ],
     shoots_ahead: ["جهّز الكاميرات... يلا.", "يوم تصوير حلو قدامكم."],
-    steady: ["يلا نكسر الدنيا.", "يوم عادي... بس هنخلّيه حلو."],
+    steady: ["يلا نبدأ بهدوء وثبات.", "يوم عادي... بس هنخلّيه حلو."],
   },
   afternoon: {
     busy_day: ["كمّل بنفس الإيقاع.", "لسه نقدر نخلّص كتير."],
@@ -180,7 +238,7 @@ function getCloser(
 /* -------------------------------------------------------------------------- */
 
 export const MODULE_SLOGANS: Record<ModuleSloganKey, string> = {
-  dashboard: "نبضة الستوديو... من غير لف ودوران.",
+  dashboard: "نبضة الستوديو... واضحة من أول نظرة.",
   orders: "من أول مكالمة...\nلحد آخر تسليمة.",
   projects: "كل فكرة عظيمة...\nبدأت بـ Project.",
   clients: "العميل المرتاح...\nبيرجعلك تاني.",
@@ -192,6 +250,7 @@ export const MODULE_SLOGANS: Record<ModuleSloganKey, string> = {
   product: "المنتج بيتكلم...\nوإحنا بنخلّي الناس تسمع.",
   events: "اللحظة بتمر مرة واحدة...\nوإحنا بنمسكها.",
   commercial: "كل حملة ليها هدف...\nوإحنا بنوصله.",
+  finance: "الفلوس واضحة...\nمن غير لف ودوران.",
 };
 
 /** Resolve slogan for a workspace id/slug (falls back to workspaces). */
@@ -506,7 +565,7 @@ export function getMoodMessage(
 export const EMPTY_STATES: Record<EmptyStateKey, EmptyStateCopy> = {
   orders: {
     title: "لسه مفيش Orders هنا...",
-    description: "يلا نبدأ أول شغلانة.",
+    description: "يلا نفتح أول شغلانة ونخلي الـ pipeline يتحرك.",
   },
   clients: {
     title: "لسه مفيش Clients ظاهرين...",
@@ -534,7 +593,7 @@ export const EMPTY_STATES: Record<EmptyStateKey, EmptyStateCopy> = {
   },
   deadlines: {
     title: "مفيش deadlines في الـ ١٤ يوم الجايين...",
-    description: "هدوّة حلوة — استغلها.",
+    description: "هدوّة حلوة — استغلها ترتّب الشغل.",
   },
   payments: {
     title: "لسه مفيش Payments مسجّلة...",
@@ -546,7 +605,7 @@ export const EMPTY_STATES: Record<EmptyStateKey, EmptyStateCopy> = {
   },
   attentionClear: {
     title: "كل حاجة تمام.",
-    description: "مفيش overdue ولا unpaid ولا deadlines ضاغطة.",
+    description: "مفيش overdue ولا unpaid ولا deadlines ضاغطة — الستوديو مرتّب.",
   },
   notes: {
     title: "لسه مفيش Notes...",
@@ -571,12 +630,12 @@ export function getEmptyState(key: EmptyStateKey): EmptyStateCopy {
 /* -------------------------------------------------------------------------- */
 
 export const SUCCESS_MESSAGES: Record<SuccessKey, string> = {
-  orderCreated: "تمام — الـ Order اتضاف بنجاح.",
+  orderCreated: "تمام — الـ Order اتضاف، والـ pipeline اتحرك.",
   clientCreated: "حلو — الـ Client بقى في النظام.",
 };
 
 export const WARNING_MESSAGES: Record<WarningKey, string> = {
-  overdueDeliveries: "في deliveries overdue — خلّيها أولوية.",
+  overdueDeliveries: "في deliveries overdue — خلّيها أولوية النهاردة.",
   unpaidBalances: "في balances لسه unpaid — وقت الـ follow-up.",
   deadlineSoon: "في deadlines قريبة — متستناش لآخر لحظة.",
   unassignedTeam: "في Projects من غير فريق — عيّن حد بسرعة.",
@@ -584,7 +643,7 @@ export const WARNING_MESSAGES: Record<WarningKey, string> = {
 
 export const LOADING_MESSAGES: Record<LoadingKey, string> = {
   default: "ثواني... بنجهّزلك الصفحة",
-  dashboard: "بنجهّز الـ Dashboard...",
+  dashboard: "بنجهّز نبضة الستوديو...",
   orders: "بنحمّل الـ Orders...",
   clients: "بنحمّل الـ Clients...",
   workspaces: "بنحمّل الـ Workspaces...",
@@ -610,7 +669,7 @@ export function getLoadingMessage(key: LoadingKey = "default"): string {
 export const NOTIFICATION_COPY = [
   "تسليمة Wedding بكرة — متتنساش تراجع الـ files.",
   "Commercial shoot اتأكد — الفريق جاهز.",
-  "الـ Client دفع الـ deposit... فلوس دخلت.",
+  "الـ Client دفع الـ deposit... فلوس دخلت الستوديو.",
 ] as const;
 
 /* -------------------------------------------------------------------------- */
@@ -621,11 +680,11 @@ export const DASHBOARD_SECTION_COPY: Record<DashboardSectionKey, SectionCopy> =
   {
     quickActions: {
       title: "Quick Actions",
-      description: "اختصارات سريعة... ابدأ من هنا.",
+      description: "اختصارات سريعة... ابدأ من هنا وخلّي اليوم يتحرك.",
     },
     kpis: {
       title: "Key Metrics",
-      description: "نبضة الستوديو في نظرة واحدة.",
+      description: "نبضة الستوديو في نظرة واحدة — أرقام بتتكلم.",
     },
     financial: {
       title: "Financial Overview",
@@ -633,7 +692,7 @@ export const DASHBOARD_SECTION_COPY: Record<DashboardSectionKey, SectionCopy> =
     },
     attention: {
       title: "Attention Center",
-      description: "تعالى نخلّص دول الأول.",
+      description: "تعالى نخلّص دول الأول — دول اللي بضاغطوا.",
     },
     workspaces: {
       title: "Workspace Performance",
@@ -645,7 +704,7 @@ export const DASHBOARD_SECTION_COPY: Record<DashboardSectionKey, SectionCopy> =
     },
     schedule: {
       title: "Upcoming Schedule",
-      description: "Shoots، deliveries، و deadlines الجاية.",
+      description: "Shoots، deliveries، و deadlines الجاية على الرادار.",
     },
     recentOrders: {
       title: "Recent Orders",
@@ -660,15 +719,15 @@ export const KPI_COPY: Record<
 > = {
   revenueThisMonth: {
     title: "Revenue this month",
-    whisper: "الشهر ماشي كويس... كمّل بنفس النسق.",
+    whisper: "الشهر ماشي كويس... خلينا نحافظ على النسق.",
   },
   revenueLastMonth: {
     title: "Revenue last month",
-    whisper: "مرجع الشهر اللي فات.",
+    whisper: "مرجع الشهر اللي فات — عشان نقارن بهدوء.",
   },
   outstanding: {
     title: "Outstanding payments",
-    whisper: "فلوس لسه برّه... نلمّها.",
+    whisper: "فلوس لسه برّه... نلمّها من غير ضغط زيادة.",
   },
   activeProjects: {
     title: "Active projects",
@@ -695,10 +754,11 @@ export const KPI_COPY: Record<
 /** Soft revenue whisper that adapts to MoM without new business logic. */
 export function getRevenueWhisper(changePct: number | null): string {
   if (changePct == null) return KPI_COPY.revenueThisMonth.whisper;
-  if (changePct >= 10) return "الشهر ماشي كويس... كمّل بنفس النسق.";
-  if (changePct > 0) return "طالع شوية عن الشهر اللي فات.";
+  if (changePct >= 10)
+    return "الشهر ماشي كويس... خلينا نحافظ على النسق.";
+  if (changePct > 0) return "طالع شوية عن الشهر اللي فات — كمل بهدوء.";
   if (changePct === 0) return "ثابت زي الشهر اللي فات.";
-  return "الشهر أهدى شوية — عادي.";
+  return "الشهر أهدى شوية — عادي، خلّينا نركّز.";
 }
 
 export function getOutstandingWhisper(amount: number): string {
@@ -751,7 +811,7 @@ export const HUB_SECTION_COPY: Record<HubSectionCopyKey, SectionCopy> = {
   },
   notes: {
     title: "Notes",
-    description: "ملاحظات سريعة... عشان متضيعش.",
+    description: "ملاحظات سريعة... عشان متضيعش الفكرة.",
   },
   activity: {
     title: "Activity",

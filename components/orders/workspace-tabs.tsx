@@ -63,7 +63,7 @@ function TabButton({
       {active && (
         <span
           aria-hidden
-          className="absolute inset-x-1 -bottom-px h-0.5 rounded-full bg-red-600"
+          className="absolute inset-x-1 -bottom-px h-0.5 rounded-full bg-primary"
         />
       )}
     </button>

@@ -1,5 +1,6 @@
 export {
   SODA_OPERATOR,
+  SODA_OPERATOR_EN,
   MODULE_SLOGANS,
   EMPTY_STATES,
   SUCCESS_MESSAGES,
@@ -30,6 +31,26 @@ export {
 } from "@/lib/brand/soda-voice";
 
 export { getTeamDisplayName } from "@/lib/brand/team-names";
+
+export {
+  sodaColors,
+  sodaSemantic,
+  sodaType,
+  sodaSpace,
+  sodaRadius,
+  sodaElevation,
+  sodaMotion,
+  sodaStatus,
+  sodaChartPalette,
+} from "@/lib/brand/tokens";
+
+export {
+  SODA_LOGO,
+  SODA_LOGO_SIZES,
+  SODA_LOGO_PLACEMENTS,
+} from "@/lib/brand/logo";
+
+export type { SodaLogoPlacement } from "@/lib/brand/logo";
 
 export type {
   BriefAction,

@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, IBM_Plex_Sans_Arabic } from "next/font/google";
+import { Geist_Mono, IBM_Plex_Sans_Arabic, Outfit } from "next/font/google";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+/** Distinctive geometric sans — English UI + headings (not Inter/Geist-generic). */
+const outfit = Outfit({
+  variable: "--font-outfit",
   subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
 });
 
 const geistMono = Geist_Mono({
@@ -13,6 +15,7 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+/** Premium Arabic pairing — IBM Plex Sans Arabic */
 const ibmPlexArabic = IBM_Plex_Sans_Arabic({
   variable: "--font-ibm-plex-arabic",
   subsets: ["arabic"],
@@ -21,7 +24,10 @@ const ibmPlexArabic = IBM_Plex_Sans_Arabic({
 
 export const metadata: Metadata = {
   title: "SODA OS",
-  description: "Visuals Studio Dashboard",
+  description: "Visuals Studio — creative operations",
+  icons: {
+    icon: [{ url: "/brand/soda-mark.svg", type: "image/svg+xml" }],
+  },
 };
 
 export default function RootLayout({
@@ -32,9 +38,9 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`dark ${geistSans.variable} ${geistMono.variable} ${ibmPlexArabic.variable} h-full antialiased`}
+      className={`dark ${outfit.variable} ${geistMono.variable} ${ibmPlexArabic.variable} h-full antialiased`}
     >
-      <body className={`${geistSans.className} min-h-full flex flex-col`}>
+      <body className={`${outfit.className} flex min-h-full flex-col`}>
         <TooltipProvider>{children}</TooltipProvider>
       </body>
     </html>

@@ -11,7 +11,6 @@ import {
   Calendar,
   DollarSign,
   Settings,
-  Camera,
   LogOut,
   User,
 } from "lucide-react";
@@ -29,6 +28,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { SodaLogo } from "@/components/brand/soda-logo";
 
 const menu = [
   { title: "Dashboard", icon: LayoutDashboard, href: "/" },
@@ -47,14 +47,7 @@ export function SidebarContent() {
   return (
     <>
       <div className="flex items-center gap-2.5 border-b border-sidebar-border px-4 py-4">
-        <div className="flex size-9 items-center justify-center rounded-lg bg-red-600">
-          <Camera className="size-4 text-white" />
-        </div>
-
-        <div>
-          <h1 className="text-sm font-semibold tracking-tight">SODA OS</h1>
-          <p className="text-xs text-muted-foreground">Visuals Studio</p>
-        </div>
+        <SodaLogo placement="sidebar" />
       </div>
 
       <ScrollArea className="flex-1 px-2 py-3">
@@ -81,11 +74,16 @@ export function SidebarContent() {
                 className={cn(
                   "h-9 w-full justify-start gap-2.5 rounded-md px-3 font-normal",
                   isActive
-                    ? "border-l-2 border-primary bg-sidebar-accent text-sidebar-accent-foreground"
-                    : "border-l-2 border-transparent text-muted-foreground hover:text-foreground"
+                    ? "border-l-2 border-sidebar-primary bg-sidebar-accent text-sidebar-accent-foreground"
+                    : "border-l-2 border-transparent text-muted-foreground hover:bg-sidebar-accent/60 hover:text-foreground"
                 )}
               >
-                <Icon className="size-4" />
+                <Icon
+                  className={cn(
+                    "size-4",
+                    isActive && "text-sidebar-primary"
+                  )}
+                />
                 <span>{item.title}</span>
               </Button>
             );
@@ -104,16 +102,16 @@ export function SidebarContent() {
 
         <DropdownMenu>
           <DropdownMenuTrigger
-            className="flex w-full items-center gap-2.5 rounded-lg p-2 text-left outline-none hover:bg-sidebar-accent focus-visible:ring-2 focus-visible:ring-ring"
+            className="flex w-full items-center gap-2.5 rounded-lg p-2 text-left outline-none hover:bg-sidebar-accent focus-visible:ring-2 focus-visible:ring-sidebar-ring"
           >
             <Avatar size="sm">
-              <AvatarFallback className="bg-red-600 text-xs font-medium text-white">
-                A
+              <AvatarFallback className="bg-primary text-xs font-medium text-primary-foreground">
+                JS
               </AvatarFallback>
             </Avatar>
 
             <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-medium">Ahmed</p>
+              <p className="truncate text-sm font-medium">Junior Soda</p>
               <p className="truncate text-xs text-muted-foreground">
                 Administrator
               </p>

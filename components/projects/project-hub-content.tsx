@@ -130,7 +130,7 @@ export function ProjectHubContent({ project }: ProjectHubContentProps) {
                   <Badge variant="outline">{workspaceLabel}</Badge>
                 </div>
                 <p
-                  className="font-ar text-sm leading-[1.7] text-muted-foreground/90 whitespace-pre-line"
+                  className="font-ar text-[0.9375rem] leading-[1.75] text-muted-foreground whitespace-pre-line"
                   dir="rtl"
                 >
                   {getModuleSlogan("projectHub")}
@@ -215,7 +215,7 @@ export function ProjectHubContent({ project }: ProjectHubContentProps) {
                 {HUB_SECTION_COPY.overview.title}
               </CardTitle>
               <CardDescription
-                className="font-ar text-sm leading-[1.7] text-muted-foreground/90"
+                className="font-ar text-[0.9375rem] leading-[1.75] text-muted-foreground"
                 dir="rtl"
               >
                 {HUB_SECTION_COPY.overview.description}
@@ -258,7 +258,7 @@ export function ProjectHubContent({ project }: ProjectHubContentProps) {
                 {HUB_SECTION_COPY.upcomingShoots.title}
               </CardTitle>
               <CardDescription
-                className="font-ar text-sm leading-[1.7] text-muted-foreground/90"
+                className="font-ar text-[0.9375rem] leading-[1.75] text-muted-foreground"
                 dir="rtl"
               >
                 {HUB_SECTION_COPY.upcomingShoots.description}
@@ -299,7 +299,7 @@ export function ProjectHubContent({ project }: ProjectHubContentProps) {
               {HUB_SECTION_COPY.orders.title}
             </CardTitle>
             <CardDescription
-              className="font-ar text-sm leading-[1.7] text-muted-foreground/90"
+              className="font-ar text-[0.9375rem] leading-[1.75] text-muted-foreground"
               dir="rtl"
             >
               {HUB_SECTION_COPY.orders.description}
@@ -340,7 +340,7 @@ export function ProjectHubContent({ project }: ProjectHubContentProps) {
               {HUB_SECTION_COPY.calendar.title}
             </CardTitle>
             <CardDescription
-              className="font-ar text-sm leading-[1.7] text-muted-foreground/90"
+              className="font-ar text-[0.9375rem] leading-[1.75] text-muted-foreground"
               dir="rtl"
             >
               {HUB_SECTION_COPY.calendar.description}
@@ -379,7 +379,7 @@ export function ProjectHubContent({ project }: ProjectHubContentProps) {
               {HUB_SECTION_COPY.files.title}
             </CardTitle>
             <CardDescription
-              className="font-ar text-sm leading-[1.7] text-muted-foreground/90"
+              className="font-ar text-[0.9375rem] leading-[1.75] text-muted-foreground"
               dir="rtl"
             >
               {HUB_SECTION_COPY.files.description}
@@ -452,7 +452,7 @@ export function ProjectHubContent({ project }: ProjectHubContentProps) {
                 {HUB_SECTION_COPY.payments.title}
               </CardTitle>
               <CardDescription
-                className="font-ar text-sm leading-[1.7] text-muted-foreground/90"
+                className="font-ar text-[0.9375rem] leading-[1.75] text-muted-foreground"
                 dir="rtl"
               >
                 {HUB_SECTION_COPY.payments.description}
@@ -513,7 +513,7 @@ export function ProjectHubContent({ project }: ProjectHubContentProps) {
               {HUB_SECTION_COPY.timeline.title}
             </CardTitle>
             <CardDescription
-              className="font-ar text-sm leading-[1.7] text-muted-foreground/90"
+              className="font-ar text-[0.9375rem] leading-[1.75] text-muted-foreground"
               dir="rtl"
             >
               {HUB_SECTION_COPY.timeline.description}
@@ -545,7 +545,7 @@ export function ProjectHubContent({ project }: ProjectHubContentProps) {
               {HUB_SECTION_COPY.team.title}
             </CardTitle>
             <CardDescription
-              className="font-ar text-sm leading-[1.7] text-muted-foreground/90"
+              className="font-ar text-[0.9375rem] leading-[1.75] text-muted-foreground"
               dir="rtl"
             >
               {HUB_SECTION_COPY.team.description}
@@ -592,7 +592,7 @@ export function ProjectHubContent({ project }: ProjectHubContentProps) {
               {HUB_SECTION_COPY.notes.title}
             </CardTitle>
             <CardDescription
-              className="font-ar text-sm leading-[1.7] text-muted-foreground/90"
+              className="font-ar text-[0.9375rem] leading-[1.75] text-muted-foreground"
               dir="rtl"
             >
               {HUB_SECTION_COPY.notes.description}
@@ -635,7 +635,7 @@ export function ProjectHubContent({ project }: ProjectHubContentProps) {
               {HUB_SECTION_COPY.activity.title}
             </CardTitle>
             <CardDescription
-              className="font-ar text-sm leading-[1.7] text-muted-foreground/90"
+              className="font-ar text-[0.9375rem] leading-[1.75] text-muted-foreground"
               dir="rtl"
             >
               {HUB_SECTION_COPY.activity.description}
@@ -680,7 +680,7 @@ export function ProjectHubContent({ project }: ProjectHubContentProps) {
               {HUB_SECTION_COPY.deliverables.title}
             </CardTitle>
             <CardDescription
-              className="font-ar text-sm leading-[1.7] text-muted-foreground/90"
+              className="font-ar text-[0.9375rem] leading-[1.75] text-muted-foreground"
               dir="rtl"
             >
               {HUB_SECTION_COPY.deliverables.description}

@@ -32,7 +32,7 @@ export default function RecentOrders({ orders }: RecentOrdersProps) {
       <CardHeader>
         <CardTitle>{DASHBOARD_SECTION_COPY.recentOrders.title}</CardTitle>
         <CardDescription
-          className="font-ar text-sm leading-[1.7] text-muted-foreground/90"
+          className="font-ar text-[0.9375rem] leading-[1.75] text-muted-foreground"
           dir="rtl"
         >
           {DASHBOARD_SECTION_COPY.recentOrders.description}

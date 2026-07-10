@@ -59,7 +59,7 @@ export default function QuickActions() {
       <CardHeader className="pb-3">
         <CardTitle>{DASHBOARD_SECTION_COPY.quickActions.title}</CardTitle>
         <CardDescription
-          className="font-ar text-sm leading-[1.7] text-muted-foreground/90"
+          className="font-ar text-[0.9375rem] leading-[1.75] text-muted-foreground"
           dir="rtl"
         >
           {DASHBOARD_SECTION_COPY.quickActions.description}
@@ -71,6 +71,8 @@ export default function QuickActions() {
             const Icon = action.icon;
             const className = cn(
               "h-auto flex-col gap-2 py-4",
+              action.enabled &&
+                "hover:border-primary/40 hover:bg-primary/[0.06]",
               !action.enabled && "opacity-60"
             );
 

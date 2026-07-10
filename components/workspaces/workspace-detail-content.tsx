@@ -168,7 +168,7 @@ export function WorkspaceDetailContent({
               Upcoming shoots
             </CardTitle>
             <CardDescription
-              className="font-ar text-sm leading-[1.7] text-muted-foreground/90"
+              className="font-ar text-[0.9375rem] leading-[1.75] text-muted-foreground"
               dir="rtl"
             >
               التصويرات الجاية في الـ Workspace ده.
