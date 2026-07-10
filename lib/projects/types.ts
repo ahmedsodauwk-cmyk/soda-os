@@ -104,6 +104,8 @@ export interface Project {
   /** Required — every Project belongs to exactly one Client */
   clientId: string;
   status: ProjectStatus;
+  /** Journey stage — enriched from lib/journey/seed if omitted on raw seed */
+  journeyStage?: import("@/lib/journey/types").JourneyStage;
   /** Computed: 0–100 completion from child orders */
   progress: number;
   /** Computed: child orders count */

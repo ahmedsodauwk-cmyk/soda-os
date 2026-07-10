@@ -4,6 +4,10 @@
  * Asset: `/public/brand/soda-mark.svg` (primary mark)
  * Fallback wordmark: `/public/brand/soda-wordmark.svg`
  *
+ * NOTE: Current SVGs are interim (stylized “S”). Replace files in
+ * `public/brand/` with the final studio lockup — keep square mark +
+ * horizontal wordmark viewBoxes; UI already uses object-contain.
+ *
  * Inspired by Deep Purple + Vibrant Pink brand language.
  *
  * ─────────────────────────────────────────────────────────────

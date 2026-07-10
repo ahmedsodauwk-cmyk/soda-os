@@ -5,6 +5,7 @@ import {
   FolderPlus,
   Plus,
   UserPlus,
+  UserRound,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -29,6 +30,12 @@ const actions = [
     label: "New Client",
     href: "/clients",
     icon: UserPlus,
+    enabled: true,
+  },
+  {
+    label: "People",
+    href: "/people",
+    icon: UserRound,
     enabled: true,
   },
   {

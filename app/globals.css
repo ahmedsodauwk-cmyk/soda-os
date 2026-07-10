@@ -15,7 +15,7 @@
   --font-sans: var(--font-outfit);
   --font-mono: var(--font-geist-mono);
   --font-heading: var(--font-outfit);
-  --font-arabic: var(--font-ibm-plex-arabic);
+  --font-arabic: var(--font-cairo-arabic);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -205,12 +205,20 @@
   }
 }
 
-/* Premium Arabic — stronger readability & hierarchy */
+/* Premium Arabic — Cairo: full glyph coverage + UI hierarchy */
 .font-ar {
-  font-family: var(--font-ibm-plex-arabic), var(--font-outfit), sans-serif;
-  letter-spacing: 0.02em;
-  font-feature-settings: "kern" 1;
-  word-spacing: 0.04em;
+  font-family: var(--font-cairo-arabic), var(--font-outfit), system-ui, sans-serif;
+  letter-spacing: 0;
+  line-height: 1.75;
+  font-feature-settings: "kern" 1, "liga" 1;
+  word-spacing: 0.02em;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+.font-ar.font-semibold,
+.font-ar.font-medium {
+  letter-spacing: 0;
 }
 
 /* Hero / brief brand treatments */

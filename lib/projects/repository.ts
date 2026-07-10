@@ -2,6 +2,7 @@ import {
   computeProjectStats,
   toProjectOrderStub,
 } from "@/lib/business/project-stats";
+import { getProjectJourneyStage } from "@/lib/journey/seed";
 import { getOrdersByProject } from "@/lib/orders/repository";
 import { mockProjects } from "@/lib/projects/mock-data";
 import type { Project } from "@/lib/projects/types";
@@ -13,6 +14,8 @@ function enrichProject(seed: Project): Project {
 
   return {
     ...seed,
+    journeyStage:
+      seed.journeyStage ?? getProjectJourneyStage(seed.id, "Inquiry"),
     ordersCount: stats.ordersCount,
     revenue: stats.revenue,
     progress: stats.progress,

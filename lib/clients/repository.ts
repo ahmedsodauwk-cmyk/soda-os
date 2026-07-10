@@ -22,6 +22,10 @@ export function getClientsByType(type: Client["type"]): Client[] {
   return mockClients.filter((c) => c.type === type && c.isActive);
 }
 
+export function getClientsBySegment(segment: Client["segment"]): Client[] {
+  return mockClients.filter((c) => c.segment === segment && c.isActive);
+}
+
 export function getOrdersCountByClient(
   clientId: string,
   orderClientIds: string[]

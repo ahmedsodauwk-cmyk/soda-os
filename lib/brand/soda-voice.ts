@@ -396,69 +396,65 @@ export function getCompanyPulse(
   const insights: CompanyPulseInsight[] = [];
   const n = toEasternDigits;
 
+  // Only real pressure / events — never filler “all good” copy
   if (signals.overdueCount > 0) {
     insights.push({
       id: "editing-pressure",
-      label: "Editing pressure",
+      label: "Overdue deliveries",
       insight:
         signals.overdueCount === 1
           ? "في تسليمة overdue واحدة بضاغطة على الـ editing — خلّيها أولوية."
           : `ضغط editing: ${n(signals.overdueCount)} overdue محتاجين نظرة النهاردة.`,
       tone: "pressure",
     });
-  } else {
-    insights.push({
-      id: "on-schedule",
-      label: "On schedule",
-      insight: "التسليمات على السكة — مفيش overdue بضاغط دلوقتي.",
-      tone: "good",
-    });
   }
 
-  if (signals.unpaidCount > 0 || snapshot.financial.outstanding > 0) {
+  if (signals.unpaidCount > 0) {
     insights.push({
       id: "payments-slowing",
-      label: "Payments",
+      label: "Unpaid clients",
       insight:
-        signals.unpaidCount > 0
-          ? `التحصيل محتاج متابعة — ${n(signals.unpaidCount)} client لسه unpaid.`
-          : "في مستحقات معلّقة — وقت follow-up هادي من غير ضغط زيادة.",
+        signals.unpaidCount === 1
+          ? "في Client واحد لسه unpaid — وقت follow-up."
+          : `التحصيل محتاج متابعة — ${n(signals.unpaidCount)} clients لسه unpaid.`,
       tone: "watch",
     });
-  } else {
+  } else if (snapshot.financial.outstanding > 0) {
     insights.push({
-      id: "cash-healthy",
-      label: "Cash flow",
-      insight: "التحصيل مرتّب — مفيش balances بتضايق الستوديو.",
-      tone: "good",
+      id: "outstanding-balance",
+      label: "Outstanding",
+      insight: `في مستحقات معلّقة بقيمة ${n(Math.round(snapshot.financial.outstanding))} — follow-up على الحسابات.`,
+      tone: "watch",
     });
   }
 
-  if (signals.todayShoots >= 2 || signals.upcomingShoots >= 5) {
+  if (signals.todayShoots >= 1) {
     insights.push({
-      id: "busy-shooting",
-      label: "Shooting week",
+      id: "shoots-today",
+      label: "Shoots today",
       insight:
-        signals.todayShoots >= 2
-          ? `أسبوع تصوير سخن — ${n(signals.todayShoots)} shoots النهاردة لوحدها.`
-          : `الجدول مليان shoots قريبة (${n(signals.upcomingShoots)}) — جهّز الفريق.`,
+        signals.todayShoots === 1
+          ? "عندك shoot واحد النهاردة — خلّيه يطلع نظيف."
+          : `أسبوع تصوير سخن — ${n(signals.todayShoots)} shoots النهاردة.`,
+      tone: signals.todayShoots >= 2 ? "watch" : "neutral",
+    });
+  } else if (signals.upcomingShoots >= 3) {
+    insights.push({
+      id: "shoots-ahead",
+      label: "Upcoming shoots",
+      insight: `الجدول فيه ${n(signals.upcomingShoots)} shoots قريبة — جهّز الفريق.`,
       tone: "watch",
     });
-  } else if (signals.todayShoots === 1) {
+  }
+
+  if (signals.todayDeliveries >= 1) {
     insights.push({
-      id: "one-shoot",
-      label: "Today's shoot",
-      insight: "عندك shoot واحد النهاردة — خلّيه يطلع نظيف.",
-      tone: "neutral",
-    });
-  } else {
-    insights.push({
-      id: "pipeline-calm",
-      label: "Pipeline",
+      id: "deliveries-today",
+      label: "Deliveries today",
       insight:
-        signals.activeOrders > 0
-          ? `الـ pipeline صاحي بـ ${n(signals.activeOrders)} order نشط — إيقاع ثابت.`
-          : "الـ pipeline هادي شوية — فرصة ترتّب وتفتح شغل جديد.",
+        signals.todayDeliveries === 1
+          ? "فيه تسليمة النهاردة على الرادار."
+          : `فيه ${n(signals.todayDeliveries)} deliveries النهاردة.`,
       tone: "neutral",
     });
   }
@@ -467,8 +463,8 @@ export function getCompanyPulse(
   if (topLoad && topLoad.currentWorkload >= 3) {
     insights.push({
       id: "team-load",
-      label: "Team load",
-      insight: `الفريق شادّ — أعلى load عند رقم ${n(topLoad.currentWorkload)}. راقب التوزيع.`,
+      label: "Workload",
+      insight: `${topLoad.name} عليه ${n(topLoad.currentWorkload)} assignments نشطة — راقب التوزيع.`,
       tone: "watch",
     });
   }
@@ -543,14 +539,7 @@ function buildBriefLines(signals: VoiceSignals, mood: BusinessMood): string[] {
     lines.push(`Revenue الشهر ده ${sign}${n(pct)}٪ — الدنيا ماشية، خلّي الجودة ثابتة.`);
   }
 
-  if (lines.length === 0) {
-    if (mood === "quiet_day") {
-      lines.push("الجدول فاضي شوية — فرصة ترتّب الـ pipeline وتفتح شغل جديد.");
-    } else {
-      lines.push("كل حاجة تحت السيطرة دلوقتي — ركّز على الجودة.");
-    }
-  }
-
+  // No invented filler — empty brief lines when nothing is happening
   return lines.slice(0, 3);
 }
 
@@ -827,9 +816,9 @@ export function getLoadingMessage(key: LoadingKey = "default"): string {
 /* -------------------------------------------------------------------------- */
 
 export const NOTIFICATION_COPY = [
-  "تسليمة Wedding بكرة — متتنساش تراجع الـ files قبل التسليم.",
-  "Commercial shoot اتأكد — الفريق جاهز والـ brief واصل.",
-  "الـ Client دفع الـ deposit... فلوس دخلت الستوديو.",
+  "راجع الـ overdue deliveries من Need Your Attention.",
+  "تابع unpaid clients من Clients → Commercial.",
+  "شوف المستحقات للناس من People.",
 ] as const;
 
 /* -------------------------------------------------------------------------- */
@@ -871,8 +860,8 @@ export const DASHBOARD_SECTION_COPY: Record<DashboardSectionKey, SectionCopy> =
       description: "كل مساحة شغل... وقد إيه ماشية في الإنتاج.",
     },
     team: {
-      title: "Team Status",
-      description: "مين شادّ النهاردة... ومين محتاج دعم.",
+      title: "People Status",
+      description: "مين شادّ النهاردة من الـ assignments الفعلية.",
     },
     quickActions: {
       title: "Quick Actions",
@@ -880,11 +869,11 @@ export const DASHBOARD_SECTION_COPY: Record<DashboardSectionKey, SectionCopy> =
     },
     sodaLive: {
       title: "SODA LIVE",
-      description: "نبضات خفيفة من الستوديو — مش قرارات حرجة.",
+      description: "أحداث من البيانات الحقيقية — shoots، deliveries، والـ pipeline.",
     },
     companyPulse: {
       title: "Company Pulse",
-      description: "صحة الستوديو في جمل قصيرة — مش charts فاضية.",
+      description: "تنبيهات من overdue و unpaid و shoots فقط — من غير حشو.",
     },
   };
 
@@ -982,8 +971,8 @@ export const HUB_SECTION_COPY: Record<HubSectionCopyKey, SectionCopy> = {
     description: "محطات الـ Project من أول يوم.",
   },
   team: {
-    title: "Assigned Team",
-    description: "الفريق اللي ماسك الشغلانة دي.",
+    title: "Assigned People",
+    description: "الناس اللي ماسكين الشغلانة دي.",
   },
   notes: {
     title: "Notes",

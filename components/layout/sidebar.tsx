@@ -8,6 +8,7 @@ import {
   Briefcase,
   Heart,
   Users,
+  UserRound,
   Calendar,
   DollarSign,
   Settings,
@@ -33,13 +34,13 @@ import {
 import { SodaLogo } from "@/components/brand/soda-logo";
 import { SODA_OPERATOR, SODA_OPERATOR_EN } from "@/lib/brand/soda-voice";
 
-/** Same IA — do not reshuffle hrefs / items. */
 const menu = [
   { title: "Dashboard", icon: LayoutDashboard, href: "/" },
   { title: "Orders", icon: ShoppingCart, href: "/orders" },
   { title: "Workspaces", icon: Briefcase, href: "/workspaces" },
-  { title: "Weddings", icon: Heart, href: "#" },
+  { title: "Weddings", icon: Heart, href: "/orders/weddings" },
   { title: "Clients", icon: Users, href: "/clients" },
+  { title: "People", icon: UserRound, href: "/people" },
   { title: "Calendar", icon: Calendar, href: "#" },
   { title: "Finance", icon: DollarSign, href: "#" },
   { title: "Settings", icon: Settings, href: "#" },

@@ -33,6 +33,7 @@ import { getSuccessMessage } from "@/lib/brand/soda-voice";
 
 const emptyForm: NewClientInput = {
   type: "individual",
+  segment: "wedding",
   name: "",
   phone: "",
   email: "",
@@ -101,10 +102,12 @@ export function AddClientDialog({ onAdd }: AddClientDialogProps) {
   function buildClientInput(): NewClientInput {
     const trimmedEmail = form.email?.trim();
     const trimmedNotes = form.notes?.trim();
+    const segment = form.type === "company" ? "commercial" : "wedding";
 
     if (form.type === "company") {
       return {
         type: "company",
+        segment,
         name: form.name.trim(),
         phone: form.phone.trim(),
         contactPerson: form.contactPerson?.trim(),
@@ -116,6 +119,7 @@ export function AddClientDialog({ onAdd }: AddClientDialogProps) {
 
     return {
       type: "individual",
+      segment,
       name: form.name.trim(),
       phone: form.phone.trim(),
       ...(trimmedEmail ? { email: trimmedEmail } : {}),

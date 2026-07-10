@@ -255,9 +255,9 @@ export const mockOrders: Order[] = [
   {
     id: "SODA-2026-0015",
     projectId: "PRJ-2026-0004",
-    clientId: "client-015",
-    clientName: "Wav Studios",
-    phone: "+20 121 334 7788",
+    clientId: "client-019",
+    clientName: "RTM",
+    phone: "+20 100 222 3344",
     projectType: "Commercial",
     workspaceId: "rtm",
     subcategoryId: "rtm-partner-projects",
@@ -268,7 +268,7 @@ export const mockOrders: Order[] = [
     deposit: 14000,
     team: "Alpha Crew",
     status: "Scheduled",
-    notes: "Indie artist music video — 12-hour shoot with lighting rig.",
+    notes: "Indie artist music video — billed via RTM partner lane.",
   },
   {
     id: "SODA-2026-0016",

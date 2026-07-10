@@ -44,6 +44,10 @@ const toneStyles: Record<
 export default function CompanyPulse({ insights }: CompanyPulseProps) {
   const copy = DASHBOARD_SECTION_COPY.companyPulse;
 
+  if (insights.length === 0) {
+    return null;
+  }
+
   return (
     <Card className="soda-cc-card h-full">
       <CardHeader>

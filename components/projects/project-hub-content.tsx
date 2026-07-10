@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 
 import { ProjectStatusBadge } from "@/components/projects/project-status-badge";
+import { JourneyStepper } from "@/components/business/journey-stepper";
 import { OrderStatusBadge } from "@/components/orders/order-status-badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -177,6 +178,10 @@ export function ProjectHubContent({ project }: ProjectHubContentProps) {
               </div>
               <Progress value={project.progress} className="gap-0" />
             </div>
+
+            {project.journeyStage ? (
+              <JourneyStepper current={project.journeyStage} compact />
+            ) : null}
           </CardContent>
         </Card>
       </div>

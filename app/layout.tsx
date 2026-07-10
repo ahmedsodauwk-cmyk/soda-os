@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist_Mono, IBM_Plex_Sans_Arabic, Outfit } from "next/font/google";
+import { Cairo, Geist_Mono, Outfit } from "next/font/google";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import "./globals.css";
 
@@ -15,10 +15,13 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-/** Premium Arabic pairing — IBM Plex Sans Arabic */
-const ibmPlexArabic = IBM_Plex_Sans_Arabic({
-  variable: "--font-ibm-plex-arabic",
-  subsets: ["arabic"],
+/**
+ * Premium Arabic UI face — Cairo covers Egyptian Arabic glyphs (incl. چ)
+ * and renders cleanly at UI sizes. Applied via `.font-ar`.
+ */
+const cairoArabic = Cairo({
+  variable: "--font-cairo-arabic",
+  subsets: ["arabic", "latin"],
   weight: ["400", "500", "600", "700"],
 });
 
@@ -38,7 +41,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`dark ${outfit.variable} ${geistMono.variable} ${ibmPlexArabic.variable} h-full antialiased`}
+      className={`dark ${outfit.variable} ${geistMono.variable} ${cairoArabic.variable} h-full antialiased`}
     >
       <body className={`${outfit.className} flex min-h-full flex-col`}>
         <TooltipProvider>{children}</TooltipProvider>

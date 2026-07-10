@@ -15,6 +15,7 @@ interface SodaLogoProps {
 /**
  * Official SODA mark. Prefer this over ad-hoc Camera icons.
  * Keep usage sparse — sidebar / splash / documents / empty only.
+ * Never stretch or crop the mark — square box + object-contain.
  */
 export function SodaLogo({
   placement = "sidebar",
@@ -24,6 +25,7 @@ export function SodaLogo({
   const config = SODA_LOGO_PLACEMENTS[placement];
   const size = config.size;
   const withWord = showWord ?? config.showWord ?? false;
+  const isWordmark = config.src === SODA_LOGO.wordmarkSrc;
 
   return (
     <div className={cn("flex items-center gap-3", className)}>
@@ -31,12 +33,24 @@ export function SodaLogo({
       <img
         src={config.src}
         alt={SODA_LOGO.alt}
-        width={size}
+        width={isWordmark ? Math.round(size * (200 / 48)) : size}
         height={size}
         className={cn(
-          "shrink-0 rounded-[22%] shadow-[0_0_24px_color-mix(in_oklch,var(--soda-purple)_35%,transparent)]",
-          placement === "empty" && "opacity-40 shadow-none"
+          "shrink-0 object-contain object-center",
+          isWordmark
+            ? "h-auto w-auto max-h-full"
+            : "aspect-square rounded-[22%]",
+          placement === "empty" && "opacity-40",
+          placement !== "empty" &&
+            !isWordmark &&
+            "shadow-[0_0_20px_color-mix(in_oklch,var(--soda-purple)_28%,transparent)]"
         )}
+        style={
+          isWordmark
+            ? { height: size, width: "auto", maxWidth: size * 3.2 }
+            : { width: size, height: size }
+        }
+        draggable={false}
       />
       {withWord ? (
         <div className="min-w-0 leading-tight">

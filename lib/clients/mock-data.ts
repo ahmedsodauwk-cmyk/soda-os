@@ -4,6 +4,7 @@ export const mockClients: Client[] = [
   {
     id: "client-001",
     type: "individual",
+    segment: "wedding",
     name: "Ahmed Ali",
     phone: "+20 100 234 5678",
     email: "ahmed.ali@email.com",
@@ -14,6 +15,7 @@ export const mockClients: Client[] = [
   {
     id: "client-002",
     type: "individual",
+    segment: "wedding",
     name: "Sara Mohamed",
     phone: "+20 101 876 5432",
     email: "sara.m@email.com",
@@ -23,18 +25,29 @@ export const mockClients: Client[] = [
   {
     id: "client-003",
     type: "company",
+    segment: "commercial",
     name: "Galaxy Company",
     phone: "+20 122 445 6677",
     email: "marketing@galaxy-eg.com",
     contactPerson: "Hassan Nabil",
     company: "Galaxy Company",
+    logoUrl: "/brand/clients/galaxy.svg",
     createdAt: "2025-09-20T09:00:00.000Z",
     isActive: true,
     notes: "Long-term commercial partner — product launches and campaigns.",
+    contacts: [
+      {
+        name: "Hassan Nabil",
+        role: "Marketing Lead",
+        phone: "+20 122 445 6677",
+        email: "marketing@galaxy-eg.com",
+      },
+    ],
   },
   {
     id: "client-004",
     type: "individual",
+    segment: "wedding",
     name: "Nour Hassan",
     phone: "+20 115 332 8899",
     email: "nour.hassan@email.com",
@@ -44,6 +57,7 @@ export const mockClients: Client[] = [
   {
     id: "client-005",
     type: "individual",
+    segment: "wedding",
     name: "Mamdouh El-Sayed",
     phone: "+20 128 990 1122",
     email: "mamdouh.elsayed@email.com",
@@ -53,6 +67,7 @@ export const mockClients: Client[] = [
   {
     id: "client-006",
     type: "company",
+    segment: "commercial",
     name: "TechVentures Egypt",
     phone: "+20 111 556 7788",
     email: "events@techventures.eg",
@@ -64,6 +79,7 @@ export const mockClients: Client[] = [
   {
     id: "client-007",
     type: "individual",
+    segment: "wedding",
     name: "Layla Ibrahim",
     phone: "+20 102 334 5566",
     email: "layla.ibrahim@email.com",
@@ -73,6 +89,7 @@ export const mockClients: Client[] = [
   {
     id: "client-008",
     type: "company",
+    segment: "commercial",
     name: "Nile Foods Co.",
     phone: "+20 120 778 9900",
     email: "creative@nilefoods.eg",
@@ -84,6 +101,7 @@ export const mockClients: Client[] = [
   {
     id: "client-009",
     type: "individual",
+    segment: "wedding",
     name: "Karim & Dina",
     phone: "+20 106 445 3322",
     email: "karim.dina.wedding@email.com",
@@ -94,6 +112,7 @@ export const mockClients: Client[] = [
   {
     id: "client-010",
     type: "individual",
+    segment: "commercial",
     name: "Omar Farouk",
     phone: "+20 109 887 6655",
     createdAt: "2025-11-28T15:00:00.000Z",
@@ -103,6 +122,7 @@ export const mockClients: Client[] = [
   {
     id: "client-011",
     type: "individual",
+    segment: "wedding",
     name: "Yasmin Adel",
     phone: "+20 103 221 4455",
     email: "yasmin.adel@email.com",
@@ -113,6 +133,7 @@ export const mockClients: Client[] = [
   {
     id: "client-012",
     type: "company",
+    segment: "commercial",
     name: "Cairo Fashion Week",
     phone: "+20 112 990 3344",
     email: "production@cairofashionweek.com",
@@ -124,18 +145,34 @@ export const mockClients: Client[] = [
   {
     id: "client-013",
     type: "company",
+    segment: "commercial",
     name: "Palm Hills Developments",
     phone: "+20 114 556 2233",
     email: "marketing@palmhills.com",
     contactPerson: "Yara Mansour",
     company: "Palm Hills Developments",
+    logoUrl: "/brand/clients/palm-hills.svg",
     createdAt: "2025-06-01T08:00:00.000Z",
     isActive: true,
     notes: "RTM Future City retainer + corporate commercial package.",
+    contacts: [
+      {
+        name: "Yara Mansour",
+        role: "Marketing Manager",
+        phone: "+20 114 556 2233",
+        email: "marketing@palmhills.com",
+      },
+      {
+        name: "Karim Adel",
+        role: "Brand Lead",
+        email: "karim.adel@palmhills.com",
+      },
+    ],
   },
   {
     id: "client-014",
     type: "individual",
+    segment: "commercial",
     name: "Dr. Hana Mostafa",
     phone: "+20 107 889 0011",
     email: "hana.mostafa@clinic.eg",
@@ -146,6 +183,7 @@ export const mockClients: Client[] = [
   {
     id: "client-015",
     type: "company",
+    segment: "commercial",
     name: "Wav Studios",
     phone: "+20 121 334 7788",
     email: "hello@wavstudios.eg",
@@ -158,28 +196,47 @@ export const mockClients: Client[] = [
   {
     id: "client-016",
     type: "company",
+    segment: "commercial",
     name: "Last Step Footwear",
     phone: "+20 100 555 0101",
     email: "brand@laststep.eg",
     contactPerson: "Nada Sherif",
     company: "Last Step Footwear",
+    logoUrl: "/brand/clients/last-step.svg",
     createdAt: "2026-03-15T09:00:00.000Z",
     isActive: true,
+    contacts: [
+      {
+        name: "Nada Sherif",
+        role: "Brand Manager",
+        email: "brand@laststep.eg",
+      },
+    ],
   },
   {
     id: "client-017",
     type: "company",
+    segment: "commercial",
     name: "Vodafone Egypt",
     phone: "+20 100 700 1234",
     email: "agency@vodafone.com.eg",
     contactPerson: "Hossam Reda",
     company: "Vodafone Egypt",
+    logoUrl: "/brand/clients/vodafone.svg",
     createdAt: "2026-05-01T09:00:00.000Z",
     isActive: true,
+    contacts: [
+      {
+        name: "Hossam Reda",
+        role: "Agency Producer",
+        email: "agency@vodafone.com.eg",
+      },
+    ],
   },
   {
     id: "client-018",
     type: "company",
+    segment: "commercial",
     name: "SODA Visuals",
     phone: "+20 100 000 0000",
     email: "studio@sodavisuals.com",
@@ -188,5 +245,33 @@ export const mockClients: Client[] = [
     createdAt: "2025-01-01T09:00:00.000Z",
     isActive: true,
     notes: "Internal studio client for non-billable RTM work.",
+  },
+  {
+    id: "client-019",
+    type: "company",
+    segment: "commercial",
+    name: "RTM",
+    phone: "+20 100 222 3344",
+    email: "ops@rtm.eg",
+    contactPerson: "Mostafa Kamal",
+    company: "RTM",
+    logoUrl: "/brand/clients/rtm.svg",
+    createdAt: "2025-05-01T09:00:00.000Z",
+    isActive: true,
+    notes:
+      "Retainer / daily content lane — Future City and partner productions billed under RTM monthly account.",
+    contacts: [
+      {
+        name: "Mostafa Kamal",
+        role: "Account Director",
+        phone: "+20 100 222 3344",
+        email: "ops@rtm.eg",
+      },
+      {
+        name: "Hana Refaat",
+        role: "Producer",
+        email: "hana@rtm.eg",
+      },
+    ],
   },
 ];

@@ -1,37 +1,9 @@
 /**
- * SODA creative quotes — awareness-only content for SODA LIVE.
- * Studio-internal Egyptian Arabic voice.
+ * @deprecated Creative quote rotation removed — SODA LIVE is data-backed only.
+ * Kept empty so existing imports do not break; do not reintroduce fake fluff.
  */
-
-export const SODA_QUOTES = [
-  {
-    id: "q-1",
-    title: "الإضاءة مش بس نور",
-    body: "الإضاءة بتحكي القصة قبل ما الكاميرا تتحرك. خلّيها تخدم الفكرة.",
-  },
-  {
-    id: "q-2",
-    title: "التسليم جزء من الإبداع",
-    body: "الشغل الحلو بيتكمّل لما العميل يفتح الملف ويحس إنكم فاهمينه.",
-  },
-  {
-    id: "q-3",
-    title: "الهدوء مش فراغ",
-    body: "يوم هادي في الستوديو = فرصة ترتّب الـ pipeline وتجهّز اللي جاي.",
-  },
-  {
-    id: "q-4",
-    title: "الفريق هو المنتج",
-    body: "الكاميرا بتتصور... بس اللي بيخلي الصورة SODA هو الناس اللي وراها.",
-  },
-  {
-    id: "q-5",
-    title: "كل shoot ليه نبضة",
-    body: "متستعجلش اللقطة. اللقطة الصح بتستنى لما الإيقاع يبقى مظبوط.",
-  },
-  {
-    id: "q-6",
-    title: "الجودة مش صدفة",
-    body: "الجودة بتيجي من ترتيب، مراجعة، وقرار واضح قبل ما اليوم يعدّي.",
-  },
-] as const;
+export const SODA_QUOTES: readonly {
+  id: string;
+  title: string;
+  body: string;
+}[] = [];

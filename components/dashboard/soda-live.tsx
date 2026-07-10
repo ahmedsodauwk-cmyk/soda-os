@@ -119,12 +119,14 @@ export default function SodaLiveCard({ items, className }: SodaLiveCardProps) {
               {copy.description}
             </CardDescription>
           </div>
-          <Badge
-            variant="outline"
-            className="border-soda-pink/30 bg-soda-pink/10 font-mono text-[10px] text-soda-pink"
-          >
-            {index + 1}/{items.length}
-          </Badge>
+          {items.length > 1 ? (
+            <Badge
+              variant="outline"
+              className="border-soda-pink/30 bg-soda-pink/10 font-mono text-[10px] text-soda-pink"
+            >
+              {index + 1}/{items.length}
+            </Badge>
+          ) : null}
         </div>
       </CardHeader>
       <CardContent>
