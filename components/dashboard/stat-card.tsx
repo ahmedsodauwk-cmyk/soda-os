@@ -35,7 +35,7 @@ export default function StatCard({
           </CardTitle>
           {whisper ? (
             <p
-              className="text-[11px] leading-relaxed text-muted-foreground/75"
+              className="font-ar text-xs leading-[1.65] text-muted-foreground/90"
               dir="rtl"
             >
               {whisper}

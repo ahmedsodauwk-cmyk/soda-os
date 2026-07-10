@@ -85,7 +85,7 @@ export default function UpcomingScheduleCard({
           {DASHBOARD_SECTION_COPY.schedule.title}
         </CardTitle>
         <CardDescription
-          className="text-xs leading-relaxed text-muted-foreground/80"
+          className="font-ar text-sm leading-[1.7] text-muted-foreground/90"
           dir="rtl"
         >
           {DASHBOARD_SECTION_COPY.schedule.description}

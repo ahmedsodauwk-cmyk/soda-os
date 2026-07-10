@@ -35,6 +35,7 @@ import {
   getModuleSlogan,
   HUB_SECTION_COPY,
 } from "@/lib/brand/soda-voice";
+import { getTeamDisplayName } from "@/lib/brand/team-names";
 import { cn } from "@/lib/utils";
 import { formatDate, formatPrice, getInitials } from "@/lib/orders/utils";
 import type { OrderStatus } from "@/lib/orders/types";
@@ -129,7 +130,7 @@ export function ProjectHubContent({ project }: ProjectHubContentProps) {
                   <Badge variant="outline">{workspaceLabel}</Badge>
                 </div>
                 <p
-                  className="text-xs leading-relaxed text-muted-foreground/80 whitespace-pre-line"
+                  className="font-ar text-sm leading-[1.7] text-muted-foreground/90 whitespace-pre-line"
                   dir="rtl"
                 >
                   {getModuleSlogan("projectHub")}
@@ -214,7 +215,7 @@ export function ProjectHubContent({ project }: ProjectHubContentProps) {
                 {HUB_SECTION_COPY.overview.title}
               </CardTitle>
               <CardDescription
-                className="text-xs leading-relaxed text-muted-foreground/80"
+                className="font-ar text-sm leading-[1.7] text-muted-foreground/90"
                 dir="rtl"
               >
                 {HUB_SECTION_COPY.overview.description}
@@ -257,7 +258,7 @@ export function ProjectHubContent({ project }: ProjectHubContentProps) {
                 {HUB_SECTION_COPY.upcomingShoots.title}
               </CardTitle>
               <CardDescription
-                className="text-xs leading-relaxed text-muted-foreground/80"
+                className="font-ar text-sm leading-[1.7] text-muted-foreground/90"
                 dir="rtl"
               >
                 {HUB_SECTION_COPY.upcomingShoots.description}
@@ -298,7 +299,7 @@ export function ProjectHubContent({ project }: ProjectHubContentProps) {
               {HUB_SECTION_COPY.orders.title}
             </CardTitle>
             <CardDescription
-              className="text-xs leading-relaxed text-muted-foreground/80"
+              className="font-ar text-sm leading-[1.7] text-muted-foreground/90"
               dir="rtl"
             >
               {HUB_SECTION_COPY.orders.description}
@@ -339,7 +340,7 @@ export function ProjectHubContent({ project }: ProjectHubContentProps) {
               {HUB_SECTION_COPY.calendar.title}
             </CardTitle>
             <CardDescription
-              className="text-xs leading-relaxed text-muted-foreground/80"
+              className="font-ar text-sm leading-[1.7] text-muted-foreground/90"
               dir="rtl"
             >
               {HUB_SECTION_COPY.calendar.description}
@@ -378,7 +379,7 @@ export function ProjectHubContent({ project }: ProjectHubContentProps) {
               {HUB_SECTION_COPY.files.title}
             </CardTitle>
             <CardDescription
-              className="text-xs leading-relaxed text-muted-foreground/80"
+              className="font-ar text-sm leading-[1.7] text-muted-foreground/90"
               dir="rtl"
             >
               {HUB_SECTION_COPY.files.description}
@@ -451,7 +452,7 @@ export function ProjectHubContent({ project }: ProjectHubContentProps) {
                 {HUB_SECTION_COPY.payments.title}
               </CardTitle>
               <CardDescription
-                className="text-xs leading-relaxed text-muted-foreground/80"
+                className="font-ar text-sm leading-[1.7] text-muted-foreground/90"
                 dir="rtl"
               >
                 {HUB_SECTION_COPY.payments.description}
@@ -512,7 +513,7 @@ export function ProjectHubContent({ project }: ProjectHubContentProps) {
               {HUB_SECTION_COPY.timeline.title}
             </CardTitle>
             <CardDescription
-              className="text-xs leading-relaxed text-muted-foreground/80"
+              className="font-ar text-sm leading-[1.7] text-muted-foreground/90"
               dir="rtl"
             >
               {HUB_SECTION_COPY.timeline.description}
@@ -544,7 +545,7 @@ export function ProjectHubContent({ project }: ProjectHubContentProps) {
               {HUB_SECTION_COPY.team.title}
             </CardTitle>
             <CardDescription
-              className="text-xs leading-relaxed text-muted-foreground/80"
+              className="font-ar text-sm leading-[1.7] text-muted-foreground/90"
               dir="rtl"
             >
               {HUB_SECTION_COPY.team.description}
@@ -553,10 +554,10 @@ export function ProjectHubContent({ project }: ProjectHubContentProps) {
           <CardContent className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {project.team.length === 0 ? (
               <div className="col-span-full py-4 text-center" dir="rtl">
-                <p className="text-sm font-medium">
+                <p className="font-ar text-sm font-medium">
                   {getEmptyState("team").title}
                 </p>
-                <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                <p className="font-ar mt-1 text-xs leading-relaxed text-muted-foreground">
                   {getEmptyState("team").description}
                 </p>
               </div>
@@ -572,7 +573,9 @@ export function ProjectHubContent({ project }: ProjectHubContentProps) {
                   </AvatarFallback>
                 </Avatar>
                 <div>
-                  <p className="text-sm font-medium">{member.name}</p>
+                  <p className="font-ar text-sm font-medium" dir="rtl">
+                    {getTeamDisplayName(member.name, member.id)}
+                  </p>
                   <p className="text-xs text-muted-foreground">{member.role}</p>
                 </div>
               </div>
@@ -589,7 +592,7 @@ export function ProjectHubContent({ project }: ProjectHubContentProps) {
               {HUB_SECTION_COPY.notes.title}
             </CardTitle>
             <CardDescription
-              className="text-xs leading-relaxed text-muted-foreground/80"
+              className="font-ar text-sm leading-[1.7] text-muted-foreground/90"
               dir="rtl"
             >
               {HUB_SECTION_COPY.notes.description}
@@ -632,7 +635,7 @@ export function ProjectHubContent({ project }: ProjectHubContentProps) {
               {HUB_SECTION_COPY.activity.title}
             </CardTitle>
             <CardDescription
-              className="text-xs leading-relaxed text-muted-foreground/80"
+              className="font-ar text-sm leading-[1.7] text-muted-foreground/90"
               dir="rtl"
             >
               {HUB_SECTION_COPY.activity.description}
@@ -677,7 +680,7 @@ export function ProjectHubContent({ project }: ProjectHubContentProps) {
               {HUB_SECTION_COPY.deliverables.title}
             </CardTitle>
             <CardDescription
-              className="text-xs leading-relaxed text-muted-foreground/80"
+              className="font-ar text-sm leading-[1.7] text-muted-foreground/90"
               dir="rtl"
             >
               {HUB_SECTION_COPY.deliverables.description}

@@ -60,12 +60,12 @@ export default function Header({
           </SheetContent>
         </Sheet>
 
-        <div className="min-w-0 space-y-0.5">
+        <div className="min-w-0 space-y-1.5">
           <h1 className="font-heading text-xl font-semibold tracking-tight sm:text-2xl">
             {title}
           </h1>
           <p
-            className="max-w-xl text-[11px] leading-relaxed whitespace-pre-line text-muted-foreground/80 sm:text-xs sm:leading-relaxed"
+            className="font-ar max-w-xl text-sm leading-[1.75] whitespace-pre-line text-muted-foreground/90 sm:text-[0.9375rem] sm:leading-[1.7]"
             dir="rtl"
           >
             {subtitle}

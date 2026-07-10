@@ -88,7 +88,7 @@ export function WorkspaceDetailContent({
               {workspace.label}
             </h2>
             <p
-              className="text-xs leading-relaxed text-muted-foreground/80 whitespace-pre-line"
+              className="font-ar mt-1 text-sm leading-[1.7] text-muted-foreground/90 whitespace-pre-line"
               dir="rtl"
             >
               {getWorkspaceSlogan(workspace.id)}
@@ -168,10 +168,10 @@ export function WorkspaceDetailContent({
               Upcoming shoots
             </CardTitle>
             <CardDescription
-              className="text-xs leading-relaxed text-muted-foreground/80"
+              className="font-ar text-sm leading-[1.7] text-muted-foreground/90"
               dir="rtl"
             >
-              📸 التصويرات الجاية في الـ Workspace ده.
+              التصويرات الجاية في الـ Workspace ده.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">

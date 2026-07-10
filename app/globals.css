@@ -128,3 +128,9 @@
     @apply font-sans;
   }
 }
+
+/* Premium Arabic supporting copy — below English titles, never competing. */
+.font-ar {
+  font-family: var(--font-ibm-plex-arabic), var(--font-geist-sans), sans-serif;
+  letter-spacing: 0.01em;
+}

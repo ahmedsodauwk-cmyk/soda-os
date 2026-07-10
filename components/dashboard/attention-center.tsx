@@ -54,7 +54,7 @@ export default function AttentionCenter({
           <div>
             <CardTitle>{DASHBOARD_SECTION_COPY.attention.title}</CardTitle>
             <CardDescription
-              className="text-xs leading-relaxed text-muted-foreground/80"
+              className="font-ar text-sm leading-[1.7] text-muted-foreground/90"
               dir="rtl"
             >
               {DASHBOARD_SECTION_COPY.attention.description}

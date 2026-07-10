@@ -39,7 +39,7 @@ export default function Home() {
               monthlyRevenue={dashboard.monthlyRevenue}
             />
           </div>
-          <div className="xl:col-span-2">
+          <div id="attention" className="scroll-mt-24 xl:col-span-2">
             <AttentionCenter items={dashboard.attention} />
           </div>
         </div>
@@ -48,7 +48,9 @@ export default function Home() {
 
         <div className="grid grid-cols-1 gap-4 lg:gap-6 xl:grid-cols-2">
           <TeamPerformance team={dashboard.team} />
-          <UpcomingScheduleCard schedule={dashboard.schedule} />
+          <div id="schedule" className="scroll-mt-24">
+            <UpcomingScheduleCard schedule={dashboard.schedule} />
+          </div>
         </div>
 
         <RecentOrders orders={dashboard.recentOrders} />

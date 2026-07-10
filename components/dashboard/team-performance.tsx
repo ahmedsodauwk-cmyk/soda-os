@@ -10,6 +10,7 @@ import {
   DASHBOARD_SECTION_COPY,
   getEmptyState,
 } from "@/lib/brand/soda-voice";
+import { getTeamDisplayName } from "@/lib/brand/team-names";
 import type { TeamPerformanceRow } from "@/lib/dashboard/types";
 
 interface TeamPerformanceProps {
@@ -28,7 +29,7 @@ export default function TeamPerformance({
       <CardHeader>
         <CardTitle>{DASHBOARD_SECTION_COPY.team.title}</CardTitle>
         <CardDescription
-          className="text-xs leading-relaxed text-muted-foreground/80"
+          className="font-ar text-sm leading-[1.7] text-muted-foreground/90"
           dir="rtl"
         >
           {DASHBOARD_SECTION_COPY.team.description}
@@ -37,10 +38,10 @@ export default function TeamPerformance({
       <CardContent className="space-y-2">
         {rows.length === 0 ? (
           <div className="py-4 text-center" dir="rtl">
-            <p className="text-sm font-medium">
+            <p className="font-ar text-sm font-medium">
               {getEmptyState("team").title}
             </p>
-            <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+            <p className="font-ar mt-1 text-xs leading-relaxed text-muted-foreground">
               {getEmptyState("team").description}
             </p>
           </div>
@@ -60,7 +61,12 @@ export default function TeamPerformance({
                   </AvatarFallback>
                 </Avatar>
                 <div className="min-w-0">
-                  <p className="truncate text-sm font-medium">{member.name}</p>
+                  <p
+                    className="font-ar truncate text-sm font-medium"
+                    dir="rtl"
+                  >
+                    {getTeamDisplayName(member.name, member.id)}
+                  </p>
                   <p className="truncate text-xs text-muted-foreground">
                     {member.role}
                   </p>

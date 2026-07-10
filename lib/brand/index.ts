@@ -29,8 +29,13 @@ export {
   getUpcomingShootsWhisper,
 } from "@/lib/brand/soda-voice";
 
+export { getTeamDisplayName } from "@/lib/brand/team-names";
+
 export type {
+  BriefAction,
   BriefCardCopy,
+  BriefPriority,
+  BriefSummaryStat,
   BusinessMood,
   DashboardSectionKey,
   DashboardVoiceInput,

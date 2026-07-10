@@ -101,6 +101,31 @@ export interface SectionCopy {
   description: string;
 }
 
+/** Pulse chip inside the Morning Brief hero (English label, live count). */
+export interface BriefSummaryStat {
+  key: string;
+  label: string;
+  value: number;
+  /** Soft Arabic whisper under the number */
+  whisper: string;
+}
+
+/** Top priority callout — attention issue or next schedule item. */
+export interface BriefPriority {
+  eyebrow: string;
+  title: string;
+  detail: string;
+  href: string;
+  ctaLabel: string;
+}
+
+export interface BriefAction {
+  label: string;
+  href: string;
+  /** Primary fills the hero CTA; outline is secondary. */
+  emphasis: "primary" | "secondary";
+}
+
 /** Multi-line hero brief — greeting + hook + insight lines + closer. */
 export interface BriefCardCopy {
   period: DayPeriod;
@@ -115,6 +140,12 @@ export interface BriefCardCopy {
   lines: string[];
   /** Closing energy line */
   closer: string;
+  /** Today's pulse — real counts from the dashboard snapshot */
+  summary: BriefSummaryStat[];
+  /** Main priority from attention / schedule */
+  priority: BriefPriority | null;
+  /** English CTAs to existing routes */
+  actions: BriefAction[];
 }
 
 export interface VoiceSignals {
