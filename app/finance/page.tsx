@@ -5,13 +5,17 @@ import {
   getCompanyWallet,
   getFinanceSummary,
   listFinancialEvents,
+  refreshFinance,
 } from "@/lib/finance";
+
+export const dynamic = "force-dynamic";
 
 function egp(n: number) {
   return `${n.toLocaleString("en-EG")} EGP`;
 }
 
-export default function FinancePage() {
+export default async function FinancePage() {
+  await refreshFinance();
   const wallet = getCompanyWallet();
   const summary = getFinanceSummary();
   const events = listFinancialEvents().slice(0, 40);

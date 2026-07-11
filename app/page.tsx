@@ -17,6 +17,8 @@ import { buildActivityFeed } from "@/lib/dashboard/activity-feed";
 import { loadDashboardSnapshot } from "@/lib/dashboard";
 import { buildRotatingSummaries } from "@/lib/dashboard/rotating-summaries";
 
+export const dynamic = "force-dynamic";
+
 /**
  * Command Center — living operational surface from real studio data.
  */

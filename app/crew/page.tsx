@@ -3,6 +3,8 @@ import { CrewList } from "@/components/crew/crew-list";
 import { getCrew, getCrewPerformance, refreshCrew } from "@/lib/crew";
 import { getModuleSlogan } from "@/lib/brand";
 
+export const dynamic = "force-dynamic";
+
 export default async function CrewPage() {
   await refreshCrew();
   const crew = getCrew();

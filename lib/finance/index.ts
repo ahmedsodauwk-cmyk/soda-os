@@ -41,6 +41,7 @@ export {
   listAllocationsByEvent,
   listAllocationsByTarget,
   listFinancialEvents,
+  refreshFinance,
   updateFinancialEvent,
 } from "@/lib/finance/repository";
 
