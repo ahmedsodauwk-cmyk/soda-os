@@ -87,6 +87,12 @@ export function LoginForm() {
           >
             Forgot password?
           </Link>
+          <Link
+            href="/bootstrap"
+            className="text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+          >
+            First owner setup
+          </Link>
         </div>
       </div>
     </main>

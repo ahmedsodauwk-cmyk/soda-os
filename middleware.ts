@@ -2,10 +2,22 @@ import { NextResponse, NextRequest } from "next/server";
 
 import { updateSession } from "@/lib/supabase/middleware";
 
-const PUBLIC_PREFIXES = ["/login", "/forgot-password", "/auth", "/about"];
+const PUBLIC_PREFIXES = [
+  "/login",
+  "/forgot-password",
+  "/bootstrap",
+  "/auth",
+  "/about",
+];
 
 function isPublicPath(pathname: string): boolean {
-  if (pathname === "/login" || pathname === "/forgot-password") return true;
+  if (
+    pathname === "/login" ||
+    pathname === "/forgot-password" ||
+    pathname === "/bootstrap"
+  ) {
+    return true;
+  }
   return PUBLIC_PREFIXES.some(
     (p) => pathname === p || pathname.startsWith(`${p}/`)
   );
@@ -34,7 +46,12 @@ export async function middleware(request: NextRequest) {
   }
 
   if (isPublicPath(pathname)) {
-    if (user && (pathname === "/login" || pathname === "/forgot-password")) {
+    if (
+      user &&
+      (pathname === "/login" ||
+        pathname === "/forgot-password" ||
+        pathname === "/bootstrap")
+    ) {
       const url = request.nextUrl.clone();
       url.pathname = "/";
       return NextResponse.redirect(url);

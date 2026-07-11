@@ -275,3 +275,21 @@ grant select on public.role_permissions to authenticated, anon;
 grant select, insert, update on public.notifications to authenticated;
 grant select, insert, update, delete on public.recent_activity to authenticated;
 grant usage, select on sequence public.recent_activity_id_seq to authenticated;
+
+-- ---------------------------------------------------------------------------
+-- Bootstrap gate (anon-readable): true when no active owner exists yet
+-- ---------------------------------------------------------------------------
+create or replace function public.bootstrap_needed()
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select not exists (
+    select 1 from public.profiles
+    where role = 'owner' and is_active = true
+  );
+$$;
+
+grant execute on function public.bootstrap_needed() to anon, authenticated;

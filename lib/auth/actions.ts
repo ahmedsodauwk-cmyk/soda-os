@@ -136,6 +136,145 @@ export async function changePasswordAction(
   }
 }
 
+/**
+ * One-time first-owner bootstrap. Only succeeds when zero active owners exist.
+ * Requires SUPABASE_SERVICE_ROLE_KEY on the server (Vercel env for production).
+ */
+export async function bootstrapOwnerAction(
+  _prev: AuthActionResult | null,
+  formData: FormData
+): Promise<AuthActionResult> {
+  const email = formString(formData, "email");
+  const password = formString(formData, "password");
+  const confirm = formString(formData, "confirm");
+  const fullName =
+    formString(formData, "fullName") || email.split("@")[0] || "SODA Owner";
+
+  if (!email || !password) {
+    return { ok: false, error: "Email and password are required." };
+  }
+  if (password.length < 8) {
+    return { ok: false, error: "Password must be at least 8 characters." };
+  }
+  if (password !== confirm) {
+    return { ok: false, error: "Passwords do not match." };
+  }
+
+  try {
+    const admin = createAdminClient();
+
+    const { data: ownerRole, error: roleErr } = await admin
+      .from("roles")
+      .select("id")
+      .eq("id", "owner")
+      .maybeSingle();
+    if (roleErr || !ownerRole) {
+      return {
+        ok: false,
+        error:
+          "Identity SQL not applied. Run SODA_IDENTITY_NAV.sql in Supabase SQL Editor, then retry.",
+      };
+    }
+
+    const { count: ownerCount, error: countErr } = await admin
+      .from("profiles")
+      .select("id", { count: "exact", head: true })
+      .eq("role", "owner")
+      .eq("is_active", true);
+    if (countErr) {
+      return { ok: false, error: countErr.message };
+    }
+    if ((ownerCount ?? 0) > 0) {
+      return {
+        ok: false,
+        error: "An owner already exists. Bootstrap is disabled.",
+      };
+    }
+
+    const { data: listed } = await admin.auth.admin.listUsers({
+      page: 1,
+      perPage: 200,
+    });
+    const existing = listed?.users?.find(
+      (u) => u.email?.toLowerCase() === email.toLowerCase()
+    );
+
+    let userId: string;
+    if (existing) {
+      const { error: updErr } = await admin.auth.admin.updateUserById(
+        existing.id,
+        {
+          password,
+          email_confirm: true,
+          user_metadata: { full_name: fullName, role: "owner" },
+        }
+      );
+      if (updErr) return { ok: false, error: updErr.message };
+      userId = existing.id;
+    } else {
+      const created = await admin.auth.admin.createUser({
+        email,
+        password,
+        email_confirm: true,
+        user_metadata: { full_name: fullName, role: "owner" },
+      });
+      if (created.error || !created.data.user) {
+        return {
+          ok: false,
+          error: created.error?.message ?? "Failed to create auth user.",
+        };
+      }
+      userId = created.data.user.id;
+    }
+
+    const { error: upsertErr } = await admin.from("profiles").upsert(
+      {
+        id: userId,
+        email,
+        full_name: fullName,
+        role: "owner" as SodaRole,
+        is_active: true,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: "id" }
+    );
+    if (upsertErr) return { ok: false, error: upsertErr.message };
+
+    const supabase = await createClient();
+    const { error: signErr } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+    if (signErr) {
+      return {
+        ok: true,
+        message: `Owner created. Sign-in failed (${signErr.message}). Use /login.`,
+      };
+    }
+
+    redirect(homePathForRole("owner"));
+  } catch (err) {
+    if (
+      err &&
+      typeof err === "object" &&
+      "digest" in err &&
+      typeof (err as { digest?: string }).digest === "string" &&
+      (err as { digest: string }).digest.startsWith("NEXT_REDIRECT")
+    ) {
+      throw err;
+    }
+    return {
+      ok: false,
+      error:
+        err instanceof Error
+          ? err.message.includes("SUPABASE_SERVICE_ROLE_KEY")
+            ? "SUPABASE_SERVICE_ROLE_KEY is not set on this server. Add it in Vercel → Settings → Environment Variables (Production), redeploy, then retry /bootstrap."
+            : err.message
+          : "Bootstrap failed.",
+    };
+  }
+}
+
 export async function inviteUserAction(
   _prev: AuthActionResult | null,
   formData: FormData
