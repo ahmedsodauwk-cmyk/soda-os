@@ -52,12 +52,35 @@ const emptyForm: NewOrderInput = {
 type FormFields = keyof NewOrderInput;
 
 interface AddOrderDialogProps {
-  onAdd: (order: NewOrderInput) => void;
+  onAdd: (order: NewOrderInput) => void | Promise<void>;
+  defaultProjectType?: ProjectType;
+  triggerLabel?: string;
 }
 
-export function AddOrderDialog({ onAdd }: AddOrderDialogProps) {
+function buildEmptyOrder(defaultProjectType?: ProjectType): NewOrderInput {
+  const projectType = defaultProjectType ?? "Wedding";
+  return {
+    ...emptyForm,
+    projectType,
+    workspaceId: workspaceIdFromProjectType(projectType),
+    team:
+      projectType === "Wedding" || projectType === "Engagement"
+        ? "Wedding Squad"
+        : projectType === "Commercial" || projectType === "Product"
+          ? "Commercial Team"
+          : emptyForm.team,
+  };
+}
+
+export function AddOrderDialog({
+  onAdd,
+  defaultProjectType,
+  triggerLabel = "Add Order",
+}: AddOrderDialogProps) {
   const [open, setOpen] = useState(false);
-  const [form, setForm] = useState<NewOrderInput>(emptyForm);
+  const [form, setForm] = useState<NewOrderInput>(() =>
+    buildEmptyOrder(defaultProjectType)
+  );
   const [errors, setErrors] = useState<Partial<Record<FormFields, string>>>({});
   const [successNote, setSuccessNote] = useState<string | null>(null);
 
@@ -91,12 +114,12 @@ export function AddOrderDialog({ onAdd }: AddOrderDialogProps) {
     return Object.keys(nextErrors).length === 0;
   }
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!validate()) return;
 
-    onAdd(form);
-    setForm(emptyForm);
+    await onAdd(form);
+    setForm(buildEmptyOrder(defaultProjectType));
     setErrors({});
     setSuccessNote(getSuccessMessage("orderCreated"));
     setOpen(false);
@@ -105,7 +128,7 @@ export function AddOrderDialog({ onAdd }: AddOrderDialogProps) {
   function handleOpenChange(nextOpen: boolean) {
     setOpen(nextOpen);
     if (!nextOpen) {
-      setForm(emptyForm);
+      setForm(buildEmptyOrder(defaultProjectType));
       setErrors({});
     } else {
       setSuccessNote(null);
@@ -123,11 +146,9 @@ export function AddOrderDialog({ onAdd }: AddOrderDialogProps) {
         </p>
       ) : null}
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogTrigger
-        render={<Button className="gap-1.5" />}
-      >
+      <DialogTrigger render={<Button className="gap-1.5" />}>
         <Plus />
-        Add Order
+        {triggerLabel}
       </DialogTrigger>
 
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-xl">

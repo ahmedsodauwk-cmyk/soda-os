@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { Search } from "lucide-react";
 
+import { ClientEntryActions } from "@/components/clients/client-entry-actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { getBusinessToday } from "@/lib/business/types";
@@ -113,6 +114,11 @@ export function WeddingClientsView({
             className="pl-9"
           />
         </div>
+        <ClientEntryActions
+          defaultType="individual"
+          defaultSegment="wedding"
+          triggerLabel="+ New"
+        />
       </div>
 
       <section className="space-y-2">

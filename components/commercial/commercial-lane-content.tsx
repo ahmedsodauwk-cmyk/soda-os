@@ -11,6 +11,7 @@ import {
   Banknote,
 } from "lucide-react";
 
+import { OrderEntryActions } from "@/components/orders/order-entry-actions";
 import { ProjectStatusBadge } from "@/components/projects/project-status-badge";
 import { Avatar, AvatarFallback, AvatarGroup } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -97,6 +98,10 @@ export function CommercialLaneContent({
             ) : null}
           </div>
         </div>
+        <OrderEntryActions
+          defaultProjectType="Commercial"
+          triggerLabel="+ New Order"
+        />
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">

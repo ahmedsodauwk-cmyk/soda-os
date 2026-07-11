@@ -1,9 +1,11 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Search } from "lucide-react";
 
 import { AddOrderDialog } from "@/components/orders/add-order-dialog";
+import { EditOrderDialog } from "@/components/orders/edit-order-dialog";
 import { OrdersTable } from "@/components/orders/orders-table";
 import { WorkspaceSidePanel } from "@/components/orders/workspace-side-panel";
 import { WorkspaceTabs } from "@/components/orders/workspace-tabs";
@@ -17,10 +19,16 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { emitOrderClientPayment } from "@/lib/integration";
-import { createOrder, getOrders, refreshOrders } from "@/lib/orders/repository";
+import {
+  createOrder,
+  deleteOrder,
+  getOrders,
+  refreshOrders,
+  updateOrder,
+} from "@/lib/orders/repository";
 import { refreshProjects } from "@/lib/projects/repository";
 import { refreshClients } from "@/lib/clients/repository";
-import { ORDER_STATUSES, type NewOrderInput } from "@/lib/orders/types";
+import { ORDER_STATUSES, type NewOrderInput, type Order } from "@/lib/orders/types";
 import {
   filterOrders,
   WORKSPACE_TAB_ORDER,
@@ -31,6 +39,7 @@ import {
 } from "@/lib/taxonomy/repository";
 
 export function OrdersContent() {
+  const router = useRouter();
   const [orders, setOrders] = useState(getOrders);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -38,6 +47,7 @@ export function OrdersContent() {
   const [subcategoryFilter, setSubcategoryFilter] = useState<string | null>(
     null
   );
+  const [editing, setEditing] = useState<Order | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -100,6 +110,29 @@ export function OrdersContent() {
       });
     }
     setOrders(getOrders());
+    router.refresh();
+  }
+
+  async function handleSaveOrder(
+    id: string,
+    patch: Partial<Omit<Order, "id" | "projectId" | "clientId">>
+  ) {
+    await updateOrder(id, patch);
+    setOrders(getOrders());
+    router.refresh();
+  }
+
+  async function handleDeleteOrder(order: Order) {
+    if (
+      !window.confirm(
+        `Delete order for “${order.clientName}”? This cannot be undone.`
+      )
+    ) {
+      return;
+    }
+    await deleteOrder(order.id);
+    setOrders(getOrders());
+    router.refresh();
   }
 
   return (
@@ -164,11 +197,24 @@ export function OrdersContent() {
 
           <Card>
             <CardContent className="p-4">
-              <OrdersTable orders={filteredOrders} />
+              <OrdersTable
+                orders={filteredOrders}
+                onEdit={setEditing}
+                onDelete={handleDeleteOrder}
+              />
             </CardContent>
           </Card>
         </div>
       </div>
+
+      <EditOrderDialog
+        order={editing}
+        open={!!editing}
+        onOpenChange={(open) => {
+          if (!open) setEditing(null);
+        }}
+        onSave={handleSaveOrder}
+      />
     </div>
   );
 }

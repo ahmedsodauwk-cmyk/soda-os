@@ -1,4 +1,5 @@
 import { AppShell } from "@/components/layout/app-shell";
+import { PaymentsEntryContent } from "@/components/finance/payments-entry-content";
 import { Badge } from "@/components/ui/badge";
 import { getEmptyState, getModuleSlogan } from "@/lib/brand";
 import {
@@ -7,6 +8,8 @@ import {
   listFinancialEvents,
   refreshFinance,
 } from "@/lib/finance";
+import { refreshOrders } from "@/lib/orders/repository";
+import { refreshPayments } from "@/lib/payments/repository";
 
 export const dynamic = "force-dynamic";
 
@@ -15,7 +18,7 @@ function egp(n: number) {
 }
 
 export default async function FinancePage() {
-  await refreshFinance();
+  await Promise.all([refreshFinance(), refreshOrders(), refreshPayments()]);
   const wallet = getCompanyWallet();
   const summary = getFinanceSummary();
   const events = listFinancialEvents().slice(0, 40);
@@ -28,8 +31,8 @@ export default async function FinancePage() {
             Company wallet
           </p>
           <p className="mt-1 max-w-xl text-sm text-muted-foreground">
-            Live rollup from the Financial Engine. Full Finance UI comes later —
-            this shell keeps the module connected and navigable.
+            Live rollup from the Financial Engine. Record client payments below
+            to keep the ledger current.
           </p>
           <dl className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
             <div>
@@ -64,6 +67,11 @@ export default async function FinancePage() {
             </div>
           </dl>
         </div>
+
+        <section className="space-y-3">
+          <h2 className="font-heading text-base font-semibold">Payments</h2>
+          <PaymentsEntryContent />
+        </section>
 
         <section className="space-y-3">
           <h2 className="font-heading text-base font-semibold">

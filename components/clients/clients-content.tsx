@@ -1,10 +1,12 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Search } from "lucide-react";
 
 import { AddClientDialog } from "@/components/clients/add-client-dialog";
 import { ClientsTable } from "@/components/clients/clients-table";
+import { EditClientDialog } from "@/components/clients/edit-client-dialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
@@ -16,16 +18,24 @@ import {
 } from "@/components/ui/select";
 import {
   createClient,
+  deleteClient,
   getAllClients,
   refreshClients,
+  updateClient,
 } from "@/lib/clients/repository";
-import { CLIENT_TYPES, type NewClientInput } from "@/lib/clients/types";
+import {
+  CLIENT_TYPES,
+  type Client,
+  type NewClientInput,
+} from "@/lib/clients/types";
 import { filterClients, formatClientType } from "@/lib/clients/utils";
 
 export function ClientsContent() {
+  const router = useRouter();
   const [clients, setClients] = useState(getAllClients);
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState<string>("all");
+  const [editing, setEditing] = useState<Client | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -49,6 +59,29 @@ export function ClientsContent() {
   async function handleAddClient(input: NewClientInput) {
     await createClient(input);
     setClients(getAllClients());
+    router.refresh();
+  }
+
+  async function handleSaveClient(
+    id: string,
+    patch: Partial<NewClientInput> & { isActive?: boolean }
+  ) {
+    await updateClient(id, patch);
+    setClients(getAllClients());
+    router.refresh();
+  }
+
+  async function handleDeleteClient(client: Client) {
+    if (
+      !window.confirm(
+        `Delete client “${client.name}”? This cannot be undone.`
+      )
+    ) {
+      return;
+    }
+    await deleteClient(client.id);
+    setClients(getAllClients());
+    router.refresh();
   }
 
   return (
@@ -92,9 +125,22 @@ export function ClientsContent() {
 
       <Card>
         <CardContent className="p-4">
-          <ClientsTable clients={filteredClients} />
+          <ClientsTable
+            clients={filteredClients}
+            onEdit={setEditing}
+            onDelete={handleDeleteClient}
+          />
         </CardContent>
       </Card>
+
+      <EditClientDialog
+        client={editing}
+        open={!!editing}
+        onOpenChange={(open) => {
+          if (!open) setEditing(null);
+        }}
+        onSave={handleSaveClient}
+      />
     </div>
   );
 }

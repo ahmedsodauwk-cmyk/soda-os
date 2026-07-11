@@ -48,7 +48,9 @@ export function CrewList({ crew, performanceById }: CrewListProps) {
           />
         </div>
         <AddCrewMemberDialog
-          onCreated={(person) => setLocalCrew((prev) => [...prev, person])}
+          onCreated={(person) => {
+            setLocalCrew((prev) => [...prev, person]);
+          }}
         />
       </div>
 

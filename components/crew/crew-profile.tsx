@@ -6,6 +6,7 @@ import { PaymentLineItems } from "@/components/business/payment-line-items";
 import { PersonAvatar } from "@/components/business/person-avatar";
 import { HumanExplanation } from "@/components/brand/human-title";
 import { AssignEquipmentDialog } from "@/components/crew/assign-equipment-dialog";
+import { CrewMemberActions } from "@/components/crew/crew-member-actions";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -46,15 +47,18 @@ export async function CrewProfile({ personId }: CrewProfileProps) {
 
   return (
     <div className="space-y-6">
-      <Button
-        variant="ghost"
-        size="sm"
-        nativeButton={false}
-        render={<Link href="/crew" />}
-        className="-ml-2"
-      >
-        ← The Crew
-      </Button>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <Button
+          variant="ghost"
+          size="sm"
+          nativeButton={false}
+          render={<Link href="/crew" />}
+          className="-ml-2"
+        >
+          ← The Crew
+        </Button>
+        <CrewMemberActions person={person} />
+      </div>
 
       <div className="flex flex-wrap items-start gap-4">
         <PersonAvatar

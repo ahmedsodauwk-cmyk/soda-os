@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { OrderEntryActions } from "@/components/orders/order-entry-actions";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { computeClientStats } from "@/lib/business/client-stats";
@@ -35,15 +36,21 @@ export function CommercialOrdersView() {
 
   return (
     <div className="space-y-6">
-      <Button
-        variant="ghost"
-        size="sm"
-        nativeButton={false}
-        render={<Link href="/orders" />}
-        className="-ml-2"
-      >
-        ← Orders hub
-      </Button>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <Button
+          variant="ghost"
+          size="sm"
+          nativeButton={false}
+          render={<Link href="/orders" />}
+          className="-ml-2"
+        >
+          ← Orders hub
+        </Button>
+        <OrderEntryActions
+          defaultProjectType="Commercial"
+          triggerLabel="+ New"
+        />
+      </div>
 
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
         {rows.map(({ client, stats, orderCount, projectCount }) => (

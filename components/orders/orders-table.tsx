@@ -1,6 +1,7 @@
 "use client";
 
-import { Eye, MoreHorizontal, Pencil } from "lucide-react";
+import Link from "next/link";
+import { Eye, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -25,9 +26,11 @@ import type { Order } from "@/lib/orders/types";
 
 interface OrdersTableProps {
   orders: Order[];
+  onEdit?: (order: Order) => void;
+  onDelete?: (order: Order) => void;
 }
 
-export function OrdersTable({ orders }: OrdersTableProps) {
+export function OrdersTable({ orders, onEdit, onDelete }: OrdersTableProps) {
   if (orders.length === 0) {
     const empty = getEmptyState("orders");
     return (
@@ -64,56 +67,79 @@ export function OrdersTable({ orders }: OrdersTableProps) {
         </TableRow>
       </TableHeader>
       <TableBody>
-        {orders.map((order) => (
-          <TableRow key={order.id}>
-            <TableCell className="font-mono text-xs text-muted-foreground">
-              {order.id}
-            </TableCell>
-            <TableCell>
-              <div className="flex items-center gap-2.5">
-                <Avatar size="sm">
-                  <AvatarFallback className="text-xs">
-                    {getInitials(order.clientName)}
-                  </AvatarFallback>
-                </Avatar>
-                <p className="font-medium">{order.clientName}</p>
-              </div>
-            </TableCell>
-            <TableCell className="text-muted-foreground">{order.phone}</TableCell>
-            <TableCell>{order.projectType}</TableCell>
-            <TableCell>{formatDate(order.shootDate)}</TableCell>
-            <TableCell>{formatDate(order.deliveryDate)}</TableCell>
-            <TableCell>{order.team}</TableCell>
-            <TableCell className="text-right font-medium">
-              {formatPrice(order.price)}
-            </TableCell>
-            <TableCell>
-              <OrderStatusBadge status={order.status} />
-            </TableCell>
-            <TableCell>
-              <DropdownMenu>
-                <DropdownMenuTrigger
-                  render={
-                    <Button variant="ghost" size="icon-sm" className="size-7" />
-                  }
-                >
-                  <MoreHorizontal />
-                  <span className="sr-only">Open menu</span>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem>
-                    <Eye />
-                    View details
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <Pencil />
-                    Edit order
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </TableCell>
-          </TableRow>
-        ))}
+        {orders.map((order) => {
+          const viewHref = order.projectId
+            ? `/projects/${order.projectId}`
+            : "/orders";
+          return (
+            <TableRow key={order.id}>
+              <TableCell className="font-mono text-xs text-muted-foreground">
+                {order.id}
+              </TableCell>
+              <TableCell>
+                <div className="flex items-center gap-2.5">
+                  <Avatar size="sm">
+                    <AvatarFallback className="text-xs">
+                      {getInitials(order.clientName)}
+                    </AvatarFallback>
+                  </Avatar>
+                  <Link
+                    href={viewHref}
+                    className="font-medium hover:text-soda-pink"
+                  >
+                    {order.clientName}
+                  </Link>
+                </div>
+              </TableCell>
+              <TableCell className="text-muted-foreground">
+                {order.phone}
+              </TableCell>
+              <TableCell>{order.projectType}</TableCell>
+              <TableCell>{formatDate(order.shootDate)}</TableCell>
+              <TableCell>{formatDate(order.deliveryDate)}</TableCell>
+              <TableCell>{order.team}</TableCell>
+              <TableCell className="text-right font-medium">
+                {formatPrice(order.price)}
+              </TableCell>
+              <TableCell>
+                <OrderStatusBadge status={order.status} />
+              </TableCell>
+              <TableCell>
+                <DropdownMenu>
+                  <DropdownMenuTrigger
+                    render={
+                      <Button variant="ghost" size="icon-sm" className="size-7" />
+                    }
+                  >
+                    <MoreHorizontal />
+                    <span className="sr-only">Open menu</span>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem render={<Link href={viewHref} />}>
+                      <Eye />
+                      View project
+                    </DropdownMenuItem>
+                    {onEdit ? (
+                      <DropdownMenuItem onClick={() => onEdit(order)}>
+                        <Pencil />
+                        Edit order
+                      </DropdownMenuItem>
+                    ) : null}
+                    {onDelete ? (
+                      <DropdownMenuItem
+                        variant="destructive"
+                        onClick={() => onDelete(order)}
+                      >
+                        <Trash2 />
+                        Delete order
+                      </DropdownMenuItem>
+                    ) : null}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </TableCell>
+            </TableRow>
+          );
+        })}
       </TableBody>
     </Table>
   );

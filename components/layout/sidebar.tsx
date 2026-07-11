@@ -16,6 +16,8 @@ import {
   User,
   Info,
   FileText,
+  FolderKanban,
+  Camera,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -38,10 +40,12 @@ const menu = [
   { title: "Dashboard", icon: LayoutDashboard, href: "/" },
   { title: "Quotations", icon: FileText, href: "/quotations" },
   { title: "Orders", icon: ShoppingCart, href: "/orders" },
+  { title: "Projects", icon: FolderKanban, href: "/projects" },
   { title: "Commercial", icon: Briefcase, href: "/commercial" },
   { title: "Weddings", icon: Heart, href: "/orders/weddings" },
   { title: "Clients", icon: Users, href: "/clients" },
   { title: "The Crew", icon: UsersRound, href: "/crew" },
+  { title: "Equipment", icon: Camera, href: "/equipment" },
   { title: "Calendar", icon: Calendar, href: "/calendar" },
   { title: "Finance", icon: DollarSign, href: "/finance" },
   { title: "Settings", icon: Settings, href: "#" },

@@ -8,6 +8,7 @@ import {
   List,
   Plus,
   Search,
+  Trash2,
 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
@@ -24,6 +25,7 @@ import {
 } from "@/components/ui/select";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import {
+  deleteQuotation,
   getQuotations,
   moveQuotationStage,
   PIPELINE_STAGES,
@@ -139,6 +141,12 @@ export function QuotationsHub() {
 
   async function handleMove(id: string, stage: PipelineStage) {
     await moveQuotationStage(id, stage);
+    setTick((t) => t + 1);
+  }
+
+  async function handleDelete(q: Quotation) {
+    if (!window.confirm(`Delete quotation ${q.number}?`)) return;
+    await deleteQuotation(q.id);
     setTick((t) => t + 1);
   }
 
@@ -315,18 +323,28 @@ export function QuotationsHub() {
                       {formatShortDate(q.expectedClosingDate)}
                     </td>
                     <td className="px-4 py-2.5">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-7 gap-1"
-                        nativeButton={false}
-                        render={<Link href={`/quotations/${q.id}`} />}
-                      >
-                        Open
-                        {q.pipelineStage === "Converted to Project" ? (
-                          <CheckCircle2 className="size-3.5 text-emerald-500" />
-                        ) : null}
-                      </Button>
+                      <div className="flex items-center gap-1">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 gap-1"
+                          nativeButton={false}
+                          render={<Link href={`/quotations/${q.id}`} />}
+                        >
+                          Open
+                          {q.pipelineStage === "Converted to Project" ? (
+                            <CheckCircle2 className="size-3.5 text-emerald-500" />
+                          ) : null}
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon-sm"
+                          className="size-7 text-destructive"
+                          onClick={() => void handleDelete(q)}
+                        >
+                          <Trash2 className="size-3.5" />
+                        </Button>
+                      </div>
                     </td>
                   </tr>
                 ))}

@@ -231,6 +231,16 @@ export async function updateQuotation(
   return persistQuotation(next);
 }
 
+/** Hard-delete a quotation from Supabase and the sync cache. */
+export async function deleteQuotation(id: string): Promise<void> {
+  const db = createQuotationsDb();
+  const { error } = await db.from("quotations").delete().eq("id", id);
+  if (error) {
+    throw new Error(`Failed to delete quotation: ${error.message}`);
+  }
+  quotationsCache = quotationsCache.filter((q) => q.id !== id);
+}
+
 export async function moveQuotationStage(
   id: string,
   stage: PipelineStage,

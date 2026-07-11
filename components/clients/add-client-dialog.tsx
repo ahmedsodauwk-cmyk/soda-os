@@ -46,11 +46,35 @@ type FormFields = keyof NewClientInput;
 
 interface AddClientDialogProps {
   onAdd: (client: NewClientInput) => void | Promise<void>;
+  /** Prefill type (wedding → individual, commercial → company). */
+  defaultType?: ClientType;
+  defaultSegment?: NewClientInput["segment"];
+  triggerLabel?: string;
 }
 
-export function AddClientDialog({ onAdd }: AddClientDialogProps) {
+function buildEmptyForm(
+  defaultType?: ClientType,
+  defaultSegment?: NewClientInput["segment"]
+): NewClientInput {
+  const type = defaultType ?? "individual";
+  return {
+    ...emptyForm,
+    type,
+    segment:
+      defaultSegment ?? (type === "company" ? "commercial" : "wedding"),
+  };
+}
+
+export function AddClientDialog({
+  onAdd,
+  defaultType,
+  defaultSegment,
+  triggerLabel = "Add Client",
+}: AddClientDialogProps) {
   const [open, setOpen] = useState(false);
-  const [form, setForm] = useState<NewClientInput>(emptyForm);
+  const [form, setForm] = useState<NewClientInput>(() =>
+    buildEmptyForm(defaultType, defaultSegment)
+  );
   const [errors, setErrors] = useState<Partial<Record<FormFields, string>>>({});
   const [successNote, setSuccessNote] = useState<string | null>(null);
 
@@ -102,7 +126,9 @@ export function AddClientDialog({ onAdd }: AddClientDialogProps) {
   function buildClientInput(): NewClientInput {
     const trimmedEmail = form.email?.trim();
     const trimmedNotes = form.notes?.trim();
-    const segment = form.type === "company" ? "commercial" : "wedding";
+    const segment =
+      form.segment ||
+      (form.type === "company" ? "commercial" : "wedding");
 
     if (form.type === "company") {
       return {
@@ -132,7 +158,7 @@ export function AddClientDialog({ onAdd }: AddClientDialogProps) {
     if (!validate()) return;
 
     await onAdd(buildClientInput());
-    setForm(emptyForm);
+    setForm(buildEmptyForm(defaultType, defaultSegment));
     setErrors({});
     setSuccessNote(getSuccessMessage("clientCreated"));
     setOpen(false);
@@ -141,7 +167,7 @@ export function AddClientDialog({ onAdd }: AddClientDialogProps) {
   function handleOpenChange(nextOpen: boolean) {
     setOpen(nextOpen);
     if (!nextOpen) {
-      setForm(emptyForm);
+      setForm(buildEmptyForm(defaultType, defaultSegment));
       setErrors({});
     } else {
       setSuccessNote(null);
@@ -163,7 +189,7 @@ export function AddClientDialog({ onAdd }: AddClientDialogProps) {
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger render={<Button className="gap-1.5" />}>
         <Plus />
-        Add Client
+        {triggerLabel}
       </DialogTrigger>
 
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-xl">

@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 
 import { MonthlyAccountPanel } from "@/components/business/monthly-account-panel";
 import { HumanExplanation } from "@/components/brand/human-title";
+import { ClientProfileActions } from "@/components/clients/client-profile-actions";
 import { OrderStatusBadge } from "@/components/orders/order-status-badge";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -123,14 +124,17 @@ export async function ClientProfile({ clientId }: ClientProfileProps) {
           >
             ← Commercial clients
           </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            nativeButton={false}
-            render={<Link href={`/orders/commercial/${clientId}`} />}
-          >
-            Orders drill-down
-          </Button>
+          <div className="flex flex-wrap items-center gap-2">
+            <ClientProfileActions client={client} />
+            <Button
+              variant="outline"
+              size="sm"
+              nativeButton={false}
+              render={<Link href={`/orders/commercial/${clientId}`} />}
+            >
+              Orders drill-down
+            </Button>
+          </div>
         </div>
 
         <div className="flex flex-wrap items-start gap-4">
@@ -414,15 +418,18 @@ export async function ClientProfile({ clientId }: ClientProfileProps) {
 
   return (
     <div className="space-y-6">
-      <Button
-        variant="ghost"
-        size="sm"
-        nativeButton={false}
-        render={<Link href="/clients/weddings" />}
-        className="-ml-2"
-      >
-        ← Wedding clients
-      </Button>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <Button
+          variant="ghost"
+          size="sm"
+          nativeButton={false}
+          render={<Link href="/clients/weddings" />}
+          className="-ml-2"
+        >
+          ← Wedding clients
+        </Button>
+        <ClientProfileActions client={client} />
+      </div>
       <div>
         <h2 className="font-heading text-2xl font-semibold tracking-tight">
           {client.name}

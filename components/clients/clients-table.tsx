@@ -1,6 +1,7 @@
 "use client";
 
-import { Eye, MoreHorizontal, Pencil } from "lucide-react";
+import Link from "next/link";
+import { Eye, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 
 import { ClientTypeBadge } from "@/components/clients/client-type-badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -31,9 +32,15 @@ import {
 
 interface ClientsTableProps {
   clients: Client[];
+  onEdit?: (client: Client) => void;
+  onDelete?: (client: Client) => void;
 }
 
-export function ClientsTable({ clients }: ClientsTableProps) {
+export function ClientsTable({
+  clients,
+  onEdit,
+  onDelete,
+}: ClientsTableProps) {
   if (clients.length === 0) {
     const empty = getEmptyState("clients");
     return (
@@ -84,7 +91,12 @@ export function ClientsTable({ clients }: ClientsTableProps) {
                       {getInitials(displayName)}
                     </AvatarFallback>
                   </Avatar>
-                  <p className="font-medium">{displayName}</p>
+                  <Link
+                    href={`/clients/${client.id}`}
+                    className="font-medium hover:text-soda-pink"
+                  >
+                    {displayName}
+                  </Link>
                 </div>
               </TableCell>
               <TableCell className="text-muted-foreground">
@@ -121,14 +133,27 @@ export function ClientsTable({ clients }: ClientsTableProps) {
                     <span className="sr-only">Open menu</span>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuItem>
+                    <DropdownMenuItem
+                      render={<Link href={`/clients/${client.id}`} />}
+                    >
                       <Eye />
                       View details
                     </DropdownMenuItem>
-                    <DropdownMenuItem>
-                      <Pencil />
-                      Edit client
-                    </DropdownMenuItem>
+                    {onEdit ? (
+                      <DropdownMenuItem onClick={() => onEdit(client)}>
+                        <Pencil />
+                        Edit client
+                      </DropdownMenuItem>
+                    ) : null}
+                    {onDelete ? (
+                      <DropdownMenuItem
+                        variant="destructive"
+                        onClick={() => onDelete(client)}
+                      >
+                        <Trash2 />
+                        Delete client
+                      </DropdownMenuItem>
+                    ) : null}
                   </DropdownMenuContent>
                 </DropdownMenu>
               </TableCell>

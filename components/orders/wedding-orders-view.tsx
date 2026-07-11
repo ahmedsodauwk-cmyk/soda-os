@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { WeddingMonthGroups } from "@/components/business/wedding-month-groups";
+import { OrderEntryActions } from "@/components/orders/order-entry-actions";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -26,6 +27,10 @@ export function WeddingOrdersView() {
         >
           ← Orders hub
         </Button>
+        <OrderEntryActions
+          defaultProjectType="Wedding"
+          triggerLabel="+ New"
+        />
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">

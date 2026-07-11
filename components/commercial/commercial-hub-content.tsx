@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Search } from "lucide-react";
 
 import { CommercialLaneCard } from "@/components/commercial/commercial-lane-card";
+import { OrderEntryActions } from "@/components/orders/order-entry-actions";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
@@ -95,9 +96,10 @@ export function CommercialHubContent() {
             </Select>
           </div>
 
-          <p className="text-xs text-muted-foreground sm:text-right">
-            {filtered.length} lane{filtered.length === 1 ? "" : "s"}
-          </p>
+          <OrderEntryActions
+            defaultProjectType="Commercial"
+            triggerLabel="+ New Order"
+          />
         </CardContent>
       </Card>
 
