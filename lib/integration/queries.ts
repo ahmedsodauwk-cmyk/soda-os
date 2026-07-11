@@ -19,6 +19,7 @@ import {
   calculateProjectFinance,
   type ProjectFinanceResult,
 } from "@/lib/finance/calculators";
+import { getOrderFinancialSnapshot } from "@/lib/finance/order-status";
 import { listFinancialEvents } from "@/lib/finance/repository";
 import type { Currency, FinancialEvent } from "@/lib/finance/types";
 import { getDeliveriesByOrder } from "@/lib/invoices/repository";
@@ -100,6 +101,23 @@ export interface CrewOperatingView {
     completedCount: number;
     bonusEgp: number;
     qualified: boolean;
+  };
+}
+
+export interface OrderOperatingView {
+  orderId: string;
+  order: Order | undefined;
+  client: Client | undefined;
+  project: Project | undefined;
+  assignments: OrderAssignment[];
+  payments: Payment[];
+  deliveries: OrderDelivery[];
+  finance: {
+    currency: Currency;
+    agreed: number;
+    collected: number;
+    outstanding: number;
+    status: string;
   };
 }
 
@@ -259,6 +277,54 @@ export function getCrewOperatingView(
       events,
     },
     monthlyBonus,
+  };
+}
+
+/** Order command center — compose client/project/team/finance without new engines. */
+export function getOrderOperatingView(
+  orderId: string,
+  currency: Currency = DEFAULT_CURRENCY
+): OrderOperatingView {
+  const order = getOrders().find((o) => o.id === orderId);
+  const client = order?.clientId ? getClientById(order.clientId) : undefined;
+  const project = order?.projectId
+    ? getProjectById(order.projectId)
+    : undefined;
+  const assignments = getAssignmentsByOrder(orderId);
+  const payments = getPayments().filter((p) => p.orderId === orderId);
+  const deliveries = getDeliveriesByOrder(orderId);
+
+  const snap = getOrderFinancialSnapshot(orderId);
+  const agreed = snap?.agreed ?? order?.price ?? 0;
+  const collected = snap?.collected ?? 0;
+  const outstanding =
+    snap?.outstanding ??
+    Math.max(
+      0,
+      agreed -
+        payments
+          .filter((p) => p.status === "paid" && p.kind !== "refund")
+          .reduce((acc, p) => acc + p.amount, 0)
+    );
+  const status = snap?.status ?? (outstanding <= 0 && agreed > 0 ? "paid" : "unpaid");
+
+  void currency;
+
+  return {
+    orderId,
+    order,
+    client,
+    project,
+    assignments,
+    payments,
+    deliveries,
+    finance: {
+      currency,
+      agreed,
+      collected,
+      outstanding,
+      status,
+    },
   };
 }
 

@@ -3,6 +3,17 @@
  * finalAmount = employeePrice + bonus - deduction
  */
 
+export const ASSIGNMENT_STATUSES = [
+  "assigned",
+  "confirmed",
+  "checked_in",
+  "completed",
+  "no_show",
+  "cancelled",
+] as const;
+
+export type AssignmentStatus = (typeof ASSIGNMENT_STATUSES)[number];
+
 export interface OrderAssignment {
   id: string;
   orderId: string;
@@ -16,6 +27,12 @@ export interface OrderAssignment {
   paidAmount: number;
   /** When the crew payment was last updated */
   paidAt?: string;
+  /** Call / arrival time (HH:mm or free text) */
+  callTime?: string;
+  /** Meeting / rally point */
+  meetingPoint?: string;
+  /** Operational status for this assignment */
+  assignmentStatus: AssignmentStatus;
   notes?: string;
   createdAt: string;
 }

@@ -86,6 +86,7 @@ function mergeV3Fields(saved: Order, intended: Order): Order {
     latePenaltyEnabled: intended.latePenaltyEnabled || saved.latePenaltyEnabled,
     latePenaltyAmount: intended.latePenaltyAmount || saved.latePenaltyAmount,
     latePenaltyReason: intended.latePenaltyReason || saved.latePenaltyReason,
+    priority: intended.priority || saved.priority || "normal",
     squadMemberIds:
       intended.squadMemberIds.length > 0
         ? intended.squadMemberIds
@@ -183,6 +184,7 @@ export async function createOrder(input: NewOrderInput): Promise<Order> {
     team: input.team,
     squadMemberIds: input.squadMemberIds ?? [],
     status: input.status,
+    priority: input.priority ?? "normal",
     brief: input.brief ?? "",
     dressCode: input.dressCode,
     latePenaltyEnabled: input.latePenaltyEnabled ?? false,

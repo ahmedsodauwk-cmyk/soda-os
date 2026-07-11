@@ -188,10 +188,29 @@ export async function deleteEquipment(id: string): Promise<void> {
 export async function assignEquipmentToPerson(
   equipmentId: string,
   personId: string,
-  note?: string
+  note?: string,
+  opts?: {
+    orderId?: string;
+    projectId?: string;
+    startsOn?: string;
+    endsOn?: string;
+  }
 ): Promise<EquipmentAssignment | null> {
   const item = getEquipmentById(equipmentId);
   if (!item || item.status !== "available") return null;
+
+  const startsOn = opts?.startsOn;
+  const endsOn = opts?.endsOn ?? opts?.startsOn;
+  if (startsOn && endsOn) {
+    const conflict = findEquipmentDateConflict(equipmentId, startsOn, endsOn);
+    if (conflict) {
+      throw new Error(
+        `Equipment already booked ${conflict.startsOn ?? conflict.assignedAt}` +
+          (conflict.endsOn ? `–${conflict.endsOn}` : "") +
+          (conflict.orderId ? ` (order ${conflict.orderId})` : "")
+      );
+    }
+  }
 
   const assignment: EquipmentAssignment = {
     id: newId("eqa"),
@@ -199,6 +218,10 @@ export async function assignEquipmentToPerson(
     personId,
     assignedAt: new Date().toISOString().slice(0, 10),
     note,
+    ...(opts?.orderId ? { orderId: opts.orderId } : {}),
+    ...(opts?.projectId ? { projectId: opts.projectId } : {}),
+    ...(startsOn ? { startsOn } : {}),
+    ...(endsOn ? { endsOn } : {}),
   };
 
   const db = createEquipmentDb();
@@ -232,10 +255,58 @@ export async function assignEquipmentToPerson(
       entityType: "equipment",
       equipmentId: savedAsg.equipmentId,
       personId: savedAsg.personId,
+      orderId: savedAsg.orderId,
+      projectId: savedAsg.projectId,
       summary: `Equipment ${savedAsg.equipmentId} assigned to ${savedAsg.personId}`,
+      data: {
+        startsOn: savedAsg.startsOn,
+        endsOn: savedAsg.endsOn,
+      },
     },
   });
   return { ...savedAsg };
+}
+
+/** Active open bookings that overlap [startsOn, endsOn] inclusive. */
+export function findEquipmentDateConflict(
+  equipmentId: string,
+  startsOn: string,
+  endsOn: string,
+  excludeAssignmentId?: string
+): EquipmentAssignment | undefined {
+  return assignmentCache.find((a) => {
+    if (a.equipmentId !== equipmentId) return false;
+    if (a.returnedAt) return false;
+    if (excludeAssignmentId && a.id === excludeAssignmentId) return false;
+    const aStart = a.startsOn ?? a.assignedAt;
+    const aEnd = a.endsOn ?? a.startsOn ?? a.assignedAt;
+    if (!aStart || !aEnd) {
+      // Open checkout without dates blocks until returned
+      return true;
+    }
+    return aStart <= endsOn && aEnd >= startsOn;
+  });
+}
+
+export function getEquipmentAssignmentsByOrder(
+  orderId: string
+): EquipmentAssignment[] {
+  return assignmentCache.filter((a) => a.orderId === orderId);
+}
+
+export function isEquipmentAvailableForDates(
+  equipmentId: string,
+  startsOn: string,
+  endsOn: string
+): boolean {
+  const item = getEquipmentById(equipmentId);
+  if (!item) return false;
+  if (item.status === "maintenance" || item.status === "retired") return false;
+  if (item.status === "available") {
+    return !findEquipmentDateConflict(equipmentId, startsOn, endsOn);
+  }
+  // Already assigned: only ok if no overlapping date booking
+  return !findEquipmentDateConflict(equipmentId, startsOn, endsOn);
 }
 
 /** Active (not returned) equipment assignments for a crew member. */

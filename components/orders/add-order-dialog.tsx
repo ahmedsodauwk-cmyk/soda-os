@@ -45,6 +45,8 @@ import { workspaceIdFromProjectType } from "@/lib/orders/utils";
 import { validateSmartOrderInput } from "@/lib/orders/validation";
 import { getPeople } from "@/lib/people/repository";
 import { getProjectsByClient } from "@/lib/projects/repository";
+import { getProjectOperatingView } from "@/lib/integration";
+import { formatPrice } from "@/lib/orders/utils";
 
 type FormState = SmartOrderInput & {
   createNewClient: boolean;
@@ -421,11 +423,16 @@ export function AddOrderDialog({
                     <SelectValue placeholder="Choose existing project" />
                   </SelectTrigger>
                   <SelectContent>
-                    {clientProjects.map((p) => (
-                      <SelectItem key={p.id} value={p.id}>
-                        {p.name}
-                      </SelectItem>
-                    ))}
+                    {clientProjects.map((p) => {
+                      const op = getProjectOperatingView(p.id);
+                      const fin = op.finance;
+                      return (
+                        <SelectItem key={p.id} value={p.id}>
+                          {p.name} · {p.status} · rev {formatPrice(fin.revenue)}{" "}
+                          · profit {formatPrice(fin.profit)}
+                        </SelectItem>
+                      );
+                    })}
                   </SelectContent>
                 </Select>
               ) : (

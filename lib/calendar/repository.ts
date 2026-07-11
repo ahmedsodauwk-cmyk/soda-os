@@ -2,6 +2,7 @@
  * Calendar — derived from project.calendar jsonb + order shoot/delivery dates.
  * Holding / Cancelled orders are excluded (Smart Order Engine V3).
  */
+import { getAssignmentsByPerson } from "@/lib/assignments/repository";
 import type { CalendarEvent } from "@/lib/calendar/types";
 import { getOrders, refreshOrders } from "@/lib/orders/repository";
 import { isOrderCalendarVisible } from "@/lib/orders/status";
@@ -82,6 +83,16 @@ export function getCalendarEventsByOrder(orderId: string): CalendarEvent[] {
   return getCalendarEvents().filter((e) => e.orderId === orderId);
 }
 
+/** Events for orders where this person has an assignment. */
+export function getCalendarEventsByPerson(personId: string): CalendarEvent[] {
+  const orderIds = new Set(
+    getAssignmentsByPerson(personId).map((a) => a.orderId)
+  );
+  return getCalendarEvents().filter(
+    (e) => e.orderId != null && orderIds.has(e.orderId)
+  );
+}
+
 /** Events on or after a local YYYY-MM-DD (inclusive). */
 export function getUpcomingCalendarEvents(
   fromDate: string,
@@ -90,4 +101,15 @@ export function getUpcomingCalendarEvents(
   return getCalendarEvents()
     .filter((e) => e.startsAt.slice(0, 10) >= fromDate)
     .slice(0, limit);
+}
+
+/** Events whose start date falls in [from, to] inclusive (YYYY-MM-DD). */
+export function getCalendarEventsInRange(
+  fromDate: string,
+  toDate: string
+): CalendarEvent[] {
+  return getCalendarEvents().filter((e) => {
+    const day = e.startsAt.slice(0, 10);
+    return day >= fromDate && day <= toDate;
+  });
 }

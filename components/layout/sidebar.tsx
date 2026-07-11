@@ -18,6 +18,7 @@ import {
   FileText,
   FolderKanban,
   Camera,
+  BarChart3,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -48,6 +49,7 @@ const menu = [
   { title: "Equipment", icon: Camera, href: "/equipment" },
   { title: "Calendar", icon: Calendar, href: "/calendar" },
   { title: "Finance", icon: DollarSign, href: "/finance" },
+  { title: "Statistics", icon: BarChart3, href: "/statistics" },
   { title: "Settings", icon: Settings, href: "#" },
 ];
 

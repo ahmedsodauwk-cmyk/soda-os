@@ -13,6 +13,7 @@ export const BUSINESS_EVENT_TYPES = [
   "OrderConfirmed",
   "OrderCompleted",
   "OrderCancelled",
+  "OrderRescheduled",
   "PaymentReceived",
   "PaymentUpdated",
   "InvoiceCreated",

@@ -1,5 +1,6 @@
 /**
  * Equipment inventory + assignment history per person/item.
+ * Smart Ops: optional order/project date-range booking with conflict checks.
  */
 
 export const EQUIPMENT_TYPES = [
@@ -34,7 +35,7 @@ export interface EquipmentItem {
   acquiredAt: string;
 }
 
-/** One assignment period of equipment to a person. */
+/** One assignment period of equipment to a person (optionally for an order). */
 export interface EquipmentAssignment {
   id: string;
   equipmentId: string;
@@ -42,4 +43,10 @@ export interface EquipmentAssignment {
   assignedAt: string;
   returnedAt?: string;
   note?: string;
+  orderId?: string;
+  projectId?: string;
+  /** Inclusive start date for booking (YYYY-MM-DD) */
+  startsOn?: string;
+  /** Inclusive end date for booking (YYYY-MM-DD) */
+  endsOn?: string;
 }

@@ -5,95 +5,17 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Search } from "lucide-react";
 
 import { Input } from "@/components/ui/input";
-import { getClients } from "@/lib/clients/repository";
-import { getOrders } from "@/lib/orders/repository";
-import { getProjects } from "@/lib/projects/repository";
-import { searchQuotations } from "@/lib/quotations";
-
-type SearchHit = {
-  id: string;
-  label: string;
-  detail: string;
-  href: string;
-  kind: "quotation" | "client" | "order" | "project";
-};
-
-function buildHits(query: string): SearchHit[] {
-  const q = query.trim().toLowerCase();
-  if (q.length < 2) return [];
-
-  const hits: SearchHit[] = [];
-
-  for (const item of searchQuotations(q).slice(0, 5)) {
-    hits.push({
-      id: item.id,
-      label: item.number,
-      detail: `${item.clientName} · ${item.pipelineStage}`,
-      href: `/quotations/${item.id}`,
-      kind: "quotation",
-    });
-  }
-
-  for (const c of getClients()) {
-    const hay = [c.name, c.company, c.contactPerson, c.phone, c.email]
-      .filter(Boolean)
-      .join(" ")
-      .toLowerCase();
-    if (!hay.includes(q)) continue;
-    hits.push({
-      id: c.id,
-      label: c.name,
-      detail: c.segment,
-      href: `/clients/${c.id}`,
-      kind: "client",
-    });
-    if (hits.filter((h) => h.kind === "client").length >= 4) break;
-  }
-
-  for (const o of getOrders()) {
-    const hay = [o.id, o.clientName, o.projectType, o.location]
-      .join(" ")
-      .toLowerCase();
-    if (!hay.includes(q)) continue;
-    hits.push({
-      id: o.id,
-      label: o.id,
-      detail: `${o.clientName} · ${o.status}`,
-      href: "/orders",
-      kind: "order",
-    });
-    if (hits.filter((h) => h.kind === "order").length >= 4) break;
-  }
-
-  for (const p of getProjects()) {
-    const hay = [p.id, p.name, p.clientName].join(" ").toLowerCase();
-    if (!hay.includes(q)) continue;
-    hits.push({
-      id: p.id,
-      label: p.name,
-      detail: p.clientName,
-      href: `/projects/${p.id}`,
-      kind: "project",
-    });
-    if (hits.filter((h) => h.kind === "project").length >= 4) break;
-  }
-
-  return hits.slice(0, 12);
-}
-
-const KIND_LABEL: Record<SearchHit["kind"], string> = {
-  quotation: "Quote",
-  client: "Client",
-  order: "Order",
-  project: "Project",
-};
+import {
+  buildGlobalSearchHits,
+  SEARCH_KIND_LABEL,
+} from "@/lib/search";
 
 export function HeaderSearch() {
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
 
-  const hits = useMemo(() => buildHits(query), [query]);
+  const hits = useMemo(() => buildGlobalSearchHits(query), [query]);
 
   useEffect(() => {
     function onDocClick(e: MouseEvent) {
@@ -139,7 +61,7 @@ export function HeaderSearch() {
                     }}
                   >
                     <span className="mt-0.5 rounded bg-muted px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
-                      {KIND_LABEL[hit.kind]}
+                      {SEARCH_KIND_LABEL[hit.kind]}
                     </span>
                     <span className="min-w-0">
                       <span className="block truncate text-sm font-medium">

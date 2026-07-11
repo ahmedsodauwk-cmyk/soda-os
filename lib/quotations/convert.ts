@@ -387,6 +387,7 @@ export async function convertQuotationToProject(
       quotation.segment === "wedding" ? "Wedding Squad" : "Commercial Team",
     squadMemberIds: [],
     status: "Confirmed",
+    priority: "normal",
     brief: "",
     latePenaltyEnabled: false,
     latePenaltyAmount: 0,

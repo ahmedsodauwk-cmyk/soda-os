@@ -53,6 +53,7 @@ export {
 
 export {
   clearNotifications,
+  hydrateNotificationsFromEvents,
   listNotifications,
   listUnreadNotifications,
   markNotificationRead,

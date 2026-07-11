@@ -40,11 +40,13 @@ export {
   getClientOperatingView,
   getClientOrders,
   getCrewOperatingView,
+  getOrderOperatingView,
   getProjectOperatingView,
   listAllPayments,
   listLinkedProjects,
   type ClientOperatingView,
   type CrewOperatingView,
+  type OrderOperatingView,
   type ProjectOperatingView,
 } from "@/lib/integration/queries";
 

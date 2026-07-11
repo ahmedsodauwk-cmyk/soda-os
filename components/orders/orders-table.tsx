@@ -68,13 +68,16 @@ export function OrdersTable({ orders, onEdit, onDelete }: OrdersTableProps) {
       </TableHeader>
       <TableBody>
         {orders.map((order) => {
-          const viewHref = order.projectId
-            ? `/projects/${order.projectId}`
-            : "/orders";
+          const viewHref = `/orders/${order.id}`;
           return (
             <TableRow key={order.id}>
               <TableCell className="font-mono text-xs text-muted-foreground">
-                {order.id}
+                <Link
+                  href={viewHref}
+                  className="hover:text-soda-pink hover:underline"
+                >
+                  {order.id}
+                </Link>
               </TableCell>
               <TableCell>
                 <div className="flex items-center gap-2.5">
@@ -117,7 +120,7 @@ export function OrdersTable({ orders, onEdit, onDelete }: OrdersTableProps) {
                   <DropdownMenuContent align="end">
                     <DropdownMenuItem render={<Link href={viewHref} />}>
                       <Eye />
-                      View project
+                      View order
                     </DropdownMenuItem>
                     {onEdit ? (
                       <DropdownMenuItem onClick={() => onEdit(order)}>

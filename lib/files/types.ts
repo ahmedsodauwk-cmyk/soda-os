@@ -1,6 +1,6 @@
 /**
  * File / asset linked primarily to an Order (rolled up on Project).
- * Metadata lives in `public.files` — binary storage comes later.
+ * Metadata in `public.files`; binary in storage bucket `soda-files` when uploaded.
  */
 export interface FileAsset {
   id: string;
@@ -9,8 +9,10 @@ export interface FileAsset {
   size: string;
   orderId?: string;
   projectId: string;
+  clientId?: string;
   workspaceId?: string;
   storageKey?: string;
+  storageUrl?: string;
   updatedAt: string;
   mimeType?: string;
 }

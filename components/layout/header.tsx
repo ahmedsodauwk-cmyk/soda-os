@@ -1,18 +1,10 @@
 "use client";
 
-import { Bell, Menu, Settings } from "lucide-react";
+import { Menu, Settings } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { HeaderSearch } from "@/components/layout/header-search";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { HeaderNotifications } from "@/components/layout/header-notifications";
 import {
   Sheet,
   SheetContent,
@@ -26,19 +18,19 @@ import {
 } from "@/components/ui/tooltip";
 import { SidebarContent } from "@/components/layout/sidebar";
 import { HumanTitle } from "@/components/brand/human-title";
-import {
-  getModuleSlogan,
-  NOTIFICATION_COPY,
-} from "@/lib/brand/soda-voice";
+import { getModuleSlogan } from "@/lib/brand/soda-voice";
+import type { NotificationRecord } from "@/lib/core/types";
 
 interface HeaderProps {
   title?: string;
   subtitle?: string;
+  notifications?: NotificationRecord[];
 }
 
 export default function Header({
   title = "Dashboard",
   subtitle = getModuleSlogan("dashboard"),
+  notifications = [],
 }: HeaderProps) {
   return (
     <header className="sticky top-0 z-10 flex min-h-[4.25rem] items-center justify-between gap-4 border-b border-border/80 bg-background/85 px-4 py-3.5 backdrop-blur-md sm:px-6">
@@ -71,41 +63,7 @@ export default function Header({
 
       <div className="flex items-center gap-2">
         <HeaderSearch />
-
-        <DropdownMenu>
-          <Tooltip>
-            <TooltipTrigger
-              render={
-                <DropdownMenuTrigger
-                  render={
-                    <Button variant="ghost" size="icon-sm" className="relative" />
-                  }
-                />
-              }
-            >
-              <Bell />
-              <Badge className="absolute -top-0.5 -right-0.5 size-4 justify-center rounded-full border-0 bg-soda-pink p-0 text-[10px] text-soda-action-foreground">
-                {NOTIFICATION_COPY.length}
-              </Badge>
-              <span className="sr-only">Notifications</span>
-            </TooltipTrigger>
-            <TooltipContent>Notifications</TooltipContent>
-          </Tooltip>
-
-          <DropdownMenuContent align="end" className="w-72">
-            <DropdownMenuLabel>Notifications</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            {NOTIFICATION_COPY.map((item) => (
-              <DropdownMenuItem
-                key={item}
-                className="font-ar whitespace-normal leading-[1.75]"
-                dir="rtl"
-              >
-                {item}
-              </DropdownMenuItem>
-            ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <HeaderNotifications initial={notifications} />
 
         <Tooltip>
           <TooltipTrigger

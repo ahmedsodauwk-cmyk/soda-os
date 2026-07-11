@@ -24,6 +24,10 @@ export type EquipmentAssignmentRow = {
   assigned_at: string;
   returned_at: string | null;
   note: string | null;
+  order_id?: string | null;
+  project_id?: string | null;
+  starts_on?: string | null;
+  ends_on?: string | null;
   created_at?: string;
 };
 
@@ -61,6 +65,10 @@ export function rowToAssignment(row: EquipmentAssignmentRow): EquipmentAssignmen
       ? { returnedAt: row.returned_at.slice(0, 10) }
       : {}),
     ...(row.note ? { note: row.note } : {}),
+    ...(row.order_id ? { orderId: row.order_id } : {}),
+    ...(row.project_id ? { projectId: row.project_id } : {}),
+    ...(row.starts_on ? { startsOn: row.starts_on.slice(0, 10) } : {}),
+    ...(row.ends_on ? { endsOn: row.ends_on.slice(0, 10) } : {}),
   };
 }
 
@@ -74,5 +82,9 @@ export function assignmentToRow(
     assigned_at: a.assignedAt,
     returned_at: a.returnedAt ?? null,
     note: a.note ?? null,
+    order_id: a.orderId ?? null,
+    project_id: a.projectId ?? null,
+    starts_on: a.startsOn ?? null,
+    ends_on: a.endsOn ?? null,
   };
 }

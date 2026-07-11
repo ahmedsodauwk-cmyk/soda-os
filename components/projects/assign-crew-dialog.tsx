@@ -45,6 +45,9 @@ export function AssignCrewDialog({
   const [personId, setPersonId] = useState("");
   const [role, setRole] = useState("Photographer");
   const [employeePrice, setEmployeePrice] = useState("1500");
+  const [callTime, setCallTime] = useState("09:00");
+  const [meetingPoint, setMeetingPoint] = useState("");
+  const [assignmentStatus, setAssignmentStatus] = useState("assigned");
   const [notes, setNotes] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -78,11 +81,21 @@ export function AssignCrewDialog({
         employeePrice: price,
         bonus: 0,
         deduction: 0,
+        callTime: callTime.trim() || undefined,
+        meetingPoint: meetingPoint.trim() || undefined,
+        assignmentStatus: assignmentStatus as
+          | "assigned"
+          | "confirmed"
+          | "checked_in"
+          | "completed"
+          | "no_show"
+          | "cancelled",
         notes: notes.trim() || undefined,
       });
       setOpen(false);
       setPersonId("");
       setNotes("");
+      setMeetingPoint("");
       router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to assign crew");
@@ -164,7 +177,7 @@ export function AssignCrewDialog({
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <Label htmlFor="crew-rate">Rate (EGP)</Label>
+                    <Label htmlFor="crew-rate">Expected pay (EGP)</Label>
                     <Input
                       id="crew-rate"
                       type="number"
@@ -174,6 +187,45 @@ export function AssignCrewDialog({
                       required
                     />
                   </div>
+                </div>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="crew-call">Call / arrival</Label>
+                    <Input
+                      id="crew-call"
+                      value={callTime}
+                      onChange={(e) => setCallTime(e.target.value)}
+                      placeholder="09:00"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label>Status</Label>
+                    <Select
+                      value={assignmentStatus}
+                      onValueChange={(v) => v && setAssignmentStatus(v)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="assigned">Assigned</SelectItem>
+                        <SelectItem value="confirmed">Confirmed</SelectItem>
+                        <SelectItem value="checked_in">Checked in</SelectItem>
+                        <SelectItem value="completed">Completed</SelectItem>
+                        <SelectItem value="no_show">No show</SelectItem>
+                        <SelectItem value="cancelled">Cancelled</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="crew-meet">Meeting point</Label>
+                  <Input
+                    id="crew-meet"
+                    value={meetingPoint}
+                    onChange={(e) => setMeetingPoint(e.target.value)}
+                    placeholder="Studio lobby / venue gate"
+                  />
                 </div>
                 <div className="space-y-1.5">
                   <Label htmlFor="crew-notes">Notes</Label>

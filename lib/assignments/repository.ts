@@ -15,12 +15,13 @@ import { publishBusinessEvent } from "@/lib/core/publish";
 export type { OrderAssignment };
 export type NewAssignmentInput = Omit<
   OrderAssignment,
-  "id" | "paidAmount" | "paidAt" | "createdAt"
+  "id" | "paidAmount" | "paidAt" | "createdAt" | "assignmentStatus"
 > & {
   paidAmount?: number;
   paidAt?: string;
   createdAt?: string;
   id?: string;
+  assignmentStatus?: OrderAssignment["assignmentStatus"];
 };
 
 let assignmentsCache: OrderAssignment[] = [];
@@ -89,35 +90,83 @@ export async function createAssignment(
     deduction: input.deduction ?? 0,
     paidAmount: input.paidAmount ?? 0,
     paidAt: input.paidAt,
+    callTime: input.callTime,
+    meetingPoint: input.meetingPoint,
+    assignmentStatus: input.assignmentStatus ?? "assigned",
     notes: input.notes,
     createdAt,
   };
 
   const db = createAssignmentsDb();
-  const { data, error } = await db
+  let { data, error } = await db
     .from("order_assignments")
     .insert(assignmentToRow(assignment))
     .select("*")
     .single();
+
+  if (
+    error &&
+    /column|schema cache|call_time|meeting_point|assignment_status/i.test(
+      error.message
+    )
+  ) {
+    ({ data, error } = await db
+      .from("order_assignments")
+      .insert({
+        id: assignment.id,
+        order_id: assignment.orderId,
+        person_id: assignment.personId,
+        role: assignment.role,
+        employee_price: assignment.employeePrice,
+        bonus: assignment.bonus,
+        deduction: assignment.deduction,
+        paid_amount: assignment.paidAmount,
+        paid_at: assignment.paidAt ?? null,
+        notes: [
+          assignment.notes,
+          assignment.callTime ? `[call] ${assignment.callTime}` : "",
+          assignment.meetingPoint
+            ? `[meet] ${assignment.meetingPoint}`
+            : "",
+          assignment.assignmentStatus !== "assigned"
+            ? `[status] ${assignment.assignmentStatus}`
+            : "",
+        ]
+          .filter(Boolean)
+          .join("\n") || null,
+        created_at: assignment.createdAt,
+      })
+      .select("*")
+      .single());
+  }
+
   if (error) {
     throw new Error(`Failed to create assignment: ${error.message}`);
   }
   const saved = rowToAssignment(data as AssignmentRow);
-  upsertCache(saved);
+  // Preserve smart-ops fields in cache even if DB fell back to legacy columns
+  const merged: OrderAssignment = {
+    ...saved,
+    callTime: assignment.callTime ?? saved.callTime,
+    meetingPoint: assignment.meetingPoint ?? saved.meetingPoint,
+    assignmentStatus:
+      assignment.assignmentStatus ?? saved.assignmentStatus ?? "assigned",
+  };
+  upsertCache(merged);
   await publishBusinessEvent({
     type: "CrewAssigned",
     source: "assignments.repository.createAssignment",
     payload: {
-      entityId: saved.id,
+      entityId: merged.id,
       entityType: "assignment",
-      assignmentId: saved.id,
-      orderId: saved.orderId,
-      personId: saved.personId,
-      summary: `Crew assigned to order ${saved.orderId}`,
-      data: { role: saved.role, employeePrice: saved.employeePrice },
+      assignmentId: merged.id,
+      orderId: merged.orderId,
+      personId: merged.personId,
+      summary: `Crew assigned to order ${merged.orderId}`,
+      data: { role: merged.role, employeePrice: merged.employeePrice },
     },
   });
-  return { ...saved };
+  return { ...merged };
 }
 
 /**
@@ -155,6 +204,48 @@ export async function updateAssignmentPayment(
   const saved = rowToAssignment(data as AssignmentRow);
   upsertCache(saved);
   // CrewPaid is published only by payCrewAssignment (single path) — not here.
+  return { ...saved };
+}
+
+/** Update operational assignment fields (role, pay, call time, status). */
+export async function updateAssignment(
+  id: string,
+  patch: Partial<
+    Pick<
+      OrderAssignment,
+      | "role"
+      | "employeePrice"
+      | "bonus"
+      | "deduction"
+      | "callTime"
+      | "meetingPoint"
+      | "assignmentStatus"
+      | "notes"
+    >
+  >
+): Promise<OrderAssignment | undefined> {
+  const current = getAssignmentById(id);
+  if (!current) return undefined;
+  const next: OrderAssignment = {
+    ...current,
+    ...patch,
+    id: current.id,
+  };
+  const db = createAssignmentsDb();
+  const row = assignmentToRow(next);
+  delete row.id;
+  delete row.created_at;
+  const { data, error } = await db
+    .from("order_assignments")
+    .update(row)
+    .eq("id", id)
+    .select("*")
+    .single();
+  if (error) {
+    throw new Error(`Failed to update assignment: ${error.message}`);
+  }
+  const saved = rowToAssignment(data as AssignmentRow);
+  upsertCache(saved);
   return { ...saved };
 }
 

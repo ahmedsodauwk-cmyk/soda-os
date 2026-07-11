@@ -175,6 +175,7 @@ function toNewOrderInput(input: SmartOrderInput): NewOrderInput {
     team: input.team,
     squadMemberIds: input.squadMemberIds ?? [],
     status: input.status,
+    priority: input.priority ?? "normal",
     brief: input.brief ?? "",
     dressCode: input.dressCode,
     latePenaltyEnabled: input.latePenaltyEnabled ?? false,
@@ -463,6 +464,7 @@ export async function updateSmartOrder(
     team: merged.team,
     squadMemberIds: merged.squadMemberIds ?? [],
     status: merged.status,
+    priority: merged.priority ?? existing.priority ?? "normal",
     brief: merged.brief ?? "",
     dressCode: merged.dressCode,
     latePenaltyEnabled: merged.latePenaltyEnabled ?? false,
@@ -485,6 +487,38 @@ export async function updateSmartOrder(
     role: patch.assignmentRole,
     employeePrice: patch.assignmentPrice,
   });
+
+  const shootChanged =
+    Boolean(existing.shootDate || order.shootDate) &&
+    existing.shootDate !== order.shootDate;
+  const deliveryChanged =
+    Boolean(existing.deliveryDate || order.deliveryDate) &&
+    existing.deliveryDate !== order.deliveryDate;
+
+  if (shootChanged || deliveryChanged) {
+    await publishBusinessEvent({
+      type: "OrderRescheduled",
+      source: "orders.engine.updateSmartOrder",
+      payload: {
+        ...orderEventPayload(
+          order,
+          `Order rescheduled: ${order.id}` +
+            (shootChanged
+              ? ` · shoot ${existing.shootDate || "—"} → ${order.shootDate || "—"}`
+              : "") +
+            (deliveryChanged
+              ? ` · delivery ${existing.deliveryDate || "—"} → ${order.deliveryDate || "—"}`
+              : "")
+        ),
+        data: {
+          previousShootDate: existing.shootDate,
+          shootDate: order.shootDate,
+          previousDeliveryDate: existing.deliveryDate,
+          deliveryDate: order.deliveryDate,
+        },
+      },
+    });
+  }
 
   await publishBusinessEvent({
     type: "OrderUpdated",

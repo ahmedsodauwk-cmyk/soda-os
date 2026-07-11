@@ -34,6 +34,10 @@ export const DRESS_CODES = [
 
 export type DressCode = (typeof DRESS_CODES)[number];
 
+export const ORDER_PRIORITIES = ["low", "normal", "high", "urgent"] as const;
+
+export type OrderPriority = (typeof ORDER_PRIORITIES)[number];
+
 export interface Order {
   id: string;
   /** Required — Order belongs to exactly one Project */
@@ -59,6 +63,7 @@ export interface Order {
   /** Selected crew member ids for auto-assignments */
   squadMemberIds: string[];
   status: OrderStatus;
+  priority: OrderPriority;
   brief: string;
   dressCode?: DressCode;
   latePenaltyEnabled: boolean;
@@ -68,9 +73,13 @@ export interface Order {
 }
 
 /** Form input — projectId/clientId may be assigned on submit via business helpers */
-export type NewOrderInput = Omit<Order, "id" | "projectId" | "clientId"> & {
+export type NewOrderInput = Omit<
+  Order,
+  "id" | "projectId" | "clientId" | "priority"
+> & {
   projectId?: string;
   clientId?: string;
+  priority?: OrderPriority;
 };
 
 /**

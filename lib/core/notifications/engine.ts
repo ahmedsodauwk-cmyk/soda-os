@@ -32,6 +32,8 @@ function titleFor(event: BusinessEvent): string {
       return "Order completed";
     case "OrderCancelled":
       return "Order cancelled";
+    case "OrderRescheduled":
+      return "Order rescheduled";
     case "PaymentReceived":
       return "Payment received";
     case "InvoiceCreated":
@@ -99,4 +101,19 @@ export function markNotificationRead(id: string): boolean {
 
 export function clearNotifications(): void {
   notifications.length = 0;
+}
+
+/** Rebuild in-memory notifications from persisted business events (serverless-safe). */
+export function hydrateNotificationsFromEvents(
+  events: BusinessEvent[],
+  opts?: { clear?: boolean }
+): NotificationRecord[] {
+  if (opts?.clear !== false) {
+    clearNotifications();
+  }
+  // Oldest first so unshift preserves newest-first order
+  for (const event of [...events].reverse()) {
+    recordNotificationFromEvent(event);
+  }
+  return listNotifications();
 }

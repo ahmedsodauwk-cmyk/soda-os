@@ -1,6 +1,7 @@
 import type {
   DressCode,
   Order,
+  OrderPriority,
   OrderStatus,
   ProjectType,
 } from "@/lib/orders/types";
@@ -24,6 +25,7 @@ export type OrderRow = {
   team: string;
   squad_member_ids?: unknown;
   status: string;
+  priority?: string | null;
   brief?: string | null;
   dress_code?: string | null;
   late_penalty_enabled?: boolean | null;
@@ -43,6 +45,7 @@ function asStringIds(value: unknown): string[] {
 
 export function rowToOrder(row: OrderRow): Order {
   const dress = row.dress_code?.trim();
+  const priority = (row.priority?.trim() || "normal") as OrderPriority;
   return {
     id: row.id,
     projectId: row.project_id,
@@ -61,6 +64,7 @@ export function rowToOrder(row: OrderRow): Order {
     team: row.team ?? "",
     squadMemberIds: asStringIds(row.squad_member_ids),
     status: row.status as OrderStatus,
+    priority,
     brief: row.brief ?? "",
     ...(dress ? { dressCode: dress as DressCode } : {}),
     latePenaltyEnabled: Boolean(row.late_penalty_enabled),
@@ -70,7 +74,7 @@ export function rowToOrder(row: OrderRow): Order {
   };
 }
 
-/** Full V3 row (requires migration 20260711000004). */
+/** Full V3+ row (requires smart order + smart ops migrations). */
 export function orderToRow(order: Order): Record<string, unknown> {
   return {
     id: order.id,
@@ -90,6 +94,7 @@ export function orderToRow(order: Order): Record<string, unknown> {
     team: order.team ?? "",
     squad_member_ids: order.squadMemberIds ?? [],
     status: order.status,
+    priority: order.priority ?? "normal",
     brief: order.brief ?? "",
     dress_code: order.dressCode ?? null,
     late_penalty_enabled: order.latePenaltyEnabled ?? false,
@@ -142,7 +147,9 @@ export function isMissingColumnError(message: string): boolean {
   return (
     /column/i.test(message) &&
     (/does not exist|schema cache|Could not find/i.test(message) ||
-      /whatsapp|brief|dress_code|late_penalty|squad_member/i.test(message))
+      /whatsapp|brief|dress_code|late_penalty|squad_member|priority/i.test(
+        message
+      ))
   );
 }
 

@@ -67,8 +67,10 @@ export async function createFile(input: NewFileInput): Promise<FileAsset> {
     projectId: input.projectId,
     updatedAt: input.updatedAt ?? now,
     ...(input.orderId ? { orderId: input.orderId } : {}),
+    ...(input.clientId ? { clientId: input.clientId } : {}),
     ...(input.workspaceId ? { workspaceId: input.workspaceId } : {}),
     ...(input.storageKey ? { storageKey: input.storageKey } : {}),
+    ...(input.storageUrl ? { storageUrl: input.storageUrl } : {}),
     ...(input.mimeType ? { mimeType: input.mimeType } : {}),
   };
 
@@ -79,6 +81,10 @@ export async function createFile(input: NewFileInput): Promise<FileAsset> {
   }
   upsertCache(file);
   return file;
+}
+
+export function getFilesByClient(clientId: string): FileAsset[] {
+  return filesCache.filter((f) => f.clientId === clientId);
 }
 
 export async function updateFile(
