@@ -16,22 +16,20 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { mockOrders } from "@/lib/orders/mock-data";
+import { emitOrderClientPayment } from "@/lib/integration";
+import { createOrder, getOrders } from "@/lib/orders/repository";
 import { ORDER_STATUSES, type NewOrderInput } from "@/lib/orders/types";
 import {
   filterOrders,
-  generateOrderId,
   WORKSPACE_TAB_ORDER,
-  workspaceIdFromProjectType,
 } from "@/lib/orders/utils";
-import { ensureOrderProjectLink } from "@/lib/business/link-order";
 import {
   getSubcategories,
   getWorkspaces,
 } from "@/lib/taxonomy/repository";
 
 export function OrdersContent() {
-  const [orders, setOrders] = useState(mockOrders);
+  const [orders, setOrders] = useState(getOrders);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [workspaceFilter, setWorkspaceFilter] = useState<string>("all");
@@ -78,23 +76,15 @@ export function OrdersContent() {
   }
 
   function handleAddOrder(input: NewOrderInput) {
-    const orderId = generateOrderId(orders.length);
-    const link = ensureOrderProjectLink(orderId, input);
-    const workspaceId =
-      link.workspaceId ||
-      input.workspaceId ||
-      workspaceIdFromProjectType(input.projectType);
-
-    setOrders((prev) => [
-      {
-        id: orderId,
-        ...input,
-        projectId: link.projectId,
-        clientId: link.clientId,
-        workspaceId,
-      },
-      ...prev,
-    ]);
+    const order = createOrder(input);
+    if (input.deposit > 0) {
+      emitOrderClientPayment({
+        orderId: order.id,
+        amount: input.deposit,
+        notes: `Deposit on order ${order.id}`,
+      });
+    }
+    setOrders(getOrders());
   }
 
   return (

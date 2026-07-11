@@ -48,6 +48,12 @@ import {
 import { formatRelativeActivity } from "@/lib/projects/utils";
 import { getWorkspaceDisplayLabel } from "@/lib/workspaces/repository";
 import { getWorkspaceById } from "@/lib/taxonomy/repository";
+import { getProjectOperatingView } from "@/lib/integration";
+import {
+  assignmentFinalAmount,
+  assignmentRemaining,
+} from "@/lib/assignments/repository";
+import { getPersonById } from "@/lib/people/repository";
 
 const sectionMeta: Record<
   ProjectHubSection,
@@ -98,12 +104,25 @@ export function ProjectHubContent({ project }: ProjectHubContentProps) {
     ? getWorkspaceDisplayLabel(workspace.id, workspace.label)
     : project.workspaceId;
 
-  const paid = project.payments
+  const operating = getProjectOperatingView(project.id);
+  const ledgerRevenue = operating.finance.revenue;
+  const ledgerCost = operating.finance.cost;
+  const ledgerProfit = operating.finance.profit;
+
+  const paidFromHub = project.payments
     .filter((p) => p.status === "paid")
     .reduce((acc, p) => acc + p.amount, 0);
-  const pending = project.payments
+  const pendingFromHub = project.payments
     .filter((p) => p.status === "pending")
     .reduce((acc, p) => acc + p.amount, 0);
+  const paidFromPayments = operating.payments
+    .filter((p) => p.status === "paid" && p.kind !== "refund")
+    .reduce((acc, p) => acc + p.amount, 0);
+  const paid = ledgerRevenue > 0 ? ledgerRevenue : Math.max(paidFromHub, paidFromPayments);
+  const pending =
+    pendingFromHub > 0
+      ? pendingFromHub
+      : Math.max(0, project.revenue - paid);
 
   return (
     <div className="space-y-6">
@@ -214,6 +233,36 @@ export function ProjectHubContent({ project }: ProjectHubContentProps) {
       </div>
 
       {section === "overview" && (
+        <div className="space-y-4">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {[
+              ["Revenue", ledgerRevenue > 0 ? ledgerRevenue : project.revenue],
+              ["Cost", ledgerCost],
+              ["Profit", ledgerProfit],
+              [
+                "Crew",
+                project.team.length > 0
+                  ? project.team.length
+                  : operating.assignments.length,
+              ],
+            ].map(([label, value]) => (
+              <Card key={label as string}>
+                <CardHeader className="pb-1">
+                  <CardTitle className="text-xs font-medium text-muted-foreground">
+                    {label}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="font-mono text-lg font-semibold tabular-nums">
+                    {label === "Crew"
+                      ? String(value)
+                      : formatPrice(value as number)}
+                  </p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
         <div className="grid gap-4 lg:grid-cols-3">
           <Card className="lg:col-span-2">
             <CardHeader>
@@ -232,23 +281,31 @@ export function ProjectHubContent({ project }: ProjectHubContentProps) {
                 <p className="mb-2 text-xs font-medium text-muted-foreground">
                   Milestones
                 </p>
-                <ul className="space-y-2">
-                  {project.overview.milestones.map((item) => (
-                    <li
-                      key={item}
-                      className="rounded-lg border border-border/60 px-3 py-2 text-sm"
-                    >
-                      {item}
-                    </li>
-                  ))}
-                </ul>
+                {project.overview.milestones.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">
+                    {getEmptyState("activity").title}
+                  </p>
+                ) : (
+                  <ul className="space-y-2">
+                    {project.overview.milestones.map((item) => (
+                      <li
+                        key={item}
+                        className="rounded-lg border border-border/60 px-3 py-2 text-sm"
+                      >
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </div>
               <Separator />
               <div>
                 <p className="mb-1 text-xs font-medium text-muted-foreground">
                   Next action
                 </p>
-                <p className="text-sm">{project.overview.nextAction}</p>
+                <p className="text-sm">
+                  {project.overview.nextAction || "—"}
+                </p>
               </div>
               {project.overview.summary ? (
                 <p className="text-sm leading-relaxed text-muted-foreground">
@@ -295,6 +352,7 @@ export function ProjectHubContent({ project }: ProjectHubContentProps) {
               )}
             </CardContent>
           </Card>
+        </div>
         </div>
       )}
 
@@ -425,7 +483,7 @@ export function ProjectHubContent({ project }: ProjectHubContentProps) {
 
       {section === "payments" && (
         <div className="space-y-4">
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-normal text-muted-foreground">
@@ -450,7 +508,55 @@ export function ProjectHubContent({ project }: ProjectHubContentProps) {
                 </p>
               </CardContent>
             </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-normal text-muted-foreground">
+                  Cost (ledger)
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="font-mono text-2xl font-semibold tabular-nums">
+                  {formatPrice(ledgerCost)}
+                </p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-normal text-muted-foreground">
+                  Profit (ledger)
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="font-mono text-2xl font-semibold tabular-nums">
+                  {formatPrice(ledgerProfit)}
+                </p>
+              </CardContent>
+            </Card>
           </div>
+
+          {operating.quotations.length > 0 ? (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Linked quotations</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                {operating.quotations.map((q) => (
+                  <Link
+                    key={q.id}
+                    href={`/quotations/${q.id}`}
+                    className="flex items-center justify-between rounded-lg border border-border/60 px-3 py-2 text-sm hover:border-soda-pink/35"
+                  >
+                    <span>
+                      {q.number} · {q.pipelineStage}
+                    </span>
+                    <span className="font-mono tabular-nums">
+                      {formatPrice(q.estimatedValue)}
+                    </span>
+                  </Link>
+                ))}
+              </CardContent>
+            </Card>
+          ) : null}
 
           <Card>
             <CardHeader>
@@ -465,7 +571,7 @@ export function ProjectHubContent({ project }: ProjectHubContentProps) {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-2">
-              {project.payments.length === 0 ? (
+              {project.payments.length === 0 && operating.payments.length === 0 ? (
                 <div dir="rtl">
                   <p className="text-sm font-medium">
                     {getEmptyState("payments").title}
@@ -474,7 +580,7 @@ export function ProjectHubContent({ project }: ProjectHubContentProps) {
                     {getEmptyState("payments").description}
                   </p>
                 </div>
-              ) : (
+              ) : project.payments.length > 0 ? (
                 project.payments.map((payment) => (
                   <div
                     key={payment.id}
@@ -500,6 +606,31 @@ export function ProjectHubContent({ project }: ProjectHubContentProps) {
                       >
                         {payment.status}
                       </Badge>
+                      <p className="font-mono text-sm tabular-nums">
+                        {formatPrice(payment.amount)}
+                      </p>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                operating.payments.map((payment) => (
+                  <div
+                    key={payment.id}
+                    className="flex flex-col gap-2 rounded-lg border border-border/60 px-3 py-3 sm:flex-row sm:items-center sm:justify-between"
+                  >
+                    <div>
+                      <p className="text-sm font-medium">
+                        {payment.label ?? payment.kind}
+                      </p>
+                      <p className="text-xs capitalize text-muted-foreground">
+                        {payment.kind}
+                        {payment.paidAt
+                          ? ` · Paid ${formatDate(payment.paidAt)}`
+                          : ""}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Badge variant="outline">{payment.status}</Badge>
                       <p className="font-mono text-sm tabular-nums">
                         {formatPrice(payment.amount)}
                       </p>
@@ -558,7 +689,7 @@ export function ProjectHubContent({ project }: ProjectHubContentProps) {
             </CardDescription>
           </CardHeader>
           <CardContent className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {project.team.length === 0 ? (
+            {project.team.length === 0 && operating.assignments.length === 0 ? (
               <div className="col-span-full py-4 text-center" dir="rtl">
                 <p className="font-ar text-sm font-medium">
                   {getEmptyState("team").title}
@@ -567,7 +698,7 @@ export function ProjectHubContent({ project }: ProjectHubContentProps) {
                   {getEmptyState("team").description}
                 </p>
               </div>
-            ) : (
+            ) : project.team.length > 0 ? (
               project.team.map((member) => (
               <div
                 key={member.id}
@@ -586,6 +717,32 @@ export function ProjectHubContent({ project }: ProjectHubContentProps) {
                 </div>
               </div>
               ))
+            ) : (
+              operating.assignments.map((a) => {
+                const person = getPersonById(a.personId);
+                const name = person?.nameEn ?? a.personId;
+                return (
+                  <div
+                    key={a.id}
+                    className="flex items-center gap-3 rounded-lg border border-border/60 px-3 py-3"
+                  >
+                    <Avatar>
+                      <AvatarFallback>
+                        {person?.initials || getInitials(name)}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <p className="text-sm font-medium">{name}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {a.role} · {formatPrice(assignmentFinalAmount(a))}
+                        {assignmentRemaining(a) > 0
+                          ? ` · due ${formatPrice(assignmentRemaining(a))}`
+                          : " · paid"}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })
             )}
           </CardContent>
         </Card>

@@ -223,6 +223,8 @@ export interface QuotationConversionResult {
   invoiceId: string;
   paymentId: string;
   journeyStage: string;
+  /** Finance ledger event created for the deposit (when amount > 0). */
+  financialEventId?: string;
 }
 
 export interface QuotationMetrics {

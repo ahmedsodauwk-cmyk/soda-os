@@ -6,6 +6,11 @@
 import { BUSINESS_TODAY } from "@/lib/business/types";
 import { mockClients } from "@/lib/clients/mock-data";
 import type { Client } from "@/lib/clients/types";
+import {
+  createAllocation,
+  createFinancialEvent,
+  listFinancialEvents,
+} from "@/lib/finance/repository";
 import { mockInvoices } from "@/lib/invoices/seed";
 import type { Invoice } from "@/lib/invoices/types";
 import { PROJECT_JOURNEY_STAGES } from "@/lib/journey/seed";
@@ -27,6 +32,50 @@ import type {
   QuotationConversionResult,
 } from "@/lib/quotations/types";
 import { computeQuotationTotals } from "@/lib/quotations/utils";
+
+/** Emit deposit into Finance ledger (idempotent on paymentId). */
+function emitConvertDeposit(input: {
+  quotationId: string;
+  paymentId: string;
+  amount: number;
+  clientId: string;
+  projectId: string;
+  orderId: string;
+  createdBy?: string;
+}): string | undefined {
+  if (input.amount <= 0) return undefined;
+
+  const existing = listFinancialEvents({ paymentId: input.paymentId }).find(
+    (e) => e.type === "client_payment"
+  );
+  if (existing) return existing.id;
+
+  const event = createFinancialEvent({
+    type: "client_payment",
+    amount: input.amount,
+    currency: "EGP",
+    createdBy: input.createdBy,
+    notes: `Deposit on convert ${input.quotationId} → ${input.projectId}`,
+    parent: { parentType: "quotation", parentId: input.quotationId },
+    paymentId: input.paymentId,
+    metadata: {
+      clientId: input.clientId,
+      projectId: input.projectId,
+      orderId: input.orderId,
+      kind: "deposit",
+    },
+  });
+
+  createAllocation({
+    financialEventId: event.id,
+    amount: input.amount,
+    targetType: "project",
+    targetId: input.projectId,
+    note: "Deposit attributed to project on convert",
+  });
+
+  return event.id;
+}
 
 function emptyHub(): Pick<
   Project,
@@ -382,6 +431,16 @@ export function convertQuotationToProject(
     }
   );
 
+  const financialEventId = emitConvertDeposit({
+    quotationId: quotation.id,
+    paymentId,
+    amount: deposit,
+    clientId: client.id,
+    projectId,
+    orderId,
+    createdBy: options?.editedBy ?? "Junior Soda",
+  });
+
   return {
     quotationId: quotation.id,
     clientId: client.id,
@@ -390,5 +449,6 @@ export function convertQuotationToProject(
     invoiceId,
     paymentId,
     journeyStage,
+    financialEventId,
   };
 }

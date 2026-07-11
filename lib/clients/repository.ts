@@ -1,7 +1,8 @@
 import { computeClientStats } from "@/lib/business/client-stats";
 import type { ClientComputedStats } from "@/lib/business/types";
 import { mockClients } from "@/lib/clients/mock-data";
-import type { Client } from "@/lib/clients/types";
+import type { Client, NewClientInput } from "@/lib/clients/types";
+import { generateClientId } from "@/lib/clients/utils";
 import { getOrders } from "@/lib/orders/repository";
 import { getPayments } from "@/lib/payments/repository";
 import { getProjects } from "@/lib/projects/repository";
@@ -16,6 +17,18 @@ export function getAllClients(): Client[] {
 
 export function getClientById(id: string): Client | undefined {
   return mockClients.find((c) => c.id === id);
+}
+
+/** Persist a new client into the shared mock store (visible across modules). */
+export function createClient(input: NewClientInput): Client {
+  const client: Client = {
+    id: generateClientId(mockClients.length),
+    createdAt: new Date().toISOString(),
+    isActive: true,
+    ...input,
+  };
+  mockClients.unshift(client);
+  return { ...client };
 }
 
 export function getClientsByType(type: Client["type"]): Client[] {

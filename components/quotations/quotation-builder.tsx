@@ -28,7 +28,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { convertQuotationToProject } from "@/lib/quotations/convert";
+import { runQuotationConversionFlow } from "@/lib/integration";
 import {
   APPROVAL_STATUSES,
   canConvertQuotation,
@@ -308,7 +308,7 @@ export function QuotationBuilder({ quotationId }: QuotationBuilderProps) {
 
   function handleConvert() {
     try {
-      const result = convertQuotationToProject(q.id, {
+      const result = runQuotationConversionFlow(q.id, {
         editedBy: q.assignedSales,
       });
       const refreshed = getQuotationById(q.id);

@@ -14,13 +14,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { getAllClients } from "@/lib/clients/repository";
+import { createClient, getAllClients } from "@/lib/clients/repository";
 import { CLIENT_TYPES, type NewClientInput } from "@/lib/clients/types";
-import {
-  filterClients,
-  formatClientType,
-  generateClientId,
-} from "@/lib/clients/utils";
+import { filterClients, formatClientType } from "@/lib/clients/utils";
 
 export function ClientsContent() {
   const [clients, setClients] = useState(getAllClients);
@@ -33,15 +29,8 @@ export function ClientsContent() {
   );
 
   function handleAddClient(input: NewClientInput) {
-    setClients((prev) => [
-      {
-        id: generateClientId(prev.length),
-        createdAt: new Date().toISOString(),
-        isActive: true,
-        ...input,
-      },
-      ...prev,
-    ]);
+    createClient(input);
+    setClients(getAllClients());
   }
 
   return (

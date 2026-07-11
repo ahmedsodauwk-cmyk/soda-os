@@ -21,6 +21,7 @@ import {
   getActiveEquipmentForPerson,
   getEquipmentHistoryForPerson,
 } from "@/lib/equipment/repository";
+import { getCrewOperatingView } from "@/lib/integration";
 
 function egp(n: number) {
   return `${n.toLocaleString("en-EG")} EGP`;
@@ -39,6 +40,7 @@ export function CrewProfile({ personId }: CrewProfileProps) {
   const equipment = getActiveEquipmentForPerson(personId);
   const history = getEquipmentHistoryForPerson(personId);
   const workHistory = getCrewWorkHistory(personId);
+  const operating = getCrewOperatingView(personId);
 
   return (
     <div className="space-y-6">
@@ -225,7 +227,11 @@ export function CrewProfile({ personId }: CrewProfileProps) {
                 {HUMAN_LAYER.outstanding}
               </p>
               <p className="font-mono font-medium text-soda-pink">
-                {egp(payments.totalOutstanding)}
+                {egp(
+                  operating.finance.events.length > 0
+                    ? operating.finance.balance
+                    : payments.totalOutstanding
+                )}
               </p>
             </div>
             <div>
@@ -348,6 +354,89 @@ export function CrewProfile({ personId }: CrewProfileProps) {
           </div>
         </section>
       ) : null}
+
+      <section className="space-y-2">
+        <h3 className="font-heading text-base font-semibold">
+          Assigned projects
+        </h3>
+        {operating.projects.length === 0 ? (
+          <p className="text-sm text-muted-foreground">
+            No projects assigned yet.
+          </p>
+        ) : (
+          <ul className="space-y-2">
+            {operating.projects.map((p) => (
+              <li key={p.id}>
+                <Link
+                  href={`/projects/${p.id}`}
+                  className="flex items-center justify-between rounded-xl border border-border/60 px-3.5 py-3 hover:border-soda-pink/35"
+                >
+                  <span className="font-medium">{p.name}</span>
+                  <Badge variant="outline">{p.status}</Badge>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      <section className="space-y-2">
+        <div>
+          <h3 className="font-heading text-base font-semibold">
+            Financial balance
+          </h3>
+          <HumanExplanation layer="orderBasedPayments" size="compact" />
+        </div>
+        <div className="grid gap-3 sm:grid-cols-3">
+          {[
+            ["Obligated", operating.finance.obligatedTotal],
+            ["Ledger paid", operating.finance.ledgerPaid],
+            ["Balance due", operating.finance.balance],
+          ].map(([label, value]) => (
+            <Card key={label as string}>
+              <CardHeader className="pb-1">
+                <CardTitle className="text-xs text-muted-foreground">
+                  {label}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="font-mono text-lg font-semibold">
+                  {egp(value as number)}
+                </p>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+        <div>
+          <h4 className="mb-2 text-sm font-medium text-muted-foreground">
+            Payment history (ledger)
+          </h4>
+          {operating.finance.events.length === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              No ledger payments yet — future-ready from finance events.
+            </p>
+          ) : (
+            <ul className="space-y-2">
+              {operating.finance.events.map((e) => (
+                <li
+                  key={e.id}
+                  className="flex items-center justify-between rounded-xl border border-border/60 px-3.5 py-3"
+                >
+                  <div>
+                    <p className="text-sm font-medium">
+                      {e.notes ?? e.type.replace(/_/g, " ")}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {e.occurredAt.slice(0, 10)}
+                    </p>
+                  </div>
+                  <Badge variant="outline">{egp(e.amount)}</Badge>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </section>
 
       <div className="grid gap-4 lg:grid-cols-2">
         <section className="space-y-2">

@@ -43,7 +43,7 @@ const menu = [
   { title: "Clients", icon: Users, href: "/clients" },
   { title: "The Crew", icon: UsersRound, href: "/crew" },
   { title: "Calendar", icon: Calendar, href: "#" },
-  { title: "Finance", icon: DollarSign, href: "#" },
+  { title: "Finance", icon: DollarSign, href: "/finance" },
   { title: "Settings", icon: Settings, href: "#" },
 ];
 

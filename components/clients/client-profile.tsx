@@ -7,11 +7,12 @@ import { OrderStatusBadge } from "@/components/orders/order-status-badge";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { HUMAN_LAYER } from "@/lib/brand";
+import { HUMAN_LAYER, getEmptyState } from "@/lib/brand";
 import { BUSINESS_TODAY } from "@/lib/business/types";
 import { getCommercialClientProfile } from "@/lib/business/commercial-account";
 import { computeClientStats } from "@/lib/business/client-stats";
 import { getClientById } from "@/lib/clients/repository";
+import { getClientOperatingView } from "@/lib/integration";
 import { getOrders } from "@/lib/orders/repository";
 import { getPayments } from "@/lib/payments/repository";
 import { getProjects } from "@/lib/projects/repository";
@@ -104,6 +105,12 @@ export function ClientProfile({ clientId }: ClientProfileProps) {
     );
     if (!profile) notFound();
 
+    const operating = getClientOperatingView(clientId);
+    const payments =
+      operating.payments.length > 0
+        ? operating.payments
+        : [];
+
     return (
       <div className="space-y-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
@@ -155,7 +162,11 @@ export function ClientProfile({ clientId }: ClientProfileProps) {
               ["Avg project", egp(profile.avgProjectValue), HUMAN_LAYER.projects],
               [
                 "Outstanding",
-                egp(profile.totalOutstanding),
+                egp(
+                  operating.finance.events.length > 0
+                    ? operating.finance.outstanding
+                    : profile.totalOutstanding
+                ),
                 HUMAN_LAYER.outstandingBalance,
               ],
             ] as const
@@ -211,24 +222,33 @@ export function ClientProfile({ clientId }: ClientProfileProps) {
             <h3 className="font-heading text-base font-semibold">Projects</h3>
             <HumanExplanation layer="projectsSection" size="compact" />
           </div>
-          <ul className="space-y-2">
-            {profile.projects.map((p) => (
-              <li key={p.id}>
-                <Link
-                  href={`/projects/${p.id}`}
-                  className="flex items-center justify-between rounded-xl border border-border/60 px-3.5 py-3 hover:border-soda-pink/35"
-                >
-                  <div>
-                    <p className="font-medium">{p.name}</p>
-                    <p className="text-xs text-muted-foreground">
-                      Stage: {p.journeyStage ?? "—"} · {p.status}
-                    </p>
-                  </div>
-                  <Badge variant="outline">{egp(p.revenue)}</Badge>
-                </Link>
-              </li>
-            ))}
-          </ul>
+          {profile.projects.length === 0 && operating.projects.length === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              {getEmptyState("projects").title}
+            </p>
+          ) : (
+            <ul className="space-y-2">
+              {(profile.projects.length > 0
+                ? profile.projects
+                : operating.projects
+              ).map((p) => (
+                <li key={p.id}>
+                  <Link
+                    href={`/projects/${p.id}`}
+                    className="flex items-center justify-between rounded-xl border border-border/60 px-3.5 py-3 hover:border-soda-pink/35"
+                  >
+                    <div>
+                      <p className="font-medium">{p.name}</p>
+                      <p className="text-xs text-muted-foreground">
+                        Stage: {p.journeyStage ?? "—"} · {p.status}
+                      </p>
+                    </div>
+                    <Badge variant="outline">{egp(p.revenue)}</Badge>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
         </section>
 
         <section className="space-y-2">
@@ -236,22 +256,63 @@ export function ClientProfile({ clientId }: ClientProfileProps) {
             <h3 className="font-heading text-base font-semibold">Orders</h3>
             <HumanExplanation layer="ordersSection" size="compact" />
           </div>
-          <ul className="space-y-2">
-            {profile.orders.map((o) => (
-              <li
-                key={o.id}
-                className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border/60 px-3.5 py-3"
+          {profile.orders.length === 0 && operating.orders.length === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              {getEmptyState("orders").title}
+            </p>
+          ) : (
+            <ul className="space-y-2">
+              {(profile.orders.length > 0
+                ? profile.orders
+                : operating.orders
+              ).map((o) => (
+                <li
+                  key={o.id}
+                  className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border/60 px-3.5 py-3"
+                >
+                  <div>
+                    <p className="font-medium">{o.id}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {o.shootDate} → {o.deliveryDate}
+                    </p>
+                  </div>
+                  <OrderStatusBadge status={o.status} />
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+
+        <section className="space-y-2">
+          <div>
+            <h3 className="font-heading text-base font-semibold">Payments</h3>
+            <HumanExplanation layer="invoicesPayments" size="compact" />
+          </div>
+          {payments.length === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              {getEmptyState("payments").title}
+            </p>
+          ) : (
+            payments.map((p) => (
+              <div
+                key={p.id}
+                className="flex items-center justify-between rounded-xl border border-border/60 px-3.5 py-3"
               >
                 <div>
-                  <p className="font-medium">{o.id}</p>
+                  <p className="font-medium">{p.label ?? p.kind}</p>
                   <p className="text-xs text-muted-foreground">
-                    {o.shootDate} → {o.deliveryDate}
+                    {p.status}
+                    {p.paidAt ? ` · ${p.paidAt}` : ""} · {p.orderId}
                   </p>
                 </div>
-                <OrderStatusBadge status={o.status} />
-              </li>
-            ))}
-          </ul>
+                <Badge variant="outline">{egp(p.amount)}</Badge>
+              </div>
+            ))
+          )}
+          <p className="text-xs text-muted-foreground">
+            Ledger paid {egp(operating.finance.paid)} · Outstanding{" "}
+            {egp(operating.finance.outstanding)}
+          </p>
         </section>
 
         <div className="grid gap-4 lg:grid-cols-2">
@@ -261,18 +322,24 @@ export function ClientProfile({ clientId }: ClientProfileProps) {
               <HumanExplanation layer="invoicesPayments" size="compact" />
             </CardHeader>
             <CardContent className="space-y-2">
-              {profile.invoices.map((inv) => (
-                <div
-                  key={inv.id}
-                  className="rounded-lg border border-border/50 px-3 py-2 text-sm"
-                >
-                  <p className="font-medium">{inv.number}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {inv.periodMonth} · {inv.status} · {egp(inv.amount)} · paid{" "}
-                    {egp(inv.paidAmount)}
-                  </p>
-                </div>
-              ))}
+              {profile.invoices.length === 0 ? (
+                <p className="text-sm text-muted-foreground">
+                  {getEmptyState("payments").title}
+                </p>
+              ) : (
+                profile.invoices.map((inv) => (
+                  <div
+                    key={inv.id}
+                    className="rounded-lg border border-border/50 px-3 py-2 text-sm"
+                  >
+                    <p className="font-medium">{inv.number}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {inv.periodMonth} · {inv.status} · {egp(inv.amount)} · paid{" "}
+                      {egp(inv.paidAmount)}
+                    </p>
+                  </div>
+                ))
+              )}
             </CardContent>
           </Card>
           <Card>
@@ -334,14 +401,16 @@ export function ClientProfile({ clientId }: ClientProfileProps) {
   }
 
   // Wedding / individual profile
+  const view = getClientOperatingView(clientId);
   const stats = computeClientStats(
     clientId,
     getProjects(),
     getOrders(),
     getPayments()
   );
-  const orders = getOrders().filter((o) => o.clientId === clientId);
-  const projects = getProjects().filter((p) => p.clientId === clientId);
+  const orders = view.orders;
+  const projects = view.projects;
+  const payments = view.payments;
 
   return (
     <div className="space-y-6">
@@ -391,7 +460,11 @@ export function ClientProfile({ clientId }: ClientProfileProps) {
           </CardHeader>
           <CardContent>
             <p className="font-mono text-xl font-semibold text-soda-pink">
-              {egp(stats.outstandingBalance)}
+              {egp(
+                view.finance.events.length > 0
+                  ? view.finance.outstanding
+                  : stats.outstandingBalance
+              )}
             </p>
           </CardContent>
         </Card>
@@ -404,33 +477,77 @@ export function ClientProfile({ clientId }: ClientProfileProps) {
           <h3 className="font-heading text-base font-semibold">Projects</h3>
           <HumanExplanation layer="projectsSection" size="compact" />
         </div>
-        {projects.map((p) => (
-          <Link
-            key={p.id}
-            href={`/projects/${p.id}`}
-            className="block rounded-xl border border-border/60 px-3.5 py-3 hover:border-soda-pink/35"
-          >
-            {p.name} · {p.journeyStage}
-          </Link>
-        ))}
+        {projects.length === 0 ? (
+          <p className="text-sm text-muted-foreground">
+            {getEmptyState("projects").title}
+          </p>
+        ) : (
+          projects.map((p) => (
+            <Link
+              key={p.id}
+              href={`/projects/${p.id}`}
+              className="block rounded-xl border border-border/60 px-3.5 py-3 hover:border-soda-pink/35"
+            >
+              {p.name} · {p.journeyStage}
+            </Link>
+          ))
+        )}
       </section>
       <section className="space-y-2">
         <div>
           <h3 className="font-heading text-base font-semibold">Orders</h3>
           <HumanExplanation layer="ordersSection" size="compact" />
         </div>
-        {orders.map((o) => (
-          <div
-            key={o.id}
-            className="flex items-center justify-between rounded-xl border border-border/60 px-3.5 py-3"
-          >
-            <div>
-              <p className="font-medium">{o.id}</p>
-              <p className="text-xs text-muted-foreground">{o.shootDate}</p>
+        {orders.length === 0 ? (
+          <p className="text-sm text-muted-foreground">
+            {getEmptyState("orders").title}
+          </p>
+        ) : (
+          orders.map((o) => (
+            <div
+              key={o.id}
+              className="flex items-center justify-between rounded-xl border border-border/60 px-3.5 py-3"
+            >
+              <div>
+                <p className="font-medium">{o.id}</p>
+                <p className="text-xs text-muted-foreground">{o.shootDate}</p>
+              </div>
+              <OrderStatusBadge status={o.status} />
             </div>
-            <OrderStatusBadge status={o.status} />
-          </div>
-        ))}
+          ))
+        )}
+      </section>
+
+      <section className="space-y-2">
+        <div>
+          <h3 className="font-heading text-base font-semibold">Payments</h3>
+          <HumanExplanation layer="invoicesPayments" size="compact" />
+        </div>
+        {payments.length === 0 ? (
+          <p className="text-sm text-muted-foreground">
+            {getEmptyState("payments").title}
+          </p>
+        ) : (
+          payments.map((p) => (
+            <div
+              key={p.id}
+              className="flex items-center justify-between rounded-xl border border-border/60 px-3.5 py-3"
+            >
+              <div>
+                <p className="font-medium">{p.label ?? p.kind}</p>
+                <p className="text-xs text-muted-foreground">
+                  {p.status}
+                  {p.paidAt ? ` · ${p.paidAt}` : ""} · {p.orderId}
+                </p>
+              </div>
+              <Badge variant="outline">{egp(p.amount)}</Badge>
+            </div>
+          ))
+        )}
+        <p className="text-xs text-muted-foreground">
+          Ledger paid {egp(view.finance.paid)} · Outstanding{" "}
+          {egp(view.finance.outstanding)}
+        </p>
       </section>
     </div>
   );
