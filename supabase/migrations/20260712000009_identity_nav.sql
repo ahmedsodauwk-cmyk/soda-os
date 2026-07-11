@@ -144,15 +144,31 @@ create index if not exists profiles_person_id_idx on public.profiles (person_id)
 
 alter table public.profiles enable row level security;
 
+-- Avoid recursive RLS: role check via security definer (do not subquery profiles in policy).
+create or replace function public.is_owner_or_admin()
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select exists (
+    select 1 from public.profiles
+    where id = auth.uid()
+      and role in ('owner', 'admin')
+      and is_active = true
+  );
+$$;
+
+revoke all on function public.is_owner_or_admin() from public;
+grant execute on function public.is_owner_or_admin() to authenticated;
+
 drop policy if exists "profiles_select_own_or_admin" on public.profiles;
 create policy "profiles_select_own_or_admin"
   on public.profiles for select
   using (
     auth.uid() = id
-    or exists (
-      select 1 from public.profiles p
-      where p.id = auth.uid() and p.role in ('owner', 'admin')
-    )
+    or public.is_owner_or_admin()
   );
 
 drop policy if exists "profiles_update_own" on public.profiles;
