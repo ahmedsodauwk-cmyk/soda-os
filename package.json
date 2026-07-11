@@ -10,6 +10,7 @@
     "typecheck": "tsc --noEmit",
     "supabase:health": "npx tsx scripts/check-supabase.ts",
     "smoke:clients": "npx tsx scripts/smoke-clients-crud.ts",
+    "smoke:crew": "npx tsx scripts/smoke-crew-crud.ts",
     "db:clients-rls": "npx tsx scripts/apply-clients-rls.ts"
   },
   "dependencies": {

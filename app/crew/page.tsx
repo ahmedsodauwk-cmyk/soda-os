@@ -1,9 +1,10 @@
 import { AppShell } from "@/components/layout/app-shell";
 import { CrewList } from "@/components/crew/crew-list";
-import { getCrew, getCrewPerformance } from "@/lib/crew";
+import { getCrew, getCrewPerformance, refreshCrew } from "@/lib/crew";
 import { getModuleSlogan } from "@/lib/brand";
 
-export default function CrewPage() {
+export default async function CrewPage() {
+  await refreshCrew();
   const crew = getCrew();
   const performanceById = Object.fromEntries(
     crew.map((m) => [m.id, getCrewPerformance(m.id)])

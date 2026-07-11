@@ -1,9 +1,5 @@
-import { createClient, type SupabaseClient } from "@supabase/supabase-js";
-
-import {
-  getSupabaseServiceRoleKey,
-  requireSupabaseEnv,
-} from "@/lib/supabase/env";
+import { createDomainDb } from "@/lib/supabase/domain-db";
+import type { SupabaseClient } from "@supabase/supabase-js";
 
 /**
  * Supabase client for the clients repository.
@@ -11,13 +7,5 @@ import {
  * otherwise uses the anon key (browser + server without service role).
  */
 export function createClientsDb(): SupabaseClient {
-  const { url, anonKey } = requireSupabaseEnv();
-  const serviceKey =
-    typeof window === "undefined" ? getSupabaseServiceRoleKey() : undefined;
-  return createClient(url, serviceKey ?? anonKey, {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false,
-    },
-  });
+  return createDomainDb();
 }

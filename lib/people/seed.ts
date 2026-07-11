@@ -1,4 +1,7 @@
 import type { Person } from "@/lib/people/types";
 
-/** Studio crew — starts empty; createPerson appends via repository. */
+/**
+ * Legacy empty array — do not use as source of truth.
+ * People live in Supabase `public.people` via `lib/people/repository`.
+ */
 export const mockPeople: Person[] = [];

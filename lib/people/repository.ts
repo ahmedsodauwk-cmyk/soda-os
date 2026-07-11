@@ -6,7 +6,8 @@ import {
 import { BUSINESS_TODAY } from "@/lib/business/types";
 import { getOrders } from "@/lib/orders/repository";
 import type { Order } from "@/lib/orders/types";
-import { mockPeople } from "@/lib/people/seed";
+import { createPeopleDb } from "@/lib/people/db";
+import { personToRow, rowToPerson, type PersonRow } from "@/lib/people/mappers";
 import type {
   NewPersonInput,
   Person,
@@ -18,37 +19,175 @@ import { getProjects } from "@/lib/projects/repository";
 
 const ACTIVE_ORDER = new Set(["Pending", "Scheduled", "Shooting", "Editing"]);
 
-/** Source of truth is mockPeople — no separate in-memory copy that can retain stale seed. */
+/**
+ * In-memory mirror so sync callers (payments, performance, crew history) keep working.
+ * Source of truth is `public.people` — call `refreshPeople()` / async CRUD from UI.
+ */
+let peopleCache: Person[] = [];
+
+function sortByCreatedDesc(a: Person, b: Person): number {
+  return b.createdAt.localeCompare(a.createdAt);
+}
+
+function setCache(people: Person[]): Person[] {
+  peopleCache = [...people].sort(sortByCreatedDesc);
+  return peopleCache;
+}
+
+function upsertCache(person: Person): void {
+  const next = peopleCache.filter((p) => p.id !== person.id);
+  next.unshift(person);
+  peopleCache = next;
+}
+
+function removeFromCache(id: string): void {
+  peopleCache = peopleCache.filter((p) => p.id !== id);
+}
+
+function newPersonId(): string {
+  if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
+    return `tm-${crypto.randomUUID()}`;
+  }
+  return `tm-${Date.now().toString(36)}`;
+}
+
+function initialsFromName(nameEn: string): string {
+  return nameEn
+    .split(" ")
+    .map((p) => p[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+}
+
+async function selectAllRows(): Promise<PersonRow[]> {
+  const db = createPeopleDb();
+  const { data, error } = await db
+    .from("people")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    throw new Error(`Failed to load people: ${error.message}`);
+  }
+  return (data ?? []) as PersonRow[];
+}
+
+/** Load all people from Supabase into the sync cache. */
+export async function refreshPeople(): Promise<Person[]> {
+  const rows = await selectAllRows();
+  return setCache(rows.map(rowToPerson));
+}
+
 export function getPeople(): Person[] {
-  return mockPeople.filter((p) => p.status !== "inactive");
+  return peopleCache.filter((p) => p.status !== "inactive");
 }
 
 export function getAllPeople(): Person[] {
-  return [...mockPeople];
+  return [...peopleCache];
 }
 
 export function getPersonById(id: string): Person | undefined {
-  return mockPeople.find((p) => p.id === id);
+  return peopleCache.find((p) => p.id === id);
 }
 
-export function createPerson(input: NewPersonInput): Person {
-  const id = `tm-${Date.now().toString(36)}`;
-  const initials =
-    input.initials ??
-    input.nameEn
-      .split(" ")
-      .map((p) => p[0])
-      .join("")
-      .slice(0, 2)
-      .toUpperCase();
+/** Fetch one person from Supabase (updates cache on hit). */
+export async function fetchPersonById(
+  id: string
+): Promise<Person | undefined> {
+  const db = createPeopleDb();
+  const { data, error } = await db
+    .from("people")
+    .select("*")
+    .eq("id", id)
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(`Failed to load person ${id}: ${error.message}`);
+  }
+  if (!data) return undefined;
+  const person = rowToPerson(data as PersonRow);
+  upsertCache(person);
+  return person;
+}
+
+/** Persist a new person to Supabase and the sync cache. */
+export async function createPerson(input: NewPersonInput): Promise<Person> {
+  const initials = input.initials ?? initialsFromName(input.nameEn);
   const person: Person = {
     ...input,
-    id,
+    id: newPersonId(),
     initials,
     createdAt: new Date().toISOString(),
   };
-  mockPeople.push(person);
-  return person;
+
+  const db = createPeopleDb();
+  const { data, error } = await db
+    .from("people")
+    .insert(personToRow(person))
+    .select("*")
+    .single();
+
+  if (error) {
+    throw new Error(`Failed to create person: ${error.message}`);
+  }
+
+  const saved = rowToPerson(data as PersonRow);
+  upsertCache(saved);
+  return { ...saved };
+}
+
+export type UpdatePersonInput = Partial<
+  Omit<Person, "id" | "createdAt">
+>;
+
+/** Update an existing person in Supabase and the sync cache. */
+export async function updatePerson(
+  id: string,
+  patch: UpdatePersonInput
+): Promise<Person> {
+  const existing = getPersonById(id) ?? (await fetchPersonById(id));
+  if (!existing) {
+    throw new Error(`Person not found: ${id}`);
+  }
+
+  const merged: Person = {
+    ...existing,
+    ...patch,
+    id: existing.id,
+    createdAt: existing.createdAt,
+  };
+
+  const db = createPeopleDb();
+  const row = personToRow(merged);
+  delete row.id;
+  delete row.created_at;
+
+  const { data, error } = await db
+    .from("people")
+    .update(row)
+    .eq("id", id)
+    .select("*")
+    .single();
+
+  if (error) {
+    throw new Error(`Failed to update person: ${error.message}`);
+  }
+
+  const saved = rowToPerson(data as PersonRow);
+  upsertCache(saved);
+  return { ...saved };
+}
+
+/** Hard-delete a person from Supabase and the sync cache. */
+export async function deletePerson(id: string): Promise<void> {
+  const db = createPeopleDb();
+  const { error } = await db.from("people").delete().eq("id", id);
+
+  if (error) {
+    throw new Error(`Failed to delete person: ${error.message}`);
+  }
+  removeFromCache(id);
 }
 
 function orderMap(): Map<string, Order> {

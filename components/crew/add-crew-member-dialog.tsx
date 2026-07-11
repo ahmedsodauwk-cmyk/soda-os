@@ -65,12 +65,12 @@ export function AddCrewMemberDialog({ onCreated }: AddCrewMemberDialogProps) {
     );
   }
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!nameAr.trim() || !nameEn.trim() || !jobTitle.trim() || !phone.trim()) {
       return;
     }
-    const person = createCrewMember({
+    const person = await createCrewMember({
       nameAr: nameAr.trim(),
       nameEn: nameEn.trim(),
       nickname: nickname.trim() || undefined,

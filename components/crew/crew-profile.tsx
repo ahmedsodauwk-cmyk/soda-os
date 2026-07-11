@@ -12,7 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { HUMAN_LAYER } from "@/lib/brand";
 import {
   EMPLOYMENT_TYPE_LABELS,
-  getCrewMemberById,
+  fetchCrewMemberById,
   getCrewPaymentSummary,
   getCrewPerformance,
   getCrewWorkHistory,
@@ -31,8 +31,8 @@ interface CrewProfileProps {
   personId: string;
 }
 
-export function CrewProfile({ personId }: CrewProfileProps) {
-  const person = getCrewMemberById(personId);
+export async function CrewProfile({ personId }: CrewProfileProps) {
+  const person = await fetchCrewMemberById(personId);
   if (!person) notFound();
 
   const performance = getCrewPerformance(personId);

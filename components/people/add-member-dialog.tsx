@@ -43,12 +43,12 @@ export function AddMemberDialog({ onCreated }: AddMemberDialogProps) {
     setAvatarUrl("");
   }
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!nameAr.trim() || !nameEn.trim() || !jobTitle.trim() || !phone.trim()) {
       return;
     }
-    const person = createPerson({
+    const person = await createPerson({
       nameAr: nameAr.trim(),
       nameEn: nameEn.trim(),
       jobTitle: jobTitle.trim(),
