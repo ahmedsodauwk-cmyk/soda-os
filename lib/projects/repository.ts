@@ -2,6 +2,7 @@ import {
   computeProjectStats,
   toProjectOrderStub,
 } from "@/lib/business/project-stats";
+import { publishBusinessEvent } from "@/lib/core/publish";
 import { getProjectJourneyStage } from "@/lib/journey/seed";
 import { getOrdersByProject } from "@/lib/orders/repository";
 import { getPaymentsByProject } from "@/lib/payments/repository";
@@ -151,7 +152,20 @@ export async function createProject(
   }
   const saved = rowToProject(data as ProjectRow);
   upsertCache(saved);
-  return enrichProject(saved);
+  const enriched = enrichProject(saved);
+  await publishBusinessEvent({
+    type: "ProjectCreated",
+    source: "projects.repository.createProject",
+    payload: {
+      entityId: enriched.id,
+      entityType: "project",
+      projectId: enriched.id,
+      clientId: enriched.clientId,
+      summary: `Project created: ${enriched.name}`,
+      data: { workspaceId: enriched.workspaceId, status: enriched.status },
+    },
+  });
+  return enriched;
 }
 
 export async function updateProject(

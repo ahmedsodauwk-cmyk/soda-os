@@ -10,6 +10,7 @@ import {
   isAssignmentPaid,
   type OrderAssignment,
 } from "@/lib/assignments/types";
+import { publishBusinessEvent } from "@/lib/core/publish";
 
 export type { OrderAssignment };
 export type NewAssignmentInput = Omit<
@@ -103,6 +104,19 @@ export async function createAssignment(
   }
   const saved = rowToAssignment(data as AssignmentRow);
   upsertCache(saved);
+  await publishBusinessEvent({
+    type: "CrewAssigned",
+    source: "assignments.repository.createAssignment",
+    payload: {
+      entityId: saved.id,
+      entityType: "assignment",
+      assignmentId: saved.id,
+      orderId: saved.orderId,
+      personId: saved.personId,
+      summary: `Crew assigned to order ${saved.orderId}`,
+      data: { role: saved.role, employeePrice: saved.employeePrice },
+    },
+  });
   return { ...saved };
 }
 
@@ -139,16 +153,46 @@ export async function updateAssignmentPayment(
   }
   const saved = rowToAssignment(data as AssignmentRow);
   upsertCache(saved);
+  if (patch.paidAmount > (current.paidAmount ?? 0)) {
+    await publishBusinessEvent({
+      type: "CrewPaid",
+      source: "assignments.repository.updateAssignmentPayment",
+      payload: {
+        entityId: saved.id,
+        entityType: "assignment",
+        assignmentId: saved.id,
+        orderId: saved.orderId,
+        personId: saved.personId,
+        summary: `Crew payment updated on assignment ${saved.id}`,
+        data: { paidAmount: saved.paidAmount, paidAt: saved.paidAt },
+      },
+    });
+  }
   return { ...saved };
 }
 
 export async function deleteAssignment(id: string): Promise<void> {
+  const existing = getAssignmentById(id);
   const db = createAssignmentsDb();
   const { error } = await db.from("order_assignments").delete().eq("id", id);
   if (error) {
     throw new Error(`Failed to delete assignment: ${error.message}`);
   }
   assignmentsCache = assignmentsCache.filter((a) => a.id !== id);
+  if (existing) {
+    await publishBusinessEvent({
+      type: "CrewRemoved",
+      source: "assignments.repository.deleteAssignment",
+      payload: {
+        entityId: id,
+        entityType: "assignment",
+        assignmentId: id,
+        orderId: existing.orderId,
+        personId: existing.personId,
+        summary: `Crew removed from order ${existing.orderId}`,
+      },
+    });
+  }
 }
 
 export { assignmentFinalAmount, assignmentRemaining, isAssignmentPaid };

@@ -3,6 +3,7 @@ import type { ClientComputedStats } from "@/lib/business/types";
 import { createClientsDb } from "@/lib/clients/db";
 import { clientToRow, rowToClient, type ClientRow } from "@/lib/clients/mappers";
 import type { Client, NewClientInput } from "@/lib/clients/types";
+import { publishBusinessEvent } from "@/lib/core/publish";
 import { getOrders } from "@/lib/orders/repository";
 import { getPayments } from "@/lib/payments/repository";
 import { getProjects } from "@/lib/projects/repository";
@@ -130,6 +131,17 @@ export async function createClient(input: NewClientInput): Promise<Client> {
     saved.whatsapp = client.whatsapp;
   }
   upsertCache(saved);
+  await publishBusinessEvent({
+    type: "ClientCreated",
+    source: "clients.repository.createClient",
+    payload: {
+      entityId: saved.id,
+      entityType: "client",
+      clientId: saved.id,
+      summary: `Client created: ${saved.name}`,
+      data: { name: saved.name, segment: saved.segment, type: saved.type },
+    },
+  });
   return { ...saved };
 }
 
@@ -187,6 +199,17 @@ export async function updateClient(
     saved.whatsapp = merged.whatsapp;
   }
   upsertCache(saved);
+  await publishBusinessEvent({
+    type: "ClientUpdated",
+    source: "clients.repository.updateClient",
+    payload: {
+      entityId: saved.id,
+      entityType: "client",
+      clientId: saved.id,
+      summary: `Client updated: ${saved.name}`,
+      data: { patch: Object.keys(patch) },
+    },
+  });
   return { ...saved };
 }
 

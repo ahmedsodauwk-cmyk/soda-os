@@ -1,3 +1,4 @@
+import { publishBusinessEvent } from "@/lib/core/publish";
 import { createEquipmentDb } from "@/lib/equipment/db";
 import {
   assignmentToRow,
@@ -223,6 +224,17 @@ export async function assignEquipmentToPerson(
   const savedAsg = rowToAssignment(asgData as EquipmentAssignmentRow);
   upsertAssignmentCache(savedAsg);
   upsertEquipmentCache(rowToEquipment(eqData as EquipmentRow));
+  await publishBusinessEvent({
+    type: "EquipmentAssigned",
+    source: "equipment.repository.assignEquipmentToPerson",
+    payload: {
+      entityId: savedAsg.id,
+      entityType: "equipment",
+      equipmentId: savedAsg.equipmentId,
+      personId: savedAsg.personId,
+      summary: `Equipment ${savedAsg.equipmentId} assigned to ${savedAsg.personId}`,
+    },
+  });
   return { ...savedAsg };
 }
 
@@ -267,5 +279,17 @@ export async function releaseEquipmentAssignment(
   const savedAsg = rowToAssignment(asgData as EquipmentAssignmentRow);
   upsertAssignmentCache(savedAsg);
   upsertEquipmentCache(rowToEquipment(eqData as EquipmentRow));
+  await publishBusinessEvent({
+    type: "EquipmentReturned",
+    source: "equipment.repository.releaseEquipmentAssignment",
+    payload: {
+      entityId: savedAsg.id,
+      entityType: "equipment",
+      equipmentId: savedAsg.equipmentId,
+      personId: savedAsg.personId,
+      summary: `Equipment ${savedAsg.equipmentId} returned`,
+      data: { returnedAt: savedAsg.returnedAt },
+    },
+  });
   return { ...savedAsg };
 }

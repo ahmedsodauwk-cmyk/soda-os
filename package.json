@@ -17,7 +17,8 @@
     "smoke:workflow": "npx tsx scripts/smoke-business-workflow.ts",
     "smoke:smart-order": "npx tsx scripts/smoke-smart-order-engine.ts",
     "db:clients-rls": "npx tsx scripts/apply-clients-rls.ts",
-    "db:smart-order": "npx tsx scripts/apply-smart-order-migration.ts"
+    "db:smart-order": "npx tsx scripts/apply-smart-order-migration.ts",
+    "db:business-core": "npx tsx scripts/apply-business-core-migration.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",

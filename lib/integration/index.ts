@@ -2,6 +2,7 @@
  * Business Integration layer — connects modules into one operating flow.
  *
  * Commercial Lead → Quotation → Order → Project → Crew → Finance
+ * Cross-module side effects go through Business Core events after mutations.
  */
 
 export {
@@ -46,3 +47,13 @@ export {
   type CrewOperatingView,
   type ProjectOperatingView,
 } from "@/lib/integration/queries";
+
+export {
+  bootstrapBusinessCore,
+  listAuditLog,
+  listBusinessEvents,
+  listNotifications,
+  publishBusinessEvent,
+  getStatsMeta,
+  getFinanceHookSnapshot,
+} from "@/lib/core";

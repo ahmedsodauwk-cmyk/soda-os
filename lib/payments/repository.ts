@@ -1,3 +1,4 @@
+import { publishBusinessEvent } from "@/lib/core/publish";
 import { createPaymentsDb } from "@/lib/payments/db";
 import {
   paymentToRow,
@@ -83,6 +84,41 @@ export async function createPayment(
   }
   const saved = rowToPayment(data as PaymentRow);
   upsertCache(saved);
+  if (saved.status === "paid" || saved.kind === "deposit") {
+    await publishBusinessEvent({
+      type: "PaymentReceived",
+      source: "payments.repository.createPayment",
+      payload: {
+        entityId: saved.id,
+        entityType: "payment",
+        paymentId: saved.id,
+        clientId: saved.clientId,
+        projectId: saved.projectId,
+        orderId: saved.orderId,
+        summary: `Payment ${saved.amount} ${saved.currency ?? "EGP"} (${saved.kind})`,
+        data: {
+          amount: saved.amount,
+          kind: saved.kind,
+          status: saved.status,
+        },
+      },
+    });
+  } else {
+    await publishBusinessEvent({
+      type: "PaymentUpdated",
+      source: "payments.repository.createPayment",
+      payload: {
+        entityId: saved.id,
+        entityType: "payment",
+        paymentId: saved.id,
+        clientId: saved.clientId,
+        projectId: saved.projectId,
+        orderId: saved.orderId,
+        summary: `Payment recorded: ${saved.id}`,
+        data: { amount: saved.amount, status: saved.status },
+      },
+    });
+  }
   return { ...saved };
 }
 
@@ -107,6 +143,25 @@ export async function updatePayment(
   }
   const saved = rowToPayment(data as PaymentRow);
   upsertCache(saved);
+  const becamePaid =
+    patch.status === "paid" ||
+    (saved.status === "paid" && existing.status !== "paid");
+  await publishBusinessEvent({
+    type: becamePaid ? "PaymentReceived" : "PaymentUpdated",
+    source: "payments.repository.updatePayment",
+    payload: {
+      entityId: saved.id,
+      entityType: "payment",
+      paymentId: saved.id,
+      clientId: saved.clientId,
+      projectId: saved.projectId,
+      orderId: saved.orderId,
+      summary: becamePaid
+        ? `Payment received: ${saved.amount}`
+        : `Payment updated: ${saved.id}`,
+      data: { amount: saved.amount, status: saved.status },
+    },
+  });
   return { ...saved };
 }
 

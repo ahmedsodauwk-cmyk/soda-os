@@ -18,6 +18,7 @@ import {
   updateClient,
 } from "@/lib/clients/repository";
 import type { Client } from "@/lib/clients/types";
+import { publishBusinessEvent } from "@/lib/core/publish";
 import {
   getEquipmentAssignmentsByPerson,
   releaseEquipmentAssignment,
@@ -64,6 +65,22 @@ import {
 } from "@/lib/projects/repository";
 import type { Project } from "@/lib/projects/types";
 import { ensureTaxonomyPersisted } from "@/lib/taxonomy/persist";
+
+function orderEventPayload(order: Order, summary: string) {
+  return {
+    entityId: order.id,
+    entityType: "order" as const,
+    orderId: order.id,
+    clientId: order.clientId,
+    projectId: order.projectId,
+    summary,
+    data: {
+      order,
+      status: order.status,
+      projectSynced: true,
+    },
+  };
+}
 
 export interface ClientOrderContext {
   client: Client;
@@ -457,6 +474,23 @@ export async function createSmartOrder(
     employeePrice: input.assignmentPrice,
   });
 
+  await publishBusinessEvent({
+    type: "OrderCreated",
+    source: "orders.engine.createSmartOrder",
+    payload: orderEventPayload(
+      order,
+      `Order created: ${order.clientName} · ${order.status}`
+    ),
+  });
+
+  if (order.status === "Confirmed") {
+    await publishBusinessEvent({
+      type: "OrderConfirmed",
+      source: "orders.engine.createSmartOrder",
+      payload: orderEventPayload(order, `Order confirmed on create: ${order.id}`),
+    });
+  }
+
   return {
     order,
     clientId: clientId || order.clientId || "",
@@ -530,6 +564,15 @@ export async function updateSmartOrder(
     employeePrice: patch.assignmentPrice,
   });
 
+  await publishBusinessEvent({
+    type: "OrderUpdated",
+    source: "orders.engine.updateSmartOrder",
+    payload: orderEventPayload(
+      order,
+      `Order updated: ${order.id} · ${order.status}`
+    ),
+  });
+
   return {
     order,
     clientId: order.clientId ?? "",
@@ -579,6 +622,12 @@ export async function confirmOrder(
   await syncProjectFromOrder(order);
   const assignments = await syncSquadAssignments(order);
 
+  await publishBusinessEvent({
+    type: "OrderConfirmed",
+    source: "orders.engine.confirmOrder",
+    payload: orderEventPayload(order, `Order confirmed: ${order.id}`),
+  });
+
   return {
     order,
     assignments,
@@ -604,6 +653,12 @@ export async function completeOrder(
   const order = await updateOrder(orderId, { status: "Completed" });
   await syncProjectFromOrder(order);
   const assignments = getAssignmentsByOrder(order.id);
+
+  await publishBusinessEvent({
+    type: "OrderCompleted",
+    source: "orders.engine.completeOrder",
+    payload: orderEventPayload(order, `Order completed: ${order.id}`),
+  });
 
   return {
     order,
@@ -654,6 +709,12 @@ export async function cancelOrder(
 
   const order = await updateOrder(orderId, { status: "Cancelled" });
   await syncProjectFromOrder(order);
+
+  await publishBusinessEvent({
+    type: "OrderCancelled",
+    source: "orders.engine.cancelOrder",
+    payload: orderEventPayload(order, `Order cancelled: ${order.id}`),
+  });
 
   return {
     order,

@@ -1,3 +1,4 @@
+import { publishBusinessEvent } from "@/lib/core/publish";
 import { createInvoicesDb } from "@/lib/invoices/db";
 import {
   deliveryToRow,
@@ -96,6 +97,20 @@ export async function createInvoice(
   }
   const saved = rowToInvoice(data as InvoiceRow);
   upsertInvoice(saved);
+  await publishBusinessEvent({
+    type: "InvoiceCreated",
+    source: "invoices.repository.createInvoice",
+    payload: {
+      entityId: saved.id,
+      entityType: "invoice",
+      invoiceId: saved.id,
+      clientId: saved.clientId,
+      projectId: saved.projectId,
+      orderId: saved.orderId,
+      summary: `Invoice created: ${saved.number}`,
+      data: { amount: saved.amount, status: saved.status },
+    },
+  });
   return { ...saved };
 }
 
@@ -120,6 +135,25 @@ export async function updateInvoice(
   }
   const saved = rowToInvoice(data as InvoiceRow);
   upsertInvoice(saved);
+  const paid =
+    saved.status === "paid" ||
+    (patch.status === "paid" && existing.status !== "paid");
+  await publishBusinessEvent({
+    type: paid ? "InvoicePaid" : "InvoiceUpdated",
+    source: "invoices.repository.updateInvoice",
+    payload: {
+      entityId: saved.id,
+      entityType: "invoice",
+      invoiceId: saved.id,
+      clientId: saved.clientId,
+      projectId: saved.projectId,
+      orderId: saved.orderId,
+      summary: paid
+        ? `Invoice paid: ${saved.number}`
+        : `Invoice updated: ${saved.number}`,
+      data: { amount: saved.amount, paidAmount: saved.paidAmount, status: saved.status },
+    },
+  });
   return { ...saved };
 }
 
@@ -150,6 +184,24 @@ export async function createDelivery(
   }
   const saved = rowToDelivery(data as DeliveryRow);
   upsertDelivery(saved);
+  const completed =
+    saved.status === "delivered" || saved.status === "accepted";
+  await publishBusinessEvent({
+    type: completed ? "DeliveryCompleted" : "DeliveryCreated",
+    source: "invoices.repository.createDelivery",
+    payload: {
+      entityId: saved.id,
+      entityType: "delivery",
+      deliveryId: saved.id,
+      orderId: saved.orderId,
+      projectId: saved.projectId,
+      clientId: saved.clientId,
+      summary: completed
+        ? `Delivery completed: ${saved.label}`
+        : `Delivery created: ${saved.label}`,
+      data: { status: saved.status, dueDate: saved.dueDate },
+    },
+  });
   return { ...saved };
 }
 

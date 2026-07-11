@@ -3,6 +3,7 @@
  */
 import { refreshAssignments } from "@/lib/assignments/repository";
 import { refreshClients } from "@/lib/clients/repository";
+import { bootstrapBusinessCore } from "@/lib/core/bootstrap";
 import { refreshEquipment } from "@/lib/equipment/repository";
 import { refreshFiles } from "@/lib/files/repository";
 import { refreshFinance } from "@/lib/finance/repository";
@@ -15,6 +16,7 @@ import { refreshQuotations } from "@/lib/quotations/repository";
 import { ensureTaxonomyPersisted } from "@/lib/taxonomy/persist";
 
 export async function refreshAllDomainData(): Promise<void> {
+  bootstrapBusinessCore();
   await ensureTaxonomyPersisted();
   await Promise.all([
     refreshClients(),

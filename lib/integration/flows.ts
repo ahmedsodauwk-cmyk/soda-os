@@ -13,6 +13,7 @@ import {
   type OrderAssignment,
 } from "@/lib/assignments/repository";
 import { ensureOrderProjectLink } from "@/lib/business/link-order";
+import { publishBusinessEvent } from "@/lib/core/publish";
 import type { FinanceEmitResult } from "@/lib/finance/contracts/integration-contracts";
 import {
   createAllocation,
@@ -177,6 +178,21 @@ export async function emitOrderClientPayment(input: {
     );
   }
 
+  await publishBusinessEvent({
+    type: "PaymentReceived",
+    source: "integration.flows.emitOrderClientPayment",
+    payload: {
+      entityId: event.id,
+      entityType: "payment",
+      paymentId: input.paymentId,
+      orderId: input.orderId,
+      clientId: order?.clientId,
+      projectId: order?.projectId,
+      summary: `Client payment ${input.amount} on order ${input.orderId}`,
+      data: { amount: input.amount, financialEventId: event.id },
+    },
+  });
+
   return { event, allocations };
 }
 
@@ -251,12 +267,32 @@ export async function runQuotationConversionFlow(
   const result = await convertQuotationToProject(quotationId, options);
   const emitDeposit = options?.emitDeposit !== false;
 
+  const publishConverted = async (financialEventId?: string) => {
+    await publishBusinessEvent({
+      type: "QuotationConverted",
+      source: "integration.flows.runQuotationConversionFlow",
+      payload: {
+        entityId: result.quotationId,
+        entityType: "quotation",
+        quotationId: result.quotationId,
+        clientId: result.clientId,
+        projectId: result.projectId,
+        orderId: result.orderId,
+        paymentId: result.paymentId,
+        summary: `Quotation ${result.quotationId} converted to project ${result.projectId}`,
+        data: financialEventId ? { financialEventId } : undefined,
+      },
+    });
+  };
+
   if (!emitDeposit || !result.paymentId) {
+    await publishConverted(result.financialEventId);
     return result;
   }
 
   const paymentAmount = depositFromQuotation(quotationId, 0);
   if (paymentAmount <= 0 && !result.financialEventId) {
+    await publishConverted();
     return result;
   }
 
@@ -271,7 +307,10 @@ export async function runQuotationConversionFlow(
           return Math.round(total * 0.4);
         })();
 
-  if (amount <= 0) return result;
+  if (amount <= 0) {
+    await publishConverted();
+    return result;
+  }
 
   const { event } = await emitQuotationDeposit({
     quotationId: result.quotationId,
@@ -283,6 +322,8 @@ export async function runQuotationConversionFlow(
     createdBy: options?.editedBy,
     notes: `Deposit on convert ${result.quotationId} → ${result.projectId}`,
   });
+
+  await publishConverted(event.id);
 
   return { ...result, financialEvent: event, financialEventId: event.id };
 }
@@ -358,6 +399,21 @@ export async function payCrewAssignment(input: {
   if (!updated) {
     throw new Error(`Failed to update assignment ${assignment.id}`);
   }
+
+  await publishBusinessEvent({
+    type: "CrewPaid",
+    source: "integration.flows.payCrewAssignment",
+    payload: {
+      entityId: updated.id,
+      entityType: "assignment",
+      assignmentId: updated.id,
+      orderId: updated.orderId,
+      personId: updated.personId,
+      projectId: order?.projectId,
+      summary: `Crew paid ${amount} on assignment ${updated.id}`,
+      data: { amount, financialEventId: finance.event.id },
+    },
+  });
 
   return { assignment: updated, finance };
 }
