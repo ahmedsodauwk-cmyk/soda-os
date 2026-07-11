@@ -1,8 +1,8 @@
 /**
- * Supabase foundation for Soda OS (Sprint 15).
+ * Supabase foundation for Soda OS (Sprint 15–16).
  *
- * Domain repositories remain on empty in-memory stores.
- * Wire reads/writes to these clients in a later sprint after migrations are applied.
+ * Connection helpers + health probe. Domain repositories remain on
+ * in-memory / mock stores until a later sprint wires Postgres reads/writes.
  */
 
 export { isSupabaseConfigured, requireSupabaseEnv } from "@/lib/supabase/env";
