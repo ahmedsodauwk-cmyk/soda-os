@@ -1,13 +1,7 @@
 import type { WorkspaceComputedStats } from "@/lib/business/types";
 import type { Order } from "@/lib/orders/types";
+import { isOrderActiveWorkload, isOrderBillable } from "@/lib/orders/status";
 import type { Project } from "@/lib/projects/types";
-
-const ACTIVE_ORDER_STATUSES = new Set([
-  "Pending",
-  "Scheduled",
-  "Shooting",
-  "Editing",
-]);
 
 export function computeWorkspaceStats(
   workspaceId: string,
@@ -33,11 +27,11 @@ export function computeWorkspaceStats(
   );
 
   const revenue = workspaceOrders
-    .filter((o) => o.status !== "Cancelled")
+    .filter((o) => isOrderBillable(o.status))
     .reduce((acc, o) => acc + o.price, 0);
 
   const activeOrders = workspaceOrders.filter((o) =>
-    ACTIVE_ORDER_STATUSES.has(o.status)
+    isOrderActiveWorkload(o.status)
   ).length;
 
   return {

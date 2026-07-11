@@ -2,6 +2,8 @@ import { getBusinessToday } from "@/lib/business/types";
 import type { Order, OrderStatus } from "@/lib/orders/types";
 
 const ACTIVE: Set<OrderStatus> = new Set([
+  "Holding",
+  "Confirmed",
   "Pending",
   "Scheduled",
   "Shooting",
@@ -86,10 +88,12 @@ export function buildWeddingOrdersOverview(
         (o) =>
           ACTIVE.has(o.status) &&
           o.deliveryDate < asOf &&
-          o.status !== "Delivered"
+          o.status !== "Delivered" &&
+          o.status !== "Completed"
       ).length;
-      const delivered = monthOrders.filter((o) => o.status === "Delivered")
-        .length;
+      const delivered = monthOrders.filter(
+        (o) => o.status === "Delivered" || o.status === "Completed"
+      ).length;
       const upcoming = monthOrders.filter(
         (o) => ACTIVE.has(o.status) && o.shootDate >= asOf
       ).length;
@@ -122,9 +126,12 @@ export function buildWeddingOrdersOverview(
       (o) =>
         ACTIVE.has(o.status) &&
         o.deliveryDate < asOf &&
-        o.status !== "Delivered"
+        o.status !== "Delivered" &&
+        o.status !== "Completed"
     ).length,
-    deliveredCount: wedding.filter((o) => o.status === "Delivered").length,
+    deliveredCount: wedding.filter(
+      (o) => o.status === "Delivered" || o.status === "Completed"
+    ).length,
     totalRevenueThisMonth: thisMonthOrders
       .filter((o) => o.status !== "Cancelled")
       .reduce((s, o) => s + o.price, 0),

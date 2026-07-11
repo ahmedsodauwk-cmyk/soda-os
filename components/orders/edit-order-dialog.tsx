@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -22,16 +22,21 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import {
+  DRESS_CODES,
   ORDER_STATUSES,
   PROJECT_TYPES,
   TEAMS,
+  type DressCode,
   type Order,
   type OrderStatus,
   type ProjectType,
+  type SmartOrderInput,
 } from "@/lib/orders/types";
 import { workspaceIdFromProjectType } from "@/lib/orders/utils";
+import { validateSmartOrderInput } from "@/lib/orders/validation";
+import { getPeople } from "@/lib/people/repository";
 
-type OrderPatch = Partial<Omit<Order, "id" | "projectId" | "clientId">>;
+type OrderPatch = Partial<SmartOrderInput>;
 
 interface EditOrderDialogProps {
   order: Order | null;
@@ -52,6 +57,7 @@ function EditOrderForm({
   const [form, setForm] = useState<OrderPatch>({
     clientName: order.clientName,
     phone: order.phone,
+    whatsapp: order.whatsapp,
     projectType: order.projectType,
     workspaceId: order.workspaceId,
     shootDate: order.shootDate,
@@ -60,11 +66,21 @@ function EditOrderForm({
     price: order.price,
     deposit: order.deposit,
     team: order.team,
+    squadMemberIds: order.squadMemberIds,
     status: order.status,
+    brief: order.brief,
+    dressCode: order.dressCode,
+    latePenaltyEnabled: order.latePenaltyEnabled,
+    latePenaltyAmount: order.latePenaltyAmount,
+    latePenaltyReason: order.latePenaltyReason,
     notes: order.notes,
   });
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState<Partial<Record<string, string>>>({});
+  const people = useMemo(
+    () => getPeople().filter((p) => p.status === "active"),
+    []
+  );
 
   function updateField<K extends keyof OrderPatch>(
     field: K,
@@ -73,15 +89,44 @@ function EditOrderForm({
     setForm((prev) => ({ ...prev, [field]: value }));
   }
 
+  function toggleSquadMember(personId: string) {
+    setForm((prev) => {
+      const set = new Set(prev.squadMemberIds ?? []);
+      if (set.has(personId)) set.delete(personId);
+      else set.add(personId);
+      return { ...prev, squadMemberIds: [...set] };
+    });
+  }
+
   function validate(): boolean {
-    const next: Partial<Record<string, string>> = {};
-    if (!form.clientName?.trim()) next.clientName = "Required";
-    if (!form.phone?.trim()) next.phone = "Required";
-    if (!form.shootDate) next.shootDate = "Required";
-    if (!form.location?.trim()) next.location = "Required";
-    if (!form.deliveryDate) next.deliveryDate = "Required";
-    if (!form.price || form.price <= 0) next.price = "Must be > 0";
-    if (!form.notes?.trim()) next.notes = "Required";
+    const next = validateSmartOrderInput(
+      {
+        clientName: form.clientName ?? order.clientName,
+        phone: form.phone ?? order.phone,
+        whatsapp: form.whatsapp ?? order.whatsapp,
+        projectType: (form.projectType ?? order.projectType) as ProjectType,
+        workspaceId: form.workspaceId ?? order.workspaceId,
+        shootDate: form.shootDate ?? order.shootDate,
+        location: form.location ?? "",
+        deliveryDate: form.deliveryDate ?? "",
+        price: form.price ?? order.price,
+        deposit: form.deposit ?? order.deposit,
+        team: form.team ?? order.team,
+        squadMemberIds: form.squadMemberIds ?? order.squadMemberIds,
+        status: (form.status ?? order.status) as OrderStatus,
+        brief: form.brief ?? "",
+        dressCode: form.dressCode,
+        latePenaltyEnabled: form.latePenaltyEnabled ?? false,
+        latePenaltyAmount: form.latePenaltyAmount ?? 0,
+        latePenaltyReason: form.latePenaltyReason ?? "",
+        notes: form.notes ?? "",
+        clientId: order.clientId,
+        projectId: order.projectId,
+      },
+      { excludeOrderId: order.id }
+    );
+    // Phone not required on edit (managed from profile)
+    delete next.phone;
     setErrors(next);
     return Object.keys(next).length === 0;
   }
@@ -94,14 +139,17 @@ function EditOrderForm({
       await onSave(order.id, {
         ...form,
         clientName: form.clientName!.trim(),
-        phone: form.phone!.trim(),
-        location: form.location!.trim(),
-        notes: form.notes!.trim(),
+        location: (form.location ?? "").trim(),
+        notes: (form.notes ?? "").trim(),
         workspaceId: workspaceIdFromProjectType(
           form.projectType as ProjectType
         ),
       });
       onOpenChange(false);
+    } catch (err) {
+      setErrors({
+        form: err instanceof Error ? err.message : "Failed to save",
+      });
     } finally {
       setSaving(false);
     }
@@ -109,6 +157,9 @@ function EditOrderForm({
 
   return (
     <form onSubmit={handleSubmit} className="grid gap-4">
+      {errors.form ? (
+        <p className="text-xs text-destructive">{errors.form}</p>
+      ) : null}
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-1.5">
           <Label>Client Name</Label>
@@ -119,12 +170,8 @@ function EditOrderForm({
           />
         </div>
         <div className="space-y-1.5">
-          <Label>Phone</Label>
-          <Input
-            value={form.phone ?? ""}
-            onChange={(e) => updateField("phone", e.target.value)}
-            aria-invalid={!!errors.phone}
-          />
+          <Label>Phone (managed in Client Profile)</Label>
+          <Input value={form.phone ?? ""} disabled />
         </div>
       </div>
       <div className="grid gap-4 sm:grid-cols-2">
@@ -185,7 +232,7 @@ function EditOrderForm({
           />
         </div>
         <div className="space-y-1.5">
-          <Label>Delivery Date</Label>
+          <Label>Delivery Date (optional)</Label>
           <Input
             type="date"
             value={form.deliveryDate ?? ""}
@@ -194,7 +241,7 @@ function EditOrderForm({
         </div>
       </div>
       <div className="space-y-1.5">
-        <Label>Location</Label>
+        <Label>Location (optional)</Label>
         <Input
           value={form.location ?? ""}
           onChange={(e) => updateField("location", e.target.value)}
@@ -222,7 +269,7 @@ function EditOrderForm({
           />
         </div>
         <div className="space-y-1.5">
-          <Label>Team</Label>
+          <Label>Squad</Label>
           <Select
             value={form.team}
             onValueChange={(v) => {
@@ -242,12 +289,99 @@ function EditOrderForm({
           </Select>
         </div>
       </div>
+
+      <div className="space-y-2">
+        <Label>Team Members</Label>
+        <div className="max-h-28 space-y-1 overflow-y-auto rounded-md border border-border/50 p-2">
+          {people.map((p) => {
+            const checked = (form.squadMemberIds ?? []).includes(p.id);
+            return (
+              <label
+                key={p.id}
+                className="flex cursor-pointer items-center gap-2 text-sm"
+              >
+                <input
+                  type="checkbox"
+                  checked={checked}
+                  onChange={() => toggleSquadMember(p.id)}
+                />
+                <span>{p.nickname || p.nameEn}</span>
+              </label>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="space-y-1.5">
+        <Label>Brief</Label>
+        <Textarea
+          value={form.brief ?? ""}
+          onChange={(e) => updateField("brief", e.target.value)}
+          rows={2}
+        />
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div className="space-y-1.5">
+          <Label>Dress Code</Label>
+          <Select
+            value={form.dressCode ?? ""}
+            onValueChange={(v) => {
+              if (!v) return;
+              updateField("dressCode", v as DressCode);
+            }}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Optional" />
+            </SelectTrigger>
+            <SelectContent>
+              {DRESS_CODES.map((c) => (
+                <SelectItem key={c} value={c}>
+                  {c}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-1.5">
+          <Label className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              checked={form.latePenaltyEnabled ?? false}
+              onChange={(e) =>
+                updateField("latePenaltyEnabled", e.target.checked)
+              }
+            />
+            Late Penalty
+          </Label>
+          {form.latePenaltyEnabled ? (
+            <div className="grid gap-2">
+              <Input
+                type="number"
+                min={0}
+                value={form.latePenaltyAmount || ""}
+                onChange={(e) =>
+                  updateField("latePenaltyAmount", Number(e.target.value) || 0)
+                }
+              />
+              <Input
+                placeholder="Reason"
+                value={form.latePenaltyReason ?? ""}
+                onChange={(e) =>
+                  updateField("latePenaltyReason", e.target.value)
+                }
+              />
+            </div>
+          ) : null}
+        </div>
+      </div>
+
       <div className="space-y-1.5">
         <Label>Notes</Label>
         <Textarea
           value={form.notes ?? ""}
           onChange={(e) => updateField("notes", e.target.value)}
-          rows={3}
+          rows={2}
         />
       </div>
       <DialogFooter>
@@ -274,10 +408,12 @@ export function EditOrderDialog({
 }: EditOrderDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-xl">
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>Edit Order</DialogTitle>
-          <DialogDescription>Update order details.</DialogDescription>
+          <DialogDescription>
+            Status changes sync calendar, crew, and finance automatically.
+          </DialogDescription>
         </DialogHeader>
         {order ? (
           <EditOrderForm

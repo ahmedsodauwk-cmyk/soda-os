@@ -7,6 +7,7 @@ export type ClientRow = {
   segment: string;
   name: string;
   phone: string;
+  whatsapp?: string | null;
   email: string | null;
   contact_person: string | null;
   company: string | null;
@@ -51,6 +52,7 @@ export function rowToClient(row: ClientRow): Client {
     segment: row.segment as ClientSegment,
     name: row.name,
     phone: row.phone ?? "",
+    ...(row.whatsapp ? { whatsapp: row.whatsapp } : {}),
     ...(row.email ? { email: row.email } : {}),
     ...(row.contact_person ? { contactPerson: row.contact_person } : {}),
     ...(row.company ? { company: row.company } : {}),
@@ -72,6 +74,7 @@ export function clientToRow(
     segment: client.segment,
     name: client.name,
     phone: client.phone ?? "",
+    whatsapp: client.whatsapp ?? null,
     email: client.email ?? null,
     contact_person: client.contactPerson ?? null,
     company: client.company ?? null,

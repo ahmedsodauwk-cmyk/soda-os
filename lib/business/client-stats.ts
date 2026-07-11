@@ -24,7 +24,7 @@ export function computeClientStats(
   ).length;
 
   const revenue = clientOrders
-    .filter((o) => o.status !== "Cancelled")
+    .filter((o) => o.status !== "Cancelled" && o.status !== "Holding" && o.status !== "Pending")
     .reduce((acc, o) => acc + o.price, 0);
 
   const paid = payments

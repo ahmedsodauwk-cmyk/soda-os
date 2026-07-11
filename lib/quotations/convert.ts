@@ -375,6 +375,7 @@ export async function convertQuotationToProject(
     clientId: client.id,
     clientName: client.name,
     phone: client.phone || quotation.contactPhone || "",
+    whatsapp: client.whatsapp || client.phone || quotation.contactPhone || "",
     projectType,
     workspaceId,
     shootDate,
@@ -384,7 +385,12 @@ export async function convertQuotationToProject(
     deposit,
     team:
       quotation.segment === "wedding" ? "Wedding Squad" : "Commercial Team",
-    status: "Scheduled",
+    squadMemberIds: [],
+    status: "Confirmed",
+    brief: "",
+    latePenaltyEnabled: false,
+    latePenaltyAmount: 0,
+    latePenaltyReason: "",
     notes: `From ${quotation.number}. ${quotation.notes}`.trim(),
   };
   {

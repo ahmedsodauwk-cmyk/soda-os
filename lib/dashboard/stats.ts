@@ -20,15 +20,23 @@ import {
   type UpcomingSchedule,
   type WorkspacePerformanceRow,
 } from "@/lib/dashboard/types";
+import {
+  isOrderActiveWorkload,
+  isOrderBillable,
+  isOrderCompleted,
+  isOrderInPipeline,
+} from "@/lib/orders/status";
 
 const ACTIVE_ORDER_STATUSES = new Set<OrderStatus>([
-  "Pending",
+  "Confirmed",
   "Scheduled",
   "Shooting",
   "Editing",
 ]);
 
 const PIPELINE_ORDER_STATUSES = new Set<OrderStatus>([
+  "Holding",
+  "Confirmed",
   "Pending",
   "Scheduled",
   "Shooting",
@@ -66,7 +74,7 @@ function monthLabel(yyyyMm: string): string {
 }
 
 function isBillable(order: Order): boolean {
-  return order.status !== "Cancelled";
+  return isOrderBillable(order.status);
 }
 
 function isActiveProject(project: Project): boolean {
@@ -235,9 +243,12 @@ export function computeTeamPerformance(
       }
 
       for (const order of projectOrders) {
-        if (order.status === "Delivered") {
+        if (isOrderCompleted(order.status)) {
           entry.completedOrderIds.add(order.id);
-        } else if (ACTIVE_ORDER_STATUSES.has(order.status)) {
+        } else if (
+          ACTIVE_ORDER_STATUSES.has(order.status) ||
+          isOrderActiveWorkload(order.status)
+        ) {
           entry.workloadOrderIds.add(order.id);
         }
       }
@@ -304,7 +315,10 @@ export function computeUpcomingSchedule(
     when,
   });
 
-  const pipeline = orders.filter((o) => PIPELINE_ORDER_STATUSES.has(o.status));
+  const pipeline = orders.filter(
+    (o) =>
+      PIPELINE_ORDER_STATUSES.has(o.status) || isOrderInPipeline(o.status)
+  );
 
   const todayShoots = pipeline
     .filter((o) => o.shootDate === asOf)

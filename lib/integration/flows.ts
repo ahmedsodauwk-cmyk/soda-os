@@ -374,9 +374,18 @@ export async function markShootComplete(orderId: string): Promise<{
   if (!order) {
     throw new Error(`Order not found: ${orderId}`);
   }
-  if (order.status === "Cancelled" || order.status === "Delivered") {
+  if (
+    order.status === "Cancelled" ||
+    order.status === "Delivered" ||
+    order.status === "Completed"
+  ) {
     throw new Error(
       `Cannot mark shoot complete for order in status ${order.status}`
+    );
+  }
+  if (order.status === "Holding" || order.status === "Pending") {
+    throw new Error(
+      `Confirm the order before marking shoot complete (status ${order.status})`
     );
   }
   const updated = await updateOrder(orderId, { status: "Editing" });

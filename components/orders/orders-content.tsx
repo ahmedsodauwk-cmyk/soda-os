@@ -18,17 +18,26 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { emitOrderClientPayment } from "@/lib/integration";
 import {
-  createOrder,
+  applyOrderStatus,
+  createSmartOrder,
+  updateSmartOrder,
+} from "@/lib/orders/engine";
+import {
   deleteOrder,
   getOrders,
   refreshOrders,
-  updateOrder,
 } from "@/lib/orders/repository";
 import { refreshProjects } from "@/lib/projects/repository";
 import { refreshClients } from "@/lib/clients/repository";
-import { ORDER_STATUSES, type NewOrderInput, type Order } from "@/lib/orders/types";
+import { refreshPeople } from "@/lib/people/repository";
+import { refreshAssignments } from "@/lib/assignments/repository";
+import { refreshFinance } from "@/lib/finance/repository";
+import {
+  ORDER_STATUSES,
+  type Order,
+  type SmartOrderInput,
+} from "@/lib/orders/types";
 import {
   filterOrders,
   WORKSPACE_TAB_ORDER,
@@ -53,8 +62,11 @@ export function OrdersContent() {
     let cancelled = false;
     void (async () => {
       await refreshClients();
+      await refreshPeople();
       await refreshProjects();
       await refreshOrders();
+      await refreshAssignments();
+      await refreshFinance();
       if (!cancelled) setOrders(getOrders());
     })().catch(console.error);
     return () => {
@@ -100,24 +112,31 @@ export function OrdersContent() {
     setSubcategoryFilter(null);
   }
 
-  async function handleAddOrder(input: NewOrderInput) {
-    const order = await createOrder(input);
-    if (input.deposit > 0) {
-      await emitOrderClientPayment({
-        orderId: order.id,
-        amount: input.deposit,
-        notes: `Deposit on order ${order.id}`,
-      });
-    }
+  async function handleAddOrder(input: SmartOrderInput) {
+    await createSmartOrder(input);
     setOrders(getOrders());
     router.refresh();
   }
 
-  async function handleSaveOrder(
-    id: string,
-    patch: Partial<Omit<Order, "id" | "projectId" | "clientId">>
-  ) {
-    await updateOrder(id, patch);
+  async function handleSaveOrder(id: string, patch: Partial<SmartOrderInput>) {
+    const existing = getOrders().find((o) => o.id === id);
+    if (
+      patch.status &&
+      existing &&
+      patch.status !== existing.status &&
+      (patch.status === "Confirmed" ||
+        patch.status === "Completed" ||
+        patch.status === "Delivered" ||
+        patch.status === "Cancelled")
+    ) {
+      const { status, ...rest } = patch;
+      if (Object.keys(rest).length > 0) {
+        await updateSmartOrder(id, rest);
+      }
+      await applyOrderStatus(id, status);
+    } else {
+      await updateSmartOrder(id, patch);
+    }
     setOrders(getOrders());
     router.refresh();
   }

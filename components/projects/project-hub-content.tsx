@@ -80,10 +80,13 @@ const sectionMeta: Record<
 
 function isOrderStatus(value: string): value is OrderStatus {
   return (
+    value === "Holding" ||
+    value === "Confirmed" ||
     value === "Pending" ||
     value === "Scheduled" ||
     value === "Shooting" ||
     value === "Editing" ||
+    value === "Completed" ||
     value === "Delivered" ||
     value === "Cancelled"
   );

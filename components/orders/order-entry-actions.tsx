@@ -3,10 +3,13 @@
 import { useRouter } from "next/navigation";
 
 import { AddOrderDialog } from "@/components/orders/add-order-dialog";
+import { refreshAssignments } from "@/lib/assignments/repository";
 import { refreshClients } from "@/lib/clients/repository";
-import { emitOrderClientPayment } from "@/lib/integration";
-import { createOrder, refreshOrders } from "@/lib/orders/repository";
-import type { NewOrderInput, ProjectType } from "@/lib/orders/types";
+import { refreshFinance } from "@/lib/finance/repository";
+import { createSmartOrder } from "@/lib/orders/engine";
+import { refreshOrders } from "@/lib/orders/repository";
+import type { ProjectType, SmartOrderInput } from "@/lib/orders/types";
+import { refreshPeople } from "@/lib/people/repository";
 import { refreshProjects } from "@/lib/projects/repository";
 
 interface OrderEntryActionsProps {
@@ -20,18 +23,14 @@ export function OrderEntryActions({
 }: OrderEntryActionsProps) {
   const router = useRouter();
 
-  async function handleAdd(input: NewOrderInput) {
+  async function handleAdd(input: SmartOrderInput) {
     await refreshClients();
+    await refreshPeople();
     await refreshProjects();
-    const order = await createOrder(input);
-    if (input.deposit > 0) {
-      await emitOrderClientPayment({
-        orderId: order.id,
-        amount: input.deposit,
-        notes: `Deposit on order ${order.id}`,
-      });
-    }
+    await createSmartOrder(input);
     await refreshOrders();
+    await refreshAssignments();
+    await refreshFinance();
     router.refresh();
   }
 

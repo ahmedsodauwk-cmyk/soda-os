@@ -17,7 +17,14 @@ import type {
 } from "@/lib/people/types";
 import { getProjects } from "@/lib/projects/repository";
 
-const ACTIVE_ORDER = new Set(["Pending", "Scheduled", "Shooting", "Editing"]);
+import { isOrderActiveWorkload, isOrderCompleted } from "@/lib/orders/status";
+
+const ACTIVE_ORDER = new Set([
+  "Confirmed",
+  "Scheduled",
+  "Shooting",
+  "Editing",
+]);
 
 /**
  * In-memory mirror so sync callers (payments, performance, crew history) keep working.
@@ -298,7 +305,9 @@ export function getPersonPerformance(
   const completedOrders = new Set(
     assignments
       .map((a) => orders.get(a.orderId))
-      .filter((o): o is Order => o != null && o.status === "Delivered")
+      .filter(
+        (o): o is Order => o != null && isOrderCompleted(o.status)
+      )
       .map((o) => o.id)
   );
 
@@ -310,7 +319,7 @@ export function getPersonPerformance(
 
   const workload = assignments.filter((a) => {
     const o = orders.get(a.orderId);
-    return o && ACTIVE_ORDER.has(o.status);
+    return o && (ACTIVE_ORDER.has(o.status) || isOrderActiveWorkload(o.status));
   }).length;
 
   const deliverySpeeds: number[] = [];

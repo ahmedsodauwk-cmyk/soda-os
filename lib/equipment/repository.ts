@@ -225,3 +225,47 @@ export async function assignEquipmentToPerson(
   upsertEquipmentCache(rowToEquipment(eqData as EquipmentRow));
   return { ...savedAsg };
 }
+
+/** Active (not returned) equipment assignments for a crew member. */
+export function getEquipmentAssignmentsByPerson(
+  personId: string
+): EquipmentAssignment[] {
+  return assignmentCache.filter(
+    (a) => a.personId === personId && !a.returnedAt
+  );
+}
+
+/** Mark equipment assignment returned and set item available. */
+export async function releaseEquipmentAssignment(
+  assignmentId: string
+): Promise<EquipmentAssignment | null> {
+  const current = assignmentCache.find((a) => a.id === assignmentId);
+  if (!current || current.returnedAt) return current ?? null;
+
+  const returnedAt = new Date().toISOString().slice(0, 10);
+  const db = createEquipmentDb();
+  const { data: asgData, error: asgErr } = await db
+    .from("equipment_assignments")
+    .update({ returned_at: returnedAt })
+    .eq("id", assignmentId)
+    .select("*")
+    .single();
+  if (asgErr) {
+    throw new Error(`Failed to release equipment assignment: ${asgErr.message}`);
+  }
+
+  const { data: eqData, error: eqErr } = await db
+    .from("equipment")
+    .update({ status: "available" })
+    .eq("id", current.equipmentId)
+    .select("*")
+    .single();
+  if (eqErr) {
+    throw new Error(`Failed to mark equipment available: ${eqErr.message}`);
+  }
+
+  const savedAsg = rowToAssignment(asgData as EquipmentAssignmentRow);
+  upsertAssignmentCache(savedAsg);
+  upsertEquipmentCache(rowToEquipment(eqData as EquipmentRow));
+  return { ...savedAsg };
+}

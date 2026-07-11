@@ -1,8 +1,11 @@
 export const ORDER_STATUSES = [
+  "Holding",
+  "Confirmed",
   "Pending",
   "Scheduled",
   "Shooting",
   "Editing",
+  "Completed",
   "Delivered",
   "Cancelled",
 ] as const;
@@ -20,6 +23,17 @@ export const PROJECT_TYPES = [
 
 export type ProjectType = (typeof PROJECT_TYPES)[number];
 
+export const DRESS_CODES = [
+  "Formal",
+  "Black",
+  "White",
+  "Traditional",
+  "Casual",
+  "Custom",
+] as const;
+
+export type DressCode = (typeof DRESS_CODES)[number];
+
 export interface Order {
   id: string;
   /** Required — Order belongs to exactly one Project */
@@ -28,6 +42,8 @@ export interface Order {
   clientId?: string;
   clientName: string;
   phone: string;
+  /** WhatsApp (order-level snapshot; client profile is source of truth after create) */
+  whatsapp: string;
   projectType: ProjectType;
   /** Denormalized taxonomy workspace id — Phase 2 filters keep working */
   workspaceId: string;
@@ -38,8 +54,16 @@ export interface Order {
   deliveryDate: string;
   price: number;
   deposit: number;
+  /** Squad label (e.g. Wedding Squad) */
   team: string;
+  /** Selected crew member ids for auto-assignments */
+  squadMemberIds: string[];
   status: OrderStatus;
+  brief: string;
+  dressCode?: DressCode;
+  latePenaltyEnabled: boolean;
+  latePenaltyAmount: number;
+  latePenaltyReason: string;
   notes: string;
 }
 
@@ -47,6 +71,23 @@ export interface Order {
 export type NewOrderInput = Omit<Order, "id" | "projectId" | "clientId"> & {
   projectId?: string;
   clientId?: string;
+};
+
+/**
+ * Smart Order Engine create/update payload.
+ * Extends NewOrderInput with inline client/project creation flags.
+ */
+export type SmartOrderInput = NewOrderInput & {
+  /** Create a new client inline (phone editable only on first create) */
+  createNewClient?: boolean;
+  /** Create a new project linked to the client */
+  createNewProject?: boolean;
+  /** Optional display name when creating a new project */
+  projectName?: string;
+  /** Default role for auto-created assignments */
+  assignmentRole?: string;
+  /** Default employee price for auto-created assignments */
+  assignmentPrice?: number;
 };
 
 export const TEAMS = [

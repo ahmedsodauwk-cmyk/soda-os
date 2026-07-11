@@ -20,6 +20,21 @@ export {
 } from "@/lib/integration/flows";
 
 export {
+  applyOrderStatus,
+  cancelOrder,
+  completeOrder,
+  confirmOrder,
+  createClientInline,
+  createSmartOrder,
+  getClientOrderContext,
+  getCrewMonthlyBonus,
+  updateSmartOrder,
+  type ClientOrderContext,
+  type OrderTransitionResult,
+  type SmartOrderResult,
+} from "@/lib/orders/engine";
+
+export {
   getAssignedProjectsForPerson,
   getClientOperatingView,
   getClientOrders,

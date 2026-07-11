@@ -1,10 +1,10 @@
 /**
  * Calendar — derived from project.calendar jsonb + order shoot/delivery dates.
- * No dedicated calendar_events table; projects.calendar jsonb is the schema store
- * for project milestones. Order dates supply shoot/delivery events.
+ * Holding / Cancelled orders are excluded (Smart Order Engine V3).
  */
 import type { CalendarEvent } from "@/lib/calendar/types";
 import { getOrders, refreshOrders } from "@/lib/orders/repository";
+import { isOrderCalendarVisible } from "@/lib/orders/status";
 import { getProjects, refreshProjects } from "@/lib/projects/repository";
 
 function fromProjects(): CalendarEvent[] {
@@ -28,6 +28,7 @@ function fromProjects(): CalendarEvent[] {
 function fromOrders(): CalendarEvent[] {
   const events: CalendarEvent[] = [];
   for (const order of getOrders()) {
+    if (!isOrderCalendarVisible(order.status)) continue;
     if (order.shootDate) {
       events.push({
         id: `ord-shoot-${order.id}`,

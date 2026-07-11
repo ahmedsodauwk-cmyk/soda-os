@@ -38,6 +38,9 @@ export function computeUpcomingShoots(
       (o) =>
         o.status !== "Cancelled" &&
         o.status !== "Delivered" &&
+        o.status !== "Completed" &&
+        o.status !== "Holding" &&
+        o.status !== "Pending" &&
         o.shootDate >= today
     )
     .sort((a, b) => a.shootDate.localeCompare(b.shootDate))

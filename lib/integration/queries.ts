@@ -24,6 +24,7 @@ import type { Currency, FinancialEvent } from "@/lib/finance/types";
 import { getDeliveriesByOrder } from "@/lib/invoices/repository";
 import type { OrderDelivery } from "@/lib/invoices/types";
 import { getOrders, getOrdersByClient, getOrdersByProject } from "@/lib/orders/repository";
+import { getCrewMonthlyBonus } from "@/lib/orders/crew-bonus";
 import type { Order } from "@/lib/orders/types";
 import {
   getPayments,
@@ -93,6 +94,13 @@ export interface CrewOperatingView {
     balance: number;
     events: FinancialEvent[];
   };
+  /** Monthly bonus: 20 completed orders → 3500 EGP */
+  monthlyBonus: {
+    monthKey: string;
+    completedCount: number;
+    bonusEgp: number;
+    qualified: boolean;
+  };
 }
 
 /** Client → orders, projects, payments, quotations + finance rollup. */
@@ -112,7 +120,12 @@ export function getClientOperatingView(
   const quotations = getQuotationsByClient(clientId);
 
   const obligatedTotal = orders
-    .filter((o) => o.status !== "Cancelled")
+    .filter(
+      (o) =>
+        o.status !== "Cancelled" &&
+        o.status !== "Holding" &&
+        o.status !== "Pending"
+    )
     .reduce((acc, o) => acc + o.price, 0);
 
   const paid = calculateClientPaid(clientId, currency);
@@ -225,6 +238,12 @@ export function getCrewOperatingView(
     parentId: personId,
   }).filter((e) => e.currency === currency);
 
+  const monthKey = new Date().toISOString().slice(0, 7);
+  const monthlyBonus = {
+    monthKey,
+    ...getCrewMonthlyBonus(personId, monthKey),
+  };
+
   return {
     personId,
     person,
@@ -239,6 +258,7 @@ export function getCrewOperatingView(
       balance,
       events,
     },
+    monthlyBonus,
   };
 }
 

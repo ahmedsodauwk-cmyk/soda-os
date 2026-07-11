@@ -129,6 +129,7 @@ async function main() {
       clientId: client.id,
       projectId: project.id,
       phone: client.phone,
+      whatsapp: client.phone,
       projectType: "Commercial",
       workspaceId: "commercial",
       shootDate: "2026-08-01",
@@ -137,7 +138,12 @@ async function main() {
       price: 25000,
       deposit: 5000,
       team: "Commercial Team",
+      squadMemberIds: [],
       status: "Shooting",
+      brief: "",
+      latePenaltyEnabled: false,
+      latePenaltyAmount: 0,
+      latePenaltyReason: "",
       notes: "workflow smoke",
     });
     ids.order = order.id;

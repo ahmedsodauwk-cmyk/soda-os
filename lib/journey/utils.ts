@@ -7,14 +7,17 @@ import type { OrderStatus } from "@/lib/orders/types";
 /** Map order pipeline status → approximate journey stage (fallback). */
 export function journeyFromOrderStatus(status: OrderStatus): JourneyStage {
   switch (status) {
+    case "Holding":
     case "Pending":
       return "Approved";
+    case "Confirmed":
     case "Scheduled":
       return "PreProduction";
     case "Shooting":
       return "Shoot";
     case "Editing":
       return "Editing";
+    case "Completed":
     case "Delivered":
       return "Delivery";
     case "Cancelled":

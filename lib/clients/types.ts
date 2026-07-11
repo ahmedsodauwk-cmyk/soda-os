@@ -15,6 +15,8 @@ export interface Client {
   /** Person name for individuals, company name for companies */
   name: string;
   phone: string;
+  /** WhatsApp number (may differ from phone) */
+  whatsapp?: string;
   email?: string;
   /** Primary contact for company clients */
   contactPerson?: string;

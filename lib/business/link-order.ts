@@ -5,6 +5,7 @@ import {
 } from "@/lib/clients/repository";
 import type { Client } from "@/lib/clients/types";
 import type { NewOrderInput, Order } from "@/lib/orders/types";
+import { mapOrderStatusToProjectStatus } from "@/lib/orders/status";
 import { workspaceIdFromProjectType } from "@/lib/orders/utils";
 import {
   cacheProject,
@@ -12,19 +13,8 @@ import {
   getAllProjectSeeds,
   getProjectSeedById,
 } from "@/lib/projects/repository";
-import type { Project, ProjectStatus } from "@/lib/projects/types";
+import type { Project } from "@/lib/projects/types";
 import { ensureTaxonomyPersisted } from "@/lib/taxonomy/persist";
-
-function mapOrderStatusToProjectStatus(status: Order["status"]): ProjectStatus {
-  switch (status) {
-    case "Delivered":
-      return "Completed";
-    case "Cancelled":
-      return "Cancelled";
-    default:
-      return "Active";
-  }
-}
 
 function resolveClientId(
   clientName: string,
@@ -49,7 +39,8 @@ async function resolveOrCreateClientId(
   clientName: string,
   phone: string,
   projectType: Order["projectType"],
-  explicit?: string
+  explicit?: string,
+  whatsapp?: string
 ): Promise<string> {
   const existing = resolveClientId(clientName, phone, explicit);
   if (existing) return existing;
@@ -63,6 +54,7 @@ async function resolveOrCreateClientId(
     segment,
     name: clientName.trim(),
     phone: phone || "",
+    ...(whatsapp ? { whatsapp } : {}),
   });
   return client.id;
 }
@@ -113,7 +105,8 @@ export async function ensureOrderProjectLink(
     input.clientName,
     input.phone,
     input.projectType,
-    input.clientId
+    input.clientId,
+    input.whatsapp
   );
 
   if (input.projectId) {
@@ -146,7 +139,7 @@ export async function ensureOrderProjectLink(
     team: [],
     upcomingShoots: [],
     lastActivity: now,
-    description: input.notes,
+    description: input.brief || input.notes,
     isActive: true,
     ...emptyHub(),
   });
