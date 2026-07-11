@@ -11,6 +11,7 @@ import {
 import StatCard from "@/components/dashboard/stat-card";
 import { KPI_COPY } from "@/lib/brand/soda-voice";
 import type { DashboardKpis } from "@/lib/dashboard/types";
+import { dashboardHref } from "@/lib/identity/navigation";
 import { formatPrice } from "@/lib/orders/utils";
 
 interface KPIGridProps {
@@ -50,6 +51,7 @@ export default function KPIGrid({ kpis }: KPIGridProps) {
         change={mom.change}
         trend={mom.trend}
         whisper={KPI_COPY.revenueThisMonth.whisper}
+        href={dashboardHref("revenue")}
       />
       <StatCard
         title={KPI_COPY.revenueLastMonth.title}
@@ -58,6 +60,7 @@ export default function KPIGrid({ kpis }: KPIGridProps) {
         change="Cash collected"
         trend="neutral"
         whisper={KPI_COPY.revenueLastMonth.whisper}
+        href={dashboardHref("collected")}
       />
       <StatCard
         title={KPI_COPY.outstanding.title}
@@ -66,6 +69,7 @@ export default function KPIGrid({ kpis }: KPIGridProps) {
         change="Open client balances"
         trend={kpis.outstandingPayments > 0 ? "down" : "neutral"}
         whisper={KPI_COPY.outstanding.whisper}
+        href={dashboardHref("outstanding")}
       />
       <StatCard
         title={KPI_COPY.activeProjects.title}
@@ -74,6 +78,7 @@ export default function KPIGrid({ kpis }: KPIGridProps) {
         change="Active + on hold"
         trend="neutral"
         whisper={KPI_COPY.activeProjects.whisper}
+        href={dashboardHref("activeProjects")}
       />
       <StatCard
         title={KPI_COPY.activeOrders.title}
@@ -82,6 +87,7 @@ export default function KPIGrid({ kpis }: KPIGridProps) {
         change="In production pipeline"
         trend="neutral"
         whisper={KPI_COPY.activeOrders.whisper}
+        href={dashboardHref("activeOrders")}
       />
       <StatCard
         title={KPI_COPY.upcomingShoots.title}
@@ -90,6 +96,7 @@ export default function KPIGrid({ kpis }: KPIGridProps) {
         change="From today onward"
         trend="up"
         whisper={KPI_COPY.upcomingShoots.whisper}
+        href={dashboardHref("upcomingShoots")}
       />
       <StatCard
         title={KPI_COPY.upcomingDeliveries.title}
@@ -98,6 +105,7 @@ export default function KPIGrid({ kpis }: KPIGridProps) {
         change="Due from today"
         trend="neutral"
         whisper={KPI_COPY.upcomingDeliveries.whisper}
+        href={dashboardHref("upcomingDeliveries")}
       />
       <StatCard
         title={KPI_COPY.activeClients.title}
@@ -106,6 +114,7 @@ export default function KPIGrid({ kpis }: KPIGridProps) {
         change="With live work or balance"
         trend="neutral"
         whisper={KPI_COPY.activeClients.whisper}
+        href={dashboardHref("activeClients")}
       />
     </div>
   );

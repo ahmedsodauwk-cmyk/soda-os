@@ -2,24 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import {
-  LayoutDashboard,
-  ShoppingCart,
-  Briefcase,
-  Heart,
-  Users,
-  UsersRound,
-  Calendar,
-  DollarSign,
-  Settings,
-  LogOut,
-  User,
-  Info,
-  FileText,
-  FolderKanban,
-  Camera,
-  BarChart3,
-} from "lucide-react";
+import { LogOut, User, Info, Settings } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -35,26 +18,25 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { SodaLogo } from "@/components/brand/soda-logo";
-import { SODA_OPERATOR, SODA_OPERATOR_EN } from "@/lib/brand/soda-voice";
+import { signOutAction } from "@/lib/auth/actions";
+import { navForRole } from "@/lib/identity/nav";
+import { ROLE_LABELS, type SodaRole } from "@/lib/identity/roles";
 
-const menu = [
-  { title: "Dashboard", icon: LayoutDashboard, href: "/" },
-  { title: "Quotations", icon: FileText, href: "/quotations" },
-  { title: "Orders", icon: ShoppingCart, href: "/orders" },
-  { title: "Projects", icon: FolderKanban, href: "/projects" },
-  { title: "Commercial", icon: Briefcase, href: "/commercial" },
-  { title: "Weddings", icon: Heart, href: "/orders/weddings" },
-  { title: "Clients", icon: Users, href: "/clients" },
-  { title: "The Crew", icon: UsersRound, href: "/crew" },
-  { title: "Equipment", icon: Camera, href: "/equipment" },
-  { title: "Calendar", icon: Calendar, href: "/calendar" },
-  { title: "Finance", icon: DollarSign, href: "/finance" },
-  { title: "Statistics", icon: BarChart3, href: "/statistics" },
-  { title: "Settings", icon: Settings, href: "#" },
-];
+export type SidebarUser = {
+  fullName: string;
+  role: SodaRole;
+  avatarInitials: string;
+  email: string;
+};
 
-export function SidebarContent() {
+interface SidebarContentProps {
+  user?: SidebarUser;
+}
+
+export function SidebarContent({ user }: SidebarContentProps) {
   const pathname = usePathname();
+  const role = user?.role ?? "owner";
+  const menu = navForRole(role);
 
   return (
     <>
@@ -70,7 +52,9 @@ export function SidebarContent() {
               item.href !== "#" &&
               (item.href === "/"
                 ? pathname === "/"
-                : pathname.startsWith(item.href) ||
+                : pathname === item.href ||
+                  (item.href !== "/me" && pathname.startsWith(`${item.href}/`)) ||
+                  (item.href === "/me" && pathname === "/me") ||
                   (item.href === "/commercial" &&
                     pathname.startsWith("/workspaces")) ||
                   (item.href === "/crew" && pathname.startsWith("/people")));
@@ -121,16 +105,17 @@ export function SidebarContent() {
           >
             <Avatar size="sm">
               <AvatarFallback className="bg-[#2D1B4E] text-xs font-medium text-white">
-                JS
+                {user?.avatarInitials ?? "SO"}
               </AvatarFallback>
             </Avatar>
 
             <div className="min-w-0 flex-1">
-              <p className="font-ar truncate text-sm font-medium" dir="rtl">
-                {SODA_OPERATOR}
+              <p className="truncate text-sm font-medium">
+                {user?.fullName ?? "SODA"}
               </p>
               <p className="truncate text-xs text-muted-foreground">
-                Administrator · {SODA_OPERATOR_EN}
+                {ROLE_LABELS[role]}
+                {user?.email ? ` · ${user.email}` : null}
               </p>
             </div>
           </DropdownMenuTrigger>
@@ -138,27 +123,33 @@ export function SidebarContent() {
           <DropdownMenuContent align="start" className="w-56">
             <DropdownMenuLabel>My Account</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem render={<Link href="/settings" />}>
               <User />
               Profile
             </DropdownMenuItem>
-            <DropdownMenuItem>
+            <DropdownMenuItem render={<Link href="/settings" />}>
               <Settings />
               Settings
+            </DropdownMenuItem>
+            <DropdownMenuItem render={<Link href="/settings/password" />}>
+              <Settings />
+              Change password
             </DropdownMenuItem>
             <DropdownMenuItem render={<Link href="/about" />}>
               <Info />
               About SODA
             </DropdownMenuItem>
-            <DropdownMenuItem render={<Link href="/login" />}>
-              <LogOut />
-              Login shell
-            </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem variant="destructive">
-              <LogOut />
-              Log out
-            </DropdownMenuItem>
+            <form action={signOutAction}>
+              <DropdownMenuItem
+                variant="destructive"
+                nativeButton={false}
+                render={<button type="submit" className="w-full" />}
+              >
+                <LogOut />
+                Log out
+              </DropdownMenuItem>
+            </form>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
@@ -166,10 +157,14 @@ export function SidebarContent() {
   );
 }
 
-export default function Sidebar() {
+interface SidebarProps {
+  user?: SidebarUser;
+}
+
+export default function Sidebar({ user }: SidebarProps) {
   return (
     <aside className="soda-sidebar-rail hidden h-screen w-60 shrink-0 flex-col border-r border-sidebar-border text-sidebar-foreground lg:flex">
-      <SidebarContent />
+      <SidebarContent user={user} />
     </aside>
   );
 }

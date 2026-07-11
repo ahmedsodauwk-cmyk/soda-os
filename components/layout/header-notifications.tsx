@@ -25,6 +25,27 @@ interface HeaderNotificationsProps {
   initial: NotificationRecord[];
 }
 
+function safeHref(item: NotificationRecord): string {
+  if (item.href && item.href.startsWith("/")) return item.href;
+  switch (item.entityType) {
+    case "order":
+      return `/orders/${item.entityId}`;
+    case "client":
+      return `/clients/${item.entityId}`;
+    case "project":
+      return `/projects/${item.entityId}`;
+    case "person":
+      return `/crew/${item.entityId}`;
+    case "payment":
+    case "invoice":
+      return "/finance";
+    case "quotation":
+      return `/quotations/${item.entityId}`;
+    default:
+      return "/notifications";
+  }
+}
+
 export function HeaderNotifications({ initial }: HeaderNotificationsProps) {
   const [readIds, setReadIds] = useState<Set<string>>(() => new Set());
 
@@ -61,36 +82,38 @@ export function HeaderNotifications({ initial }: HeaderNotificationsProps) {
       </Tooltip>
 
       <DropdownMenuContent align="end" className="w-80">
-        <DropdownMenuLabel>Notifications</DropdownMenuLabel>
+        <DropdownMenuLabel className="flex items-center justify-between gap-2">
+          <span>Notifications</span>
+          <Link
+            href="/notifications"
+            className="text-xs font-normal text-soda-pink hover:underline"
+          >
+            Open all
+          </Link>
+        </DropdownMenuLabel>
         <DropdownMenuSeparator />
         {items.length === 0 ? (
           <DropdownMenuItem disabled className="text-muted-foreground">
             No recent activity
           </DropdownMenuItem>
         ) : (
-          items.slice(0, 12).map((item) => (
-            <DropdownMenuItem
-              key={item.id}
-              className="items-start whitespace-normal"
-              onClick={() => markRead(item.id)}
-            >
-              {item.href ? (
-                <Link href={item.href} className="min-w-0 space-y-0.5">
+          items.slice(0, 12).map((item) => {
+            const href = safeHref(item);
+            return (
+              <DropdownMenuItem
+                key={item.id}
+                className="items-start whitespace-normal p-0"
+                onClick={() => markRead(item.id)}
+              >
+                <Link href={href} className="min-w-0 space-y-0.5 px-2 py-1.5">
                   <p className="text-sm font-medium">{item.title}</p>
                   <p className="line-clamp-2 text-xs text-muted-foreground">
                     {item.body}
                   </p>
                 </Link>
-              ) : (
-                <div className="min-w-0 space-y-0.5">
-                  <p className="text-sm font-medium">{item.title}</p>
-                  <p className="line-clamp-2 text-xs text-muted-foreground">
-                    {item.body}
-                  </p>
-                </div>
-              )}
-            </DropdownMenuItem>
-          ))
+              </DropdownMenuItem>
+            );
+          })
         )}
       </DropdownMenuContent>
     </DropdownMenu>

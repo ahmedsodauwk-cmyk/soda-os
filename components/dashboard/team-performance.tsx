@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   Card,
@@ -12,6 +14,7 @@ import {
 } from "@/lib/brand/soda-voice";
 import { getTeamDisplayName } from "@/lib/brand/team-names";
 import type { TeamPerformanceRow } from "@/lib/dashboard/types";
+import { dashboardHref } from "@/lib/identity/navigation";
 
 interface TeamPerformanceProps {
   team: TeamPerformanceRow[];
@@ -47,8 +50,9 @@ export default function TeamPerformance({
           </div>
         ) : (
           rows.map((member, index) => (
-            <div
+            <Link
               key={member.id}
+              href={`/crew/${member.id}`}
               className="flex items-center justify-between gap-3 rounded-lg p-2.5 transition-colors hover:bg-muted/50"
             >
               <div className="flex min-w-0 items-center gap-3">
@@ -93,9 +97,15 @@ export default function TeamPerformance({
                   </p>
                 </div>
               </div>
-            </div>
+            </Link>
           ))
         )}
+        <Link
+          href={dashboardHref("team")}
+          className="block pt-2 text-xs text-soda-pink hover:underline"
+        >
+          View all crew
+        </Link>
       </CardContent>
     </Card>
   );

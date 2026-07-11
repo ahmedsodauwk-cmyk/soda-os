@@ -1,6 +1,7 @@
 "use client";
 
 import { Menu, Settings } from "lucide-react";
+import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
 import { HeaderSearch } from "@/components/layout/header-search";
@@ -16,7 +17,10 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { SidebarContent } from "@/components/layout/sidebar";
+import {
+  SidebarContent,
+  type SidebarUser,
+} from "@/components/layout/sidebar";
 import { HumanTitle } from "@/components/brand/human-title";
 import { getModuleSlogan } from "@/lib/brand/soda-voice";
 import type { NotificationRecord } from "@/lib/core/types";
@@ -25,12 +29,14 @@ interface HeaderProps {
   title?: string;
   subtitle?: string;
   notifications?: NotificationRecord[];
+  user?: SidebarUser;
 }
 
 export default function Header({
   title = "Dashboard",
   subtitle = getModuleSlogan("dashboard"),
   notifications = [],
+  user,
 }: HeaderProps) {
   return (
     <header className="sticky top-0 z-10 flex min-h-[4.25rem] items-center justify-between gap-4 border-b border-border/80 bg-background/85 px-4 py-3.5 backdrop-blur-md sm:px-6">
@@ -48,7 +54,7 @@ export default function Header({
           <SheetContent side="left" className="w-60 gap-0 p-0" showCloseButton>
             <SheetTitle className="sr-only">Navigation</SheetTitle>
             <div className="flex h-full flex-col bg-sidebar text-sidebar-foreground">
-              <SidebarContent />
+              <SidebarContent user={user} />
             </div>
           </SheetContent>
         </Sheet>
@@ -67,7 +73,14 @@ export default function Header({
 
         <Tooltip>
           <TooltipTrigger
-            render={<Button variant="ghost" size="icon-sm" />}
+            render={
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                nativeButton={false}
+                render={<Link href="/settings" />}
+              />
+            }
           >
             <Settings />
             <span className="sr-only">Settings</span>

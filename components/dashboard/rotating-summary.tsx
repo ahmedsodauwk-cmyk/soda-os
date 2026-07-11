@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import {
@@ -47,7 +48,9 @@ export default function RotatingSummary({ panels }: RotatingSummaryProps) {
               key={`title-${panel.key}-${tick}`}
               className="soda-live-fade-enter"
             >
-              {panel.title}
+              <Link href={panel.href} className="hover:text-soda-pink">
+                {panel.title}
+              </Link>
             </CardTitle>
             <CardDescription className="mt-1 text-sm text-muted-foreground">
               {panel.description}
@@ -65,19 +68,28 @@ export default function RotatingSummary({ panels }: RotatingSummaryProps) {
           key={`${panel.key}-${tick}`}
           className="soda-live-fade-enter grid grid-cols-1 gap-2.5 sm:grid-cols-2"
         >
-          {panel.lines.map((line) => (
-            <div
-              key={`${panel.key}-${line.label}-${line.value}`}
-              className="rounded-xl border border-border/60 bg-background/40 px-3.5 py-3"
-            >
-              <dt className="text-[11px] tracking-wide text-muted-foreground">
-                {line.label}
-              </dt>
-              <dd className="mt-1 text-sm font-medium leading-snug text-foreground">
-                {line.value}
-              </dd>
-            </div>
-          ))}
+          {panel.lines.map((line) => {
+            const body = (
+              <>
+                <dt className="text-[11px] tracking-wide text-muted-foreground">
+                  {line.label}
+                </dt>
+                <dd className="mt-1 text-sm font-medium leading-snug text-foreground">
+                  {line.value}
+                </dd>
+              </>
+            );
+            const href = line.href ?? panel.href;
+            return (
+              <Link
+                key={`${panel.key}-${line.label}-${line.value}`}
+                href={href}
+                className="rounded-xl border border-border/60 bg-background/40 px-3.5 py-3 transition-colors hover:border-soda-pink/40"
+              >
+                {body}
+              </Link>
+            );
+          })}
         </dl>
       </CardContent>
     </Card>

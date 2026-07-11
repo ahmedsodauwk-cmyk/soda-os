@@ -22,6 +22,7 @@
     "db:business-rules": "npx tsx scripts/apply-business-rules-migration.ts",
     "db:financial-core": "npx tsx scripts/apply-financial-core-migration.ts",
     "db:smart-ops": "npx tsx scripts/apply-smart-ops-migration.ts",
+    "db:identity-nav": "npx tsx scripts/apply-identity-nav-migration.ts",
     "verify:business-core": "npx tsx scripts/verify-business-core.ts",
     "smoke:business-rules": "npx tsx scripts/smoke-business-rules.ts",
     "smoke:financial-core": "npx tsx scripts/smoke-financial-core.ts",

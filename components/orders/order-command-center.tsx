@@ -14,6 +14,8 @@ import {
 import { OrderStatusBadge } from "@/components/orders/order-status-badge";
 import { OrderEditButton } from "@/components/orders/order-edit-button";
 import { AssignCrewDialog } from "@/components/projects/assign-crew-dialog";
+import { BackLink } from "@/components/navigation/back-link";
+import { RelatedRecords } from "@/components/navigation/related-records";
 import { Badge } from "@/components/ui/badge";
 import {
   Card,
@@ -89,6 +91,33 @@ export function OrderCommandCenter({
 
   return (
     <div className="space-y-6">
+      <BackLink href="/orders" label="Orders" />
+      <RelatedRecords
+        title="Related records"
+        items={[
+          ...(order.clientId
+            ? [
+                {
+                  label: "Client",
+                  href: `/clients/${order.clientId}`,
+                  detail: order.clientName,
+                },
+              ]
+            : []),
+          ...(order.projectId
+            ? [
+                {
+                  label: "Project",
+                  href: `/projects/${order.projectId}`,
+                  detail: order.projectType,
+                },
+              ]
+            : []),
+          { label: "Finance", href: "/finance", detail: "Payments" },
+          { label: "Calendar", href: "/calendar", detail: order.shootDate },
+          { label: "Crew assignments", href: `/orders/${order.id}`, detail: "This order" },
+        ]}
+      />
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0 space-y-1">
           <div className="flex flex-wrap items-center gap-2">
@@ -375,7 +404,7 @@ export function OrderCommandCenter({
       <Card>
         <CardHeader>
           <CardTitle className="text-base">Activity</CardTitle>
-          <CardDescription>Business Core events for this order</CardDescription>
+          <CardDescription>Activity for this order</CardDescription>
         </CardHeader>
         <CardContent>
           {activity.length === 0 ? (
@@ -412,23 +441,27 @@ function Metric({
   label,
   value,
   hint,
+  href = "/finance",
 }: {
   label: string;
   value: string;
   hint?: string;
+  href?: string;
 }) {
   return (
-    <Card>
-      <CardContent className="pt-5">
-        <p className="text-xs tracking-wide text-muted-foreground uppercase">
-          {label}
-        </p>
-        <p className="mt-1 font-mono text-xl font-semibold">{value}</p>
-        {hint ? (
-          <p className="mt-1 text-xs capitalize text-muted-foreground">{hint}</p>
-        ) : null}
-      </CardContent>
-    </Card>
+    <Link href={href} className="block">
+      <Card className="transition-colors hover:border-soda-pink/40">
+        <CardContent className="pt-5">
+          <p className="text-xs tracking-wide text-muted-foreground uppercase">
+            {label}
+          </p>
+          <p className="mt-1 font-mono text-xl font-semibold">{value}</p>
+          {hint ? (
+            <p className="mt-1 text-xs capitalize text-muted-foreground">{hint}</p>
+          ) : null}
+        </CardContent>
+      </Card>
+    </Link>
   );
 }
 

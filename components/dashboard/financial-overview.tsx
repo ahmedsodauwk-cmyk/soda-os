@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import {
   Area,
   AreaChart,
@@ -22,6 +23,7 @@ import type {
   MonthlyRevenuePoint,
 } from "@/lib/dashboard/types";
 import { DASHBOARD_SECTION_COPY, HUMAN_LAYER } from "@/lib/brand";
+import { dashboardHref } from "@/lib/identity/navigation";
 import { formatPrice } from "@/lib/orders/utils";
 
 interface FinancialOverviewCardProps {
@@ -52,13 +54,18 @@ function Metric({
   label,
   value,
   layerHint,
+  href,
 }: {
   label: string;
   value: string;
   layerHint: string;
+  href: string;
 }) {
   return (
-    <div className="rounded-lg border border-primary/15 bg-primary/[0.05] px-3 py-2.5 first:border-soda-pink/25 first:bg-soda-pink/[0.06]">
+    <Link
+      href={href}
+      className="rounded-lg border border-primary/15 bg-primary/[0.05] px-3 py-2.5 transition-colors hover:border-soda-pink/40 hover:bg-soda-pink/[0.07] first:border-soda-pink/25 first:bg-soda-pink/[0.06]"
+    >
       <p className="text-xs text-muted-foreground">{label}</p>
       <p
         className="font-ar mt-0.5 text-[11px] leading-[1.7] text-muted-foreground"
@@ -69,7 +76,7 @@ function Metric({
       <p className="mt-0.5 font-mono text-lg font-semibold tracking-tight tabular-nums">
         {value}
       </p>
-    </div>
+    </Link>
   );
 }
 
@@ -85,7 +92,14 @@ export default function FinancialOverviewCard({
   return (
     <Card className="soda-cc-card h-full">
       <CardHeader>
-        <CardTitle>{DASHBOARD_SECTION_COPY.financial.title}</CardTitle>
+        <CardTitle>
+          <Link
+            href={dashboardHref("revenue")}
+            className="hover:text-soda-pink"
+          >
+            {DASHBOARD_SECTION_COPY.financial.title}
+          </Link>
+        </CardTitle>
         <CardDescription
           className="font-ar text-[0.9375rem] leading-[1.8] text-muted-foreground"
           dir="rtl"
@@ -99,25 +113,29 @@ export default function FinancialOverviewCard({
             label="Revenue"
             value={formatPrice(financial.revenue)}
             layerHint={HUMAN_LAYER.revenue}
+            href={dashboardHref("revenue")}
           />
           <Metric
             label="Outstanding"
             value={formatPrice(financial.outstanding)}
             layerHint={HUMAN_LAYER.outstanding}
+            href={dashboardHref("outstanding")}
           />
           <Metric
             label="Deposits"
             value={formatPrice(financial.deposits)}
             layerHint={HUMAN_LAYER.deposits}
+            href={dashboardHref("deposits")}
           />
           <Metric
             label="Remaining"
             value={formatPrice(financial.remainingBalance)}
             layerHint={HUMAN_LAYER.remaining}
+            href={dashboardHref("remaining")}
           />
         </div>
 
-        <div className="h-48">
+        <Link href={dashboardHref("revenue")} className="block h-48">
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={chartData}>
               <defs>
@@ -169,13 +187,16 @@ export default function FinancialOverviewCard({
               />
             </AreaChart>
           </ResponsiveContainer>
-        </div>
+        </Link>
 
         <p className="text-xs text-muted-foreground">
           Collected{" "}
-          <span className="font-mono text-foreground">
+          <Link
+            href={dashboardHref("collected")}
+            className="font-mono text-foreground hover:text-soda-pink"
+          >
             {formatPrice(financial.collected)}
-          </span>{" "}
+          </Link>{" "}
           · chart shows cash by month
         </p>
       </CardContent>

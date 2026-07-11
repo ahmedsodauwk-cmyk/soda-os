@@ -4,18 +4,13 @@
  */
 
 import type { BusinessEvent, NotificationRecord } from "@/lib/core/types";
+import { hrefForBusinessEvent } from "@/lib/identity/navigation";
 
 const MAX_MEMORY = 500;
 const notifications: NotificationRecord[] = [];
 
-function hrefFor(event: BusinessEvent): string | undefined {
-  const p = event.payload;
-  if (p.orderId) return `/orders/${p.orderId}`;
-  if (p.clientId) return `/clients/${p.clientId}`;
-  if (p.projectId) return `/projects/${p.projectId}`;
-  if (p.personId) return `/crew/${p.personId}`;
-  if (p.invoiceId) return `/finance`;
-  return undefined;
+function hrefFor(event: BusinessEvent): string {
+  return hrefForBusinessEvent(event);
 }
 
 function titleFor(event: BusinessEvent): string {

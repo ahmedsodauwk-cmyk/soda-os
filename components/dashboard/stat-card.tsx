@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { LucideIcon } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -16,6 +17,8 @@ type StatCardProps = {
   trend?: "up" | "down" | "neutral";
   /** Soft Egyptian Arabic line under the English title */
   whisper?: string;
+  /** Next logical page — required by navigation engine */
+  href?: string;
 };
 
 export default function StatCard({
@@ -25,9 +28,15 @@ export default function StatCard({
   change,
   trend = "neutral",
   whisper,
+  href,
 }: StatCardProps) {
-  return (
-    <Card className="soda-cc-card border-border/70 transition-colors hover:border-primary/30 hover:bg-primary/[0.04]">
+  const card = (
+    <Card
+      className={cn(
+        "soda-cc-card border-border/70 transition-colors hover:border-primary/30 hover:bg-primary/[0.04]",
+        href && "cursor-pointer"
+      )}
+    >
       <CardHeader className="flex-row items-start justify-between space-y-0 pb-2">
         <div className="min-w-0 space-y-1">
           <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -67,5 +76,12 @@ export default function StatCard({
         )}
       </CardContent>
     </Card>
+  );
+
+  if (!href) return card;
+  return (
+    <Link href={href} className="block focus-visible:outline-none">
+      {card}
+    </Link>
   );
 }

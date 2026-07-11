@@ -23,7 +23,8 @@ export interface RotatingSummaryPanel {
   key: RotatingSummaryKey;
   title: string;
   description: string;
-  lines: { label: string; value: string }[];
+  href: string;
+  lines: { label: string; value: string; href?: string }[];
 }
 
 const ROTATE_MS = 18_000;
@@ -49,24 +50,29 @@ export function buildRotatingSummaries(
     key: "operations",
     title: "Today's Operations",
     description: "Live KPIs from orders, projects, and schedule.",
+    href: "/orders",
     lines: [
       {
         label: "Active orders",
         value: String(snapshot.kpis.activeOrders),
+        href: "/orders",
       },
       {
         label: "Shoots today",
         value: String(snapshot.schedule.todayShoots.length),
+        href: "/calendar",
       },
       {
         label: "Deliveries today",
         value: String(
           snapshot.schedule.deliveries.filter((d) => d.when === "today").length
         ),
+        href: "/orders",
       },
       {
         label: "Needs attention",
         value: String(snapshot.attention.length),
+        href: "/#attention",
       },
     ],
   });
@@ -77,18 +83,22 @@ export function buildRotatingSummaries(
       key: "weddings",
       title: "Upcoming Weddings",
       description: "Wedding pipeline from real order data.",
+      href: "/orders/weddings",
       lines: [
         {
           label: "This month",
           value: `${wedding.thisMonthCount} · ${egp(wedding.totalRevenueThisMonth)}`,
+          href: "/orders/weddings",
         },
         {
           label: "Next month",
           value: String(wedding.nextMonthCount),
+          href: "/orders/weddings",
         },
         {
           label: "Delayed",
           value: String(wedding.delayedCount),
+          href: "/orders/weddings",
         },
       ],
     });
@@ -103,9 +113,11 @@ export function buildRotatingSummaries(
       key: "commercial",
       title: "Commercial Pipeline",
       description: "Active commercial lanes and revenue.",
+      href: "/commercial",
       lines: commercialWs.slice(0, 4).map((w) => ({
         label: w.label,
         value: `${w.activeProjects} projects · ${egp(w.revenue)}`,
+        href: `/commercial/${w.slug}`,
       })),
     });
   }
@@ -120,23 +132,28 @@ export function buildRotatingSummaries(
     panels.push({
       key: "quotations",
       title: "Quotation Pipeline",
-      description: "Sales pipeline from the quotation repository.",
+      description: "Sales pipeline from open quotations.",
+      href: "/quotations",
       lines: [
         {
           label: "Pending",
           value: String(quoteMetrics.pendingCount),
+          href: "/quotations",
         },
         {
           label: "Waiting client",
           value: String(quoteMetrics.waitingClientCount),
+          href: "/quotations",
         },
         {
           label: "Pipeline value",
           value: egp(quoteMetrics.pipelineValue),
+          href: "/quotations",
         },
         {
           label: "Won / lost (month)",
           value: `${quoteMetrics.wonThisMonth} / ${quoteMetrics.lostThisMonth}`,
+          href: "/quotations",
         },
       ],
     });
@@ -157,9 +174,11 @@ export function buildRotatingSummaries(
         todayDeliveries.length > 0
           ? "Deliveries due today."
           : "Upcoming deliveries on the radar.",
+      href: "/orders",
       lines: source.map((d) => ({
         label: d.clientName,
         value: d.title,
+        href: `/orders/${d.id}`,
       })),
     });
   }
@@ -174,9 +193,11 @@ export function buildRotatingSummaries(
       key: "payments",
       title: "Recent Payments",
       description: "Latest collected payments.",
+      href: "/finance",
       lines: recentPaid.map((p) => ({
         label: p.label ?? p.kind,
         value: `${egp(p.amount)} · ${p.paidAt}`,
+        href: p.orderId ? `/orders/${p.orderId}` : "/finance",
       })),
     });
   }
@@ -187,9 +208,11 @@ export function buildRotatingSummaries(
       key: "crew",
       title: "Crew Activity",
       description: "Workload from order assignments.",
+      href: "/crew",
       lines: snapshot.team.slice(0, 4).map((m) => ({
         label: m.name,
         value: `${m.currentWorkload} active · ${m.ordersCompleted} done`,
+        href: `/crew/${m.id}`,
       })),
     });
   }
@@ -199,13 +222,15 @@ export function buildRotatingSummaries(
     key: "revenue",
     title: "Revenue Snapshot",
     description: "Booked, collected, and outstanding.",
+    href: "/finance",
     lines: [
-      { label: "Booked", value: egp(snapshot.financial.revenue) },
-      { label: "Collected", value: egp(snapshot.financial.collected) },
-      { label: "Outstanding", value: egp(snapshot.financial.outstanding) },
+      { label: "Booked", value: egp(snapshot.financial.revenue), href: "/finance" },
+      { label: "Collected", value: egp(snapshot.financial.collected), href: "/finance" },
+      { label: "Outstanding", value: egp(snapshot.financial.outstanding), href: "/finance" },
       {
         label: "This month",
         value: egp(snapshot.kpis.revenueThisMonth),
+        href: "/finance",
       },
     ],
   });
@@ -216,9 +241,11 @@ export function buildRotatingSummaries(
       key: "deadlines",
       title: "Upcoming Deadlines",
       description: "Deadlines in the next window.",
+      href: "/calendar",
       lines: snapshot.schedule.deadlines.slice(0, 4).map((d) => ({
         label: d.date,
         value: `${d.clientName} · ${d.title}`,
+        href: `/orders/${d.id}`,
       })),
     });
   }

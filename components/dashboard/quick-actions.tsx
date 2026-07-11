@@ -59,10 +59,9 @@ const actions = [
   },
   {
     label: "View Reports",
-    href: "#",
+    href: "/statistics",
     icon: BarChart3,
-    enabled: false,
-    soon: true,
+    enabled: true,
   },
 ] as const;
 
