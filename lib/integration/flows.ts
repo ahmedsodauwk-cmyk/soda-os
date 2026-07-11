@@ -178,20 +178,23 @@ export async function emitOrderClientPayment(input: {
     );
   }
 
-  await publishBusinessEvent({
-    type: "PaymentReceived",
-    source: "integration.flows.emitOrderClientPayment",
-    payload: {
-      entityId: event.id,
-      entityType: "payment",
-      paymentId: input.paymentId,
-      orderId: input.orderId,
-      clientId: order?.clientId,
-      projectId: order?.projectId,
-      summary: `Client payment ${input.amount} on order ${input.orderId}`,
-      data: { amount: input.amount, financialEventId: event.id },
-    },
-  });
+  // When a payments row exists, createPayment/updatePayment already published
+  // PaymentReceived — avoid double-fire. Ledger-only deposits still publish.
+  if (!input.paymentId) {
+    await publishBusinessEvent({
+      type: "PaymentReceived",
+      source: "integration.flows.emitOrderClientPayment",
+      payload: {
+        entityId: event.id,
+        entityType: "payment",
+        orderId: input.orderId,
+        clientId: order?.clientId,
+        projectId: order?.projectId,
+        summary: `Client payment ${input.amount} on order ${input.orderId}`,
+        data: { amount: input.amount, financialEventId: event.id },
+      },
+    });
+  }
 
   return { event, allocations };
 }

@@ -197,7 +197,24 @@ export async function updateProject(
   }
   const saved = rowToProject(data as ProjectRow);
   upsertCache(saved);
-  return enrichProject(saved);
+  const enriched = enrichProject(saved);
+  await publishBusinessEvent({
+    type: "ProjectUpdated",
+    source: "projects.repository.updateProject",
+    payload: {
+      entityId: enriched.id,
+      entityType: "project",
+      projectId: enriched.id,
+      clientId: enriched.clientId,
+      summary: `Project updated: ${enriched.name}`,
+      data: {
+        patch: Object.keys(patch),
+        status: enriched.status,
+        journeyStage: enriched.journeyStage,
+      },
+    },
+  });
+  return enriched;
 }
 
 export async function deleteProject(id: string): Promise<void> {

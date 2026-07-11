@@ -1,6 +1,6 @@
--- SODA OS — Business Core event store + audit log
--- Append-only tables for business_events and audit_log.
--- Safe to re-run (IF NOT EXISTS).
+-- SODA OS — Business Core (paste once into Supabase Dashboard → SQL Editor)
+-- Creates public.business_events + public.audit_log with RLS matching domain modules.
+-- Safe to re-run (IF NOT EXISTS / DROP POLICY IF EXISTS).
 
 -- ---------------------------------------------------------------------------
 -- Business events (source-of-truth stream for cross-module sync)

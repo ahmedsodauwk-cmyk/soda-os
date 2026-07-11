@@ -39,13 +39,16 @@ export {
 
 export {
   getBusinessEventsByEntity,
+  getBusinessEventsByEntityFromDb,
   listBusinessEvents,
+  refreshBusinessEventsFromDb,
 } from "@/lib/core/events-store";
 
 export {
   appendAuditFromEvent,
   getAuditByEntity,
   listAuditLog,
+  refreshAuditLogFromDb,
 } from "@/lib/core/audit/engine";
 
 export {

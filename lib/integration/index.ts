@@ -52,6 +52,8 @@ export {
   bootstrapBusinessCore,
   listAuditLog,
   listBusinessEvents,
+  refreshAuditLogFromDb,
+  refreshBusinessEventsFromDb,
   listNotifications,
   publishBusinessEvent,
   getStatsMeta,

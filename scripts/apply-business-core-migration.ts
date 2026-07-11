@@ -59,7 +59,9 @@ async function main() {
   if (!connectionString) {
     console.log(`
 Blocked: no DATABASE_URL or SUPABASE_DB_PASSWORD.
-Paste ${MIGRATION} into Supabase Dashboard → SQL Editor.
+Paste ONE file into Supabase Dashboard → SQL Editor:
+  SODA_BUSINESS_CORE.sql
+(or ${MIGRATION})
 `);
     process.exit(1);
   }

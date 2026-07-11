@@ -122,7 +122,8 @@ export async function createAssignment(
 
 /**
  * Update operational paidAmount on an assignment.
- * Prefer `payCrewAssignment` from lib/integration so the ledger stays in sync.
+ * Prefer `payCrewAssignment` from lib/integration so the ledger stays in sync
+ * and CrewPaid is published once (this helper does not publish).
  */
 export async function updateAssignmentPayment(
   id: string,
@@ -153,21 +154,7 @@ export async function updateAssignmentPayment(
   }
   const saved = rowToAssignment(data as AssignmentRow);
   upsertCache(saved);
-  if (patch.paidAmount > (current.paidAmount ?? 0)) {
-    await publishBusinessEvent({
-      type: "CrewPaid",
-      source: "assignments.repository.updateAssignmentPayment",
-      payload: {
-        entityId: saved.id,
-        entityType: "assignment",
-        assignmentId: saved.id,
-        orderId: saved.orderId,
-        personId: saved.personId,
-        summary: `Crew payment updated on assignment ${saved.id}`,
-        data: { paidAmount: saved.paidAmount, paidAt: saved.paidAt },
-      },
-    });
-  }
+  // CrewPaid is published only by payCrewAssignment (single path) — not here.
   return { ...saved };
 }
 

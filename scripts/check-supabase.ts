@@ -30,6 +30,8 @@ const EXPECTED_TABLES = [
   "financial_events",
   "financial_allocations",
   "files",
+  "business_events",
+  "audit_log",
   "_connection_tests",
 ] as const;
 
