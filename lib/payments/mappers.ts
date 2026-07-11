@@ -1,4 +1,10 @@
-import type { Payment, PaymentKind, PaymentStatus } from "@/lib/payments/types";
+import type {
+  Payment,
+  PaymentKind,
+  PaymentStatus,
+} from "@/lib/payments/types";
+import type { PaymentMethod } from "@/lib/wallets/types";
+import { isPaymentMethod } from "@/lib/wallets/types";
 
 export type PaymentRow = {
   id: string;
@@ -13,10 +19,17 @@ export type PaymentRow = {
   paid_at: string | null;
   note: string | null;
   label: string | null;
+  method?: string | null;
+  reference?: string | null;
+  receiver?: string | null;
   created_at?: string;
 };
 
 export function rowToPayment(row: PaymentRow): Payment {
+  const method =
+    row.method && isPaymentMethod(row.method)
+      ? (row.method as PaymentMethod)
+      : undefined;
   return {
     id: row.id,
     orderId: row.order_id,
@@ -30,6 +43,9 @@ export function rowToPayment(row: PaymentRow): Payment {
     ...(row.paid_at ? { paidAt: row.paid_at } : {}),
     ...(row.note ? { note: row.note } : {}),
     ...(row.label ? { label: row.label } : {}),
+    ...(method ? { method } : {}),
+    ...(row.reference ? { reference: row.reference } : {}),
+    ...(row.receiver ? { receiver: row.receiver } : {}),
   };
 }
 
@@ -47,5 +63,8 @@ export function paymentToRow(p: Payment): Record<string, unknown> {
     paid_at: p.paidAt ?? null,
     note: p.note ?? null,
     label: p.label ?? null,
+    method: p.method ?? null,
+    reference: p.reference ?? null,
+    receiver: p.receiver ?? null,
   };
 }

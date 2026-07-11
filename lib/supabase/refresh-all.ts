@@ -1,6 +1,3 @@
-/**
- * Refresh all domain caches from Supabase (server pages / dashboard).
- */
 import { refreshAssignments } from "@/lib/assignments/repository";
 import { refreshClients } from "@/lib/clients/repository";
 import { bootstrapBusinessCore } from "@/lib/core/bootstrap";
@@ -14,6 +11,12 @@ import { refreshPeople } from "@/lib/people/repository";
 import { refreshProjects } from "@/lib/projects/repository";
 import { refreshQuotations } from "@/lib/quotations/repository";
 import { ensureTaxonomyPersisted } from "@/lib/taxonomy/persist";
+import {
+  ensureDefaultCashAccounts,
+  refreshCashAccounts,
+  refreshCashMovements,
+} from "@/lib/wallets/cash-accounts";
+import { refreshCrewEarnings } from "@/lib/wallets/crew-wallet";
 
 export async function refreshAllDomainData(): Promise<void> {
   bootstrapBusinessCore();
@@ -30,5 +33,9 @@ export async function refreshAllDomainData(): Promise<void> {
     refreshInvoices(),
     refreshFinance(),
     refreshFiles(),
+    refreshCashAccounts(),
+    refreshCashMovements(),
+    refreshCrewEarnings(),
   ]);
+  await ensureDefaultCashAccounts();
 }

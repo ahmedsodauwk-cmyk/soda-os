@@ -35,7 +35,7 @@ export interface ProjectPayment {
   label: string;
   amount: number;
   kind: "deposit" | "installment" | "final" | "refund";
-  status: "pending" | "paid" | "failed" | "waived";
+  status: "pending" | "paid" | "failed" | "waived" | "voided";
   paidAt?: string;
 }
 

@@ -23,9 +23,13 @@ export const BUSINESS_EVENT_TYPES = [
   "CrewAssigned",
   "CrewRemoved",
   "CrewPaid",
+  "CrewBonusGenerated",
   "EquipmentAssigned",
   "EquipmentReturned",
   "QuotationConverted",
+  "FinancialReversed",
+  "FinancialVoided",
+  "FinancialCorrected",
 ] as const;
 
 export type BusinessEventType = (typeof BUSINESS_EVENT_TYPES)[number];

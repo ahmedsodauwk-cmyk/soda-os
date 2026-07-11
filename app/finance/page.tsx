@@ -2,6 +2,8 @@ import { AppShell } from "@/components/layout/app-shell";
 import { PaymentsEntryContent } from "@/components/finance/payments-entry-content";
 import { Badge } from "@/components/ui/badge";
 import { getEmptyState, getModuleSlogan } from "@/lib/brand";
+import { bootstrapBusinessCore } from "@/lib/core/bootstrap";
+import { getFinancialReportSnapshot } from "@/lib/core/rules/aggregators";
 import {
   getCompanyWallet,
   getFinanceSummary,
@@ -10,6 +12,12 @@ import {
 } from "@/lib/finance";
 import { refreshOrders } from "@/lib/orders/repository";
 import { refreshPayments } from "@/lib/payments/repository";
+import {
+  ensureDefaultCashAccounts,
+  refreshCashAccounts,
+  refreshCashMovements,
+} from "@/lib/wallets/cash-accounts";
+import { refreshCrewEarnings } from "@/lib/wallets/crew-wallet";
 
 export const dynamic = "force-dynamic";
 
@@ -18,9 +26,20 @@ function egp(n: number) {
 }
 
 export default async function FinancePage() {
-  await Promise.all([refreshFinance(), refreshOrders(), refreshPayments()]);
+  bootstrapBusinessCore();
+  await Promise.all([
+    refreshFinance(),
+    refreshOrders(),
+    refreshPayments(),
+    refreshCashAccounts(),
+    refreshCashMovements(),
+    refreshCrewEarnings(),
+  ]);
+  await ensureDefaultCashAccounts();
+
   const wallet = getCompanyWallet();
   const summary = getFinanceSummary();
+  const report = getFinancialReportSnapshot();
   const events = listFinancialEvents().slice(0, 40);
 
   return (
@@ -31,8 +50,8 @@ export default async function FinancePage() {
             Company wallet
           </p>
           <p className="mt-1 max-w-xl text-sm text-muted-foreground">
-            Live rollup from the Financial Engine. Record client payments below
-            to keep the ledger current.
+            Live rollup from the Business Rules Engine. Method wallets update
+            automatically when payments are received.
           </p>
           <dl className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
             <div>
@@ -60,9 +79,35 @@ export default async function FinancePage() {
               </dd>
             </div>
             <div>
-              <dt className="text-xs text-muted-foreground">Events</dt>
+              <dt className="text-xs text-muted-foreground">Pending crew</dt>
               <dd className="font-mono text-sm tabular-nums">
-                {wallet.eventCount}
+                {egp(report.pendingCrewPayments)}
+              </dd>
+            </div>
+          </dl>
+          <dl className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div>
+              <dt className="text-xs text-muted-foreground">Cash Safe</dt>
+              <dd className="font-mono text-sm tabular-nums">
+                {egp(report.cashSafe)}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-xs text-muted-foreground">Bank</dt>
+              <dd className="font-mono text-sm tabular-nums">
+                {egp(report.bank)}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-xs text-muted-foreground">Instapay</dt>
+              <dd className="font-mono text-sm tabular-nums">
+                {egp(report.instapay)}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-xs text-muted-foreground">Vodafone Cash</dt>
+              <dd className="font-mono text-sm tabular-nums">
+                {egp(report.vodafoneCash)}
               </dd>
             </div>
           </dl>

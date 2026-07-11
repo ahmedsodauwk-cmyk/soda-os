@@ -107,3 +107,12 @@ export type {
 } from "@/lib/finance/contracts/integration-contracts";
 
 export { financialAllocations, financialEvents } from "@/lib/finance/seed";
+
+export {
+  correctFinancialEvent,
+  isFinancialEventNeutralized,
+  reverseFinancialEvent,
+  voidFinancialEvent,
+} from "@/lib/finance/safety";
+
+export type { FinancialSafetyAction } from "@/lib/finance/safety";

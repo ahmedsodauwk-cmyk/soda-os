@@ -24,6 +24,8 @@ import {
   refreshEquipment,
 } from "@/lib/equipment/repository";
 import { getCrewOperatingView } from "@/lib/integration";
+import { getCrewWallet } from "@/lib/wallets/crew-wallet";
+import { CREW_MONTHLY_BONUS_THRESHOLD } from "@/lib/orders/status";
 
 function egp(n: number) {
   return `${n.toLocaleString("en-EG")} EGP`;
@@ -44,6 +46,7 @@ export async function CrewProfile({ personId }: CrewProfileProps) {
   const history = getEquipmentHistoryForPerson(personId);
   const workHistory = getCrewWorkHistory(personId);
   const operating = getCrewOperatingView(personId);
+  const crewWallet = getCrewWallet(personId);
 
   return (
     <div className="space-y-6">
@@ -158,6 +161,75 @@ export async function CrewProfile({ personId }: CrewProfileProps) {
           </Card>
         ))}
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Crew wallet</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <dl className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <div>
+              <dt className="text-xs text-muted-foreground">Pending</dt>
+              <dd className="font-mono text-sm">{egp(crewWallet.pendingTotal)}</dd>
+            </div>
+            <div>
+              <dt className="text-xs text-muted-foreground">Paid (lines)</dt>
+              <dd className="font-mono text-sm">{egp(crewWallet.paidTotal)}</dd>
+            </div>
+            <div>
+              <dt className="text-xs text-muted-foreground">
+                Month orders ({crewWallet.monthKey})
+              </dt>
+              <dd className="font-mono text-sm">
+                {crewWallet.monthlyCompletedOrders}/{CREW_MONTHLY_BONUS_THRESHOLD}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-xs text-muted-foreground">Bonus</dt>
+              <dd className="font-mono text-sm">
+                {crewWallet.bonusQualified
+                  ? egp(crewWallet.bonusEgp)
+                  : `${Math.round(crewWallet.bonusProgress * 100)}%`}
+              </dd>
+            </div>
+          </dl>
+          {crewWallet.earnings.filter((e) => e.status === "pending").length >
+          0 ? (
+            <ul className="space-y-2">
+              {crewWallet.earnings
+                .filter((e) => e.status === "pending")
+                .slice(0, 8)
+                .map((e) => (
+                  <li
+                    key={e.id}
+                    className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border/50 px-3 py-2 text-sm"
+                  >
+                    <div>
+                      <p className="font-medium">
+                        {e.role}
+                        {e.clientName ? (
+                          <span className="ms-2 font-normal text-muted-foreground">
+                            · {e.clientName}
+                          </span>
+                        ) : null}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {e.shootDate ?? "—"}
+                        {e.orderId ? ` · ${e.orderId.slice(0, 10)}…` : ""}
+                        {e.bonusKind === "monthly_target" ? " · monthly bonus" : ""}
+                      </p>
+                    </div>
+                    <span className="font-mono text-xs">{egp(e.amount)}</span>
+                  </li>
+                ))}
+            </ul>
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              No pending earnings.
+            </p>
+          )}
+        </CardContent>
+      </Card>
 
       {(performance.achievements.length > 0 ||
         performance.warnings.length > 0) && (

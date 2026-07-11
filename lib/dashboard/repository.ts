@@ -1,25 +1,17 @@
-import { buildDashboardSnapshot } from "@/lib/dashboard/stats";
+import { getDashboardFromBusinessCore } from "@/lib/core/rules/aggregators";
 import type { DashboardSnapshot } from "@/lib/dashboard/types";
-import { getClients } from "@/lib/clients/repository";
-import { getOrders } from "@/lib/orders/repository";
-import { getPayments } from "@/lib/payments/repository";
-import { getProjects } from "@/lib/projects/repository";
 import { refreshAllDomainData } from "@/lib/supabase/refresh-all";
-import { getWorkspaceSummaries } from "@/lib/workspaces/repository";
 
-/** Assemble executive dashboard from repositories + pure aggregations. */
+/**
+ * Dashboard reads ONLY from Business Core aggregators.
+ * Pages must not invent ad-hoc KPI math.
+ */
 export function getDashboardSnapshot(): DashboardSnapshot {
-  return buildDashboardSnapshot({
-    projects: getProjects(),
-    orders: getOrders(),
-    clients: getClients(),
-    payments: getPayments(),
-    workspaceSummaries: getWorkspaceSummaries(),
-  });
+  return getDashboardFromBusinessCore();
 }
 
-/** Refresh all Supabase caches then assemble dashboard. */
+/** Refresh all Supabase caches then assemble dashboard via Business Core. */
 export async function loadDashboardSnapshot(): Promise<DashboardSnapshot> {
   await refreshAllDomainData();
-  return getDashboardSnapshot();
+  return getDashboardFromBusinessCore();
 }

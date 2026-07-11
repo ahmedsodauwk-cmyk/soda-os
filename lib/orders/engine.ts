@@ -20,11 +20,15 @@ import {
 import type { Client } from "@/lib/clients/types";
 import { publishBusinessEvent } from "@/lib/core/publish";
 import {
+  ensureOrderForecast,
+  reverseOrderForecast,
+  syncProjectCalendarFromOrder,
+} from "@/lib/core/rules/order-effects";
+import {
   getEquipmentAssignmentsByPerson,
   releaseEquipmentAssignment,
 } from "@/lib/equipment/repository";
 import {
-  createFinancialEvent,
   listFinancialEvents,
 } from "@/lib/finance/repository";
 import type { FinancialEvent } from "@/lib/finance/types";
@@ -61,7 +65,6 @@ import {
   createProject,
   getProjectSeedById,
   getProjectsByClient,
-  updateProject,
 } from "@/lib/projects/repository";
 import type { Project } from "@/lib/projects/types";
 import { ensureTaxonomyPersisted } from "@/lib/taxonomy/persist";
@@ -77,6 +80,8 @@ function orderEventPayload(order: Order, summary: string) {
     data: {
       order,
       status: order.status,
+      /** Rules engine owns calendar / forecast / dashboard sync */
+      rulesOwned: true,
       projectSynced: true,
     },
   };
@@ -290,9 +295,14 @@ async function syncSquadAssignments(
   order: Order,
   options?: { role?: string; employeePrice?: number }
 ): Promise<OrderAssignment[]> {
-  if (isOrderHolding(order.status) || order.status === "Cancelled") {
+  // Cancelled orders never gain new assignments
+  if (order.status === "Cancelled") {
     return getAssignmentsByOrder(order.id);
   }
+
+  // Holding/Pending: still create assignment rows (rates locked in) so Confirm
+  // can activate pending earnings without losing assignmentPrice from create.
+  // Pending crew wallet lines are gated by isOrderOperational in rules.
 
   const existing = getAssignmentsByOrder(order.id);
   const existingPeople = new Set(existing.map((a) => a.personId));
@@ -319,111 +329,23 @@ async function syncSquadAssignments(
 }
 
 async function syncProjectFromOrder(order: Order): Promise<void> {
-  if (!order.projectId) return;
-  const calendar =
-    isOrderHolding(order.status) || order.status === "Cancelled"
-      ? []
-      : [
-          ...(order.shootDate
-            ? [
-                {
-                  id: `ord-shoot-${order.id}`,
-                  title: `Shoot · ${order.clientName}`,
-                  startsAt: `${order.shootDate}T09:00:00Z`,
-                  kind: "shoot" as const,
-                  location: order.location || undefined,
-                },
-              ]
-            : []),
-          ...(order.deliveryDate
-            ? [
-                {
-                  id: `ord-delivery-${order.id}`,
-                  title: `Delivery · ${order.clientName}`,
-                  startsAt: `${order.deliveryDate}T17:00:00Z`,
-                  kind: "delivery" as const,
-                },
-              ]
-            : []),
-        ];
-
-  await updateProject(order.projectId, {
-    status: mapOrderStatusToProjectStatus(order.status),
-    clientName: order.clientName,
-    ...(order.clientId ? { clientId: order.clientId } : {}),
-    calendar,
-    lastActivity: new Date().toISOString(),
-  });
+  await syncProjectCalendarFromOrder(order);
 }
 
 async function emitForecastIfNeeded(
   order: Order,
   events: FinancialEvent[]
 ): Promise<void> {
-  if (!isOrderBillable(order.status)) return;
-  const remaining = Math.max(0, order.price - order.deposit);
-  if (remaining <= 0) return;
-
-  const existing = listFinancialEvents().find(
-    (e) =>
-      e.parent.parentType === "order" &&
-      e.parent.parentId === order.id &&
-      e.metadata?.kind === "order_forecast"
-  );
-  if (existing) {
-    events.push(existing);
-    return;
-  }
-
-  const event = await createFinancialEvent({
-    type: "adjustment",
-    amount: remaining,
-    currency: "EGP",
-    direction: "inflow",
-    notes: `Forecast remaining for order ${order.id}`,
-    parent: { parentType: "order", parentId: order.id },
-    metadata: {
-      kind: "order_forecast",
-      clientId: order.clientId,
-      projectId: order.projectId,
-      forecast: true,
-    },
-  });
-  events.push(event);
+  const event = await ensureOrderForecast(order);
+  if (event) events.push(event);
 }
 
 async function reverseForecast(
   orderId: string,
   events: FinancialEvent[]
 ): Promise<void> {
-  const forecasts = listFinancialEvents().filter(
-    (e) =>
-      e.parent.parentType === "order" &&
-      e.parent.parentId === orderId &&
-      e.metadata?.kind === "order_forecast"
-  );
-  for (const forecast of forecasts) {
-    const alreadyReversed = listFinancialEvents().some(
-      (e) =>
-        e.metadata?.kind === "order_forecast_reversal" &&
-        e.metadata?.reversesEventId === forecast.id
-    );
-    if (alreadyReversed) continue;
-    const event = await createFinancialEvent({
-      type: "adjustment",
-      amount: forecast.amount,
-      currency: "EGP",
-      direction: "outflow",
-      notes: `Reverse forecast for cancelled order ${orderId}`,
-      parent: { parentType: "order", parentId: orderId },
-      metadata: {
-        kind: "order_forecast_reversal",
-        reversesEventId: forecast.id,
-        forecast: false,
-      },
-    });
-    events.push(event);
-  }
+  const created = await reverseOrderForecast(orderId);
+  events.push(...created);
 }
 
 /**

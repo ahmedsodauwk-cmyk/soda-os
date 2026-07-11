@@ -72,3 +72,31 @@ export {
   getFinanceHookSnapshot,
   runFinanceAggregatorHook,
 } from "@/lib/core/finance/hooks";
+
+export {
+  areBusinessRulesRegistered,
+  clearRegisteredRules,
+  ensureOrderForecast,
+  executeRulesForEvent,
+  getBusinessCoreHealth,
+  getClientProfileStats,
+  getDashboardFromBusinessCore,
+  getFinancialReportSnapshot,
+  getRecentRuleResults,
+  listRegisteredRules,
+  listRulesByGroup,
+  markRevenueReadyForCollection,
+  refreshDashboardAggregator,
+  registerAllBusinessRules,
+  registerRule,
+  reverseOrderForecast,
+  syncProjectCalendarFromOrder,
+} from "@/lib/core/rules";
+
+export type {
+  BusinessRule,
+  BusinessRuleContext,
+  BusinessRuleHandler,
+  RuleGroupId,
+  RuleRunResult,
+} from "@/lib/core/rules";

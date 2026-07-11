@@ -37,9 +37,16 @@ import {
   updatePayment,
 } from "@/lib/payments/repository";
 import type { Payment, PaymentKind, PaymentStatus } from "@/lib/payments/types";
+import type { PaymentMethod } from "@/lib/wallets/types";
 
 const KINDS: PaymentKind[] = ["deposit", "installment", "final", "refund"];
 const STATUSES: PaymentStatus[] = ["pending", "paid", "failed", "waived"];
+const METHODS: { value: PaymentMethod; label: string }[] = [
+  { value: "cash", label: "Cash" },
+  { value: "bank", label: "Bank" },
+  { value: "instapay", label: "Instapay" },
+  { value: "vodafone_cash", label: "Vodafone Cash" },
+];
 
 function egp(n: number) {
   return `${n.toLocaleString("en-EG")} EGP`;
@@ -57,6 +64,9 @@ function RecordPaymentDialog({
   const [amount, setAmount] = useState("");
   const [kind, setKind] = useState<PaymentKind>("installment");
   const [status, setStatus] = useState<PaymentStatus>("paid");
+  const [method, setMethod] = useState<PaymentMethod>("cash");
+  const [reference, setReference] = useState("");
+  const [receiver, setReceiver] = useState("");
   const [note, setNote] = useState("");
   const [saving, setSaving] = useState(false);
 
@@ -80,6 +90,9 @@ function RecordPaymentDialog({
         paidAt: status === "paid" ? today : undefined,
         note: note.trim() || undefined,
         label: `${kind} — ${order.clientName}`,
+        method,
+        reference: reference.trim() || undefined,
+        receiver: receiver.trim() || undefined,
       });
       if (status === "paid" && kind !== "refund") {
         await emitOrderClientPayment({
@@ -93,6 +106,9 @@ function RecordPaymentDialog({
       setOrderId("");
       setAmount("");
       setNote("");
+      setReference("");
+      setReceiver("");
+      setMethod("cash");
       setOpen(false);
     } finally {
       setSaving(false);
@@ -179,6 +195,44 @@ function RecordPaymentDialog({
                 </Select>
               </div>
             </div>
+            <div className="grid gap-3 sm:grid-cols-3">
+              <div className="space-y-1.5">
+                <Label>Method</Label>
+                <Select
+                  value={method}
+                  onValueChange={(v) => v && setMethod(v as PaymentMethod)}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {METHODS.map((m) => (
+                      <SelectItem key={m.value} value={m.value}>
+                        {m.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="pay-ref">Reference</Label>
+                <Input
+                  id="pay-ref"
+                  value={reference}
+                  onChange={(e) => setReference(e.target.value)}
+                  placeholder="Transfer / receipt #"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="pay-receiver">Receiver</Label>
+                <Input
+                  id="pay-receiver"
+                  value={receiver}
+                  onChange={(e) => setReceiver(e.target.value)}
+                  placeholder="Who received"
+                />
+              </div>
+            </div>
             <div className="space-y-1.5">
               <Label htmlFor="pay-note">Note</Label>
               <Textarea
@@ -247,7 +301,13 @@ export function PaymentsEntryContent() {
   }
 
   async function handleDelete(payment: Payment) {
-    if (!window.confirm("Delete this payment record?")) return;
+    if (
+      !window.confirm(
+        "Void this payment? Financial records are never deleted — this marks it voided."
+      )
+    ) {
+      return;
+    }
     await deletePayment(payment.id);
     reload();
   }

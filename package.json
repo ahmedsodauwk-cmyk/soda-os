@@ -19,7 +19,9 @@
     "db:clients-rls": "npx tsx scripts/apply-clients-rls.ts",
     "db:smart-order": "npx tsx scripts/apply-smart-order-migration.ts",
     "db:business-core": "npx tsx scripts/apply-business-core-migration.ts",
-    "verify:business-core": "npx tsx scripts/verify-business-core.ts"
+    "db:business-rules": "npx tsx scripts/apply-business-rules-migration.ts",
+    "verify:business-core": "npx tsx scripts/verify-business-core.ts",
+    "smoke:business-rules": "npx tsx scripts/smoke-business-rules.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",

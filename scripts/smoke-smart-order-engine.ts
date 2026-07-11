@@ -126,13 +126,13 @@ async function main() {
     if (isOrderBillable(result.order.status)) {
       throw new Error("Holding must not be billable");
     }
-    if (getAssignmentsByOrder(result.order.id).length > 0) {
-      throw new Error("Holding must not create assignments yet");
+    if (getAssignmentsByOrder(result.order.id).length === 0) {
+      throw new Error("Holding should lock-in crew assignments (rates) from create");
     }
     if (getCalendarEventsByOrder(result.order.id).length > 0) {
       throw new Error("Holding must not appear on calendar");
     }
-    console.log("3. holding gates ok");
+    console.log("3. holding gates ok (assignments locked, calendar/billable off)");
 
     const confirmed = await confirmOrder(result.order.id);
     console.log("4. confirmed", confirmed.order.status, "assignments", confirmed.assignments.length);

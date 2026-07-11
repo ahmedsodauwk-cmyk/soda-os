@@ -3,6 +3,11 @@ import type { Order } from "@/lib/orders/types";
 import type { Payment } from "@/lib/payments/types";
 import type { Project } from "@/lib/projects/types";
 
+/**
+ * Pure client stats from provided collections.
+ * Business Core profile aggregator (getClientProfileStats) is the
+ * event-driven source for richer monthly/yearly/LTV fields.
+ */
 export function computeClientStats(
   clientId: string,
   projects: Project[],
@@ -24,7 +29,12 @@ export function computeClientStats(
   ).length;
 
   const revenue = clientOrders
-    .filter((o) => o.status !== "Cancelled" && o.status !== "Holding" && o.status !== "Pending")
+    .filter(
+      (o) =>
+        o.status !== "Cancelled" &&
+        o.status !== "Holding" &&
+        o.status !== "Pending"
+    )
     .reduce((acc, o) => acc + o.price, 0);
 
   const paid = payments
@@ -37,7 +47,10 @@ export function computeClientStats(
     .reduce((acc, p) => acc + p.amount, 0);
 
   const refunds = payments
-    .filter((p) => p.clientId === clientId && p.kind === "refund" && p.status === "paid")
+    .filter(
+      (p) =>
+        p.clientId === clientId && p.kind === "refund" && p.status === "paid"
+    )
     .reduce((acc, p) => acc + p.amount, 0);
 
   const lastProject =

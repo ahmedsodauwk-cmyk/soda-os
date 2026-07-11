@@ -74,15 +74,39 @@ export async function createPayment(
     currency: "EGP",
   };
   const db = createPaymentsDb();
-  const { data, error } = await db
+  const fullRow = paymentToRow(payment);
+  let { data, error } = await db
     .from("payments")
-    .insert(paymentToRow(payment))
+    .insert(fullRow)
     .select("*")
     .single();
+
+  // Migration may not have method/reference/receiver yet — retry without them
+  if (
+    error &&
+    (error.message.includes("method") ||
+      error.message.includes("reference") ||
+      error.message.includes("receiver") ||
+      error.message.includes("schema cache"))
+  ) {
+    const legacy = { ...fullRow };
+    delete legacy.method;
+    delete legacy.reference;
+    delete legacy.receiver;
+    const retry = await db.from("payments").insert(legacy).select("*").single();
+    data = retry.data;
+    error = retry.error;
+  }
+
   if (error) {
     throw new Error(`Failed to create payment: ${error.message}`);
   }
-  const saved = rowToPayment(data as PaymentRow);
+  const saved = {
+    ...rowToPayment(data as PaymentRow),
+    method: payment.method ?? rowToPayment(data as PaymentRow).method,
+    reference: payment.reference ?? rowToPayment(data as PaymentRow).reference,
+    receiver: payment.receiver ?? rowToPayment(data as PaymentRow).receiver,
+  };
   upsertCache(saved);
   if (saved.status === "paid" || saved.kind === "deposit") {
     await publishBusinessEvent({
@@ -100,6 +124,11 @@ export async function createPayment(
           amount: saved.amount,
           kind: saved.kind,
           status: saved.status,
+          method: saved.method ?? "cash",
+          reference: saved.reference,
+          receiver: saved.receiver,
+          paidAt: saved.paidAt,
+          note: saved.note,
         },
       },
     });
@@ -115,7 +144,11 @@ export async function createPayment(
         projectId: saved.projectId,
         orderId: saved.orderId,
         summary: `Payment recorded: ${saved.id}`,
-        data: { amount: saved.amount, status: saved.status },
+        data: {
+          amount: saved.amount,
+          status: saved.status,
+          method: saved.method,
+        },
       },
     });
   }
@@ -159,19 +192,98 @@ export async function updatePayment(
       summary: becamePaid
         ? `Payment received: ${saved.amount}`
         : `Payment updated: ${saved.id}`,
-      data: { amount: saved.amount, status: saved.status },
+      data: {
+        amount: saved.amount,
+        status: saved.status,
+        method: saved.method ?? "cash",
+        reference: saved.reference,
+        receiver: saved.receiver,
+        paidAt: saved.paidAt,
+        note: saved.note,
+      },
     },
   });
   return { ...saved };
 }
 
+/**
+ * Financial safety: payments are never hard-deleted.
+ * Void marks status=voided and publishes PaymentUpdated for audit/rules.
+ */
 export async function deletePayment(id: string): Promise<void> {
+  await voidPayment(id, "Payment voided (delete blocked by financial safety)");
+}
+
+/** Void a payment record — immutable money path. */
+export async function voidPayment(
+  id: string,
+  reason = "Voided by operator"
+): Promise<Payment> {
+  const existing = getPaymentById(id);
+  if (!existing) throw new Error(`Payment not found: ${id}`);
+  if (existing.status === "voided") return { ...existing };
+
   const db = createPaymentsDb();
-  const { error } = await db.from("payments").delete().eq("id", id);
+  const { data, error } = await db
+    .from("payments")
+    .update({
+      status: "voided",
+      note: [existing.note, `VOID: ${reason}`].filter(Boolean).join(" · "),
+    })
+    .eq("id", id)
+    .select("*")
+    .single();
+
   if (error) {
-    throw new Error(`Failed to delete payment: ${error.message}`);
+    // Fallback when voided status not in CHECK yet — soft-mark via note + failed
+    const { data: fallback, error: fbErr } = await db
+      .from("payments")
+      .update({
+        status: "failed",
+        note: [existing.note, `VOID: ${reason}`].filter(Boolean).join(" · "),
+      })
+      .eq("id", id)
+      .select("*")
+      .single();
+    if (fbErr) {
+      throw new Error(`Failed to void payment: ${error.message}`);
+    }
+    const saved = rowToPayment(fallback as PaymentRow);
+    upsertCache(saved);
+    await publishBusinessEvent({
+      type: "PaymentUpdated",
+      source: "payments.repository.voidPayment",
+      payload: {
+        entityId: saved.id,
+        entityType: "payment",
+        paymentId: saved.id,
+        clientId: saved.clientId,
+        projectId: saved.projectId,
+        orderId: saved.orderId,
+        summary: `Payment voided: ${saved.id} — ${reason}`,
+        data: { voided: true, reason, amount: saved.amount },
+      },
+    });
+    return { ...saved };
   }
-  paymentsCache = paymentsCache.filter((p) => p.id !== id);
+
+  const saved = rowToPayment(data as PaymentRow);
+  upsertCache(saved);
+  await publishBusinessEvent({
+    type: "PaymentUpdated",
+    source: "payments.repository.voidPayment",
+    payload: {
+      entityId: saved.id,
+      entityType: "payment",
+      paymentId: saved.id,
+      clientId: saved.clientId,
+      projectId: saved.projectId,
+      orderId: saved.orderId,
+      summary: `Payment voided: ${saved.id} — ${reason}`,
+      data: { voided: true, reason, amount: saved.amount },
+    },
+  });
+  return { ...saved };
 }
 
 export function cachePayment(p: Payment): void {

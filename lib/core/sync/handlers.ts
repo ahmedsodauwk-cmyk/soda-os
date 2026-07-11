@@ -1,73 +1,28 @@
 /**
- * Synchronization engine — handlers that update related module state
- * when business events fire. Modules do not call each other directly.
+ * Synchronization engine — thin project touch helpers.
+ * Heavy order/calendar/finance sync lives in Business Rules (lib/core/rules).
  */
 
 import { subscribe } from "@/lib/core/bus";
 import type { BusinessEvent } from "@/lib/core/types";
-import {
-  isOrderHolding,
-  mapOrderStatusToProjectStatus,
-} from "@/lib/orders/status";
+import { syncProjectCalendarFromOrder } from "@/lib/core/rules/order-effects";
 import type { Order } from "@/lib/orders/types";
 
 /**
- * Sync project calendar + status from an order snapshot in the event payload.
- * Used when order mutations publish with `data.order` or related ids.
+ * Fallback project sync when publisher did not already sync
+ * and rules did not run with order payload (legacy paths).
  */
 async function syncProjectFromOrderPayload(
   event: BusinessEvent
 ): Promise<void> {
+  if (event.payload.data?.projectSynced === true) return;
+  if (event.payload.data?.rulesOwned === true) return;
+
   const orderData = event.payload.data?.order as Order | undefined;
-  const projectId =
-    event.payload.projectId ??
-    orderData?.projectId ??
-    (event.payload.entityType === "project" ? event.payload.entityId : undefined);
-
-  if (!projectId || !orderData) return;
-
-  // Dynamic import avoids circular deps with projects/orders repos
-  const { updateProject } = await import("@/lib/projects/repository");
-
-  const calendar =
-    isOrderHolding(orderData.status) || orderData.status === "Cancelled"
-      ? []
-      : [
-          ...(orderData.shootDate
-            ? [
-                {
-                  id: `ord-shoot-${orderData.id}`,
-                  title: `Shoot · ${orderData.clientName}`,
-                  startsAt: `${orderData.shootDate}T09:00:00Z`,
-                  kind: "shoot" as const,
-                  location: orderData.location || undefined,
-                },
-              ]
-            : []),
-          ...(orderData.deliveryDate
-            ? [
-                {
-                  id: `ord-delivery-${orderData.id}`,
-                  title: `Delivery · ${orderData.clientName}`,
-                  startsAt: `${orderData.deliveryDate}T17:00:00Z`,
-                  kind: "delivery" as const,
-                },
-              ]
-            : []),
-        ];
-
-  await updateProject(projectId, {
-    status: mapOrderStatusToProjectStatus(orderData.status),
-    clientName: orderData.clientName,
-    ...(orderData.clientId ? { clientId: orderData.clientId } : {}),
-    calendar,
-    lastActivity: event.occurredAt,
-  });
+  if (!orderData) return;
+  await syncProjectCalendarFromOrder(orderData, event.occurredAt);
 }
 
-/**
- * When payment is received, bump linked project lastActivity if known.
- */
 async function touchProjectOnPayment(event: BusinessEvent): Promise<void> {
   const projectId = event.payload.projectId;
   if (!projectId) return;
@@ -77,9 +32,6 @@ async function touchProjectOnPayment(event: BusinessEvent): Promise<void> {
   });
 }
 
-/**
- * When delivery is completed, advance project journey toward Delivery when linked.
- */
 async function syncJourneyOnDelivery(event: BusinessEvent): Promise<void> {
   const projectId = event.payload.projectId;
   if (!projectId) return;
@@ -90,25 +42,12 @@ async function syncJourneyOnDelivery(event: BusinessEvent): Promise<void> {
   });
 }
 
-/**
- * Skip heavy project rewrite when the publisher already synced
- * (Smart Order engine sets data.projectSynced = true).
- */
-function alreadySynced(event: BusinessEvent): boolean {
-  return event.payload.data?.projectSynced === true;
-}
-
-async function onOrderLifecycle(event: BusinessEvent): Promise<void> {
-  if (alreadySynced(event)) return;
-  await syncProjectFromOrderPayload(event);
-}
-
 export function registerSyncHandlers(): void {
-  subscribe("OrderCreated", onOrderLifecycle);
-  subscribe("OrderUpdated", onOrderLifecycle);
-  subscribe("OrderConfirmed", onOrderLifecycle);
-  subscribe("OrderCompleted", onOrderLifecycle);
-  subscribe("OrderCancelled", onOrderLifecycle);
+  subscribe("OrderCreated", syncProjectFromOrderPayload);
+  subscribe("OrderUpdated", syncProjectFromOrderPayload);
+  subscribe("OrderConfirmed", syncProjectFromOrderPayload);
+  subscribe("OrderCompleted", syncProjectFromOrderPayload);
+  subscribe("OrderCancelled", syncProjectFromOrderPayload);
   subscribe("PaymentReceived", touchProjectOnPayment);
   subscribe("DeliveryCompleted", syncJourneyOnDelivery);
   subscribe("DeliveryCreated", syncJourneyOnDelivery);
