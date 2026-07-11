@@ -49,13 +49,13 @@ export function NewQuotationForm() {
     setSegment(client.segment);
   }
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!clientName.trim() || !contactName.trim()) {
       setError("Client and contact are required");
       return;
     }
-    const created = createQuotation({
+    const created = await createQuotation({
       clientId: clientId || undefined,
       clientName,
       company: company || undefined,

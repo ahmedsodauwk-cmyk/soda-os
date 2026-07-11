@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
 
@@ -18,7 +18,9 @@ import { Label } from "@/components/ui/label";
 import {
   assignEquipmentToPerson,
   getAvailableEquipment,
+  refreshEquipment,
 } from "@/lib/equipment/repository";
+import type { EquipmentItem } from "@/lib/equipment/types";
 
 interface AssignEquipmentDialogProps {
   personId: string;
@@ -28,12 +30,25 @@ export function AssignEquipmentDialog({ personId }: AssignEquipmentDialogProps) 
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [equipmentId, setEquipmentId] = useState("");
-  const available = getAvailableEquipment();
+  const [available, setAvailable] = useState<EquipmentItem[]>([]);
 
-  function handleSubmit(e: React.FormEvent) {
+  useEffect(() => {
+    if (!open) return;
+    let cancelled = false;
+    void refreshEquipment()
+      .then(() => {
+        if (!cancelled) setAvailable(getAvailableEquipment());
+      })
+      .catch(console.error);
+    return () => {
+      cancelled = true;
+    };
+  }, [open]);
+
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!equipmentId) return;
-    const result = assignEquipmentToPerson(equipmentId, personId);
+    const result = await assignEquipmentToPerson(equipmentId, personId);
     if (result) {
       setOpen(false);
       setEquipmentId("");

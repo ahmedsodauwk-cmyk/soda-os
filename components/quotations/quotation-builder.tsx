@@ -201,8 +201,8 @@ export function QuotationBuilder({ quotationId }: QuotationBuilderProps) {
     setDraft((prev) => (prev ? { ...prev, ...partial } : prev));
   }
 
-  function save(changeSummary?: string) {
-    const saved = updateQuotation(
+  async function save(changeSummary?: string) {
+    const saved = await updateQuotation(
       q.id,
       {
         clientName: q.clientName,
@@ -277,8 +277,8 @@ export function QuotationBuilder({ quotationId }: QuotationBuilderProps) {
     });
   }
 
-  function handleStatus(status: ApprovalStatus) {
-    const updated = setQuotationApprovalStatus(
+  async function handleStatus(status: ApprovalStatus) {
+    const updated = await setQuotationApprovalStatus(
       q.id,
       status,
       q.assignedSales
@@ -289,8 +289,8 @@ export function QuotationBuilder({ quotationId }: QuotationBuilderProps) {
     }
   }
 
-  function handleStage(stage: PipelineStage) {
-    const updated = updateQuotation(
+  async function handleStage(stage: PipelineStage) {
+    const updated = await updateQuotation(
       q.id,
       { pipelineStage: stage },
       { editedBy: q.assignedSales, saveVersion: false }
@@ -298,8 +298,8 @@ export function QuotationBuilder({ quotationId }: QuotationBuilderProps) {
     if (updated) setDraft(structuredClone(updated));
   }
 
-  function handleDeposit() {
-    const updated = markDepositReceived(q.id, q.assignedSales);
+  async function handleDeposit() {
+    const updated = await markDepositReceived(q.id, q.assignedSales);
     if (updated) {
       setDraft(structuredClone(updated));
       setMessage("Deposit marked received");
@@ -321,8 +321,8 @@ export function QuotationBuilder({ quotationId }: QuotationBuilderProps) {
     }
   }
 
-  function handleRestore(version: number) {
-    const restored = restoreQuotationVersion(
+  async function handleRestore(version: number) {
+    const restored = await restoreQuotationVersion(
       q.id,
       version,
       q.assignedSales

@@ -20,6 +20,7 @@ import {
 import {
   getActiveEquipmentForPerson,
   getEquipmentHistoryForPerson,
+  refreshEquipment,
 } from "@/lib/equipment/repository";
 import { getCrewOperatingView } from "@/lib/integration";
 
@@ -35,6 +36,7 @@ export async function CrewProfile({ personId }: CrewProfileProps) {
   const person = await fetchCrewMemberById(personId);
   if (!person) notFound();
 
+  await refreshEquipment();
   const performance = getCrewPerformance(personId);
   const payments = getCrewPaymentSummary(personId);
   const equipment = getActiveEquipmentForPerson(personId);

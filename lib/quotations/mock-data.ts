@@ -1,6 +1,4 @@
 import type { Quotation } from "@/lib/quotations/types";
 
-/**
- * Quotation pipeline seed. Starts empty — createQuotation appends via repository.
- */
+/** Legacy empty — source of truth is Supabase `public.quotations`. */
 export const mockQuotations: Quotation[] = [];

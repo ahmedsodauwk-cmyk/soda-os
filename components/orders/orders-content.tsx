@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Search } from "lucide-react";
 
 import { AddOrderDialog } from "@/components/orders/add-order-dialog";
@@ -17,7 +17,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { emitOrderClientPayment } from "@/lib/integration";
-import { createOrder, getOrders } from "@/lib/orders/repository";
+import { createOrder, getOrders, refreshOrders } from "@/lib/orders/repository";
+import { refreshProjects } from "@/lib/projects/repository";
+import { refreshClients } from "@/lib/clients/repository";
 import { ORDER_STATUSES, type NewOrderInput } from "@/lib/orders/types";
 import {
   filterOrders,
@@ -36,6 +38,19 @@ export function OrdersContent() {
   const [subcategoryFilter, setSubcategoryFilter] = useState<string | null>(
     null
   );
+
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      await refreshClients();
+      await refreshProjects();
+      await refreshOrders();
+      if (!cancelled) setOrders(getOrders());
+    })().catch(console.error);
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const workspaces = useMemo(() => {
     const byId = new Map(getWorkspaces().map((w) => [w.id, w]));
@@ -75,8 +90,8 @@ export function OrdersContent() {
     setSubcategoryFilter(null);
   }
 
-  function handleAddOrder(input: NewOrderInput) {
-    const order = createOrder(input);
+  async function handleAddOrder(input: NewOrderInput) {
+    const order = await createOrder(input);
     if (input.deposit > 0) {
       emitOrderClientPayment({
         orderId: order.id,

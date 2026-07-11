@@ -3,7 +3,9 @@ import { notFound } from "next/navigation";
 import { AppShell } from "@/components/layout/app-shell";
 import { ProjectHubContent } from "@/components/projects/project-hub-content";
 import { getModuleSlogan } from "@/lib/brand/soda-voice";
-import { getProjectById } from "@/lib/projects/repository";
+import { refreshOrders } from "@/lib/orders/repository";
+import { fetchProjectById } from "@/lib/projects/repository";
+import { refreshPayments } from "@/lib/payments/repository";
 
 interface ProjectHubPageProps {
   params: Promise<{ projectId: string }>;
@@ -11,7 +13,9 @@ interface ProjectHubPageProps {
 
 export default async function ProjectHubPage({ params }: ProjectHubPageProps) {
   const { projectId } = await params;
-  const project = getProjectById(projectId);
+  await refreshOrders();
+  await refreshPayments();
+  const project = await fetchProjectById(projectId);
 
   if (!project) {
     notFound();

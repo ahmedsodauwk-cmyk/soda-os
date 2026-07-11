@@ -1,5 +1,10 @@
 import { BUSINESS_NOW_ISO } from "@/lib/business/types";
-import { mockQuotations } from "@/lib/quotations/mock-data";
+import { createQuotationsDb } from "@/lib/quotations/db";
+import {
+  quotationToRow,
+  rowToQuotation,
+  type QuotationRow,
+} from "@/lib/quotations/mappers";
 import type {
   ApprovalStatus,
   ClientQuotationStats,
@@ -23,6 +28,37 @@ import {
 } from "@/lib/quotations/utils";
 import { getProjectsByClient } from "@/lib/projects/repository";
 
+let quotationsCache: Quotation[] = [];
+
+function upsertCache(q: Quotation): void {
+  quotationsCache = [q, ...quotationsCache.filter((x) => x.id !== q.id)];
+}
+
+export async function refreshQuotations(): Promise<Quotation[]> {
+  const db = createQuotationsDb();
+  const { data, error } = await db
+    .from("quotations")
+    .select("*")
+    .order("updated_at", { ascending: false });
+  if (error) throw new Error(`Failed to load quotations: ${error.message}`);
+  quotationsCache = ((data ?? []) as QuotationRow[]).map(rowToQuotation);
+  return [...quotationsCache];
+}
+
+async function persistQuotation(q: Quotation): Promise<Quotation> {
+  const db = createQuotationsDb();
+  const { data, error } = await db
+    .from("quotations")
+    .upsert(quotationToRow(q), { onConflict: "id" })
+    .select("*")
+    .single();
+  if (error) throw new Error(`Failed to save quotation: ${error.message}`);
+  const saved = rowToQuotation(data as QuotationRow);
+  upsertCache(saved);
+  return structuredClone(saved);
+}
+
+
 function nowIso(): string {
   return new Date().toISOString();
 }
@@ -37,29 +73,32 @@ function stampStatus(
 }
 
 export function getQuotations(): Quotation[] {
-  return [...mockQuotations].sort((a, b) =>
+  return [...quotationsCache].sort((a, b) =>
     b.updatedAt.localeCompare(a.updatedAt)
   );
 }
 
 export function getQuotationById(id: string): Quotation | undefined {
-  return mockQuotations.find((q) => q.id === id || q.number === id);
+  return quotationsCache.find((q) => q.id === id || q.number === id);
 }
 
 export function getQuotationsByClient(clientId: string): Quotation[] {
-  return mockQuotations.filter((q) => q.clientId === clientId);
+  return quotationsCache.filter((q) => q.clientId === clientId);
 }
 
 export function getQuotationsByPipelineStage(
   stage: PipelineStage
 ): Quotation[] {
-  return mockQuotations.filter((q) => q.pipelineStage === stage);
+  return quotationsCache.filter((q) => q.pipelineStage === stage);
 }
 
-export function createQuotation(input: NewQuotationInput): Quotation {
+export async function createQuotation(input: NewQuotationInput): Promise<Quotation> {
   const createdAt = nowIso();
-  const number = generateQuotationNumber(mockQuotations.length);
-  const id = `quot-${String(mockQuotations.length + 1).padStart(3, "0")}`;
+  const number = generateQuotationNumber(quotationsCache.length);
+  const id =
+    typeof crypto !== "undefined" && "randomUUID" in crypto
+      ? `quot-${crypto.randomUUID()}`
+      : `quot-${Date.now().toString(36)}`;
 
   const quotation: Quotation = {
     id,
@@ -119,19 +158,18 @@ export function createQuotation(input: NewQuotationInput): Quotation {
     snapshot: snapshotFromQuotation(quotation),
   });
 
-  mockQuotations.unshift(quotation);
-  return structuredClone(quotation);
+  return persistQuotation(quotation);
 }
 
-export function updateQuotation(
+export async function updateQuotation(
   id: string,
   patch: Partial<Quotation>,
   options?: { editedBy?: string; saveVersion?: boolean; changeSummary?: string }
-): Quotation | undefined {
-  const index = mockQuotations.findIndex((q) => q.id === id);
+): Promise<Quotation | undefined> {
+  const index = quotationsCache.findIndex((q) => q.id === id);
   if (index < 0) return undefined;
 
-  const current = mockQuotations[index]!;
+  const current = quotationsCache[index]!;
   const prevSnapshot = snapshotFromQuotation(current);
   const updatedAt = nowIso();
 
@@ -190,15 +228,14 @@ export function updateQuotation(
     ];
   }
 
-  mockQuotations[index] = next;
-  return structuredClone(next);
+  return persistQuotation(next);
 }
 
-export function moveQuotationStage(
+export async function moveQuotationStage(
   id: string,
   stage: PipelineStage,
   editedBy = "Junior Soda"
-): Quotation | undefined {
+): Promise<Quotation | undefined> {
   const approvalStatus = PIPELINE_TO_APPROVAL[stage];
   return updateQuotation(
     id,
@@ -211,11 +248,11 @@ export function moveQuotationStage(
   );
 }
 
-export function setQuotationApprovalStatus(
+export async function setQuotationApprovalStatus(
   id: string,
   status: ApprovalStatus,
   editedBy = "Junior Soda"
-): Quotation | undefined {
+): Promise<Quotation | undefined> {
   return updateQuotation(
     id,
     {
@@ -230,11 +267,11 @@ export function setQuotationApprovalStatus(
   );
 }
 
-export function restoreQuotationVersion(
+export async function restoreQuotationVersion(
   id: string,
   versionNumber: number,
   editedBy = "Junior Soda"
-): Quotation | undefined {
+): Promise<Quotation | undefined> {
   const current = getQuotationById(id);
   if (!current) return undefined;
   const target = current.versions.find((v) => v.version === versionNumber);
@@ -266,10 +303,10 @@ export function restoreQuotationVersion(
   );
 }
 
-export function markDepositReceived(
+export async function markDepositReceived(
   id: string,
   editedBy = "Junior Soda"
-): Quotation | undefined {
+): Promise<Quotation | undefined> {
   return setQuotationApprovalStatus(id, "Deposit Received", editedBy);
 }
 

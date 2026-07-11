@@ -50,6 +50,7 @@ export {
   getQuotationsByPipelineStage,
   markDepositReceived,
   moveQuotationStage,
+  refreshQuotations,
   restoreQuotationVersion,
   searchQuotations,
   setQuotationApprovalStatus,

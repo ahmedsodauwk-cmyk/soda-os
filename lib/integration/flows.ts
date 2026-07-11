@@ -278,17 +278,17 @@ export async function runQuotationConversionFlow(
 }
 
 /** Order → ensure Project (+ client/workspace) link. */
-export function linkOrderToProject(
+export async function linkOrderToProject(
   orderId: string,
   input: NewOrderInput
-): Pick<Order, "projectId" | "clientId" | "workspaceId"> {
+): Promise<Pick<Order, "projectId" | "clientId" | "workspaceId">> {
   return ensureOrderProjectLink(orderId, input);
 }
 
 /** Project/Order → assign crew (creates OrderAssignment). */
-export function assignCrewToOrder(
+export async function assignCrewToOrder(
   input: NewAssignmentInput
-): OrderAssignment {
+): Promise<OrderAssignment> {
   const order = getOrderById(input.orderId);
   if (!order) {
     throw new Error(`Order not found: ${input.orderId}`);
@@ -305,13 +305,13 @@ export interface PayCrewAssignmentResult {
  * Pay against an assignment — updates paidAmount and emits crew_payment.
  * Amount defaults to remaining balance.
  */
-export function payCrewAssignment(input: {
+export async function payCrewAssignment(input: {
   assignmentId: string;
   amount?: number;
   occurredAt?: string;
   notes?: string;
   createdBy?: string;
-}): PayCrewAssignmentResult {
+}): Promise<PayCrewAssignmentResult> {
   const assignment = getAssignmentById(input.assignmentId);
   if (!assignment) {
     throw new Error(`Assignment not found: ${input.assignmentId}`);
@@ -340,7 +340,7 @@ export function payCrewAssignment(input: {
     createdBy: input.createdBy,
   });
 
-  const updated = updateAssignmentPayment(assignment.id, {
+  const updated = await updateAssignmentPayment(assignment.id, {
     paidAmount: assignment.paidAmount + amount,
     paidAt: input.occurredAt ?? new Date().toISOString().slice(0, 10),
   });

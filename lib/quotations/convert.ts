@@ -15,16 +15,24 @@ import {
   createFinancialEvent,
   listFinancialEvents,
 } from "@/lib/finance/repository";
-import { mockInvoices } from "@/lib/invoices/seed";
+import { createInvoice } from "@/lib/invoices/repository";
 import type { Invoice } from "@/lib/invoices/types";
 import { PROJECT_JOURNEY_STAGES } from "@/lib/journey/seed";
 import type { JourneyStage } from "@/lib/journey/types";
-import { mockOrders } from "@/lib/orders/mock-data";
+import {
+  cacheOrder,
+  getOrders,
+} from "@/lib/orders/repository";
+import { createOrdersDb } from "@/lib/orders/db";
+import { orderToRow, rowToOrder, type OrderRow } from "@/lib/orders/mappers";
 import type { Order, ProjectType } from "@/lib/orders/types";
 import { generateOrderId } from "@/lib/orders/utils";
-import { mockPayments } from "@/lib/payments/mock-data";
+import { createPayment } from "@/lib/payments/repository";
 import type { Payment } from "@/lib/payments/types";
-import { mockProjects } from "@/lib/projects/mock-data";
+import {
+  cacheProject,
+  createProject,
+} from "@/lib/projects/repository";
 import type { Project, ProjectTeamMember } from "@/lib/projects/types";
 import {
   canConvertQuotation,
@@ -36,6 +44,7 @@ import type {
   QuotationConversionResult,
 } from "@/lib/quotations/types";
 import { computeQuotationTotals } from "@/lib/quotations/utils";
+import { ensureTaxonomyPersisted } from "@/lib/taxonomy/persist";
 
 /** Emit deposit into Finance ledger (idempotent on paymentId). */
 function emitConvertDeposit(input: {
@@ -192,13 +201,20 @@ export async function convertQuotationToProject(
     totals.total > 0 ? totals.total : quotation.estimatedValue || 0;
   const deposit = depositAmount(quotation, total);
   const client = await resolveOrCreateClient(quotation);
+  await ensureTaxonomyPersisted();
   const projectType = projectTypeFromQuotation(quotation);
   const workspaceId = workspaceFromQuotation(quotation);
   const journeyStage: JourneyStage = "PreProduction";
 
-  const projectId = `PRJ-2026-${String(mockProjects.length + 1).padStart(4, "0")}`;
-  const orderId = generateOrderId(mockOrders.length);
-  const invoiceId = `inv-${String(mockInvoices.length + 1).padStart(3, "0")}`;
+  const projectId =
+    typeof crypto !== "undefined" && "randomUUID" in crypto
+      ? `PRJ-${crypto.randomUUID()}`
+      : `PRJ-${Date.now().toString(36)}`;
+  const orderId = generateOrderId(getOrders().length);
+  const invoiceId =
+    typeof crypto !== "undefined" && "randomUUID" in crypto
+      ? `inv-${crypto.randomUUID()}`
+      : `inv-${Date.now().toString(36)}`;
   const paymentId = `pay-${orderId.toLowerCase()}-deposit`;
   const shootDate =
     quotation.projectInfo.shootDate ||
@@ -349,7 +365,8 @@ export async function convertQuotationToProject(
       : [],
   };
 
-  mockProjects.unshift(project);
+  const savedProject = await createProject({ ...project, id: projectId });
+  cacheProject(savedProject);
   PROJECT_JOURNEY_STAGES[projectId] = journeyStage;
 
   const order: Order = {
@@ -370,14 +387,25 @@ export async function convertQuotationToProject(
     status: "Scheduled",
     notes: `From ${quotation.number}. ${quotation.notes}`.trim(),
   };
-  mockOrders.unshift(order);
+  {
+    const db = createOrdersDb();
+    const { data, error } = await db
+      .from("orders")
+      .insert(orderToRow(order))
+      .select("*")
+      .single();
+    if (error) {
+      throw new Error(`Failed to create order on convert: ${error.message}`);
+    }
+    cacheOrder(rowToOrder(data as OrderRow));
+  }
 
-  const invoice: Invoice = {
+  const invoice: Invoice = await createInvoice({
     id: invoiceId,
     clientId: client.id,
     projectId,
     orderId,
-    number: `INV-2026-${String(mockInvoices.length + 1).padStart(4, "0")}`,
+    number: `INV-${Date.now().toString(36).toUpperCase()}`,
     issueDate: today,
     dueDate: deliveryDate,
     amount: total,
@@ -385,10 +413,9 @@ export async function convertQuotationToProject(
     status: deposit >= total ? "paid" : "partial",
     periodMonth: today.slice(0, 7),
     notes: `Deposit invoice from quotation ${quotation.number}`,
-  };
-  mockInvoices.unshift(invoice);
+  });
 
-  const payment: Payment = {
+  const payment: Payment = await createPayment({
     id: paymentId,
     orderId,
     projectId,
@@ -401,10 +428,9 @@ export async function convertQuotationToProject(
     paidAt: today,
     label: `Deposit — ${quotation.number}`,
     note: `Converted from ${quotation.number}`,
-  };
-  mockPayments.unshift(payment);
+  });
 
-  updateQuotation(
+  await updateQuotation(
     quotation.id,
     {
       clientId: client.id,
@@ -412,8 +438,8 @@ export async function convertQuotationToProject(
       approvalStatus: "Converted",
       convertedProjectId: projectId,
       convertedOrderId: orderId,
-      convertedInvoiceId: invoiceId,
-      convertedPaymentId: paymentId,
+      convertedInvoiceId: invoice.id,
+      convertedPaymentId: payment.id,
       convertedClientId: client.id,
       statusTimestamps: {
         ...quotation.statusTimestamps,

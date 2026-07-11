@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Search } from "lucide-react";
 
 import { CommercialLaneCard } from "@/components/commercial/commercial-lane-card";
@@ -14,18 +14,35 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { getEmptyState } from "@/lib/brand/soda-voice";
+import { refreshOrders } from "@/lib/orders/repository";
+import { refreshProjects } from "@/lib/projects/repository";
 import {
   filterWorkspaceSummaries,
   getWorkspaceSummaries,
 } from "@/lib/workspaces/repository";
+import type { WorkspaceSummary } from "@/lib/workspaces/types";
 
 type SortKey = "name" | "projects" | "activity" | "progress";
 
 /** Commercial hub — taxonomy business lanes (RTM, Weddings, Fashion, …). */
 export function CommercialHubContent() {
-  const [summaries] = useState(getWorkspaceSummaries);
+  const [summaries, setSummaries] = useState<WorkspaceSummary[]>(
+    getWorkspaceSummaries
+  );
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState<SortKey>("name");
+
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      await refreshProjects();
+      await refreshOrders();
+      if (!cancelled) setSummaries(getWorkspaceSummaries());
+    })().catch(console.error);
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const filtered = useMemo(() => {
     const list = filterWorkspaceSummaries(summaries, search);

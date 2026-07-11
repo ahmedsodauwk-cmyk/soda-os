@@ -1,11 +1,16 @@
-import { mockProjects } from "@/lib/projects/mock-data";
 import type { Project } from "@/lib/projects/types";
+import {
+  getAllProjectSeeds,
+  getProjectSeedById,
+} from "@/lib/projects/repository";
 
 /** Raw project seeds — no computed enrichment. */
 export function getProjectSeeds(): Project[] {
-  return mockProjects;
+  return getAllProjectSeeds();
 }
 
-export function getProjectSeedById(id: string): Project | undefined {
-  return mockProjects.find((p) => p.id === id);
+export function getProjectSeedByIdAlias(id: string): Project | undefined {
+  return getProjectSeedById(id);
 }
+
+export { getProjectSeedById };

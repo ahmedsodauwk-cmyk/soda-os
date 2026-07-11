@@ -1,4 +1,7 @@
 import type { Project } from "@/lib/projects/types";
 
-/** Starts empty — create / link-order flows append via repositories. */
+/**
+ * Legacy empty array — do not use as source of truth.
+ * Projects live in Supabase via `lib/projects/repository`.
+ */
 export const mockProjects: Project[] = [];

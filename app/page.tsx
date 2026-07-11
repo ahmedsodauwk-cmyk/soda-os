@@ -14,14 +14,14 @@ import { WelcomeGate } from "@/components/dashboard/welcome-gate";
 import { QuotationPipelineCard } from "@/components/quotations/quotation-pipeline-card";
 import { getCompanyPulse, getModuleSlogan } from "@/lib/brand";
 import { buildActivityFeed } from "@/lib/dashboard/activity-feed";
-import { getDashboardSnapshot } from "@/lib/dashboard";
+import { loadDashboardSnapshot } from "@/lib/dashboard";
 import { buildRotatingSummaries } from "@/lib/dashboard/rotating-summaries";
 
 /**
  * Command Center — living operational surface from real studio data.
  */
-export default function Home() {
-  const dashboard = getDashboardSnapshot();
+export default async function Home() {
+  const dashboard = await loadDashboardSnapshot();
   const liveEvents = buildActivityFeed();
   const pulse = getCompanyPulse(dashboard);
   const rotatingPanels = buildRotatingSummaries(dashboard);

@@ -23,7 +23,7 @@ export {
   computeUpcomingSchedule,
   computeWorkspacePerformance,
 } from "@/lib/dashboard/stats";
-export { getDashboardSnapshot } from "@/lib/dashboard/repository";
+export { getDashboardSnapshot, loadDashboardSnapshot } from "@/lib/dashboard/repository";
 export {
   buildActivityFeed,
   getActivityFeedRotateMs,

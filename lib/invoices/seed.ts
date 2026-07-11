@@ -1,5 +1,5 @@
 import type { Invoice, OrderDelivery } from "@/lib/invoices/types";
 
-export const mockDeliveries: OrderDelivery[] = [];
-
+/** Legacy empty — source of truth is Supabase. */
 export const mockInvoices: Invoice[] = [];
+export const mockDeliveries: OrderDelivery[] = [];

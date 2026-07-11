@@ -1,9 +1,19 @@
-import { getAllClients } from "@/lib/clients/repository";
+import {
+  createClient,
+  getAllClients,
+  getClientById,
+} from "@/lib/clients/repository";
 import type { Client } from "@/lib/clients/types";
 import type { NewOrderInput, Order } from "@/lib/orders/types";
 import { workspaceIdFromProjectType } from "@/lib/orders/utils";
-import { mockProjects } from "@/lib/projects/mock-data";
+import {
+  cacheProject,
+  createProject,
+  getAllProjectSeeds,
+  getProjectSeedById,
+} from "@/lib/projects/repository";
 import type { Project, ProjectStatus } from "@/lib/projects/types";
+import { ensureTaxonomyPersisted } from "@/lib/taxonomy/persist";
 
 function mapOrderStatusToProjectStatus(status: Order["status"]): ProjectStatus {
   switch (status) {
@@ -21,7 +31,7 @@ function resolveClientId(
   phone: string,
   explicit?: string
 ): string | undefined {
-  if (explicit) return explicit;
+  if (explicit && getClientById(explicit)) return explicit;
 
   const clients = getAllClients();
   const byName = clients.find(
@@ -33,6 +43,28 @@ function resolveClientId(
 
   const byPhone = clients.find((c) => c.phone === phone);
   return byPhone?.id;
+}
+
+async function resolveOrCreateClientId(
+  clientName: string,
+  phone: string,
+  projectType: Order["projectType"],
+  explicit?: string
+): Promise<string> {
+  const existing = resolveClientId(clientName, phone, explicit);
+  if (existing) return existing;
+
+  const segment =
+    projectType === "Wedding" || projectType === "Engagement"
+      ? "wedding"
+      : "commercial";
+  const client = await createClient({
+    type: segment === "commercial" ? "company" : "individual",
+    segment,
+    name: clientName.trim(),
+    phone: phone || "",
+  });
+  return client.id;
 }
 
 function emptyHub(): Pick<
@@ -66,22 +98,33 @@ function emptyHub(): Pick<
 
 /**
  * Ensure an order has projectId (+ optional clientId).
- * If missing, creates a lightweight Project seed and links it.
- * Mutates mockProjects in memory for the session.
+ * If missing, creates a lightweight Project in Supabase and links it.
  */
-export function ensureOrderProjectLink(
+export async function ensureOrderProjectLink(
   orderId: string,
   input: NewOrderInput
-): Pick<Order, "projectId" | "clientId" | "workspaceId"> {
+): Promise<Pick<Order, "projectId" | "clientId" | "workspaceId">> {
+  void orderId;
+  await ensureTaxonomyPersisted();
+
   const workspaceId =
     input.workspaceId || workspaceIdFromProjectType(input.projectType);
-  const clientId = resolveClientId(
+  const clientId = await resolveOrCreateClientId(
     input.clientName,
     input.phone,
+    input.projectType,
     input.clientId
   );
 
   if (input.projectId) {
+    const existing = getProjectSeedById(input.projectId);
+    if (existing) {
+      return {
+        projectId: input.projectId,
+        clientId: clientId ?? existing.clientId,
+        workspaceId: existing.workspaceId || workspaceId,
+      };
+    }
     return {
       projectId: input.projectId,
       clientId,
@@ -89,17 +132,13 @@ export function ensureOrderProjectLink(
     };
   }
 
-  const nextIndex = mockProjects.length + 1;
-  const projectId = `PRJ-2026-${String(nextIndex).padStart(4, "0")}`;
   const now = new Date().toISOString();
-
-  const project: Project = {
-    id: projectId,
+  const project = await createProject({
     name: `${input.clientName} — ${input.projectType}`,
     workspaceId,
     subcategoryId: input.subcategoryId,
     clientName: input.clientName,
-    clientId: clientId ?? "client-unknown",
+    clientId,
     status: mapOrderStatusToProjectStatus(input.status),
     progress: 0,
     ordersCount: 0,
@@ -108,15 +147,12 @@ export function ensureOrderProjectLink(
     upcomingShoots: [],
     lastActivity: now,
     description: input.notes,
-    createdAt: now,
-    updatedAt: now,
     isActive: true,
     ...emptyHub(),
-  };
+  });
+  cacheProject(project);
 
-  mockProjects.unshift(project);
-
-  return { projectId, clientId, workspaceId };
+  return { projectId: project.id, clientId, workspaceId };
 }
 
 export function findClientByName(name: string): Client | undefined {
@@ -125,4 +161,9 @@ export function findClientByName(name: string): Client | undefined {
       c.name.toLowerCase() === name.trim().toLowerCase() ||
       c.company?.toLowerCase() === name.trim().toLowerCase()
   );
+}
+
+/** @deprecated Prefer getAllProjectSeeds from projects repository */
+export function listLinkedProjects(): Project[] {
+  return getAllProjectSeeds();
 }

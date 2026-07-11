@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   CheckCircle2,
   LayoutGrid,
@@ -27,6 +27,7 @@ import {
   getQuotations,
   moveQuotationStage,
   PIPELINE_STAGES,
+  refreshQuotations,
   type PipelineStage,
   type Quotation,
 } from "@/lib/quotations";
@@ -87,6 +88,18 @@ export function QuotationsHub() {
   );
   const [tick, setTick] = useState(0);
 
+  useEffect(() => {
+    let cancelled = false;
+    void refreshQuotations()
+      .then(() => {
+        if (!cancelled) setTick((t) => t + 1);
+      })
+      .catch(console.error);
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const quotations = useMemo(() => {
     void tick;
     let list = getQuotations();
@@ -124,8 +137,8 @@ export function QuotationsHub() {
     return map;
   }, [quotations]);
 
-  function handleMove(id: string, stage: PipelineStage) {
-    moveQuotationStage(id, stage);
+  async function handleMove(id: string, stage: PipelineStage) {
+    await moveQuotationStage(id, stage);
     setTick((t) => t + 1);
   }
 
