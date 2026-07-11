@@ -20,8 +20,15 @@ import {
   listFinancialEvents,
 } from "@/lib/finance/repository";
 import type { Currency, FinancialEvent } from "@/lib/finance/types";
-import { getOrderById } from "@/lib/orders/repository";
+import type { JourneyStage } from "@/lib/journey/types";
+import {
+  fetchOrderById,
+  getOrderById,
+  updateOrder,
+} from "@/lib/orders/repository";
 import type { NewOrderInput, Order } from "@/lib/orders/types";
+import { updateProject } from "@/lib/projects/repository";
+import type { Project } from "@/lib/projects/types";
 import { convertQuotationToProject } from "@/lib/quotations/convert";
 import { getQuotationById } from "@/lib/quotations/repository";
 import type { QuotationConversionResult } from "@/lib/quotations/types";
@@ -292,7 +299,7 @@ export async function linkOrderToProject(
 export async function assignCrewToOrder(
   input: NewAssignmentInput
 ): Promise<OrderAssignment> {
-  const order = getOrderById(input.orderId);
+  const order = getOrderById(input.orderId) ?? (await fetchOrderById(input.orderId));
   if (!order) {
     throw new Error(`Order not found: ${input.orderId}`);
   }
@@ -353,6 +360,52 @@ export async function payCrewAssignment(input: {
   }
 
   return { assignment: updated, finance };
+}
+
+/**
+ * Mark shoot complete: order Shooting → Editing, project journey → Editing.
+ * Also accepts Scheduled (treat as shoot done) so operators can advance from hub.
+ */
+export async function markShootComplete(orderId: string): Promise<{
+  order: Order;
+  projectId: string;
+}> {
+  const order = getOrderById(orderId) ?? (await fetchOrderById(orderId));
+  if (!order) {
+    throw new Error(`Order not found: ${orderId}`);
+  }
+  if (order.status === "Cancelled" || order.status === "Delivered") {
+    throw new Error(
+      `Cannot mark shoot complete for order in status ${order.status}`
+    );
+  }
+  const updated = await updateOrder(orderId, { status: "Editing" });
+  if (order.projectId) {
+    await updateProject(order.projectId, {
+      journeyStage: "Editing",
+      status: "Active",
+    });
+  }
+  return { order: updated, projectId: order.projectId };
+}
+
+/** Project finished: status Completed + journey Closed. */
+export async function finishProject(projectId: string): Promise<Project> {
+  return updateProject(projectId, {
+    status: "Completed",
+    journeyStage: "Closed",
+    progress: 100,
+  });
+}
+
+/**
+ * After delivery/invoice/payment writes, keep journey stage in sync when advancing.
+ */
+export async function advanceProjectJourney(
+  projectId: string,
+  stage: JourneyStage
+): Promise<Project> {
+  return updateProject(projectId, { journeyStage: stage });
 }
 
 export {

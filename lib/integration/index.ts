@@ -5,11 +5,14 @@
  */
 
 export {
+  advanceProjectJourney,
   assignCrewToOrder,
   emitCrewPayment,
   emitOrderClientPayment,
   emitQuotationDeposit,
+  finishProject,
   linkOrderToProject,
+  markShootComplete,
   payCrewAssignment,
   runQuotationConversionFlow,
   type PayCrewAssignmentResult,

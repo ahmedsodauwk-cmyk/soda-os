@@ -153,6 +153,15 @@ export async function createDelivery(
   return { ...saved };
 }
 
+export async function deleteDelivery(id: string): Promise<void> {
+  const db = createInvoicesDb();
+  const { error } = await db.from("deliveries").delete().eq("id", id);
+  if (error) {
+    throw new Error(`Failed to delete delivery: ${error.message}`);
+  }
+  deliveriesCache = deliveriesCache.filter((d) => d.id !== id);
+}
+
 export function cacheInvoice(inv: Invoice): void {
   upsertInvoice(inv);
 }

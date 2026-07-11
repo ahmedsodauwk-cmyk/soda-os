@@ -17,6 +17,13 @@ import {
 } from "lucide-react";
 
 import { ProjectStatusBadge } from "@/components/projects/project-status-badge";
+import { AssignCrewDialog } from "@/components/projects/assign-crew-dialog";
+import { AssignProjectEquipmentDialog } from "@/components/projects/assign-project-equipment-dialog";
+import { CreateDeliveryDialog } from "@/components/projects/create-delivery-dialog";
+import { CreateInvoiceDialog } from "@/components/projects/create-invoice-dialog";
+import { ProjectWorkflowActions } from "@/components/projects/project-workflow-actions";
+import { RecordProjectPaymentDialog } from "@/components/projects/record-project-payment-dialog";
+import { UploadProjectFileDialog } from "@/components/projects/upload-project-file-dialog";
 import { JourneyStepper } from "@/components/business/journey-stepper";
 import { OrderStatusBadge } from "@/components/orders/order-status-badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -166,25 +173,31 @@ export function ProjectHubContent({ project }: ProjectHubContentProps) {
                 )}
               </div>
 
-              <div className="grid grid-cols-3 gap-4 sm:min-w-[280px]">
-                <div>
-                  <p className="text-xs text-muted-foreground">Orders</p>
-                  <p className="font-mono text-lg font-semibold tabular-nums">
-                    {project.ordersCount}
-                  </p>
+              <div className="flex flex-col gap-3 sm:items-end">
+                <div className="grid grid-cols-3 gap-4 sm:min-w-[280px]">
+                  <div>
+                    <p className="text-xs text-muted-foreground">Orders</p>
+                    <p className="font-mono text-lg font-semibold tabular-nums">
+                      {project.ordersCount}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Revenue</p>
+                    <p className="font-mono text-lg font-semibold tabular-nums">
+                      {formatPrice(project.revenue)}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Team</p>
+                    <p className="font-mono text-lg font-semibold tabular-nums">
+                      {project.team.length}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Revenue</p>
-                  <p className="font-mono text-lg font-semibold tabular-nums">
-                    {formatPrice(project.revenue)}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Team</p>
-                  <p className="font-mono text-lg font-semibold tabular-nums">
-                    {project.team.length}
-                  </p>
-                </div>
+                <ProjectWorkflowActions
+                  project={project}
+                  orders={project.orders}
+                />
               </div>
             </div>
 
@@ -438,16 +451,23 @@ export function ProjectHubContent({ project }: ProjectHubContentProps) {
 
       {section === "files" && (
         <Card>
-          <CardHeader>
-            <CardTitle className="text-base">
-              {HUB_SECTION_COPY.files.title}
-            </CardTitle>
-            <CardDescription
-              className="font-ar text-[0.9375rem] leading-[1.75] text-muted-foreground"
-              dir="rtl"
-            >
-              {HUB_SECTION_COPY.files.description}
-            </CardDescription>
+          <CardHeader className="flex flex-row items-start justify-between gap-3 space-y-0">
+            <div className="space-y-1.5">
+              <CardTitle className="text-base">
+                {HUB_SECTION_COPY.files.title}
+              </CardTitle>
+              <CardDescription
+                className="font-ar text-[0.9375rem] leading-[1.75] text-muted-foreground"
+                dir="rtl"
+              >
+                {HUB_SECTION_COPY.files.description}
+              </CardDescription>
+            </div>
+            <UploadProjectFileDialog
+              projectId={project.id}
+              workspaceId={project.workspaceId}
+              orders={project.orders}
+            />
           </CardHeader>
           <CardContent className="space-y-2">
             {project.files.length === 0 ? (
@@ -559,16 +579,31 @@ export function ProjectHubContent({ project }: ProjectHubContentProps) {
           ) : null}
 
           <Card>
-            <CardHeader>
-              <CardTitle className="text-base">
-                {HUB_SECTION_COPY.payments.title}
-              </CardTitle>
-              <CardDescription
-                className="font-ar text-[0.9375rem] leading-[1.75] text-muted-foreground"
-                dir="rtl"
-              >
-                {HUB_SECTION_COPY.payments.description}
-              </CardDescription>
+            <CardHeader className="flex flex-row items-start justify-between gap-3 space-y-0">
+              <div className="space-y-1.5">
+                <CardTitle className="text-base">
+                  {HUB_SECTION_COPY.payments.title}
+                </CardTitle>
+                <CardDescription
+                  className="font-ar text-[0.9375rem] leading-[1.75] text-muted-foreground"
+                  dir="rtl"
+                >
+                  {HUB_SECTION_COPY.payments.description}
+                </CardDescription>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <CreateInvoiceDialog
+                  projectId={project.id}
+                  clientId={project.clientId}
+                  orders={project.orders}
+                />
+                <RecordProjectPaymentDialog
+                  projectId={project.id}
+                  clientId={project.clientId}
+                  workspaceId={project.workspaceId}
+                  orders={project.orders}
+                />
+              </div>
             </CardHeader>
             <CardContent className="space-y-2">
               {project.payments.length === 0 && operating.payments.length === 0 ? (
@@ -677,16 +712,22 @@ export function ProjectHubContent({ project }: ProjectHubContentProps) {
 
       {section === "team" && (
         <Card>
-          <CardHeader>
-            <CardTitle className="text-base">
-              {HUB_SECTION_COPY.team.title}
-            </CardTitle>
-            <CardDescription
-              className="font-ar text-[0.9375rem] leading-[1.75] text-muted-foreground"
-              dir="rtl"
-            >
-              {HUB_SECTION_COPY.team.description}
-            </CardDescription>
+          <CardHeader className="flex flex-row items-start justify-between gap-3 space-y-0">
+            <div className="space-y-1.5">
+              <CardTitle className="text-base">
+                {HUB_SECTION_COPY.team.title}
+              </CardTitle>
+              <CardDescription
+                className="font-ar text-[0.9375rem] leading-[1.75] text-muted-foreground"
+                dir="rtl"
+              >
+                {HUB_SECTION_COPY.team.description}
+              </CardDescription>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <AssignCrewDialog orders={project.orders} />
+              <AssignProjectEquipmentDialog />
+            </div>
           </CardHeader>
           <CardContent className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {project.team.length === 0 && operating.assignments.length === 0 ? (
@@ -838,19 +879,27 @@ export function ProjectHubContent({ project }: ProjectHubContentProps) {
 
       {section === "deliverables" && (
         <Card>
-          <CardHeader>
-            <CardTitle className="text-base">
-              {HUB_SECTION_COPY.deliverables.title}
-            </CardTitle>
-            <CardDescription
-              className="font-ar text-[0.9375rem] leading-[1.75] text-muted-foreground"
-              dir="rtl"
-            >
-              {HUB_SECTION_COPY.deliverables.description}
-            </CardDescription>
+          <CardHeader className="flex flex-row items-start justify-between gap-3 space-y-0">
+            <div className="space-y-1.5">
+              <CardTitle className="text-base">
+                {HUB_SECTION_COPY.deliverables.title}
+              </CardTitle>
+              <CardDescription
+                className="font-ar text-[0.9375rem] leading-[1.75] text-muted-foreground"
+                dir="rtl"
+              >
+                {HUB_SECTION_COPY.deliverables.description}
+              </CardDescription>
+            </div>
+            <CreateDeliveryDialog
+              projectId={project.id}
+              clientId={project.clientId}
+              orders={project.orders}
+            />
           </CardHeader>
           <CardContent className="space-y-2">
-            {project.deliverables.length === 0 ? (
+            {project.deliverables.length === 0 &&
+            operating.deliveries.length === 0 ? (
               <div dir="rtl">
                 <p className="text-sm font-medium">
                   {getEmptyState("deliverables").title}
@@ -859,7 +908,7 @@ export function ProjectHubContent({ project }: ProjectHubContentProps) {
                   {getEmptyState("deliverables").description}
                 </p>
               </div>
-            ) : (
+            ) : project.deliverables.length > 0 ? (
               project.deliverables.map((item) => (
               <div
                 key={item.id}
@@ -884,6 +933,21 @@ export function ProjectHubContent({ project }: ProjectHubContentProps) {
                   {deliverableLabel(item.status)}
                 </Badge>
               </div>
+              ))
+            ) : (
+              operating.deliveries.map((item) => (
+                <div
+                  key={item.id}
+                  className="flex flex-col gap-2 rounded-lg border border-border/60 px-3 py-3 sm:flex-row sm:items-center sm:justify-between"
+                >
+                  <div>
+                    <p className="text-sm font-medium">{item.label}</p>
+                    <p className="text-xs text-muted-foreground">
+                      Due {formatDate(item.dueDate)}
+                    </p>
+                  </div>
+                  <Badge variant="outline">{item.status}</Badge>
+                </div>
               ))
             )}
           </CardContent>

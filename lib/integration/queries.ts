@@ -21,6 +21,8 @@ import {
 } from "@/lib/finance/calculators";
 import { listFinancialEvents } from "@/lib/finance/repository";
 import type { Currency, FinancialEvent } from "@/lib/finance/types";
+import { getDeliveriesByOrder } from "@/lib/invoices/repository";
+import type { OrderDelivery } from "@/lib/invoices/types";
 import { getOrders, getOrdersByClient, getOrdersByProject } from "@/lib/orders/repository";
 import type { Order } from "@/lib/orders/types";
 import {
@@ -68,6 +70,7 @@ export interface ProjectOperatingView {
   orders: Order[];
   assignments: OrderAssignment[];
   payments: Payment[];
+  deliveries: OrderDelivery[];
   finance: ProjectFinanceResult & {
     events: FinancialEvent[];
   };
@@ -156,6 +159,7 @@ export function getProjectOperatingView(
   const orderIds = new Set(orders.map((o) => o.id));
   const assignments = orders.flatMap((o) => getAssignmentsByOrder(o.id));
   const payments = getPaymentsByProject(projectId);
+  const deliveries = orders.flatMap((o) => getDeliveriesByOrder(o.id));
   const quotations = getQuotations().filter(
     (q) => q.convertedProjectId === projectId
   );
@@ -184,6 +188,7 @@ export function getProjectOperatingView(
     orders,
     assignments,
     payments,
+    deliveries,
     finance: {
       ...finance,
       events,

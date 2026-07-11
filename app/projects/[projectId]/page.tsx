@@ -2,11 +2,14 @@ import { notFound } from "next/navigation";
 
 import { AppShell } from "@/components/layout/app-shell";
 import { ProjectHubContent } from "@/components/projects/project-hub-content";
+import { refreshAssignments } from "@/lib/assignments/repository";
 import { getModuleSlogan } from "@/lib/brand/soda-voice";
 import { getFilesByProject, refreshFiles } from "@/lib/files/repository";
+import { refreshInvoices } from "@/lib/invoices/repository";
 import { refreshOrders } from "@/lib/orders/repository";
 import { fetchProjectById } from "@/lib/projects/repository";
 import { refreshPayments } from "@/lib/payments/repository";
+import { refreshPeople } from "@/lib/people/repository";
 import type { ProjectFile } from "@/lib/projects/types";
 
 interface ProjectHubPageProps {
@@ -17,7 +20,14 @@ export const dynamic = "force-dynamic";
 
 export default async function ProjectHubPage({ params }: ProjectHubPageProps) {
   const { projectId } = await params;
-  await Promise.all([refreshOrders(), refreshPayments(), refreshFiles()]);
+  await Promise.all([
+    refreshOrders(),
+    refreshPayments(),
+    refreshFiles(),
+    refreshAssignments(),
+    refreshPeople(),
+    refreshInvoices(),
+  ]);
   const project = await fetchProjectById(projectId);
 
   if (!project) {

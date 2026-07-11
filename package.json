@@ -14,6 +14,7 @@
     "smoke:equipment": "npx tsx scripts/smoke-equipment-crud.ts",
     "smoke:modules": "npx tsx scripts/smoke-modules-crud.ts",
     "smoke:files": "npx tsx scripts/smoke-files-calendar.ts",
+    "smoke:workflow": "npx tsx scripts/smoke-business-workflow.ts",
     "db:clients-rls": "npx tsx scripts/apply-clients-rls.ts"
   },
   "dependencies": {
