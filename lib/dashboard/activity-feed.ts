@@ -5,7 +5,7 @@
 
 import { getAssignments } from "@/lib/assignments/repository";
 import { getClients } from "@/lib/clients/repository";
-import { DASHBOARD_AS_OF } from "@/lib/dashboard/types";
+import { getDashboardAsOf } from "@/lib/dashboard/types";
 import { JOURNEY_STAGE_LABELS } from "@/lib/journey/types";
 import { getOrders } from "@/lib/orders/repository";
 import { getPayments } from "@/lib/payments/repository";
@@ -55,7 +55,7 @@ function toTimeLabel(iso: string): string {
   }
   // Date-only — show month/day relative to studio as-of
   const day = iso.slice(0, 10);
-  if (day === DASHBOARD_AS_OF) return "Today";
+  if (day === getDashboardAsOf()) return "Today";
   return day.slice(5); // MM-DD
 }
 

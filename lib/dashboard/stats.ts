@@ -1,5 +1,5 @@
 import { computeClientStats } from "@/lib/business/client-stats";
-import { BUSINESS_TODAY } from "@/lib/business/types";
+import { getBusinessToday } from "@/lib/business/types";
 import { computeWorkspaceStats } from "@/lib/business/workspace-stats";
 import { averageProgress } from "@/lib/projects/utils";
 import type { Client } from "@/lib/clients/types";
@@ -8,7 +8,7 @@ import type { Payment } from "@/lib/payments/types";
 import type { Project, ProjectTeamMember } from "@/lib/projects/types";
 import type { WorkspaceSummary } from "@/lib/workspaces/types";
 import {
-  DASHBOARD_AS_OF,
+  getDashboardAsOf,
   type AttentionItem,
   type DashboardKpis,
   type DashboardSnapshot,
@@ -114,7 +114,7 @@ export function computeDashboardKpis(
   orders: Order[],
   clients: Client[],
   payments: Payment[],
-  asOf: string = DASHBOARD_AS_OF
+  asOf: string = getDashboardAsOf()
 ): DashboardKpis {
   const thisMonth = monthKeyFromDate(asOf);
   const lastMonth = shiftMonthKey(thisMonth, -1);
@@ -289,7 +289,7 @@ export function computeFinancialOverview(
 
 export function computeUpcomingSchedule(
   orders: Order[],
-  asOf: string = DASHBOARD_AS_OF
+  asOf: string = getDashboardAsOf()
 ): UpcomingSchedule {
   const tomorrow = addDays(asOf, 1);
 
@@ -375,7 +375,7 @@ export function computeAttentionItems(
   orders: Order[],
   clients: Client[],
   payments: Payment[],
-  asOf: string = DASHBOARD_AS_OF
+  asOf: string = getDashboardAsOf()
 ): AttentionItem[] {
   const items: AttentionItem[] = [];
   const horizon = addDays(asOf, DEADLINE_SOON_DAYS);
@@ -469,7 +469,7 @@ export function computeRecentOrders(orders: Order[], limit = 6): RecentOrderRow[
 
 export function computeMonthlyRevenueSeries(
   payments: Payment[],
-  asOf: string = DASHBOARD_AS_OF,
+  asOf: string = getDashboardAsOf(),
   months = 6
 ): MonthlyRevenuePoint[] {
   const end = monthKeyFromDate(asOf);
@@ -495,7 +495,7 @@ export function buildDashboardSnapshot(input: {
   workspaceSummaries: WorkspaceSummary[];
   asOf?: string;
 }): DashboardSnapshot {
-  const asOf = input.asOf ?? BUSINESS_TODAY ?? DASHBOARD_AS_OF;
+  const asOf = input.asOf ?? getBusinessToday();
   const { projects, orders, clients, payments, workspaceSummaries } = input;
 
   return {

@@ -6,7 +6,7 @@ import { HumanExplanation } from "@/components/brand/human-title";
 import { OrderStatusBadge } from "@/components/orders/order-status-badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BUSINESS_TODAY } from "@/lib/business/types";
+import { getBusinessToday } from "@/lib/business/types";
 import { getCommercialClientProfile } from "@/lib/business/commercial-account";
 import { getClientById } from "@/lib/clients/repository";
 import { getOrdersByClient } from "@/lib/orders/repository";
@@ -32,7 +32,7 @@ export function CommercialCompanyOrders({
 
   const profile = getCommercialClientProfile(
     companyId,
-    BUSINESS_TODAY.slice(0, 7)
+    getBusinessToday().slice(0, 7)
   );
   const projects = getProjectsByClient(companyId);
   const orders = getOrdersByClient(companyId);

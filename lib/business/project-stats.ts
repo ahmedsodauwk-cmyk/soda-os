@@ -1,5 +1,5 @@
 import { computeProgressFromOrders } from "@/lib/business/progress";
-import { BUSINESS_TODAY } from "@/lib/business/types";
+import { getBusinessToday } from "@/lib/business/types";
 import type { ProjectComputedStats } from "@/lib/business/types";
 import type { Order } from "@/lib/orders/types";
 import type {
@@ -31,7 +31,7 @@ export function toProjectOrderStub(order: Order): ProjectOrderStub {
 
 export function computeUpcomingShoots(
   orders: Order[],
-  today: string = BUSINESS_TODAY
+  today: string = getBusinessToday()
 ): ProjectShoot[] {
   return orders
     .filter(

@@ -13,6 +13,7 @@
     "smoke:crew": "npx tsx scripts/smoke-crew-crud.ts",
     "smoke:equipment": "npx tsx scripts/smoke-equipment-crud.ts",
     "smoke:modules": "npx tsx scripts/smoke-modules-crud.ts",
+    "smoke:files": "npx tsx scripts/smoke-files-calendar.ts",
     "db:clients-rls": "npx tsx scripts/apply-clients-rls.ts"
   },
   "dependencies": {

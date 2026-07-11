@@ -1,4 +1,4 @@
-import { BUSINESS_TODAY } from "@/lib/business/types";
+import { getBusinessToday } from "@/lib/business/types";
 import type { Order, OrderStatus } from "@/lib/orders/types";
 
 const ACTIVE: Set<OrderStatus> = new Set([
@@ -64,7 +64,7 @@ function shiftMonth(yyyyMm: string, delta: number): string {
 
 export function buildWeddingOrdersOverview(
   orders: Order[],
-  asOf: string = BUSINESS_TODAY
+  asOf: string = getBusinessToday()
 ): WeddingOrdersOverview {
   const wedding = orders.filter(isWeddingOrder);
   const thisMonth = asOf.slice(0, 7);

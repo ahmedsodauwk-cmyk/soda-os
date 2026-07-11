@@ -11,7 +11,7 @@ export type {
   UpcomingSchedule,
   WorkspacePerformanceRow,
 } from "@/lib/dashboard/types";
-export { DASHBOARD_AS_OF } from "@/lib/dashboard/types";
+export { DASHBOARD_AS_OF, getDashboardAsOf } from "@/lib/dashboard/types";
 export {
   buildDashboardSnapshot,
   computeAttentionItems,

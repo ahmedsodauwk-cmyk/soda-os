@@ -1,6 +1,6 @@
 /**
  * File / asset linked primarily to an Order (rolled up on Project).
- * Storage is mock-only — no uploads in this sprint.
+ * Metadata lives in `public.files` — binary storage comes later.
  */
 export interface FileAsset {
   id: string;

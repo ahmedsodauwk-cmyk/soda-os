@@ -19,10 +19,10 @@ import {
 import { HUMAN_LAYER } from "@/lib/brand";
 import { computeQuotationMetrics } from "@/lib/quotations";
 import { formatEgp } from "@/lib/quotations/utils";
-import { BUSINESS_TODAY } from "@/lib/business/types";
+import { getBusinessToday } from "@/lib/business/types";
 
 export function QuotationPipelineCard() {
-  const m = computeQuotationMetrics(BUSINESS_TODAY);
+  const m = computeQuotationMetrics(getBusinessToday());
 
   return (
     <Card className="soda-cc-card">

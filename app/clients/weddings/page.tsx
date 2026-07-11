@@ -5,14 +5,19 @@ import {
   getClientsBySegment,
   refreshClients,
 } from "@/lib/clients/repository";
-import { getOrders } from "@/lib/orders/repository";
-import { getPayments } from "@/lib/payments/repository";
-import { getProjects } from "@/lib/projects/repository";
+import { getOrders, refreshOrders } from "@/lib/orders/repository";
+import { getPayments, refreshPayments } from "@/lib/payments/repository";
+import { getProjects, refreshProjects } from "@/lib/projects/repository";
 
 export const dynamic = "force-dynamic";
 
 export default async function WeddingClientsPage() {
-  await refreshClients();
+  await Promise.all([
+    refreshClients(),
+    refreshProjects(),
+    refreshOrders(),
+    refreshPayments(),
+  ]);
   return (
     <AppShell title="Wedding Clients" subtitle={getModuleSlogan("weddings")}>
       <WeddingClientsView

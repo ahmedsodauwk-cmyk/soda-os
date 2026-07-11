@@ -53,10 +53,9 @@ const actions = [
   },
   {
     label: "Open Calendar",
-    href: "#",
+    href: "/calendar",
     icon: CalendarDays,
-    enabled: false,
-    soon: true,
+    enabled: true,
   },
   {
     label: "View Reports",

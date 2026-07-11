@@ -1,10 +1,11 @@
 /**
  * Calendar — derived from project.calendar jsonb + order shoot/delivery dates.
- * No dedicated calendar table in schema.
+ * No dedicated calendar_events table; projects.calendar jsonb is the schema store
+ * for project milestones. Order dates supply shoot/delivery events.
  */
 import type { CalendarEvent } from "@/lib/calendar/types";
-import { getOrders } from "@/lib/orders/repository";
-import { getProjects } from "@/lib/projects/repository";
+import { getOrders, refreshOrders } from "@/lib/orders/repository";
+import { getProjects, refreshProjects } from "@/lib/projects/repository";
 
 function fromProjects(): CalendarEvent[] {
   const events: CalendarEvent[] = [];
@@ -54,6 +55,12 @@ function fromOrders(): CalendarEvent[] {
   return events;
 }
 
+/** Refresh projects + orders so calendar reads live Supabase data. */
+export async function refreshCalendar(): Promise<CalendarEvent[]> {
+  await Promise.all([refreshProjects(), refreshOrders()]);
+  return getCalendarEvents();
+}
+
 export function getCalendarEvents(): CalendarEvent[] {
   const map = new Map<string, CalendarEvent>();
   for (const ev of [...fromProjects(), ...fromOrders()]) {
@@ -72,4 +79,14 @@ export function getCalendarEventsByProject(
 
 export function getCalendarEventsByOrder(orderId: string): CalendarEvent[] {
   return getCalendarEvents().filter((e) => e.orderId === orderId);
+}
+
+/** Events on or after a local YYYY-MM-DD (inclusive). */
+export function getUpcomingCalendarEvents(
+  fromDate: string,
+  limit = 50
+): CalendarEvent[] {
+  return getCalendarEvents()
+    .filter((e) => e.startsAt.slice(0, 10) >= fromDate)
+    .slice(0, limit);
 }

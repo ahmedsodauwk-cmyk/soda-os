@@ -1,0 +1,24 @@
+-- SODA OS — Calendar
+-- No dedicated calendar_events table required.
+-- Events are derived from:
+--   1) public.projects.calendar (jsonb milestones)
+--   2) public.orders.shoot_date / delivery_date
+-- Paste only if you later want a standalone manual-events table.
+-- Prefer the derived approach already wired in lib/calendar.
+
+-- Optional future table (NOT applied — leave commented unless product needs manual events):
+--
+-- create table if not exists public.calendar_events (
+--   id text primary key,
+--   title text not null,
+--   starts_at timestamptz not null,
+--   ends_at timestamptz,
+--   kind text not null default 'internal',
+--   project_id text references public.projects (id) on delete set null,
+--   order_id text references public.orders (id) on delete set null,
+--   workspace_id text references public.workspaces (id),
+--   location text,
+--   source text not null default 'manual',
+--   created_at timestamptz not null default now(),
+--   updated_at timestamptz not null default now()
+-- );

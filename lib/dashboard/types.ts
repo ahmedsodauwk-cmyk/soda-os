@@ -1,7 +1,14 @@
 import type { OrderStatus } from "@/lib/orders/types";
 
-/** Studio clock for demo-stable schedule / overdue math (matches BUSINESS_TODAY). */
-export const DASHBOARD_AS_OF = "2026-07-10";
+import { getBusinessToday } from "@/lib/business/types";
+
+/** Studio as-of date for schedule / overdue math (live local today; env override). */
+export function getDashboardAsOf(override?: string): string {
+  return getBusinessToday(override);
+}
+
+/** @deprecated Prefer getDashboardAsOf() — evaluated once at module load. */
+export const DASHBOARD_AS_OF: string = getDashboardAsOf();
 
 export interface DashboardKpis {
   revenueThisMonth: number;

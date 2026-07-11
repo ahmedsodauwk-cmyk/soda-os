@@ -23,6 +23,7 @@ export type HumanLayerKey =
   | "login"
   | "crew"
   | "crewProfile"
+  | "calendar"
   /* Dashboard sections */
   | "companyPulse"
   | "sodaLive"
@@ -117,6 +118,7 @@ export const HUMAN_LAYER: Record<HumanLayerKey, string> = {
   login: "ادخل على نظام تشغيل صودا.",
   crew: "فريق صودا اللي بينفذ الشغل.",
   crewProfile: "ملف عضو الفريق — الشغل والمستحقات.",
+  calendar: "جدول التصوير والتسليمات من الأوردرات الحية.",
 
   /* Dashboard */
   companyPulse: "أهم الحاجات اللي محتاجة انتباه دلوقتي.",

@@ -1,5 +1,11 @@
 export type { ClientComputedStats, ProjectComputedStats, WorkspaceComputedStats } from "@/lib/business/types";
-export { BUSINESS_NOW_ISO, BUSINESS_TODAY } from "@/lib/business/types";
+export {
+  BUSINESS_NOW_ISO,
+  BUSINESS_TODAY,
+  formatLocalDate,
+  getBusinessNowIso,
+  getBusinessToday,
+} from "@/lib/business/types";
 export { computeProgressFromOrders } from "@/lib/business/progress";
 export {
   computeLastActivity,

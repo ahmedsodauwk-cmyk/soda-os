@@ -3,7 +3,7 @@
  * Client → Project → Order → Journey → Invoice → Payment → crew assignment stubs.
  */
 
-import { BUSINESS_TODAY } from "@/lib/business/types";
+import { getBusinessToday } from "@/lib/business/types";
 import {
   createClient,
   getAllClients,
@@ -195,7 +195,7 @@ export async function convertQuotationToProject(
   }
 
   const now = new Date().toISOString();
-  const today = BUSINESS_TODAY;
+  const today = getBusinessToday();
   const totals = computeQuotationTotals(quotation);
   const total =
     totals.total > 0 ? totals.total : quotation.estimatedValue || 0;

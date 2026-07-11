@@ -33,7 +33,8 @@ export type ModuleSloganKey =
   | "about"
   | "login"
   | "crew"
-  | "crewProfile";
+  | "crewProfile"
+  | "calendar";
 
 export type EmptyStateKey =
   | "orders"

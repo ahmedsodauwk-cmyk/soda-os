@@ -3,7 +3,7 @@ import {
   assignmentRemaining,
   getAssignmentsByPerson,
 } from "@/lib/assignments/repository";
-import { BUSINESS_TODAY } from "@/lib/business/types";
+import { getBusinessToday } from "@/lib/business/types";
 import { getOrders } from "@/lib/orders/repository";
 import type { Order } from "@/lib/orders/types";
 import { createPeopleDb } from "@/lib/people/db";
@@ -231,7 +231,7 @@ export function buildPersonPaymentLines(personId: string): PersonPaymentLine[] {
 
 export function getPersonPaymentSummary(
   personId: string,
-  asOf: string = BUSINESS_TODAY
+  asOf: string = getBusinessToday()
 ): PersonPaymentSummary {
   const lines = buildPersonPaymentLines(personId);
   const totalEarned = lines.reduce((s, l) => s + l.finalAmount, 0);
@@ -290,7 +290,7 @@ export function getPersonPaymentSummary(
 
 export function getPersonPerformance(
   personId: string,
-  asOf: string = BUSINESS_TODAY
+  asOf: string = getBusinessToday()
 ): PersonPerformance {
   const orders = orderMap();
   const assignments = getAssignmentsByPerson(personId);
@@ -385,7 +385,7 @@ export function getPersonPerformance(
   };
 }
 
-export function getPeopleOwedSummary(asOf: string = BUSINESS_TODAY) {
+export function getPeopleOwedSummary(asOf: string = getBusinessToday()) {
   return getAllPeople()
     .map((person) => {
       const summary = getPersonPaymentSummary(person.id, asOf);

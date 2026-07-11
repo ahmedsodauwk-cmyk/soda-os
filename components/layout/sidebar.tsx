@@ -42,7 +42,7 @@ const menu = [
   { title: "Weddings", icon: Heart, href: "/orders/weddings" },
   { title: "Clients", icon: Users, href: "/clients" },
   { title: "The Crew", icon: UsersRound, href: "/crew" },
-  { title: "Calendar", icon: Calendar, href: "#" },
+  { title: "Calendar", icon: Calendar, href: "/calendar" },
   { title: "Finance", icon: DollarSign, href: "/finance" },
   { title: "Settings", icon: Settings, href: "#" },
 ];

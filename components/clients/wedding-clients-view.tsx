@@ -6,7 +6,7 @@ import { Search } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { BUSINESS_TODAY } from "@/lib/business/types";
+import { getBusinessToday } from "@/lib/business/types";
 import { computeClientStats } from "@/lib/business/client-stats";
 import type { Client } from "@/lib/clients/types";
 import type { Order } from "@/lib/orders/types";
@@ -39,12 +39,12 @@ export function WeddingClientsView({
       const clientOrders = orders.filter((o) => o.clientId === client.id);
       const upcoming = clientOrders.filter(
         (o) =>
-          o.shootDate >= BUSINESS_TODAY &&
+          o.shootDate >= getBusinessToday() &&
           o.status !== "Cancelled" &&
           o.status !== "Delivered"
       );
       const past = clientOrders.filter(
-        (o) => o.status === "Delivered" || o.shootDate < BUSINESS_TODAY
+        (o) => o.status === "Delivered" || o.shootDate < getBusinessToday()
       );
       return { client, stats, upcoming, past, clientOrders };
     });

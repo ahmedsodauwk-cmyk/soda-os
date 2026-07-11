@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { HUMAN_LAYER, getEmptyState } from "@/lib/brand";
-import { BUSINESS_TODAY } from "@/lib/business/types";
+import { getBusinessToday } from "@/lib/business/types";
 import { getCommercialClientProfile } from "@/lib/business/commercial-account";
 import { computeClientStats } from "@/lib/business/client-stats";
 import { fetchClientById } from "@/lib/clients/repository";
@@ -101,7 +101,7 @@ export async function ClientProfile({ clientId }: ClientProfileProps) {
   if (client.segment === "commercial") {
     const profile = getCommercialClientProfile(
       clientId,
-      BUSINESS_TODAY.slice(0, 7)
+      getBusinessToday().slice(0, 7)
     );
     if (!profile) notFound();
 

@@ -1,6 +1,13 @@
 import { AppShell } from "@/components/layout/app-shell";
 import { ClientProfile } from "@/components/clients/client-profile";
 import { getModuleSlogan } from "@/lib/brand/soda-voice";
+import { refreshClients } from "@/lib/clients/repository";
+import { refreshOrders } from "@/lib/orders/repository";
+import { refreshPayments } from "@/lib/payments/repository";
+import { refreshProjects } from "@/lib/projects/repository";
+import { refreshQuotations } from "@/lib/quotations/repository";
+
+export const dynamic = "force-dynamic";
 
 export default async function ClientDetailPage({
   params,
@@ -8,6 +15,13 @@ export default async function ClientDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+  await Promise.all([
+    refreshClients(),
+    refreshProjects(),
+    refreshOrders(),
+    refreshPayments(),
+    refreshQuotations(),
+  ]);
   return (
     <AppShell title="Client" subtitle={getModuleSlogan("clients")}>
       <ClientProfile clientId={id} />

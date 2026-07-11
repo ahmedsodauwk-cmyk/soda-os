@@ -1,5 +1,5 @@
 import { computeClientStats } from "@/lib/business/client-stats";
-import { BUSINESS_TODAY } from "@/lib/business/types";
+import { getBusinessToday } from "@/lib/business/types";
 import { getClientById, getClientsBySegment } from "@/lib/clients/repository";
 import type { Client } from "@/lib/clients/types";
 import {
@@ -94,7 +94,7 @@ export function buildMonthlyAccount(
 
 export function getCommercialClientProfile(
   clientId: string,
-  periodMonth: string = BUSINESS_TODAY.slice(0, 7)
+  periodMonth: string = getBusinessToday().slice(0, 7)
 ): CommercialClientProfile | null {
   const client = getClientById(clientId);
   if (!client || client.segment !== "commercial") return null;

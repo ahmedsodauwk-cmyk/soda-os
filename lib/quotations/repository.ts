@@ -1,4 +1,4 @@
-import { BUSINESS_NOW_ISO } from "@/lib/business/types";
+import { getBusinessToday } from "@/lib/business/types";
 import { createQuotationsDb } from "@/lib/quotations/db";
 import {
   quotationToRow,
@@ -354,7 +354,7 @@ export function getClientQuotationStats(
 }
 
 export function computeQuotationMetrics(
-  asOf: string = BUSINESS_NOW_ISO.slice(0, 10)
+  asOf: string = getBusinessToday()
 ): QuotationMetrics {
   const all = getQuotations();
   const monthKey = asOf.slice(0, 7);

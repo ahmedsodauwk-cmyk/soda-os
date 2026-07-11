@@ -309,6 +309,7 @@ export const MODULE_SLOGANS: Record<ModuleSloganKey, string> = {
   login: HUMAN_LAYER.login,
   crew: HUMAN_LAYER.crew,
   crewProfile: HUMAN_LAYER.crewProfile,
+  calendar: HUMAN_LAYER.calendar,
 };
 
 /** Resolve slogan for a workspace id/slug (falls back to workspaces). */
