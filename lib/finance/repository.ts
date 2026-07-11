@@ -1,12 +1,17 @@
 /**
- * Financial Engine repository — append-only in-memory ledger.
+ * Financial Engine repository — append-only ledger on Supabase.
  * Events are immutable: no update/delete APIs.
  */
 
+import { createFinanceDb } from "@/lib/finance/db";
 import {
-  financialAllocations,
-  financialEvents,
-} from "@/lib/finance/seed";
+  allocationToRow,
+  eventToRow,
+  rowToAllocation,
+  rowToEvent,
+  type FinancialAllocationRow,
+  type FinancialEventRow,
+} from "@/lib/finance/mappers";
 import type {
   FinanceSummary,
   FinancialAllocation,
@@ -21,22 +26,54 @@ import {
   validateNewFinancialEvent,
 } from "@/lib/finance/validation";
 
+let eventsCache: FinancialEvent[] = [];
+let allocationsCache: FinancialAllocation[] = [];
+
 function nowIso(): string {
   return new Date().toISOString();
 }
 
 function nextEventId(): string {
+  if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
+    return `fe-${crypto.randomUUID()}`;
+  }
   return `fe-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
 }
 
 function nextAllocationId(): string {
+  if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
+    return `fa-${crypto.randomUUID()}`;
+  }
   return `fa-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
 }
 
+export async function refreshFinance(): Promise<void> {
+  const db = createFinanceDb();
+  const [ev, al] = await Promise.all([
+    db
+      .from("financial_events")
+      .select("*")
+      .order("occurred_at", { ascending: false }),
+    db.from("financial_allocations").select("*"),
+  ]);
+  if (ev.error) {
+    throw new Error(`Failed to load financial events: ${ev.error.message}`);
+  }
+  if (al.error) {
+    throw new Error(
+      `Failed to load financial allocations: ${al.error.message}`
+    );
+  }
+  eventsCache = ((ev.data ?? []) as FinancialEventRow[]).map(rowToEvent);
+  allocationsCache = ((al.data ?? []) as FinancialAllocationRow[]).map(
+    rowToAllocation
+  );
+}
+
 /** Append-only: create an immutable Financial Event. */
-export function createFinancialEvent(
+export async function createFinancialEvent(
   input: NewFinancialEventInput
-): FinancialEvent {
+): Promise<FinancialEvent> {
   const validated = validateNewFinancialEvent(input);
   const createdAt = nowIso();
   const event: FinancialEvent = {
@@ -55,19 +92,29 @@ export function createFinancialEvent(
     invoiceId: validated.invoiceId,
   };
 
-  financialEvents.push(event);
-  return { ...event };
+  const db = createFinanceDb();
+  const { data, error } = await db
+    .from("financial_events")
+    .insert(eventToRow(event))
+    .select("*")
+    .single();
+  if (error) {
+    throw new Error(`Failed to create financial event: ${error.message}`);
+  }
+  const saved = rowToEvent(data as FinancialEventRow);
+  eventsCache = [saved, ...eventsCache];
+  return { ...saved };
 }
 
 export function getFinancialEventById(id: string): FinancialEvent | undefined {
-  const event = financialEvents.find((e) => e.id === id);
+  const event = eventsCache.find((e) => e.id === id);
   return event ? { ...event } : undefined;
 }
 
 export function listFinancialEvents(
   filter: ListFinancialEventsFilter = {}
 ): FinancialEvent[] {
-  return financialEvents
+  return eventsCache
     .filter((e) => {
       if (filter.parentType && e.parent.parentType !== filter.parentType) {
         return false;
@@ -87,28 +134,22 @@ export function listFinancialEvents(
     .sort((a, b) => b.occurredAt.localeCompare(a.occurredAt));
 }
 
-/** Allocated total for an event (does not mutate). */
 export function getAllocatedTotalForEvent(financialEventId: string): number {
-  return financialAllocations
+  return allocationsCache
     .filter((a) => a.financialEventId === financialEventId)
     .reduce((acc, a) => acc + a.amount, 0);
 }
 
-/** Remaining amount that can still be allocated on an event. */
 export function getUnallocatedAmount(financialEventId: string): number {
-  const event = financialEvents.find((e) => e.id === financialEventId);
+  const event = eventsCache.find((e) => e.id === financialEventId);
   if (!event) return 0;
   return Math.max(0, event.amount - getAllocatedTotalForEvent(financialEventId));
 }
 
-/**
- * Create an allocation against an event.
- * Sum of allocations must not exceed the event amount.
- */
-export function createAllocation(
+export async function createAllocation(
   input: NewFinancialAllocationInput
-): FinancialAllocation {
-  const event = financialEvents.find((e) => e.id === input.financialEventId);
+): Promise<FinancialAllocation> {
+  const event = eventsCache.find((e) => e.id === input.financialEventId);
   const already = getAllocatedTotalForEvent(input.financialEventId);
   const validated = validateNewFinancialAllocation(input, event, already);
 
@@ -121,14 +162,24 @@ export function createAllocation(
     note: validated.note,
   };
 
-  financialAllocations.push(allocation);
-  return { ...allocation };
+  const db = createFinanceDb();
+  const { data, error } = await db
+    .from("financial_allocations")
+    .insert(allocationToRow(allocation))
+    .select("*")
+    .single();
+  if (error) {
+    throw new Error(`Failed to create allocation: ${error.message}`);
+  }
+  const saved = rowToAllocation(data as FinancialAllocationRow);
+  allocationsCache = [saved, ...allocationsCache];
+  return { ...saved };
 }
 
 export function listAllocationsByEvent(
   financialEventId: string
 ): FinancialAllocation[] {
-  return financialAllocations
+  return allocationsCache
     .filter((a) => a.financialEventId === financialEventId)
     .map((a) => ({ ...a }));
 }
@@ -137,44 +188,30 @@ export function listAllocationsByTarget(
   targetType: FinancialAllocation["targetType"],
   targetId: string
 ): FinancialAllocation[] {
-  return financialAllocations
+  return allocationsCache
     .filter((a) => a.targetType === targetType && a.targetId === targetId)
     .map((a) => ({ ...a }));
 }
 
-/** All allocations (copies) — for calculators / diagnostics. */
 export function listAllAllocations(): FinancialAllocation[] {
-  return financialAllocations.map((a) => ({ ...a }));
+  return allocationsCache.map((a) => ({ ...a }));
 }
 
-/**
- * Events are immutable — update is not supported.
- * @throws always
- */
 export function updateFinancialEvent(_id: string, _patch: unknown): never {
   void _id;
   void _patch;
   throw new Error("Financial Events are immutable and cannot be updated");
 }
 
-/**
- * Events are immutable — delete is not supported.
- * @throws always
- */
 export function deleteFinancialEvent(_id: string): never {
   void _id;
   throw new Error("Financial Events are immutable and cannot be deleted");
 }
 
-/** Legacy stub — commercial invoices live in lib/invoices. */
 export function getInvoices(): Invoice[] {
   return [];
 }
 
-/**
- * Studio rollup. Built on the engine so empty stores yield zeros;
- * client_payment inflows count as revenuePaid.
- */
 export function getFinanceSummary(): FinanceSummary {
   const paid = listFinancialEvents({
     type: "client_payment",

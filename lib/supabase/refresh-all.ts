@@ -4,6 +4,7 @@
 import { refreshAssignments } from "@/lib/assignments/repository";
 import { refreshClients } from "@/lib/clients/repository";
 import { refreshEquipment } from "@/lib/equipment/repository";
+import { refreshFinance } from "@/lib/finance/repository";
 import { refreshInvoices } from "@/lib/invoices/repository";
 import { refreshOrders } from "@/lib/orders/repository";
 import { refreshPayments } from "@/lib/payments/repository";
@@ -24,5 +25,6 @@ export async function refreshAllDomainData(): Promise<void> {
     refreshQuotations(),
     refreshPayments(),
     refreshInvoices(),
+    refreshFinance(),
   ]);
 }

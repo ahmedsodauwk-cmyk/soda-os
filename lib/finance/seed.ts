@@ -1,9 +1,8 @@
-import type { FinancialAllocation, FinancialEvent } from "@/lib/finance/types";
+import type {
+  FinancialAllocation,
+  FinancialEvent,
+} from "@/lib/finance/types";
 
-/**
- * In-memory Financial Engine stores — empty until create flows append.
- * No fake business data.
- */
+/** Legacy empty — source of truth is Supabase financial_* tables. */
 export const financialEvents: FinancialEvent[] = [];
-
 export const financialAllocations: FinancialAllocation[] = [];

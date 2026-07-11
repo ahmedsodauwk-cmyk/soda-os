@@ -3,7 +3,7 @@
  * The company holds balances; projects never own wallets.
  */
 
-import { financialEvents } from "@/lib/finance/seed";
+import { listFinancialEvents } from "@/lib/finance/repository";
 import type {
   CompanyWallet,
   Currency,
@@ -22,8 +22,7 @@ export function eventSignedAmount(event: FinancialEvent): number {
  * Optional currency filter (defaults to EGP). Projects are ignored as owners.
  */
 export function getCompanyWallet(currency: Currency = DEFAULT_CURRENCY): CompanyWallet {
-  // Read live store (same array mutated by repository create APIs).
-  const events = financialEvents.filter((e) => e.currency === currency);
+  const events = listFinancialEvents().filter((e) => e.currency === currency);
 
   let totalInflow = 0;
   let totalOutflow = 0;

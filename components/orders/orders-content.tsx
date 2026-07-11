@@ -93,7 +93,7 @@ export function OrdersContent() {
   async function handleAddOrder(input: NewOrderInput) {
     const order = await createOrder(input);
     if (input.deposit > 0) {
-      emitOrderClientPayment({
+      await emitOrderClientPayment({
         orderId: order.id,
         amount: input.deposit,
         notes: `Deposit on order ${order.id}`,

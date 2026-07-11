@@ -47,7 +47,7 @@ import { computeQuotationTotals } from "@/lib/quotations/utils";
 import { ensureTaxonomyPersisted } from "@/lib/taxonomy/persist";
 
 /** Emit deposit into Finance ledger (idempotent on paymentId). */
-function emitConvertDeposit(input: {
+async function emitConvertDeposit(input: {
   quotationId: string;
   paymentId: string;
   amount: number;
@@ -55,7 +55,7 @@ function emitConvertDeposit(input: {
   projectId: string;
   orderId: string;
   createdBy?: string;
-}): string | undefined {
+}): Promise<string | undefined> {
   if (input.amount <= 0) return undefined;
 
   const existing = listFinancialEvents({ paymentId: input.paymentId }).find(
@@ -63,7 +63,7 @@ function emitConvertDeposit(input: {
   );
   if (existing) return existing.id;
 
-  const event = createFinancialEvent({
+  const event = await createFinancialEvent({
     type: "client_payment",
     amount: input.amount,
     currency: "EGP",
@@ -79,7 +79,7 @@ function emitConvertDeposit(input: {
     },
   });
 
-  createAllocation({
+  await createAllocation({
     financialEventId: event.id,
     amount: input.amount,
     targetType: "project",
@@ -456,7 +456,7 @@ export async function convertQuotationToProject(
     }
   );
 
-  const financialEventId = emitConvertDeposit({
+  const financialEventId = await emitConvertDeposit({
     quotationId: quotation.id,
     paymentId,
     amount: deposit,

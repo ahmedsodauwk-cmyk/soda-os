@@ -45,7 +45,7 @@ function depositFromQuotation(
 }
 
 /** Quotation deposit → ledger (parent: quotation). Idempotent per paymentId. */
-export function emitQuotationDeposit(input: {
+export async function emitQuotationDeposit(input: {
   quotationId: string;
   amount: number;
   paymentId?: string;
@@ -55,7 +55,7 @@ export function emitQuotationDeposit(input: {
   occurredAt?: string;
   notes?: string;
   createdBy?: string;
-}): FinanceEmitResult {
+}): Promise<FinanceEmitResult> {
   if (input.paymentId) {
     const existing = listFinancialEvents({ paymentId: input.paymentId }).find(
       (e) => e.type === "client_payment"
@@ -65,7 +65,7 @@ export function emitQuotationDeposit(input: {
     }
   }
 
-  const event = createFinancialEvent({
+  const event = await createFinancialEvent({
     type: "client_payment",
     amount: input.amount,
     currency: DEFAULT_CURRENCY,
@@ -85,7 +85,7 @@ export function emitQuotationDeposit(input: {
   const allocations = [];
   if (input.projectId) {
     allocations.push(
-      createAllocation({
+      await createAllocation({
         financialEventId: event.id,
         amount: input.amount,
         targetType: "project",
@@ -95,7 +95,7 @@ export function emitQuotationDeposit(input: {
     );
   } else if (input.orderId) {
     allocations.push(
-      createAllocation({
+      await createAllocation({
         financialEventId: event.id,
         amount: input.amount,
         targetType: "order",
@@ -109,7 +109,7 @@ export function emitQuotationDeposit(input: {
 }
 
 /** Client payment against an order (+ optional project allocation). */
-export function emitOrderClientPayment(input: {
+export async function emitOrderClientPayment(input: {
   orderId: string;
   amount: number;
   paymentId?: string;
@@ -117,7 +117,7 @@ export function emitOrderClientPayment(input: {
   notes?: string;
   createdBy?: string;
   projectAllocations?: Array<{ projectId: string; amount: number }>;
-}): FinanceEmitResult {
+}): Promise<FinanceEmitResult> {
   if (input.paymentId) {
     const existing = listFinancialEvents({ paymentId: input.paymentId }).find(
       (e) => e.type === "client_payment"
@@ -128,7 +128,7 @@ export function emitOrderClientPayment(input: {
   }
 
   const order = getOrderById(input.orderId);
-  const event = createFinancialEvent({
+  const event = await createFinancialEvent({
     type: "client_payment",
     amount: input.amount,
     currency: DEFAULT_CURRENCY,
@@ -143,14 +143,17 @@ export function emitOrderClientPayment(input: {
     },
   });
 
-  const allocations = (input.projectAllocations ?? []).map((slice) =>
-    createAllocation({
-      financialEventId: event.id,
-      amount: slice.amount,
-      targetType: "project",
-      targetId: slice.projectId,
-    })
-  );
+  const allocations = [];
+  for (const slice of input.projectAllocations ?? []) {
+    allocations.push(
+      await createAllocation({
+        financialEventId: event.id,
+        amount: slice.amount,
+        targetType: "project",
+        targetId: slice.projectId,
+      })
+    );
+  }
 
   if (
     allocations.length === 0 &&
@@ -158,7 +161,7 @@ export function emitOrderClientPayment(input: {
     input.amount > 0
   ) {
     allocations.push(
-      createAllocation({
+      await createAllocation({
         financialEventId: event.id,
         amount: input.amount,
         targetType: "project",
@@ -174,7 +177,7 @@ export function emitOrderClientPayment(input: {
  * Crew payment — single write path:
  * ledger event + assignment allocation + assignment.paidAmount.
  */
-export function emitCrewPayment(input: {
+export async function emitCrewPayment(input: {
   personId: string;
   amount: number;
   assignmentId?: string;
@@ -183,8 +186,8 @@ export function emitCrewPayment(input: {
   occurredAt?: string;
   notes?: string;
   createdBy?: string;
-}): FinanceEmitResult {
-  const event = createFinancialEvent({
+}): Promise<FinanceEmitResult> {
+  const event = await createFinancialEvent({
     type: "crew_payment",
     amount: input.amount,
     currency: DEFAULT_CURRENCY,
@@ -202,7 +205,7 @@ export function emitCrewPayment(input: {
   const allocations = [];
   if (input.assignmentId) {
     allocations.push(
-      createAllocation({
+      await createAllocation({
         financialEventId: event.id,
         amount: input.amount,
         targetType: "crew_assignment",
@@ -212,7 +215,7 @@ export function emitCrewPayment(input: {
     );
   } else if (input.projectId) {
     allocations.push(
-      createAllocation({
+      await createAllocation({
         financialEventId: event.id,
         amount: input.amount,
         targetType: "project",
@@ -263,7 +266,7 @@ export async function runQuotationConversionFlow(
 
   if (amount <= 0) return result;
 
-  const { event } = emitQuotationDeposit({
+  const { event } = await emitQuotationDeposit({
     quotationId: result.quotationId,
     amount,
     paymentId: result.paymentId,
@@ -329,7 +332,7 @@ export async function payCrewAssignment(input: {
   }
 
   const order = getOrderById(assignment.orderId);
-  const finance = emitCrewPayment({
+  const finance = await emitCrewPayment({
     personId: assignment.personId,
     amount,
     assignmentId: assignment.id,
