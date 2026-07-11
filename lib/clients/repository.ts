@@ -1,42 +1,180 @@
 import { computeClientStats } from "@/lib/business/client-stats";
 import type { ClientComputedStats } from "@/lib/business/types";
-import { mockClients } from "@/lib/clients/mock-data";
+import { createClientsDb } from "@/lib/clients/db";
+import { clientToRow, rowToClient, type ClientRow } from "@/lib/clients/mappers";
 import type { Client, NewClientInput } from "@/lib/clients/types";
-import { generateClientId } from "@/lib/clients/utils";
 import { getOrders } from "@/lib/orders/repository";
 import { getPayments } from "@/lib/payments/repository";
 import { getProjects } from "@/lib/projects/repository";
 
+/**
+ * In-memory mirror so existing sync callers (other modules) keep working.
+ * Source of truth is `public.clients` — call `refreshClients()` / async CRUD
+ * from the Clients UI and routes to keep this cache current.
+ */
+let clientsCache: Client[] = [];
+
+function sortByCreatedDesc(a: Client, b: Client): number {
+  return b.createdAt.localeCompare(a.createdAt);
+}
+
+function setCache(clients: Client[]): Client[] {
+  clientsCache = [...clients].sort(sortByCreatedDesc);
+  return clientsCache;
+}
+
+function upsertCache(client: Client): void {
+  const next = clientsCache.filter((c) => c.id !== client.id);
+  next.unshift(client);
+  clientsCache = next;
+}
+
+function removeFromCache(id: string): void {
+  clientsCache = clientsCache.filter((c) => c.id !== id);
+}
+
+function newClientId(): string {
+  if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
+    return `client-${crypto.randomUUID()}`;
+  }
+  return `client-${Date.now().toString(36)}`;
+}
+
+async function selectAllRows(): Promise<ClientRow[]> {
+  const db = createClientsDb();
+  const { data, error } = await db
+    .from("clients")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    throw new Error(`Failed to load clients: ${error.message}`);
+  }
+  return (data ?? []) as ClientRow[];
+}
+
+/** Load all clients from Supabase into the sync cache. */
+export async function refreshClients(): Promise<Client[]> {
+  const rows = await selectAllRows();
+  return setCache(rows.map(rowToClient));
+}
+
 export function getClients(): Client[] {
-  return mockClients.filter((c) => c.isActive);
+  return clientsCache.filter((c) => c.isActive);
 }
 
 export function getAllClients(): Client[] {
-  return [...mockClients];
+  return [...clientsCache];
 }
 
 export function getClientById(id: string): Client | undefined {
-  return mockClients.find((c) => c.id === id);
+  return clientsCache.find((c) => c.id === id);
 }
 
-/** Persist a new client into the shared mock store (visible across modules). */
-export function createClient(input: NewClientInput): Client {
+/** Fetch one client from Supabase (updates cache on hit). */
+export async function fetchClientById(
+  id: string
+): Promise<Client | undefined> {
+  const db = createClientsDb();
+  const { data, error } = await db
+    .from("clients")
+    .select("*")
+    .eq("id", id)
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(`Failed to load client ${id}: ${error.message}`);
+  }
+  if (!data) return undefined;
+  const client = rowToClient(data as ClientRow);
+  upsertCache(client);
+  return client;
+}
+
+/** Persist a new client to Supabase and the sync cache. */
+export async function createClient(input: NewClientInput): Promise<Client> {
   const client: Client = {
-    id: generateClientId(mockClients.length),
+    id: newClientId(),
     createdAt: new Date().toISOString(),
     isActive: true,
     ...input,
   };
-  mockClients.unshift(client);
-  return { ...client };
+
+  const db = createClientsDb();
+  const { data, error } = await db
+    .from("clients")
+    .insert(clientToRow(client))
+    .select("*")
+    .single();
+
+  if (error) {
+    throw new Error(`Failed to create client: ${error.message}`);
+  }
+
+  const saved = rowToClient(data as ClientRow);
+  upsertCache(saved);
+  return { ...saved };
+}
+
+export type UpdateClientInput = Partial<
+  Omit<Client, "id" | "createdAt">
+>;
+
+/** Update an existing client in Supabase and the sync cache. */
+export async function updateClient(
+  id: string,
+  patch: UpdateClientInput
+): Promise<Client> {
+  const existing = getClientById(id) ?? (await fetchClientById(id));
+  if (!existing) {
+    throw new Error(`Client not found: ${id}`);
+  }
+
+  const merged: Client = {
+    ...existing,
+    ...patch,
+    id: existing.id,
+    createdAt: existing.createdAt,
+  };
+
+  const db = createClientsDb();
+  const row = clientToRow(merged);
+  delete row.id;
+  delete row.created_at;
+
+  const { data, error } = await db
+    .from("clients")
+    .update(row)
+    .eq("id", id)
+    .select("*")
+    .single();
+
+  if (error) {
+    throw new Error(`Failed to update client: ${error.message}`);
+  }
+
+  const saved = rowToClient(data as ClientRow);
+  upsertCache(saved);
+  return { ...saved };
+}
+
+/** Hard-delete a client from Supabase and the sync cache. */
+export async function deleteClient(id: string): Promise<void> {
+  const db = createClientsDb();
+  const { error } = await db.from("clients").delete().eq("id", id);
+
+  if (error) {
+    throw new Error(`Failed to delete client: ${error.message}`);
+  }
+  removeFromCache(id);
 }
 
 export function getClientsByType(type: Client["type"]): Client[] {
-  return mockClients.filter((c) => c.type === type && c.isActive);
+  return clientsCache.filter((c) => c.type === type && c.isActive);
 }
 
 export function getClientsBySegment(segment: Client["segment"]): Client[] {
-  return mockClients.filter((c) => c.segment === segment && c.isActive);
+  return clientsCache.filter((c) => c.segment === segment && c.isActive);
 }
 
 export function getOrdersCountByClient(

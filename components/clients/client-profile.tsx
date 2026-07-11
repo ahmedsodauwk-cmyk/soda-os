@@ -11,7 +11,7 @@ import { HUMAN_LAYER, getEmptyState } from "@/lib/brand";
 import { BUSINESS_TODAY } from "@/lib/business/types";
 import { getCommercialClientProfile } from "@/lib/business/commercial-account";
 import { computeClientStats } from "@/lib/business/client-stats";
-import { getClientById } from "@/lib/clients/repository";
+import { fetchClientById } from "@/lib/clients/repository";
 import { getClientOperatingView } from "@/lib/integration";
 import { getOrders } from "@/lib/orders/repository";
 import { getPayments } from "@/lib/payments/repository";
@@ -94,8 +94,8 @@ interface ClientProfileProps {
   clientId: string;
 }
 
-export function ClientProfile({ clientId }: ClientProfileProps) {
-  const client = getClientById(clientId);
+export async function ClientProfile({ clientId }: ClientProfileProps) {
+  const client = await fetchClientById(clientId);
   if (!client) notFound();
 
   if (client.segment === "commercial") {

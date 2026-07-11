@@ -45,7 +45,7 @@ const emptyForm: NewClientInput = {
 type FormFields = keyof NewClientInput;
 
 interface AddClientDialogProps {
-  onAdd: (client: NewClientInput) => void;
+  onAdd: (client: NewClientInput) => void | Promise<void>;
 }
 
 export function AddClientDialog({ onAdd }: AddClientDialogProps) {
@@ -127,11 +127,11 @@ export function AddClientDialog({ onAdd }: AddClientDialogProps) {
     };
   }
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!validate()) return;
 
-    onAdd(buildClientInput());
+    await onAdd(buildClientInput());
     setForm(emptyForm);
     setErrors({});
     setSuccessNote(getSuccessMessage("clientCreated"));

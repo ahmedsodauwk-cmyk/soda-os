@@ -234,11 +234,11 @@ export interface QuotationConversionFlowResult extends QuotationConversionResult
  * Wraps convertQuotationToProject (which already emits deposit); re-links
  * idempotently when callers need the FinanceEmitResult shape.
  */
-export function runQuotationConversionFlow(
+export async function runQuotationConversionFlow(
   quotationId: string,
   options?: { editedBy?: string; force?: boolean; emitDeposit?: boolean }
-): QuotationConversionFlowResult {
-  const result = convertQuotationToProject(quotationId, options);
+): Promise<QuotationConversionFlowResult> {
+  const result = await convertQuotationToProject(quotationId, options);
   const emitDeposit = options?.emitDeposit !== false;
 
   if (!emitDeposit || !result.paymentId) {

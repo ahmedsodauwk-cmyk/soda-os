@@ -4,7 +4,11 @@
  */
 
 import { BUSINESS_TODAY } from "@/lib/business/types";
-import { mockClients } from "@/lib/clients/mock-data";
+import {
+  createClient,
+  getAllClients,
+  getClientById,
+} from "@/lib/clients/repository";
 import type { Client } from "@/lib/clients/types";
 import {
   createAllocation,
@@ -106,13 +110,13 @@ function emptyHub(): Pick<
   };
 }
 
-function resolveOrCreateClient(q: Quotation, now: string): Client {
+async function resolveOrCreateClient(q: Quotation): Promise<Client> {
   if (q.clientId) {
-    const existing = mockClients.find((c) => c.id === q.clientId);
+    const existing = getClientById(q.clientId);
     if (existing) return existing;
   }
 
-  const byName = mockClients.find(
+  const byName = getAllClients().find(
     (c) =>
       c.name.toLowerCase() === q.clientName.trim().toLowerCase() ||
       (q.company &&
@@ -120,8 +124,7 @@ function resolveOrCreateClient(q: Quotation, now: string): Client {
   );
   if (byName) return byName;
 
-  const client: Client = {
-    id: `client-${String(mockClients.length + 1).padStart(3, "0")}`,
+  return createClient({
     type: q.segment === "commercial" ? "company" : "individual",
     segment: q.segment,
     name: q.clientName.trim(),
@@ -130,11 +133,7 @@ function resolveOrCreateClient(q: Quotation, now: string): Client {
     contactPerson: q.contactName,
     company: q.company ?? (q.segment === "commercial" ? q.clientName : undefined),
     notes: `Created from quotation ${q.number}`,
-    createdAt: now,
-    isActive: true,
-  };
-  mockClients.unshift(client);
-  return client;
+  });
 }
 
 function projectTypeFromQuotation(q: Quotation): ProjectType {
@@ -169,10 +168,10 @@ function depositAmount(q: Quotation, total: number): number {
  * Convert quotation → linked business entities.
  * Requires Approved + Deposit Received (or already at Deposit Received).
  */
-export function convertQuotationToProject(
+export async function convertQuotationToProject(
   quotationId: string,
   options?: { editedBy?: string; force?: boolean }
-): QuotationConversionResult {
+): Promise<QuotationConversionResult> {
   const quotation = getQuotationById(quotationId);
   if (!quotation) {
     throw new Error(`Quotation not found: ${quotationId}`);
@@ -192,7 +191,7 @@ export function convertQuotationToProject(
   const total =
     totals.total > 0 ? totals.total : quotation.estimatedValue || 0;
   const deposit = depositAmount(quotation, total);
-  const client = resolveOrCreateClient(quotation, now);
+  const client = await resolveOrCreateClient(quotation);
   const projectType = projectTypeFromQuotation(quotation);
   const workspaceId = workspaceFromQuotation(quotation);
   const journeyStage: JourneyStage = "PreProduction";

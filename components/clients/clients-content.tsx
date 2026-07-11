@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Search } from "lucide-react";
 
 import { AddClientDialog } from "@/components/clients/add-client-dialog";
@@ -14,7 +14,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { createClient, getAllClients } from "@/lib/clients/repository";
+import {
+  createClient,
+  getAllClients,
+  refreshClients,
+} from "@/lib/clients/repository";
 import { CLIENT_TYPES, type NewClientInput } from "@/lib/clients/types";
 import { filterClients, formatClientType } from "@/lib/clients/utils";
 
@@ -23,13 +27,27 @@ export function ClientsContent() {
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState<string>("all");
 
+  useEffect(() => {
+    let cancelled = false;
+    void refreshClients()
+      .then(() => {
+        if (!cancelled) setClients(getAllClients());
+      })
+      .catch((err) => {
+        console.error(err);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const filteredClients = useMemo(
     () => filterClients(clients, search, typeFilter),
     [clients, search, typeFilter]
   );
 
-  function handleAddClient(input: NewClientInput) {
-    createClient(input);
+  async function handleAddClient(input: NewClientInput) {
+    await createClient(input);
     setClients(getAllClients());
   }
 

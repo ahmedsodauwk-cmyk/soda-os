@@ -3,7 +3,10 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { computeClientStats } from "@/lib/business/client-stats";
-import { getClientsBySegment } from "@/lib/clients/repository";
+import {
+  getClientsBySegment,
+  refreshClients,
+} from "@/lib/clients/repository";
 import { getOrders } from "@/lib/orders/repository";
 import { getPayments } from "@/lib/payments/repository";
 import { getProjects } from "@/lib/projects/repository";
@@ -13,7 +16,8 @@ function egp(n: number) {
   return `${n.toLocaleString("en-EG")} EGP`;
 }
 
-export function CommercialClientsView() {
+export async function CommercialClientsView() {
+  await refreshClients();
   const clients = getClientsBySegment("commercial");
   const projects = getProjects();
   const orders = getOrders();

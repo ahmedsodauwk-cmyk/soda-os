@@ -306,9 +306,9 @@ export function QuotationBuilder({ quotationId }: QuotationBuilderProps) {
     }
   }
 
-  function handleConvert() {
+  async function handleConvert() {
     try {
-      const result = runQuotationConversionFlow(q.id, {
+      const result = await runQuotationConversionFlow(q.id, {
         editedBy: q.assignedSales,
       });
       const refreshed = getQuotationById(q.id);

@@ -8,7 +8,9 @@
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
-    "supabase:health": "npx tsx scripts/check-supabase.ts"
+    "supabase:health": "npx tsx scripts/check-supabase.ts",
+    "smoke:clients": "npx tsx scripts/smoke-clients-crud.ts",
+    "db:clients-rls": "npx tsx scripts/apply-clients-rls.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",
@@ -28,10 +30,13 @@
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
+    "@types/pg": "^8.20.0",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.2.10",
+    "pg": "^8.22.0",
+    "supabase": "^2.109.1",
     "tailwindcss": "^4",
     "typescript": "^5"
   }
