@@ -1,6 +1,7 @@
 /**
  * Business Core aggregators — dashboard / reporting / client profile.
  * Pages read from here; they must not invent ad-hoc math.
+ * Financial figures come ONLY from Financial Core (ledger + wallets + cashflow).
  */
 
 import { getBusinessToday } from "@/lib/business/types";
@@ -14,12 +15,19 @@ import {
   getFinanceHookSnapshot,
 } from "@/lib/core/finance/hooks";
 import { buildDashboardSnapshot } from "@/lib/dashboard/stats";
-import type { DashboardSnapshot } from "@/lib/dashboard/types";
+import type {
+  DashboardSnapshot,
+  FinancialOverview,
+} from "@/lib/dashboard/types";
+import { getCompanyCashflow } from "@/lib/finance/cashflow";
 import { getCompanyWallet } from "@/lib/finance/company";
+import {
+  listOrderFinancialSnapshots,
+} from "@/lib/finance/order-status";
 import { listFinancialEvents } from "@/lib/finance/repository";
 import { getClients } from "@/lib/clients/repository";
 import { getOrders } from "@/lib/orders/repository";
-import { isOrderBillable, isOrderCompleted } from "@/lib/orders/status";
+import { isOrderCompleted } from "@/lib/orders/status";
 import { getPayments } from "@/lib/payments/repository";
 import { getProjects } from "@/lib/projects/repository";
 import { getWorkspaceSummaries } from "@/lib/workspaces/repository";
@@ -43,11 +51,30 @@ function yearKey(asOf: string): string {
   return asOf.slice(0, 4);
 }
 
+/** Financial overview from Financial Core — not ad-hoc payment math. */
+export function getFinancialOverviewFromCore(): FinancialOverview {
+  const snaps = listOrderFinancialSnapshots();
+  const revenue = snaps.reduce((acc, s) => acc + s.agreed, 0);
+  const collected = snaps.reduce((acc, s) => acc + s.collected, 0);
+  const outstanding = snaps.reduce((acc, s) => acc + s.outstanding, 0);
+  const deposits = getPayments()
+    .filter((p) => p.kind === "deposit" && p.status === "paid")
+    .reduce((acc, p) => acc + p.amount, 0);
+
+  return {
+    revenue,
+    collected,
+    outstanding,
+    deposits,
+    remainingBalance: outstanding,
+  };
+}
+
 /** Rebuild dashboard snapshot from live domain caches (Business Core path). */
 export function refreshDashboardAggregator(
   asOf: string = getBusinessToday()
 ): DashboardSnapshot {
-  dashboardCache = buildDashboardSnapshot({
+  const base = buildDashboardSnapshot({
     projects: getProjects(),
     orders: getOrders(),
     clients: getClients(),
@@ -55,6 +82,25 @@ export function refreshDashboardAggregator(
     workspaceSummaries: getWorkspaceSummaries(),
     asOf,
   });
+
+  const financial = getFinancialOverviewFromCore();
+  const cashflow = getCompanyCashflow(asOf);
+  const mk = monthKey(asOf);
+
+  dashboardCache = {
+    ...base,
+    financial,
+    kpis: {
+      ...base.kpis,
+      revenueThisMonth: cashflow.month.income,
+      outstandingPayments: financial.outstanding,
+    },
+    monthlyRevenue: base.monthlyRevenue.map((p) =>
+      p.key === mk
+        ? { ...p, revenue: cashflow.month.income }
+        : p
+    ),
+  };
   dashboardGeneration = getStatsGeneration();
   clearStatsDirty();
   return dashboardCache;
@@ -84,19 +130,16 @@ export function getClientProfileStats(clientId: string): ClientProfileStats {
   const orders = getOrders().filter(
     (o) => o.clientId === clientId && o.status !== "Cancelled"
   );
-  const payments = getPayments().filter(
-    (p) => p.clientId === clientId && p.status === "paid" && p.kind !== "refund"
-  );
-  const refunds = getPayments().filter(
-    (p) => p.clientId === clientId && p.status === "paid" && p.kind === "refund"
-  );
 
-  const billable = orders.filter((o) => isOrderBillable(o.status));
-  const revenue = billable.reduce((acc, o) => acc + o.price, 0);
-  const collected =
-    payments.reduce((acc, p) => acc + p.amount, 0) -
-    refunds.reduce((acc, p) => acc + p.amount, 0);
-  const outstanding = Math.max(0, revenue - collected);
+  const snaps = orders
+    .map((o) =>
+      listOrderFinancialSnapshots().find((s) => s.orderId === o.id)
+    )
+    .filter(Boolean);
+
+  const revenue = snaps.reduce((acc, s) => acc + (s?.agreed ?? 0), 0);
+  const collected = snaps.reduce((acc, s) => acc + (s?.collected ?? 0), 0);
+  const outstanding = snaps.reduce((acc, s) => acc + (s?.outstanding ?? 0), 0);
 
   const shoots = orders
     .map((o) => o.shootDate)
@@ -130,21 +173,8 @@ export function getFinancialReportSnapshot(
 ): FinancialReportSnapshot {
   const mk = monthKey(asOf);
   const yk = yearKey(asOf);
-  const payments = getPayments().filter(
-    (p) => p.status === "paid" && p.kind !== "refund"
-  );
-  const monthlyRevenue = payments
-    .filter((p) => p.paidAt && p.paidAt.slice(0, 7) === mk)
-    .reduce((acc, p) => acc + p.amount, 0);
-  const yearlyRevenue = payments
-    .filter((p) => p.paidAt && p.paidAt.slice(0, 4) === yk)
-    .reduce((acc, p) => acc + p.amount, 0);
-
-  const orders = getOrders().filter((o) => isOrderBillable(o.status));
-  const revenue = orders.reduce((acc, o) => acc + o.price, 0);
-  const collected = payments.reduce((acc, p) => acc + p.amount, 0);
-  const outstanding = Math.max(0, revenue - collected);
-
+  const cashflow = getCompanyCashflow(asOf);
+  const financial = getFinancialOverviewFromCore();
   const methods = getCompanyMethodWallets();
   const wallet = getCompanyWallet();
 
@@ -152,16 +182,25 @@ export function getFinancialReportSnapshot(
     asOf,
     monthKey: mk,
     yearKey: yk,
-    monthlyRevenue,
-    yearlyRevenue,
-    outstanding,
-    collected,
+    monthlyRevenue: cashflow.month.income,
+    yearlyRevenue: cashflow.year.income,
+    outstanding: financial.outstanding,
+    collected: financial.collected,
     cashSafe: methods.cashSafe,
+    secondaryCashSafe: methods.secondaryCashSafe,
     bank: methods.bank,
     instapay: methods.instapay,
     vodafoneCash: methods.vodafoneCash,
     companyBalance: wallet.balance,
     pendingCrewPayments: getTotalPendingCrewPayments(),
+    incomeToday: cashflow.today.income,
+    expenseToday: cashflow.today.expense,
+    incomeMonth: cashflow.month.income,
+    expenseMonth: cashflow.month.expense,
+    netProfitMonth: cashflow.netProfitMonth,
+    incomeYear: cashflow.year.income,
+    expenseYear: cashflow.year.expense,
+    netProfitYear: cashflow.netProfitYear,
   };
 }
 

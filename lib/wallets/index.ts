@@ -3,6 +3,8 @@
  */
 
 export type {
+  AccountStatus,
+  AccountType,
   CashAccount,
   CashAccountBalance,
   CashAccountCode,
@@ -17,21 +19,26 @@ export type {
 } from "@/lib/wallets/types";
 
 export {
+  ACCOUNT_TYPES,
   CASH_ACCOUNT_CODES,
   DEFAULT_CASH_ACCOUNTS,
   PAYMENT_METHODS,
+  isCashAccountCode,
   isPaymentMethod,
   paymentMethodToAccountCode,
 } from "@/lib/wallets/types";
 
 export {
+  createBankAccount,
   ensureDefaultCashAccounts,
   getAccountBalance,
   getCashAccountByCode,
   getCashAccounts,
   getCompanyMethodWallets,
+  listAccountViews,
   listCashMovements,
   recordCashMovement,
+  recordCashMovementByCode,
   refreshCashAccounts,
   refreshCashMovements,
 } from "@/lib/wallets/cash-accounts";

@@ -116,3 +116,66 @@ export {
 } from "@/lib/finance/safety";
 
 export type { FinancialSafetyAction } from "@/lib/finance/safety";
+
+export type {
+  AccountView,
+  CompanyCashflowSnapshot,
+  OrderFinancialSnapshot,
+  OrderFinancialStatus,
+  TransactionCategory,
+} from "@/lib/finance/core-types";
+
+export {
+  ORDER_FINANCIAL_STATUSES,
+  TRANSACTION_CATEGORIES,
+  isTransactionCategory,
+} from "@/lib/finance/core-types";
+
+export { getCompanyCashflow } from "@/lib/finance/cashflow";
+
+export {
+  getOrderFinancialSnapshot,
+  getOrderFinancialStatus,
+  listOrderFinancialSnapshots,
+} from "@/lib/finance/order-status";
+
+export {
+  EXPENSE_CATEGORIES,
+  createExpense,
+  getExpenseById,
+  listExpenses,
+  refreshExpenses,
+  voidExpense,
+} from "@/lib/finance/expenses";
+
+export type { CreateExpenseInput, Expense, ExpenseCategory } from "@/lib/finance/expenses";
+
+export {
+  getTransferById,
+  listTransfers,
+  refreshTransfers,
+  transferBetweenAccounts,
+  voidTransfer,
+} from "@/lib/finance/transfers";
+
+export type {
+  AccountTransfer,
+  CreateTransferInput,
+} from "@/lib/finance/transfers";
+
+export {
+  assertPeriodOpen,
+  closeMonth,
+  closeYear,
+  getPeriodClosing,
+  isPeriodClosedForDate,
+  listPeriodClosings,
+  refreshPeriodClosings,
+  reopenPeriod,
+} from "@/lib/finance/closing";
+
+export type {
+  PeriodClosing,
+  PeriodStatus,
+  PeriodType,
+} from "@/lib/finance/closing";

@@ -17,7 +17,10 @@ export type RuleGroupId =
   | "client-profile"
   | "financial-reporting"
   | "dashboard"
-  | "automation";
+  | "automation"
+  | "expenses"
+  | "transfers"
+  | "period-closing";
 
 export interface BusinessRuleContext {
   event: BusinessEvent;

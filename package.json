@@ -20,8 +20,10 @@
     "db:smart-order": "npx tsx scripts/apply-smart-order-migration.ts",
     "db:business-core": "npx tsx scripts/apply-business-core-migration.ts",
     "db:business-rules": "npx tsx scripts/apply-business-rules-migration.ts",
+    "db:financial-core": "npx tsx scripts/apply-financial-core-migration.ts",
     "verify:business-core": "npx tsx scripts/verify-business-core.ts",
-    "smoke:business-rules": "npx tsx scripts/smoke-business-rules.ts"
+    "smoke:business-rules": "npx tsx scripts/smoke-business-rules.ts",
+    "smoke:financial-core": "npx tsx scripts/smoke-financial-core.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",

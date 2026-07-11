@@ -30,6 +30,12 @@ export const BUSINESS_EVENT_TYPES = [
   "FinancialReversed",
   "FinancialVoided",
   "FinancialCorrected",
+  "ExpenseRecorded",
+  "TransferCompleted",
+  "PeriodClosed",
+  "PeriodReopened",
+  "OpeningBalancePosted",
+  "ManualAdjustmentPosted",
 ] as const;
 
 export type BusinessEventType = (typeof BUSINESS_EVENT_TYPES)[number];

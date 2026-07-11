@@ -14,12 +14,30 @@ export type PaymentMethod = (typeof PAYMENT_METHODS)[number];
 
 export const CASH_ACCOUNT_CODES = [
   "cash_safe",
+  "secondary_cash_safe",
   "bank",
   "instapay",
   "vodafone_cash",
 ] as const;
 
-export type CashAccountCode = (typeof CASH_ACCOUNT_CODES)[number];
+/** Known defaults plus future/custom bank codes (e.g. bank_cib). */
+export type CashAccountCode =
+  | (typeof CASH_ACCOUNT_CODES)[number]
+  | (string & {});
+
+export const ACCOUNT_TYPES = [
+  "main_cash_safe",
+  "secondary_cash_safe",
+  "bank",
+  "instapay",
+  "vodafone_cash",
+  "wallet",
+  "other",
+] as const;
+
+export type AccountType = (typeof ACCOUNT_TYPES)[number];
+
+export type AccountStatus = "active" | "inactive" | "frozen";
 
 export function paymentMethodToAccountCode(
   method: PaymentMethod
@@ -36,6 +54,13 @@ export function paymentMethodToAccountCode(
   }
 }
 
+export function isCashAccountCode(value: unknown): value is CashAccountCode {
+  return (
+    typeof value === "string" &&
+    (CASH_ACCOUNT_CODES as readonly string[]).includes(value)
+  );
+}
+
 export function isPaymentMethod(value: unknown): value is PaymentMethod {
   return (
     typeof value === "string" &&
@@ -50,6 +75,9 @@ export interface CashAccount {
   kind: "cash" | "bank" | "wallet";
   currency: "EGP";
   isActive: boolean;
+  accountType: AccountType;
+  openingBalance: number;
+  status: AccountStatus;
   createdAt: string;
 }
 
@@ -77,6 +105,7 @@ export interface CashAccountBalance {
 
 export interface CompanyMethodWallets {
   cashSafe: number;
+  secondaryCashSafe: number;
   bank: number;
   instapay: number;
   vodafoneCash: number;
@@ -87,10 +116,23 @@ export interface CompanyMethodWallets {
 export const DEFAULT_CASH_ACCOUNTS: Omit<CashAccount, "id" | "createdAt">[] = [
   {
     code: "cash_safe",
-    name: "Cash Safe",
+    name: "Main Cash Safe",
     kind: "cash",
     currency: "EGP",
     isActive: true,
+    accountType: "main_cash_safe",
+    openingBalance: 0,
+    status: "active",
+  },
+  {
+    code: "secondary_cash_safe",
+    name: "Secondary Cash Safe",
+    kind: "cash",
+    currency: "EGP",
+    isActive: true,
+    accountType: "secondary_cash_safe",
+    openingBalance: 0,
+    status: "active",
   },
   {
     code: "bank",
@@ -98,6 +140,9 @@ export const DEFAULT_CASH_ACCOUNTS: Omit<CashAccount, "id" | "createdAt">[] = [
     kind: "bank",
     currency: "EGP",
     isActive: true,
+    accountType: "bank",
+    openingBalance: 0,
+    status: "active",
   },
   {
     code: "instapay",
@@ -105,6 +150,9 @@ export const DEFAULT_CASH_ACCOUNTS: Omit<CashAccount, "id" | "createdAt">[] = [
     kind: "wallet",
     currency: "EGP",
     isActive: true,
+    accountType: "instapay",
+    openingBalance: 0,
+    status: "active",
   },
   {
     code: "vodafone_cash",
@@ -112,6 +160,9 @@ export const DEFAULT_CASH_ACCOUNTS: Omit<CashAccount, "id" | "createdAt">[] = [
     kind: "wallet",
     currency: "EGP",
     isActive: true,
+    accountType: "vodafone_cash",
+    openingBalance: 0,
+    status: "active",
   },
 ];
 
@@ -161,11 +212,20 @@ export interface FinancialReportSnapshot {
   outstanding: number;
   collected: number;
   cashSafe: number;
+  secondaryCashSafe: number;
   bank: number;
   instapay: number;
   vodafoneCash: number;
   companyBalance: number;
   pendingCrewPayments: number;
+  incomeToday: number;
+  expenseToday: number;
+  incomeMonth: number;
+  expenseMonth: number;
+  netProfitMonth: number;
+  incomeYear: number;
+  expenseYear: number;
+  netProfitYear: number;
 }
 
 export interface ClientProfileStats {

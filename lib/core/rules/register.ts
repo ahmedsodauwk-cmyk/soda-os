@@ -359,6 +359,10 @@ export function registerAllBusinessRules(): void {
       "FinancialReversed",
       "FinancialVoided",
       "FinancialCorrected",
+      "ExpenseRecorded",
+      "TransferCompleted",
+      "PeriodClosed",
+      "PeriodReopened",
     ],
     async run() {
       getFinancialReportSnapshot();
@@ -384,6 +388,13 @@ export function registerAllBusinessRules(): void {
       "ProjectCreated",
       "ProjectUpdated",
       "InvoicePaid",
+      "ExpenseRecorded",
+      "TransferCompleted",
+      "FinancialReversed",
+      "FinancialVoided",
+      "FinancialCorrected",
+      "PeriodClosed",
+      "PeriodReopened",
     ],
     async run() {
       refreshDashboardAggregator();
@@ -403,6 +414,40 @@ export function registerAllBusinessRules(): void {
       await syncProjectCalendarFromOrder(order, event.occurredAt);
       await syncPendingEarningsForOrder(order.id);
       if (order.clientId) getClientProfileStats(order.clientId);
+      refreshDashboardAggregator();
+      getFinancialReportSnapshot();
+    },
+  });
+
+  // ── Expenses / transfers / period closing ───────────────────────────
+  registerRule({
+    id: "expenses.refresh-aggregators",
+    group: "expenses",
+    name: "Refresh dashboard/cashflow after expense",
+    events: ["ExpenseRecorded"],
+    async run() {
+      refreshDashboardAggregator();
+      getFinancialReportSnapshot();
+    },
+  });
+
+  registerRule({
+    id: "transfers.refresh-wallets",
+    group: "transfers",
+    name: "Refresh method wallets after transfer",
+    events: ["TransferCompleted"],
+    async run() {
+      refreshDashboardAggregator();
+      getFinancialReportSnapshot();
+    },
+  });
+
+  registerRule({
+    id: "period-closing.refresh",
+    group: "period-closing",
+    name: "Refresh aggregators after period close/reopen",
+    events: ["PeriodClosed", "PeriodReopened"],
+    async run() {
       refreshDashboardAggregator();
       getFinancialReportSnapshot();
     },

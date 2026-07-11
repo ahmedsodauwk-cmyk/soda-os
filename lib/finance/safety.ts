@@ -1,15 +1,21 @@
 /**
  * Financial safety — money is immutable.
  * Never delete/update ledger rows; only reverse / void / correct via new events.
+ * Cash movements are mirrored (equal-and-opposite) when the original touched wallets.
  */
 
 import { publishBusinessEvent } from "@/lib/core/publish";
+import { assertPeriodOpen } from "@/lib/finance/period-guard";
 import {
   createFinancialEvent,
   getFinancialEventById,
   listFinancialEvents,
 } from "@/lib/finance/repository";
 import type { FinancialEvent, NewFinancialEventInput } from "@/lib/finance/types";
+import {
+  listCashMovements,
+  recordCashMovementByCode,
+} from "@/lib/wallets/cash-accounts";
 
 export type FinancialSafetyAction = "reverse" | "void" | "correction";
 
@@ -64,6 +70,33 @@ async function publishSafetyEvent(
  * Reverse a financial event by posting an equal-and-opposite adjustment.
  * Original row is never mutated.
  */
+async function mirrorCashMovementsForSafety(
+  original: FinancialEvent,
+  safetyEvent: FinancialEvent,
+  reason: string
+): Promise<void> {
+  const related = listCashMovements().filter(
+    (m) => m.financialEventId === original.id
+  );
+  for (const m of related) {
+    const opposite = m.direction === "inflow" ? "outflow" : "inflow";
+    await recordCashMovementByCode({
+      accountCode: m.accountCode,
+      direction: opposite,
+      amount: m.amount,
+      occurredAt: safetyEvent.occurredAt,
+      financialEventId: safetyEvent.id,
+      notes: `SAFETY ${opposite}: ${reason}`,
+      metadata: {
+        safetyAction: true,
+        originalMovementId: m.id,
+        originalEventId: original.id,
+        reason,
+      },
+    });
+  }
+}
+
 export async function reverseFinancialEvent(input: {
   eventId: string;
   reason: string;
@@ -71,6 +104,8 @@ export async function reverseFinancialEvent(input: {
 }): Promise<FinancialEvent> {
   const original = getFinancialEventById(input.eventId);
   if (!original) throw new Error(`Financial event not found: ${input.eventId}`);
+
+  assertPeriodOpen(original.occurredAt, "reverse financial event");
 
   const existing = alreadyActioned(original.id, "reversal");
   if (existing) return { ...existing };
@@ -93,9 +128,11 @@ export async function reverseFinancialEvent(input: {
       originalEventId: original.id,
       reason: input.reason,
       kind: "financial_reversal",
+      category: "manual_adjustment",
     },
   });
 
+  await mirrorCashMovementsForSafety(original, event, input.reason);
   await publishSafetyEvent("reverse", original, event, input.reason);
   return event;
 }
@@ -111,6 +148,8 @@ export async function voidFinancialEvent(input: {
 }): Promise<FinancialEvent> {
   const original = getFinancialEventById(input.eventId);
   if (!original) throw new Error(`Financial event not found: ${input.eventId}`);
+
+  assertPeriodOpen(original.occurredAt, "void financial event");
 
   const existing = alreadyActioned(original.id, "void");
   if (existing) return { ...existing };
@@ -134,9 +173,11 @@ export async function voidFinancialEvent(input: {
       reason: input.reason,
       kind: "financial_void",
       voided: true,
+      category: "manual_adjustment",
     },
   });
 
+  await mirrorCashMovementsForSafety(original, event, input.reason);
   await publishSafetyEvent("void", original, event, input.reason);
   return event;
 }

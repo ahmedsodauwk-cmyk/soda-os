@@ -31,6 +31,10 @@ const STATS_TOUCHING: ReadonlySet<BusinessEventType> = new Set([
   "FinancialReversed",
   "FinancialVoided",
   "FinancialCorrected",
+  "ExpenseRecorded",
+  "TransferCompleted",
+  "PeriodClosed",
+  "PeriodReopened",
 ]);
 
 export interface StatsSnapshotMeta {

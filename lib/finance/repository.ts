@@ -12,6 +12,8 @@ import {
   type FinancialAllocationRow,
   type FinancialEventRow,
 } from "@/lib/finance/mappers";
+import { listOrderFinancialSnapshots } from "@/lib/finance/order-status";
+import { assertPeriodOpen } from "@/lib/finance/period-guard";
 import type {
   FinanceSummary,
   FinancialAllocation,
@@ -76,13 +78,15 @@ export async function createFinancialEvent(
 ): Promise<FinancialEvent> {
   const validated = validateNewFinancialEvent(input);
   const createdAt = nowIso();
+  const occurredAt = validated.occurredAt ?? createdAt;
+  assertPeriodOpen(occurredAt, "create financial event");
   const event: FinancialEvent = {
     id: nextEventId(),
     type: validated.type,
     amount: validated.amount,
     currency: validated.currency,
     direction: validated.direction,
-    occurredAt: validated.occurredAt ?? createdAt,
+    occurredAt,
     createdAt,
     createdBy: validated.createdBy,
     notes: validated.notes,
@@ -218,10 +222,15 @@ export function getFinanceSummary(): FinanceSummary {
     direction: "inflow",
   }).reduce((acc, e) => acc + e.amount, 0);
 
+  const outstanding = listOrderFinancialSnapshots().reduce(
+    (acc, s) => acc + s.outstanding,
+    0
+  );
+
   return {
     revenuePaid: paid,
-    revenuePending: 0,
-    outstandingBalance: 0,
+    revenuePending: outstanding,
+    outstandingBalance: outstanding,
     currency: "EGP",
   };
 }

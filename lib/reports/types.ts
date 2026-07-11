@@ -1,19 +1,31 @@
 /**
- * Reports foundation — types/helpers only (module not built this sprint).
+ * Reports foundation — types aligned with Financial Core aggregators.
  */
 export type ReportDimension =
   | "workspace"
   | "client"
   | "project"
   | "team"
-  | "month";
+  | "month"
+  | "period"
+  | "order";
 
 export type ReportMetric =
   | "revenue"
   | "orders"
   | "projects"
   | "outstandingBalance"
-  | "activeClients";
+  | "activeClients"
+  | "income"
+  | "expense"
+  | "netProfit"
+  | "agreed"
+  | "collected"
+  | "outstanding"
+  | "refunded"
+  | "monthlyRevenue"
+  | "netProfitMonth"
+  | "companyBalance";
 
 export interface ReportFilter {
   workspaceId?: string;

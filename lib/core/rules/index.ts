@@ -28,6 +28,7 @@ export {
   getBusinessCoreHealth,
   getClientProfileStats,
   getDashboardFromBusinessCore,
+  getFinancialOverviewFromCore,
   getFinancialReportSnapshot,
   refreshDashboardAggregator,
 } from "@/lib/core/rules/aggregators";

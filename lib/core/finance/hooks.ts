@@ -22,6 +22,10 @@ const FINANCE_EVENTS: ReadonlySet<BusinessEventType> = new Set([
   "FinancialReversed",
   "FinancialVoided",
   "FinancialCorrected",
+  "ExpenseRecorded",
+  "TransferCompleted",
+  "PeriodClosed",
+  "PeriodReopened",
 ]);
 
 export interface FinanceHookSnapshot {
