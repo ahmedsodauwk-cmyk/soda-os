@@ -1,6 +1,13 @@
 import { ensureOrderProjectLink } from "@/lib/business/link-order";
 import { createOrdersDb } from "@/lib/orders/db";
-import { orderToRow, rowToOrder, type OrderRow } from "@/lib/orders/mappers";
+import {
+  isMissingColumnError,
+  isStatusCheckError,
+  orderToLegacyRow,
+  orderToRow,
+  rowToOrder,
+  type OrderRow,
+} from "@/lib/orders/mappers";
 import type { NewOrderInput, Order } from "@/lib/orders/types";
 import {
   generateOrderId,
@@ -70,9 +77,85 @@ export async function fetchOrderById(
   return order;
 }
 
-/**
- * Persist a new order into Supabase and link Project (+ Client).
- */
+function mergeV3Fields(saved: Order, intended: Order): Order {
+  return {
+    ...saved,
+    whatsapp: intended.whatsapp || saved.whatsapp,
+    brief: intended.brief || saved.brief,
+    dressCode: intended.dressCode ?? saved.dressCode,
+    latePenaltyEnabled: intended.latePenaltyEnabled || saved.latePenaltyEnabled,
+    latePenaltyAmount: intended.latePenaltyAmount || saved.latePenaltyAmount,
+    latePenaltyReason: intended.latePenaltyReason || saved.latePenaltyReason,
+    squadMemberIds:
+      intended.squadMemberIds.length > 0
+        ? intended.squadMemberIds
+        : saved.squadMemberIds,
+    status: intended.status,
+  };
+}
+
+async function persistOrderInsert(order: Order): Promise<Order> {
+  const db = createOrdersDb();
+  let { data, error } = await db
+    .from("orders")
+    .insert(orderToRow(order))
+    .select("*")
+    .single();
+
+  if (
+    error &&
+    (isMissingColumnError(error.message) || isStatusCheckError(error.message))
+  ) {
+    ({ data, error } = await db
+      .from("orders")
+      .insert(orderToLegacyRow(order))
+      .select("*")
+      .single());
+  }
+
+  if (error) {
+    throw new Error(`Failed to create order: ${error.message}`);
+  }
+
+  const merged = mergeV3Fields(rowToOrder(data as OrderRow), order);
+  upsertCache(merged);
+  return { ...merged };
+}
+
+async function persistOrderUpdate(id: string, order: Order): Promise<Order> {
+  const db = createOrdersDb();
+  const full = orderToRow(order);
+  delete full.id;
+  let { data, error } = await db
+    .from("orders")
+    .update(full)
+    .eq("id", id)
+    .select("*")
+    .single();
+
+  if (
+    error &&
+    (isMissingColumnError(error.message) || isStatusCheckError(error.message))
+  ) {
+    const legacy = orderToLegacyRow(order);
+    delete legacy.id;
+    ({ data, error } = await db
+      .from("orders")
+      .update(legacy)
+      .eq("id", id)
+      .select("*")
+      .single());
+  }
+
+  if (error) {
+    throw new Error(`Failed to update order: ${error.message}`);
+  }
+
+  const merged = mergeV3Fields(rowToOrder(data as OrderRow), order);
+  upsertCache(merged);
+  return { ...merged };
+}
+
 export async function createOrder(input: NewOrderInput): Promise<Order> {
   await ensureTaxonomyPersisted();
   const orderId = generateOrderId(ordersCache.length);
@@ -108,18 +191,7 @@ export async function createOrder(input: NewOrderInput): Promise<Order> {
     notes: input.notes ?? "",
   };
 
-  const db = createOrdersDb();
-  const { data, error } = await db
-    .from("orders")
-    .insert(orderToRow(order))
-    .select("*")
-    .single();
-  if (error) {
-    throw new Error(`Failed to create order: ${error.message}`);
-  }
-  const saved = rowToOrder(data as OrderRow);
-  upsertCache(saved);
-  return { ...saved };
+  return persistOrderInsert(order);
 }
 
 export async function updateOrder(
@@ -129,21 +201,7 @@ export async function updateOrder(
   const existing = getOrderById(id) ?? (await fetchOrderById(id));
   if (!existing) throw new Error(`Order not found: ${id}`);
   const merged: Order = { ...existing, ...patch, id };
-  const db = createOrdersDb();
-  const row = orderToRow(merged);
-  delete row.id;
-  const { data, error } = await db
-    .from("orders")
-    .update(row)
-    .eq("id", id)
-    .select("*")
-    .single();
-  if (error) {
-    throw new Error(`Failed to update order: ${error.message}`);
-  }
-  const saved = rowToOrder(data as OrderRow);
-  upsertCache(saved);
-  return { ...saved };
+  return persistOrderUpdate(id, merged);
 }
 
 export async function deleteOrder(id: string): Promise<void> {

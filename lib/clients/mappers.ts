@@ -74,7 +74,10 @@ export function clientToRow(
     segment: client.segment,
     name: client.name,
     phone: client.phone ?? "",
-    whatsapp: client.whatsapp ?? null,
+    // whatsapp column added in Smart Order V3 migration — include when set
+    ...(client.whatsapp != null && client.whatsapp !== ""
+      ? { whatsapp: client.whatsapp }
+      : {}),
     email: client.email ?? null,
     contact_person: client.contactPerson ?? null,
     company: client.company ?? null,

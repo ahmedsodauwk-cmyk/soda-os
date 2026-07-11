@@ -395,15 +395,29 @@ export async function convertQuotationToProject(
   };
   {
     const db = createOrdersDb();
-    const { data, error } = await db
+    let { data, error } = await db
       .from("orders")
       .insert(orderToRow(order))
       .select("*")
       .single();
+    if (
+      error &&
+      (/column|schema cache|whatsapp|brief|dress|late_penalty|squad|check constraint|status/i.test(
+        error.message
+      ))
+    ) {
+      const { orderToLegacyRow } = await import("@/lib/orders/mappers");
+      ({ data, error } = await db
+        .from("orders")
+        .insert(orderToLegacyRow(order))
+        .select("*")
+        .single());
+    }
     if (error) {
       throw new Error(`Failed to create order on convert: ${error.message}`);
     }
-    cacheOrder(rowToOrder(data as OrderRow));
+    const saved = rowToOrder(data as OrderRow);
+    cacheOrder({ ...saved, status: order.status, squadMemberIds: [] });
   }
 
   const invoice: Invoice = await createInvoice({

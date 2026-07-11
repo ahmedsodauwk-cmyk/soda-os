@@ -51,6 +51,25 @@ export function isOrderInPipeline(status: OrderStatus): boolean {
 export const CREW_MONTHLY_BONUS_THRESHOLD = 20;
 export const CREW_MONTHLY_BONUS_EGP = 3500;
 
+/** Map V3 statuses to legacy CHECK values when migration not applied. */
+export function toPersistedOrderStatus(status: OrderStatus): OrderStatus {
+  switch (status) {
+    case "Holding":
+      return "Pending";
+    case "Confirmed":
+      return "Scheduled";
+    case "Completed":
+      return "Delivered";
+    default:
+      return status;
+  }
+}
+
+/** Prefer V3 labels when reading legacy rows (optional display normalize). */
+export function fromPersistedOrderStatus(status: OrderStatus): OrderStatus {
+  return status;
+}
+
 /** Map order status → project status. */
 export function mapOrderStatusToProjectStatus(
   status: OrderStatus

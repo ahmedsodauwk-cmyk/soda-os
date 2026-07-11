@@ -4,6 +4,7 @@ import type {
   OrderStatus,
   ProjectType,
 } from "@/lib/orders/types";
+import { toPersistedOrderStatus } from "@/lib/orders/status";
 
 export type OrderRow = {
   id: string;
@@ -69,6 +70,7 @@ export function rowToOrder(row: OrderRow): Order {
   };
 }
 
+/** Full V3 row (requires migration 20260711000004). */
 export function orderToRow(order: Order): Record<string, unknown> {
   return {
     id: order.id,
@@ -95,4 +97,55 @@ export function orderToRow(order: Order): Record<string, unknown> {
     late_penalty_reason: order.latePenaltyReason ?? "",
     notes: order.notes ?? "",
   };
+}
+
+/**
+ * Legacy-compatible row when V3 migration is not yet applied.
+ * Maps Holding/Confirmed/Completed → Pending/Scheduled/Delivered and
+ * omits columns that do not exist on the base schema.
+ */
+export function orderToLegacyRow(order: Order): Record<string, unknown> {
+  return {
+    id: order.id,
+    project_id: order.projectId,
+    client_id: order.clientId ?? null,
+    client_name: order.clientName,
+    phone: order.phone ?? "",
+    project_type: order.projectType,
+    workspace_id: order.workspaceId,
+    subcategory_id: order.subcategoryId ?? null,
+    shoot_date: order.shootDate || null,
+    location: order.location ?? "",
+    delivery_date: order.deliveryDate || null,
+    price: order.price,
+    deposit: order.deposit,
+    team: order.team ?? "",
+    status: toPersistedOrderStatus(order.status),
+    notes: [
+      order.notes,
+      order.brief ? `[brief] ${order.brief}` : "",
+      order.dressCode ? `[dress] ${order.dressCode}` : "",
+      order.latePenaltyEnabled
+        ? `[late-penalty] ${order.latePenaltyAmount} — ${order.latePenaltyReason}`
+        : "",
+      order.squadMemberIds?.length
+        ? `[squad] ${order.squadMemberIds.join(",")}`
+        : "",
+      order.whatsapp ? `[whatsapp] ${order.whatsapp}` : "",
+    ]
+      .filter(Boolean)
+      .join("\n"),
+  };
+}
+
+export function isMissingColumnError(message: string): boolean {
+  return (
+    /column/i.test(message) &&
+    (/does not exist|schema cache|Could not find/i.test(message) ||
+      /whatsapp|brief|dress_code|late_penalty|squad_member/i.test(message))
+  );
+}
+
+export function isStatusCheckError(message: string): boolean {
+  return /status|check constraint|violates/i.test(message);
 }

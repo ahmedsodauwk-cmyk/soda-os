@@ -101,17 +101,34 @@ export async function createClient(input: NewClientInput): Promise<Client> {
   };
 
   const db = createClientsDb();
-  const { data, error } = await db
-    .from("clients")
-    .insert(clientToRow(client))
-    .select("*")
-    .single();
+  let row = clientToRow(client);
+  let { data, error } = await db.from("clients").insert(row).select("*").single();
+
+  // Pre-migration compat: whatsapp column may not exist yet
+  if (
+    error &&
+    /whatsapp/i.test(error.message) &&
+    "whatsapp" in row
+  ) {
+    const { whatsapp: _w, ...withoutWhatsapp } = row;
+    void _w;
+    row = withoutWhatsapp;
+    ({ data, error } = await db
+      .from("clients")
+      .insert(row)
+      .select("*")
+      .single());
+  }
 
   if (error) {
     throw new Error(`Failed to create client: ${error.message}`);
   }
 
   const saved = rowToClient(data as ClientRow);
+  // Preserve whatsapp in cache even if column not yet migrated
+  if (client.whatsapp && !saved.whatsapp) {
+    saved.whatsapp = client.whatsapp;
+  }
   upsertCache(saved);
   return { ...saved };
 }
@@ -138,22 +155,37 @@ export async function updateClient(
   };
 
   const db = createClientsDb();
-  const row = clientToRow(merged);
+  let row = clientToRow(merged);
   delete row.id;
   delete row.created_at;
 
-  const { data, error } = await db
+  let { data, error } = await db
     .from("clients")
     .update(row)
     .eq("id", id)
     .select("*")
     .single();
 
+  if (error && /whatsapp/i.test(error.message) && "whatsapp" in row) {
+    const { whatsapp: _w, ...withoutWhatsapp } = row;
+    void _w;
+    row = withoutWhatsapp;
+    ({ data, error } = await db
+      .from("clients")
+      .update(row)
+      .eq("id", id)
+      .select("*")
+      .single());
+  }
+
   if (error) {
     throw new Error(`Failed to update client: ${error.message}`);
   }
 
   const saved = rowToClient(data as ClientRow);
+  if (merged.whatsapp && !saved.whatsapp) {
+    saved.whatsapp = merged.whatsapp;
+  }
   upsertCache(saved);
   return { ...saved };
 }
