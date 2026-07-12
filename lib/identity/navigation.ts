@@ -136,6 +136,7 @@ export const DASHBOARD_LINKS = {
   activeClients: "/clients",
   team: "/crew",
   schedule: "/calendar",
+  attention: "/attention",
   wallet: "/me/wallet",
   notifications: "/notifications",
   statistics: "/statistics",
@@ -165,6 +166,8 @@ const SEGMENT_CRUMB_KEY: Record<string, string> = {
   statistics: "crumbs.statistics",
   settings: "crumbs.settings",
   notifications: "crumbs.notifications",
+  attention: "crumbs.attention",
+  schedule: "crumbs.schedule",
   me: "crumbs.me",
   wallet: "crumbs.wallet",
   bonus: "crumbs.bonus",
@@ -179,12 +182,16 @@ const SEGMENT_CRUMB_KEY: Record<string, string> = {
   login: "crumbs.login",
   password: "crumbs.password",
   new: "crumbs.new",
+  today: "crumbs.schedule",
+  tomorrow: "crumbs.schedule",
+  deliveries: "crumbs.schedule",
+  deadlines: "crumbs.schedule",
 };
 
 export function crumbsForPath(pathname: string): Crumb[] {
   const parts = pathname.split("/").filter(Boolean);
   const crumbs: Crumb[] = [
-    { label: "Home", labelKey: "crumbs.home", href: "/" },
+    { label: "Home Screen", labelKey: "crumbs.home", href: "/" },
   ];
   if (parts.length === 0) return crumbs;
 

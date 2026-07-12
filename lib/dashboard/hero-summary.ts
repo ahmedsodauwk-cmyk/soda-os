@@ -74,7 +74,7 @@ export function buildHeroOperationalLines(
         todayShoots === 1
           ? "عندك شوت واحد النهاردة"
           : `عندك ${n(todayShoots)} شوتات النهاردة`,
-      href: "/#schedule",
+      href: "/schedule/today",
     });
   }
 
@@ -84,7 +84,7 @@ export function buildHeroOperationalLines(
         todayDeliveries === 1
           ? "فيه تسليم النهاردة"
           : `فيه ${n(todayDeliveries)} تسليم النهاردة`,
-      href: "/#schedule",
+      href: "/schedule/deliveries",
     });
   }
 
@@ -94,7 +94,7 @@ export function buildHeroOperationalLines(
         overdue === 1
           ? "فيه تسليمة متأخرة محتاجة متابعة"
           : `فيه ${n(overdue)} تسليمات متأخرة`,
-      href: "/#attention",
+      href: "/attention",
     });
   }
 
@@ -104,7 +104,7 @@ export function buildHeroOperationalLines(
         unpaid === 1
           ? "فيه عميل مستني متابعة فلوس"
           : `فيه ${n(unpaid)} عملاء عليهم فلوس`,
-      href: "/#attention",
+      href: "/attention",
     });
   }
 
@@ -114,7 +114,7 @@ export function buildHeroOperationalLines(
         reviewWaiting === 1
           ? "فيه حاجة مستنية قرار منك"
           : `فيه ${n(reviewWaiting)} حاجات مستنية قرار`,
-      href: "/#attention",
+      href: "/attention",
     });
   }
 
@@ -128,15 +128,15 @@ export function buildHeroOperationalLines(
   if (upcomingDeliveries > 0 && todayDeliveries === 0 && lines.length < 3) {
     lines.push({
       text: `فيه ${n(upcomingDeliveries)} تسليمات قريبة`,
-      href: "/#schedule",
+      href: "/schedule/deliveries",
     });
   }
 
   if (lines.length === 0) {
-    lines.push({ text: "أهلاً بيك.", href: "/#attention" });
+    lines.push({ text: "أهلاً بيك.", href: "/attention" });
     lines.push({
       text: "دي نظرة سريعة على اللي مستنيك النهارده.",
-      href: "/#schedule",
+      href: "/schedule/today",
     });
   }
 

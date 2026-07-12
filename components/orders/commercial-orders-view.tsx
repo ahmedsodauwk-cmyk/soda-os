@@ -48,7 +48,6 @@ export function CommercialOrdersView() {
         </Button>
         <OrderEntryActions
           defaultProjectType="Commercial"
-          triggerLabel="➕ إنشاء أوردر"
         />
       </div>
 

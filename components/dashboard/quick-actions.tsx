@@ -5,9 +5,9 @@ import {
   BarChart3,
   Briefcase,
   CalendarDays,
+  ClipboardList,
+  Contact,
   FileText,
-  Plus,
-  UserPlus,
   UsersRound,
 } from "lucide-react";
 
@@ -39,13 +39,13 @@ const actions: {
   {
     labelKey: "quickActions.createOrder",
     href: "/orders",
-    icon: Plus,
+    icon: ClipboardList,
     enabled: true,
   },
   {
     labelKey: "quickActions.createClient",
     href: "/clients",
-    icon: UserPlus,
+    icon: Contact,
     enabled: true,
   },
   {
@@ -94,7 +94,7 @@ export default function QuickActions() {
             const Icon = action.icon;
             const label = t(action.labelKey);
             const className = cn(
-              "h-auto flex-col gap-2 py-4",
+              "h-auto cursor-pointer flex-col gap-2 py-4",
               action.enabled &&
                 "hover:border-soda-pink/40 hover:bg-soda-pink/[0.07]",
               !action.enabled && "opacity-60"

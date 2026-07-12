@@ -30,34 +30,45 @@ function whenBadge(when: ScheduleItem["when"]) {
 
 function Section({
   title,
+  href,
   icon: Icon,
   items,
   empty,
 }: {
   title: string;
+  href: string;
   icon: typeof Camera;
   items: ScheduleItem[];
   empty: string;
 }) {
   return (
     <div>
-      <div className="mb-2 flex items-center gap-2">
+      <Link
+        href={href}
+        className="mb-2 flex cursor-pointer items-center gap-2 transition-colors hover:text-soda-pink"
+      >
         <Icon className="size-3.5 text-muted-foreground" />
         <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
           {title}
         </p>
-      </div>
+        <Badge variant="outline" className="ml-auto font-mono text-[10px] tabular-nums">
+          {items.length}
+        </Badge>
+      </Link>
       {items.length === 0 ? (
-        <p className="py-2 text-sm text-muted-foreground" dir="rtl">
-          {empty}
-        </p>
+        <Link
+          href={href}
+          className="block cursor-pointer py-2 text-sm text-muted-foreground transition-colors hover:text-soda-pink"
+        >
+          {empty} — open list
+        </Link>
       ) : (
         <div className="space-y-0">
           {items.map((item, index) => (
             <div key={item.id}>
               <Link
                 href={item.href}
-                className="flex items-start justify-between gap-3 rounded-md py-2.5 transition-colors hover:bg-muted/50"
+                className="flex cursor-pointer items-start justify-between gap-3 rounded-md py-2.5 transition-colors hover:bg-muted/50"
               >
                 <div className="min-w-0">
                   <p className="truncate text-sm font-medium">{item.title}</p>
@@ -101,7 +112,7 @@ export default function UpcomingScheduleCard({
           <Button
             variant="ghost"
             size="sm"
-            className="shrink-0"
+            className="shrink-0 cursor-pointer"
             nativeButton={false}
             render={<Link href="/calendar" />}
           >
@@ -112,24 +123,28 @@ export default function UpcomingScheduleCard({
       <CardContent className="space-y-5">
         <Section
           title="Today's shoots"
+          href="/schedule/today"
           icon={Camera}
           items={schedule.todayShoots}
           empty={getEmptyState("shoots").title}
         />
         <Section
           title="Tomorrow's shoots"
+          href="/schedule/tomorrow"
           icon={Camera}
           items={schedule.tomorrowShoots}
           empty={getEmptyState("shoots").title}
         />
         <Section
           title="Deliveries"
+          href="/schedule/deliveries"
           icon={Truck}
           items={schedule.deliveries}
           empty={getEmptyState("deliveries").title}
         />
         <Section
           title="Deadlines"
+          href="/schedule/deadlines"
           icon={Flag}
           items={schedule.deadlines}
           empty={getEmptyState("deadlines").title}

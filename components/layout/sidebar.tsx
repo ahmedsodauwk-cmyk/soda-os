@@ -2,12 +2,11 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LogOut, User, Info, Settings } from "lucide-react";
+import { LogOut, Info, Settings } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Progress } from "@/components/ui/progress";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -95,19 +94,9 @@ export function SidebarContent({ user }: SidebarContentProps) {
       </ScrollArea>
 
       <div className="space-y-4 border-t border-sidebar-border p-4">
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <p className="text-xs font-medium text-muted-foreground">
-              {t("common.storage")}
-            </p>
-            <p className="font-mono text-xs text-soda-pink">75%</p>
-          </div>
-          <Progress value={75} className="gap-0" />
-        </div>
-
         <DropdownMenu>
           <DropdownMenuTrigger
-            className="flex w-full items-center gap-2.5 rounded-lg p-2 text-left outline-none transition-colors hover:bg-sidebar-accent focus-visible:ring-2 focus-visible:ring-sidebar-ring"
+            className="flex w-full cursor-pointer items-center gap-2.5 rounded-lg p-2 text-left outline-none transition-colors hover:bg-sidebar-accent focus-visible:ring-2 focus-visible:ring-sidebar-ring"
           >
             <Avatar size="sm">
               <AvatarFallback className="bg-[#2D1B4E] text-xs font-medium text-white">
@@ -129,15 +118,17 @@ export function SidebarContent({ user }: SidebarContentProps) {
           <DropdownMenuContent align="start" className="w-56">
             <DropdownMenuLabel>{t("common.myAccount")}</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem render={<Link href="/settings" />}>
-              <User />
-              {t("common.profile")}
-            </DropdownMenuItem>
-            <DropdownMenuItem render={<Link href="/settings" />}>
+            <DropdownMenuItem
+              className="cursor-pointer"
+              render={<Link href="/settings" />}
+            >
               <Settings />
               {t("common.settings")}
             </DropdownMenuItem>
-            <DropdownMenuItem render={<Link href="/settings/password" />}>
+            <DropdownMenuItem
+              className="cursor-pointer"
+              render={<Link href="/settings/password" />}
+            >
               <Settings />
               {t("common.changePassword")}
             </DropdownMenuItem>

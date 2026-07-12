@@ -120,7 +120,7 @@ export default function CompanyPulse({ insights }: CompanyPulseProps) {
               <Link
                 key={`${insight.id}-${tick}`}
                 href={insight.href}
-                className="block"
+                className="block cursor-pointer"
               >
                 {body}
               </Link>

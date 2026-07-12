@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Plus, UserPlus } from "lucide-react";
+import { UserPlus } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -96,7 +96,7 @@ interface AddOrderDialogProps {
 export function AddOrderDialog({
   onAdd,
   defaultProjectType,
-  triggerLabel = "➕ إنشاء أوردر",
+  triggerLabel = UI_ACTIONS.createOrder,
 }: AddOrderDialogProps) {
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState<FormState>(() =>
@@ -262,8 +262,7 @@ export function AddOrderDialog({
         </p>
       ) : null}
       <Dialog open={open} onOpenChange={handleOpenChange}>
-        <DialogTrigger render={<Button className="gap-1.5" />}>
-          <Plus />
+        <DialogTrigger render={<Button className="cursor-pointer gap-1.5" />}>
           {triggerLabel}
         </DialogTrigger>
 
@@ -727,7 +726,7 @@ export function AddOrderDialog({
                 {UI_ACTIONS.cancel}
               </Button>
               <Button type="submit" disabled={saving}>
-                {saving ? UI_ACTIONS.creating : UI_ACTIONS.createOrder}
+                {saving ? UI_ACTIONS.creating : UI_ACTIONS.create}
               </Button>
             </DialogFooter>
           </form>

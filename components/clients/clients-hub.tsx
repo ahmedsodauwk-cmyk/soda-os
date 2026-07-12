@@ -28,7 +28,7 @@ export function ClientsHub() {
         <p className="text-sm text-muted-foreground">
           Choose a segment or manage all clients below.
         </p>
-        <ClientEntryActions triggerLabel="➕ إنشاء عميل" />
+        <ClientEntryActions />
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">

@@ -450,7 +450,7 @@ export function getCompanyPulse(
       label: "Overdue deliveries",
       insight: `${signals.overdueCount} overdue delivery${signals.overdueCount === 1 ? "" : "ies"} need action.`,
       tone: "pressure",
-      href: "/#attention",
+      href: "/attention",
     });
   }
 
@@ -460,7 +460,7 @@ export function getCompanyPulse(
       label: "Upcoming shoots",
       insight: `${signals.todayShoots} shoot${signals.todayShoots === 1 ? "" : "s"} today.`,
       tone: signals.todayShoots >= 2 ? "watch" : "neutral",
-      href: "/#schedule",
+      href: "/schedule/today",
     });
   } else if (signals.upcomingShoots >= 1) {
     insights.push({
@@ -478,7 +478,7 @@ export function getCompanyPulse(
       label: "Unpaid clients",
       insight: `${signals.unpaidCount} unpaid client balance${signals.unpaidCount === 1 ? "" : "s"}.`,
       tone: "watch",
-      href: "/#attention",
+      href: "/attention",
     });
   }
 
@@ -505,7 +505,7 @@ export function getCompanyPulse(
       label: "Late approvals",
       insight: `${lateApprovals.length} item${lateApprovals.length === 1 ? "" : "s"} waiting on approval / deadline.`,
       tone: "pressure",
-      href: "/#attention",
+      href: "/attention",
     });
   }
 
@@ -516,7 +516,7 @@ export function getCompanyPulse(
       label: "Upcoming deadlines",
       insight: `${snapshot.schedule.deadlines.length} deadline${snapshot.schedule.deadlines.length === 1 ? "" : "s"} — next: ${next.title} (${next.date}).`,
       tone: "watch",
-      href: next.href || "/#schedule",
+      href: next.href || "/schedule/deadlines",
     });
   }
 
@@ -698,24 +698,24 @@ function buildBriefActions(
 ): BriefAction[] {
   if (hasAttention || signals.overdueCount > 0) {
     return [
-      { label: "Review attention", href: "#attention", emphasis: "primary" },
+      { label: "Review attention", href: "/attention", emphasis: "primary" },
       { label: "Open orders", href: "/orders", emphasis: "secondary" },
-      { label: "View timeline", href: "#schedule", emphasis: "secondary" },
+      { label: "View timeline", href: "/schedule/today", emphasis: "secondary" },
     ];
   }
 
   if (signals.todayShoots > 0 || signals.upcomingShoots > 0) {
     return [
-      { label: "View timeline", href: "#schedule", emphasis: "primary" },
+      { label: "View timeline", href: "/schedule/today", emphasis: "primary" },
       { label: "Open orders", href: "/orders", emphasis: "secondary" },
-      { label: "Review attention", href: "#attention", emphasis: "secondary" },
+      { label: "Review attention", href: "/attention", emphasis: "secondary" },
     ];
   }
 
   return [
     { label: "Enter Command Center", href: "#command-core", emphasis: "primary" },
     { label: "Open orders", href: "/orders", emphasis: "secondary" },
-    { label: "View timeline", href: "#schedule", emphasis: "secondary" },
+    { label: "View timeline", href: "/schedule/today", emphasis: "secondary" },
   ];
 }
 

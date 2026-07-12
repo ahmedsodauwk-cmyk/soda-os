@@ -53,7 +53,7 @@ export default function TeamPerformance({
             <Link
               key={member.id}
               href={`/crew/${member.id}`}
-              className="flex items-center justify-between gap-3 rounded-lg p-2.5 transition-colors hover:bg-muted/50"
+              className="flex cursor-pointer items-center justify-between gap-3 rounded-lg p-2.5 transition-colors hover:bg-muted/50"
             >
               <div className="flex min-w-0 items-center gap-3">
                 <span className="w-4 font-mono text-xs text-muted-foreground">
@@ -102,7 +102,7 @@ export default function TeamPerformance({
         )}
         <Link
           href={dashboardHref("team")}
-          className="block pt-2 text-xs text-soda-pink hover:underline"
+          className="block cursor-pointer pt-2 text-xs text-soda-pink hover:underline"
         >
           View all crew
         </Link>

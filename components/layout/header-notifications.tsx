@@ -73,7 +73,12 @@ export function HeaderNotifications({ initial }: HeaderNotificationsProps) {
           render={
             <DropdownMenuTrigger
               render={
-                <Button variant="ghost" size="icon-sm" className="relative" />
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  className="relative cursor-pointer"
+                  nativeButton={false}
+                />
               }
             />
           }
@@ -94,7 +99,7 @@ export function HeaderNotifications({ initial }: HeaderNotificationsProps) {
           <span>Notifications</span>
           <Link
             href="/notifications"
-            className="text-xs font-normal text-soda-pink hover:underline"
+            className="cursor-pointer text-xs font-normal text-soda-pink hover:underline"
           >
             Open all
           </Link>
@@ -110,27 +115,26 @@ export function HeaderNotifications({ initial }: HeaderNotificationsProps) {
             return (
               <DropdownMenuItem
                 key={item.id}
-                className="items-start whitespace-normal p-0"
+                className="cursor-pointer items-start whitespace-normal"
                 onClick={() => markRead(item.id)}
+                render={<Link href={href} />}
               >
-                <Link href={href} className="min-w-0 space-y-0.5 px-2 py-1.5">
+                <div className="min-w-0 space-y-0.5">
                   <p className="text-sm font-medium">{friendlyTitle(item)}</p>
                   <p className="line-clamp-2 text-xs text-muted-foreground">
                     {item.body || "Open related record"}
                   </p>
-                </Link>
+                </div>
               </DropdownMenuItem>
             );
           })
         )}
         <DropdownMenuSeparator />
-        <DropdownMenuItem className="p-0" onClick={() => undefined}>
-          <Link
-            href="/notifications"
-            className="flex w-full items-center justify-center px-2 py-2 text-sm font-medium text-soda-pink"
-          >
-            Notification center
-          </Link>
+        <DropdownMenuItem
+          className="cursor-pointer justify-center font-medium text-soda-pink"
+          render={<Link href="/notifications" />}
+        >
+          Notification center
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

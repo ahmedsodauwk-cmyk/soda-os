@@ -41,7 +41,7 @@ export default function PeopleOwedCard() {
           <Link
             key={person.id}
             href={`/crew/${person.id}`}
-            className="flex items-center justify-between gap-3 rounded-xl border border-border/60 px-3 py-2.5 hover:border-soda-pink/35"
+            className="flex cursor-pointer items-center justify-between gap-3 rounded-xl border border-border/60 px-3 py-2.5 hover:border-soda-pink/35"
           >
             <PersonAvatar
               nameAr={person.nameAr}

@@ -66,7 +66,7 @@ export default function DashboardHero({
             <li key={line.text}>
               <Link
                 href={line.href}
-                className="font-ar text-base leading-[1.75] text-foreground/85 underline-offset-4 transition-colors hover:text-soda-pink hover:underline sm:text-lg sm:leading-[1.7]"
+                className="font-ar cursor-pointer text-base leading-[1.75] text-foreground/85 underline-offset-4 transition-colors hover:text-soda-pink hover:underline sm:text-lg sm:leading-[1.7]"
               >
                 {line.text}
               </Link>

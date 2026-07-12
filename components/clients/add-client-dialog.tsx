@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { Plus } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -70,7 +69,7 @@ export function AddClientDialog({
   onAdd,
   defaultType,
   defaultSegment,
-  triggerLabel = "➕ إنشاء عميل",
+  triggerLabel = UI_ACTIONS.createClient,
 }: AddClientDialogProps) {
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState<NewClientInput>(() =>
@@ -188,8 +187,7 @@ export function AddClientDialog({
         </p>
       ) : null}
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogTrigger render={<Button className="gap-1.5" />}>
-        <Plus />
+      <DialogTrigger render={<Button className="cursor-pointer gap-1.5" />}>
         {triggerLabel}
       </DialogTrigger>
 
@@ -311,7 +309,7 @@ export function AddClientDialog({
             >
               {UI_ACTIONS.cancel}
             </Button>
-            <Button type="submit">{UI_ACTIONS.createClient}</Button>
+            <Button type="submit">{UI_ACTIONS.create}</Button>
           </DialogFooter>
         </form>
       </DialogContent>

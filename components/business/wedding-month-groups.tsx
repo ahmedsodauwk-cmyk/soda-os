@@ -55,19 +55,33 @@ export function WeddingMonthGroups({ groups }: WeddingMonthGroupsProps) {
                 className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border/60 bg-card/40 px-3.5 py-3"
               >
                 <div className="min-w-0">
-                  <p className="font-medium">{order.clientName}</p>
+                  {order.clientId ? (
+                    <Link
+                      href={`/clients/${order.clientId}`}
+                      className="cursor-pointer font-medium text-soda-pink hover:underline"
+                    >
+                      {order.clientName}
+                    </Link>
+                  ) : (
+                    <p className="font-medium">{order.clientName}</p>
+                  )}
                   <p className="text-xs text-muted-foreground">
                     {order.projectType} · Shoot {order.shootDate} · Delivery{" "}
                     {order.deliveryDate}
                   </p>
                   <p className="font-mono text-[11px] text-muted-foreground">
-                    {order.id}
+                    <Link
+                      href={`/orders/${order.id}`}
+                      className="cursor-pointer hover:text-soda-pink hover:underline"
+                    >
+                      {order.id}
+                    </Link>
                     {order.projectId ? (
                       <>
                         {" · "}
                         <Link
                           href={`/projects/${order.projectId}`}
-                          className="text-soda-pink hover:underline"
+                          className="cursor-pointer text-soda-pink hover:underline"
                         >
                           {order.projectId}
                         </Link>

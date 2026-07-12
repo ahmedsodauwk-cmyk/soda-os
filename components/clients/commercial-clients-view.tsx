@@ -85,7 +85,6 @@ export function CommercialClientsView({
         <ClientEntryActions
           defaultType="company"
           defaultSegment="commercial"
-          triggerLabel="➕ إنشاء عميل"
         />
       </div>
 

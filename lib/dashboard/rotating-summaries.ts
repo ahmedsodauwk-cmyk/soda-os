@@ -72,7 +72,7 @@ export function buildRotatingSummaries(
       {
         label: "Needs attention",
         value: String(snapshot.attention.length),
-        href: "/#attention",
+        href: "/attention",
       },
     ],
   });

@@ -789,9 +789,10 @@ export function ProjectHubContent({ project }: ProjectHubContentProps) {
               </div>
             ) : project.team.length > 0 ? (
               project.team.map((member) => (
-              <div
+              <Link
                 key={member.id}
-                className="flex items-center gap-3 rounded-lg border border-border/60 px-3 py-3"
+                href={`/crew/${member.id}`}
+                className="flex cursor-pointer items-center gap-3 rounded-lg border border-border/60 px-3 py-3 transition-colors hover:border-soda-pink/35"
               >
                 <Avatar>
                   <AvatarFallback>
@@ -804,16 +805,17 @@ export function ProjectHubContent({ project }: ProjectHubContentProps) {
                   </p>
                   <p className="text-xs text-muted-foreground">{member.role}</p>
                 </div>
-              </div>
+              </Link>
               ))
             ) : (
               operating.assignments.map((a) => {
                 const person = getPersonById(a.personId);
                 const name = person?.nameEn ?? a.personId;
                 return (
-                  <div
+                  <Link
                     key={a.id}
-                    className="flex items-center gap-3 rounded-lg border border-border/60 px-3 py-3"
+                    href={`/crew/${a.personId}`}
+                    className="flex cursor-pointer items-center gap-3 rounded-lg border border-border/60 px-3 py-3 transition-colors hover:border-soda-pink/35"
                   >
                     <Avatar>
                       <AvatarFallback>
@@ -829,7 +831,7 @@ export function ProjectHubContent({ project }: ProjectHubContentProps) {
                           : " · paid"}
                       </p>
                     </div>
-                  </div>
+                  </Link>
                 );
               })
             )}

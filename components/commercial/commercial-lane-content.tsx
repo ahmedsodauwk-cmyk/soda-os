@@ -100,7 +100,6 @@ export function CommercialLaneContent({
         </div>
         <OrderEntryActions
           defaultProjectType="Commercial"
-          triggerLabel="➕ إنشاء أوردر"
         />
       </div>
 

@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Search, Trash2 } from "lucide-react";
+import { Search, Trash2 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -285,8 +285,7 @@ export function EquipmentInventoryContent() {
               className="h-8 pl-8"
             />
           </div>
-          <Button className="gap-1.5" onClick={() => setCreateOpen(true)}>
-            <Plus className="size-4" />
+          <Button className="cursor-pointer gap-1.5" onClick={() => setCreateOpen(true)}>
             + New
           </Button>
         </CardContent>

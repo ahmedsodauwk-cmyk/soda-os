@@ -50,6 +50,7 @@ export type Dictionary = {
     settings: string;
     changePassword: string;
     notifications: string;
+    attention: string;
     mySpace: string;
     myWallet: string;
     about: string;
@@ -120,6 +121,8 @@ export type Dictionary = {
     statistics: string;
     settings: string;
     notifications: string;
+    attention: string;
+    schedule: string;
     me: string;
     wallet: string;
     bonus: string;
@@ -139,7 +142,7 @@ export type Dictionary = {
 
 const en: Dictionary = {
   nav: {
-    home: "Home",
+    home: "Home Screen",
     mySpace: "My Space",
     quotations: "Quotations",
     orders: "Orders",
@@ -164,7 +167,7 @@ const en: Dictionary = {
     settings: "Settings",
   },
   pages: {
-    home: "Home",
+    home: "Home Screen",
     clients: "Clients",
     weddingClients: "Wedding Clients",
     commercialClients: "Commercial Clients",
@@ -186,6 +189,7 @@ const en: Dictionary = {
     settings: "Settings",
     changePassword: "Change Password",
     notifications: "Notifications",
+    attention: "Need Attention",
     mySpace: "My Space",
     myWallet: "My Wallet",
     about: "About",
@@ -201,16 +205,16 @@ const en: Dictionary = {
     creating: "Creating…",
     delete: "Delete",
     edit: "Edit",
-    createClient: "Create Client",
-    createOrder: "Create Order",
-    createProject: "Create Project",
+    createClient: "+ New Client",
+    createOrder: "+ New Order",
+    createProject: "+ New Project",
     createPerson: "Create Person",
-    createCrew: "Create Crew Member",
-    createQuotation: "Create Quotation",
+    createCrew: "+ New Crew",
+    createQuotation: "+ New Quotation",
     createDelivery: "Create Delivery",
     createInvoice: "Create Invoice",
     saveChanges: "Save Changes",
-    newQuotation: "New Quotation",
+    newQuotation: "+ New Quotation",
     signIn: "Sign in",
     signingIn: "Signing in…",
     logOut: "Log out",
@@ -233,16 +237,16 @@ const en: Dictionary = {
     search: "Search",
   },
   quickActions: {
-    newQuotation: "New Quotation",
-    createOrder: "Create Order",
-    createClient: "Create Client",
+    newQuotation: "+ New Quotation",
+    createOrder: "+ New Order",
+    createClient: "+ New Client",
     crew: "Crew",
     commercial: "Commercial",
     calendar: "Calendar",
     reports: "Statistics",
   },
   crumbs: {
-    home: "Home",
+    home: "Home Screen",
     orders: "Orders",
     projects: "Projects",
     clients: "Clients",
@@ -256,6 +260,8 @@ const en: Dictionary = {
     statistics: "Statistics",
     settings: "Settings",
     notifications: "Notifications",
+    attention: "Need Attention",
+    schedule: "Timeline",
     me: "My Space",
     wallet: "Wallet",
     bonus: "Bonus",
@@ -275,7 +281,7 @@ const en: Dictionary = {
 
 const ar: Dictionary = {
   nav: {
-    home: "الرئيسية",
+    home: "الشاشة الرئيسية",
     mySpace: "مساحتي",
     quotations: "عروض الأسعار",
     orders: "الأوردرات",
@@ -300,7 +306,7 @@ const ar: Dictionary = {
     settings: "الإعدادات",
   },
   pages: {
-    home: "الرئيسية",
+    home: "الشاشة الرئيسية",
     clients: "العملاء",
     weddingClients: "عملاء الأفراح",
     commercialClients: "العملاء التجاريون",
@@ -322,6 +328,7 @@ const ar: Dictionary = {
     settings: "الإعدادات",
     changePassword: "تغيير كلمة السر",
     notifications: "التنبيهات",
+    attention: "محتاج انتباه",
     mySpace: "مساحتي",
     myWallet: "محفظتي",
     about: "عن صودا",
@@ -337,16 +344,16 @@ const ar: Dictionary = {
     creating: "جاري الإنشاء…",
     delete: "حذف",
     edit: "تعديل",
-    createClient: "إنشاء عميل",
-    createOrder: "إنشاء أوردر",
-    createProject: "إنشاء مشروع",
+    createClient: "+ عميل جديد",
+    createOrder: "+ أوردر جديد",
+    createProject: "+ مشروع جديد",
     createPerson: "إنشاء شخص",
-    createCrew: "إنشاء عضو فريق",
-    createQuotation: "إنشاء عرض سعر",
+    createCrew: "+ عضو فريق جديد",
+    createQuotation: "+ عرض سعر جديد",
     createDelivery: "إنشاء تسليم",
     createInvoice: "إنشاء فاتورة",
     saveChanges: "حفظ التعديلات",
-    newQuotation: "عرض سعر جديد",
+    newQuotation: "+ عرض سعر جديد",
     signIn: "دخول",
     signingIn: "جاري الدخول…",
     logOut: "تسجيل الخروج",
@@ -369,16 +376,16 @@ const ar: Dictionary = {
     search: "بحث",
   },
   quickActions: {
-    newQuotation: "عرض سعر",
-    createOrder: "إنشاء أوردر",
-    createClient: "إنشاء عميل",
+    newQuotation: "+ عرض سعر",
+    createOrder: "+ أوردر جديد",
+    createClient: "+ عميل جديد",
     crew: "الفريق",
     commercial: "التجاري",
     calendar: "الجدول",
     reports: "الإحصائيات",
   },
   crumbs: {
-    home: "الرئيسية",
+    home: "الشاشة الرئيسية",
     orders: "الأوردرات",
     projects: "المشاريع",
     clients: "العملاء",
@@ -392,6 +399,8 @@ const ar: Dictionary = {
     statistics: "الإحصائيات",
     settings: "الإعدادات",
     notifications: "التنبيهات",
+    attention: "محتاج انتباه",
+    schedule: "الجدول الزمني",
     me: "مساحتي",
     wallet: "محفظتي",
     bonus: "البونص",

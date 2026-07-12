@@ -25,6 +25,8 @@ import { cn } from "@/lib/utils";
 interface AttentionCenterProps {
   items: AttentionItem[];
   limit?: number;
+  /** When true (default), show a link to the full attention page. */
+  showViewAll?: boolean;
 }
 
 const categoryIcon = {
@@ -43,6 +45,7 @@ const severityStyles: Record<AttentionItem["severity"], string> = {
 export default function AttentionCenter({
   items,
   limit = 10,
+  showViewAll = true,
 }: AttentionCenterProps) {
   const visible = items.slice(0, limit);
   const remaining = Math.max(0, items.length - visible.length);
@@ -52,7 +55,18 @@ export default function AttentionCenter({
       <CardHeader>
         <div className="flex items-start justify-between gap-3">
           <div>
-            <CardTitle>{DASHBOARD_SECTION_COPY.attention.title}</CardTitle>
+            <CardTitle>
+              {showViewAll ? (
+                <Link
+                  href="/attention"
+                  className="cursor-pointer transition-colors hover:text-soda-pink"
+                >
+                  {DASHBOARD_SECTION_COPY.attention.title}
+                </Link>
+              ) : (
+                DASHBOARD_SECTION_COPY.attention.title
+              )}
+            </CardTitle>
             <CardDescription
               className="font-ar text-[0.9375rem] leading-[1.8] text-muted-foreground"
               dir="rtl"
@@ -60,12 +74,14 @@ export default function AttentionCenter({
               {DASHBOARD_SECTION_COPY.attention.description}
             </CardDescription>
           </div>
-          <Badge
-            variant="outline"
-            className="border-soda-pink/30 bg-soda-pink/10 font-mono tabular-nums text-soda-pink"
-          >
-            {items.length}
-          </Badge>
+          <Link href="/attention" className="cursor-pointer">
+            <Badge
+              variant="outline"
+              className="border-soda-pink/30 bg-soda-pink/10 font-mono tabular-nums text-soda-pink"
+            >
+              {items.length}
+            </Badge>
+          </Link>
         </div>
       </CardHeader>
       <CardContent className="space-y-2">
@@ -88,7 +104,7 @@ export default function AttentionCenter({
               <div
                 className={cn(
                   "flex items-start gap-3 rounded-lg border border-transparent p-3 transition-colors",
-                  item.href && "hover:bg-muted/50"
+                  item.href && "cursor-pointer hover:bg-muted/50"
                 )}
               >
                 <div className="flex size-8 shrink-0 items-center justify-center rounded-md bg-muted">
@@ -115,7 +131,7 @@ export default function AttentionCenter({
             );
 
             return item.href ? (
-              <Link key={item.id} href={item.href} className="block">
+              <Link key={item.id} href={item.href} className="block cursor-pointer">
                 {body}
               </Link>
             ) : (
@@ -124,10 +140,24 @@ export default function AttentionCenter({
           })
         )}
 
-        {remaining > 0 ? (
+        {remaining > 0 && showViewAll ? (
+          <Link
+            href="/attention"
+            className="block cursor-pointer pt-1 text-xs text-soda-pink hover:underline"
+          >
+            +{remaining} more issue{remaining === 1 ? "" : "s"} — view all
+          </Link>
+        ) : remaining > 0 ? (
           <p className="pt-1 text-xs text-muted-foreground">
             +{remaining} more issue{remaining === 1 ? "" : "s"}
           </p>
+        ) : showViewAll && items.length > 0 ? (
+          <Link
+            href="/attention"
+            className="block cursor-pointer pt-1 text-xs text-soda-pink hover:underline"
+          >
+            Open attention center
+          </Link>
         ) : null}
       </CardContent>
     </Card>
