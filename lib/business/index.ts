@@ -28,8 +28,10 @@ export {
 } from "@/lib/business/commercial-account";
 export {
   buildWeddingOrdersOverview,
+  buildWeddingYearMonths,
   isCommercialOrder,
   isWeddingOrder,
+  weddingBrowserYears,
 } from "@/lib/business/wedding-orders";
 export type {
   CommercialClientProfile,

@@ -19,7 +19,7 @@ import {
 import { LanguageSwitcher } from "@/components/i18n/language-switcher";
 import { SodaLogo } from "@/components/brand/soda-logo";
 import { signOutAction } from "@/lib/auth/actions";
-import { navForRole } from "@/lib/identity/nav";
+import { navSectionsForRole } from "@/lib/identity/nav";
 import { ROLE_LABELS, type SodaRole } from "@/lib/identity/roles";
 import { useI18n } from "@/lib/i18n/provider";
 
@@ -34,11 +34,23 @@ interface SidebarContentProps {
   user?: SidebarUser;
 }
 
+function isNavActive(pathname: string, href: string): boolean {
+  if (href === "#") return false;
+  if (href === "/") return pathname === "/";
+  if (href === "/me") return pathname === "/me";
+  return (
+    pathname === href ||
+    pathname.startsWith(`${href}/`) ||
+    (href === "/commercial" && pathname.startsWith("/workspaces")) ||
+    (href === "/crew" && pathname.startsWith("/people"))
+  );
+}
+
 export function SidebarContent({ user }: SidebarContentProps) {
   const pathname = usePathname();
   const { t } = useI18n();
   const role = user?.role ?? "owner";
-  const menu = navForRole(role);
+  const sections = navSectionsForRole(role);
 
   return (
     <>
@@ -47,49 +59,50 @@ export function SidebarContent({ user }: SidebarContentProps) {
       </div>
 
       <ScrollArea className="flex-1 px-2 py-3">
-        <nav className="space-y-0.5">
-          {menu.map((item) => {
-            const Icon = item.icon;
-            const title = t(item.titleKey);
-            const isActive =
-              item.href !== "#" &&
-              (item.href === "/"
-                ? pathname === "/"
-                : pathname === item.href ||
-                  (item.href !== "/me" && pathname.startsWith(`${item.href}/`)) ||
-                  (item.href === "/me" && pathname === "/me") ||
-                  (item.href === "/commercial" &&
-                    pathname.startsWith("/workspaces")) ||
-                  (item.href === "/crew" && pathname.startsWith("/people")));
+        <nav className="space-y-5">
+          {sections.map((section) => (
+            <div key={section.id} className="space-y-1">
+              <p className="flex items-center gap-1.5 px-3 pb-1 text-[10px] font-semibold tracking-[0.08em] text-muted-foreground uppercase">
+                <span aria-hidden>{section.emoji}</span>
+                <span>{t(section.labelKey)}</span>
+              </p>
+              <div className="space-y-0.5">
+                {section.items.map((item) => {
+                  const Icon = item.icon;
+                  const title = t(item.titleKey);
+                  const active = isNavActive(pathname, item.href);
 
-            return (
-              <Button
-                key={item.titleKey}
-                variant="ghost"
-                nativeButton={false}
-                render={
-                  <Link
-                    href={item.href}
-                    aria-current={isActive ? "page" : undefined}
-                  />
-                }
-                className={cn(
-                  "h-9 w-full justify-start gap-2.5 rounded-md px-3 font-normal transition-all",
-                  isActive
-                    ? "border-l-[3px] border-soda-pink bg-sidebar-accent text-sidebar-accent-foreground"
-                    : "border-l-[3px] border-transparent text-muted-foreground hover:border-soda-pink/30 hover:bg-sidebar-accent/60 hover:text-foreground"
-                )}
-              >
-                <Icon
-                  className={cn(
-                    "size-4",
-                    isActive ? "text-soda-pink" : "opacity-80"
-                  )}
-                />
-                <span>{title}</span>
-              </Button>
-            );
-          })}
+                  return (
+                    <Button
+                      key={item.titleKey}
+                      variant="ghost"
+                      nativeButton={false}
+                      render={
+                        <Link
+                          href={item.href}
+                          aria-current={active ? "page" : undefined}
+                        />
+                      }
+                      className={cn(
+                        "h-9 w-full cursor-pointer justify-start gap-2.5 rounded-md px-3 font-normal transition-all",
+                        active
+                          ? "border-l-[3px] border-soda-pink bg-sidebar-accent text-sidebar-accent-foreground"
+                          : "border-l-[3px] border-transparent text-muted-foreground hover:border-soda-pink/30 hover:bg-sidebar-accent/60 hover:text-foreground"
+                      )}
+                    >
+                      <Icon
+                        className={cn(
+                          "size-4",
+                          active ? "text-soda-pink" : "opacity-80"
+                        )}
+                      />
+                      <span>{title}</span>
+                    </Button>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
         </nav>
       </ScrollArea>
 
@@ -135,7 +148,10 @@ export function SidebarContent({ user }: SidebarContentProps) {
             <div className="px-2 py-1.5">
               <LanguageSwitcher variant="inline" />
             </div>
-            <DropdownMenuItem render={<Link href="/about" />}>
+            <DropdownMenuItem
+              className="cursor-pointer"
+              render={<Link href="/about" />}
+            >
               <Info />
               {t("common.aboutSoda")}
             </DropdownMenuItem>
@@ -144,7 +160,7 @@ export function SidebarContent({ user }: SidebarContentProps) {
               <DropdownMenuItem
                 variant="destructive"
                 nativeButton={false}
-                render={<button type="submit" className="w-full" />}
+                render={<button type="submit" className="w-full cursor-pointer" />}
               >
                 <LogOut />
                 {t("actions.logOut")}

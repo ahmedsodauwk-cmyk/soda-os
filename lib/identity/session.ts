@@ -175,10 +175,10 @@ export function fallbackOwnerSession(): SodaSession {
     profile: {
       id: "local-owner",
       email: "owner@soda.studio",
-      fullName: "SODA Owner",
+      fullName: "چونيور صودا",
       role: "owner",
       personId: null,
-      avatarInitials: "SO",
+      avatarInitials: "چص",
       isActive: true,
     },
   };

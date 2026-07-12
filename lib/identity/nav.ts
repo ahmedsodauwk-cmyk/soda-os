@@ -1,6 +1,6 @@
 /**
  * Role-filtered navigation — sidebar / mobile menu.
- * Labels come from i18n (selected UI language). Icons only — no decorative emojis.
+ * Two workspaces: Company + My. Labels from i18n. Lucide icons only.
  */
 
 import type { LucideIcon } from "lucide-react";
@@ -27,7 +27,8 @@ import {
   Shirt,
   TrendingUp,
   Bell,
-  User,
+  Building2,
+  UserRound,
 } from "lucide-react";
 
 import { can, type Permission } from "@/lib/identity/permissions";
@@ -41,6 +42,17 @@ export type NavItem = {
   icon: LucideIcon;
   /** All required; item shown if role has any listed permission */
   anyOf: Permission[];
+  workspace: "company" | "me";
+};
+
+export type NavSection = {
+  id: "company" | "me";
+  /** i18n key for section header */
+  labelKey: DictKey;
+  /** Optional emoji marker for section header only */
+  emoji: string;
+  icon: LucideIcon;
+  items: NavItem[];
 };
 
 export const NAV_ITEMS: NavItem[] = [
@@ -54,138 +66,154 @@ export const NAV_ITEMS: NavItem[] = [
       "dashboard.crew",
       "dashboard.finance",
     ],
-  },
-  {
-    titleKey: "nav.mySpace",
-    href: "/me",
-    icon: User,
-    anyOf: ["dashboard.crew"],
+    workspace: "company",
   },
   {
     titleKey: "nav.quotations",
     href: "/quotations",
     icon: FileText,
     anyOf: ["quotations.view"],
+    workspace: "company",
   },
   {
     titleKey: "nav.orders",
     href: "/orders",
     icon: ShoppingCart,
     anyOf: ["orders.view"],
+    workspace: "company",
   },
   {
     titleKey: "nav.projects",
     href: "/projects",
     icon: FolderKanban,
     anyOf: ["projects.view"],
+    workspace: "company",
   },
   {
     titleKey: "nav.commercial",
     href: "/commercial",
     icon: Briefcase,
     anyOf: ["commercial.view"],
+    workspace: "company",
   },
   {
     titleKey: "nav.weddings",
     href: "/orders/weddings",
     icon: Heart,
     anyOf: ["orders.view", "dashboard.company"],
+    workspace: "company",
   },
   {
     titleKey: "nav.clients",
     href: "/clients",
     icon: Users,
     anyOf: ["clients.view"],
+    workspace: "company",
   },
   {
     titleKey: "nav.crew",
     href: "/crew",
     icon: UsersRound,
     anyOf: ["crew.view", "crew.stats"],
+    workspace: "company",
   },
   {
     titleKey: "nav.equipment",
     href: "/equipment",
     icon: Camera,
     anyOf: ["equipment.view"],
+    workspace: "company",
   },
   {
     titleKey: "nav.calendar",
     href: "/calendar",
     icon: Calendar,
     anyOf: ["calendar.view"],
+    workspace: "company",
   },
   {
     titleKey: "nav.finance",
     href: "/finance",
     icon: DollarSign,
     anyOf: ["finance.view", "dashboard.finance"],
+    workspace: "company",
   },
   {
     titleKey: "nav.statistics",
     href: "/statistics",
     icon: BarChart3,
     anyOf: ["statistics.view"],
+    workspace: "company",
   },
   {
     titleKey: "nav.myWallet",
     href: "/me/wallet",
     icon: Wallet,
     anyOf: ["me.wallet"],
+    workspace: "me",
   },
   {
     titleKey: "nav.bonus",
     href: "/me/bonus",
     icon: Gift,
     anyOf: ["me.bonus"],
+    workspace: "me",
   },
   {
     titleKey: "nav.target",
     href: "/me/target",
     icon: Target,
     anyOf: ["me.target"],
+    workspace: "me",
   },
   {
     titleKey: "nav.penalties",
     href: "/me/penalties",
     icon: AlertTriangle,
     anyOf: ["me.penalties"],
+    workspace: "me",
   },
   {
     titleKey: "nav.myFiles",
     href: "/me/files",
     icon: FolderOpen,
     anyOf: ["me.files"],
+    workspace: "me",
   },
   {
     titleKey: "nav.briefs",
     href: "/me/briefs",
     icon: ScrollText,
     anyOf: ["me.briefs"],
+    workspace: "me",
   },
   {
     titleKey: "nav.dressCode",
     href: "/me/dress-code",
     icon: Shirt,
     anyOf: ["me.dress_code"],
+    workspace: "me",
   },
   {
     titleKey: "nav.myPerformance",
     href: "/me/performance",
     icon: TrendingUp,
     anyOf: ["me.performance"],
+    workspace: "me",
   },
   {
     titleKey: "nav.notifications",
     href: "/notifications",
     icon: Bell,
     anyOf: ["notifications.view"],
+    workspace: "me",
   },
   {
     titleKey: "nav.settings",
     href: "/settings",
     icon: Settings,
     anyOf: ["settings.view"],
+    workspace: "me",
   },
 ];
 
@@ -198,7 +226,34 @@ export function navForRole(role: SodaRole): NavItem[] {
     return items.filter((i) => i.href !== "/");
   }
 
-  return items.filter((i) => i.href !== "/me");
+  return items;
+}
+
+export function navSectionsForRole(role: SodaRole): NavSection[] {
+  const items = navForRole(role);
+  const company = items.filter((i) => i.workspace === "company");
+  const me = items.filter((i) => i.workspace === "me");
+
+  const sections: NavSection[] = [];
+  if (company.length > 0) {
+    sections.push({
+      id: "company",
+      labelKey: "nav.companyWorkspace",
+      emoji: "🏢",
+      icon: Building2,
+      items: company,
+    });
+  }
+  if (me.length > 0) {
+    sections.push({
+      id: "me",
+      labelKey: "nav.myWorkspace",
+      emoji: "👤",
+      icon: UserRound,
+      items: me,
+    });
+  }
+  return sections;
 }
 
 export function homePathForRole(role: SodaRole): string {

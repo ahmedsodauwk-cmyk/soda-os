@@ -110,42 +110,69 @@ export async function persistBusinessEvent(
   }
 }
 
+const EVENTS_TTL_MS = 15_000;
+let eventsRefreshedAt = 0;
+let eventsInFlight: Promise<BusinessEvent[]> | null = null;
+let eventsCachedLimit = 0;
+
 /** Load recent events from Supabase into the process cache (serverless-safe). */
 export async function refreshBusinessEventsFromDb(
   limit = 100
 ): Promise<BusinessEvent[]> {
   const capped = Math.max(0, Math.min(limit, MAX_MEMORY));
-  try {
-    const db = createDomainDb();
-    const { data, error } = await db
-      .from("business_events")
-      .select(
-        "id, type, occurred_at, source, correlation_id, entity_type, entity_id, payload"
-      )
-      .order("occurred_at", { ascending: false })
-      .limit(capped);
-    if (error) {
-      if (isMissingTableError(error.message) && allowInMemoryFallback()) {
+
+  // Warm-instance TTL: AppShell hits this on every page — skip redundant round-trips.
+  if (
+    eventCache.length > 0 &&
+    capped <= eventsCachedLimit &&
+    Date.now() - eventsRefreshedAt < EVENTS_TTL_MS
+  ) {
+    return listBusinessEvents(capped);
+  }
+  if (eventsInFlight) {
+    await eventsInFlight;
+    return listBusinessEvents(capped);
+  }
+
+  eventsInFlight = (async () => {
+    try {
+      const db = createDomainDb();
+      const { data, error } = await db
+        .from("business_events")
+        .select(
+          "id, type, occurred_at, source, correlation_id, entity_type, entity_id, payload"
+        )
+        .order("occurred_at", { ascending: false })
+        .limit(capped);
+      if (error) {
+        if (isMissingTableError(error.message) && allowInMemoryFallback()) {
+          return listBusinessEvents(capped);
+        }
+        failPersist("refresh failed", error.message);
+      }
+      const events = ((data ?? []) as BusinessEventRow[]).map(rowToEvent);
+      eventCache.length = 0;
+      for (const e of events) {
+        eventCache.push(e);
+      }
+      eventsRefreshedAt = Date.now();
+      eventsCachedLimit = capped;
+      return [...eventCache];
+    } catch (err) {
+      if (err instanceof Error && err.message.startsWith("[business-events]")) {
+        throw err;
+      }
+      const detail = err instanceof Error ? err.message : String(err);
+      if (allowInMemoryFallback()) {
         return listBusinessEvents(capped);
       }
-      failPersist("refresh failed", error.message);
+      failPersist("refresh unavailable", detail);
+    } finally {
+      eventsInFlight = null;
     }
-    const events = ((data ?? []) as BusinessEventRow[]).map(rowToEvent);
-    eventCache.length = 0;
-    for (const e of events) {
-      eventCache.push(e);
-    }
-    return [...eventCache];
-  } catch (err) {
-    if (err instanceof Error && err.message.startsWith("[business-events]")) {
-      throw err;
-    }
-    const detail = err instanceof Error ? err.message : String(err);
-    if (allowInMemoryFallback()) {
-      return listBusinessEvents(capped);
-    }
-    failPersist("refresh unavailable", detail);
-  }
+  })();
+
+  return eventsInFlight;
 }
 
 export function listBusinessEvents(limit = 100): BusinessEvent[] {

@@ -78,7 +78,7 @@ export function ClientsContent() {
 
   return (
     <div className="space-y-6">
-      <Card className="transition-colors hover:bg-muted/30">
+      <Card>
         <CardContent className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex w-full flex-col gap-2 sm:flex-row sm:items-center">
             <div className="relative flex-1 sm:max-w-xs">

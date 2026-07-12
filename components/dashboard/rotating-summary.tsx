@@ -84,7 +84,7 @@ export default function RotatingSummary({ panels }: RotatingSummaryProps) {
               <Link
                 key={`${panel.key}-${line.label}-${line.value}`}
                 href={href}
-                className="rounded-xl border border-border/60 bg-background/40 px-3.5 py-3 transition-colors hover:border-soda-pink/40"
+                className="cursor-pointer rounded-xl border border-border/60 bg-background/40 px-3.5 py-3 transition-colors hover:border-soda-pink/40"
               >
                 {body}
               </Link>

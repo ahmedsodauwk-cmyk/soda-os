@@ -64,7 +64,7 @@ function Metric({
   return (
     <Link
       href={href}
-      className="rounded-lg border border-primary/15 bg-primary/[0.05] px-3 py-2.5 transition-colors hover:border-soda-pink/40 hover:bg-soda-pink/[0.07] first:border-soda-pink/25 first:bg-soda-pink/[0.06]"
+      className="cursor-pointer rounded-lg border border-primary/15 bg-primary/[0.05] px-3 py-2.5 transition-colors hover:border-soda-pink/40 hover:bg-soda-pink/[0.07] first:border-soda-pink/25 first:bg-soda-pink/[0.06]"
     >
       <p className="text-xs text-muted-foreground">{label}</p>
       <p

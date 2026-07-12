@@ -128,28 +128,59 @@ const GREETINGS: Record<DayPeriod, string[]> = {
     `صباح الخير يا {name}`,
     `صباح النور يا {name}`,
     `يلا نبدأ بهدوء يا {name}`,
+    `صباحك فل يا {name}`,
+    `نهاردة يوم شغل يا {name}`,
   ],
   afternoon: [
     `نهارك أبيض يا {name}`,
     `أهلاً بيك يا {name}`,
     `نص اليوم عدّى يا {name}`,
+    `إزيك يا {name}، الدنيا ماشية؟`,
+    `كمّل بهدوء يا {name}`,
   ],
   evening: [
     `مساء الفل يا {name}`,
     `مساء الخير يا {name}`,
     `خلّينا نلمّ بهدوء يا {name}`,
+    `يوم طويل يا {name}، قفّل بهدوء`,
+    `أهلاً بيك في آخر اليوم يا {name}`,
   ],
   late_night: [
     `ليلة هادية يا {name}`,
     `لسه صاحي يا {name}؟ خلّينا نقفّل بهدوء`,
     `أهلاً بيك يا {name}`,
+    `وقت هادي يا {name} — رتّب وبس`,
   ],
 };
 
+const ROLE_NAME_BLOCKLIST = new Set([
+  "owner",
+  "admin",
+  "administrator",
+  "accountant",
+  "crew",
+  "crew_member",
+  "client",
+  "manager",
+  "role",
+  "مالك",
+  "أدمن",
+  "ادمن",
+  "محاسب",
+  "عميل",
+]);
+
 function resolveOperatorName(name?: string | null): string {
   const trimmed = name?.trim();
-  if (trimmed) return trimmed.split(/\s+/)[0] ?? trimmed;
-  return SODA_OPERATOR;
+  if (!trimmed) return SODA_OPERATOR;
+  const first = trimmed.split(/\s+/)[0] ?? trimmed;
+  if (ROLE_NAME_BLOCKLIST.has(first.toLowerCase())) return SODA_OPERATOR;
+  if (ROLE_NAME_BLOCKLIST.has(trimmed.toLowerCase())) return SODA_OPERATOR;
+  // Reject "SODA Owner" / role-suffixed fallbacks
+  if (/\b(owner|admin|accountant|manager)\b/i.test(trimmed)) {
+    return SODA_OPERATOR;
+  }
+  return first;
 }
 
 const HOOKS: Record<DayPeriod, Record<BusinessMood, string[]>> = {

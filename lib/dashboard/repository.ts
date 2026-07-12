@@ -1,6 +1,6 @@
 import { getDashboardFromBusinessCore } from "@/lib/core/rules/aggregators";
 import type { DashboardSnapshot } from "@/lib/dashboard/types";
-import { refreshAllDomainData } from "@/lib/supabase/refresh-all";
+import { refreshDashboardDomainData } from "@/lib/supabase/refresh-all";
 
 /**
  * Dashboard reads ONLY from Business Core aggregators.
@@ -10,8 +10,11 @@ export function getDashboardSnapshot(): DashboardSnapshot {
   return getDashboardFromBusinessCore();
 }
 
-/** Refresh all Supabase caches then assemble dashboard via Business Core. */
+/**
+ * Lean domain refresh (not full refreshAll) then assemble via Business Core.
+ * Avoids equipment/files/closings fan-out on every Home hit.
+ */
 export async function loadDashboardSnapshot(): Promise<DashboardSnapshot> {
-  await refreshAllDomainData();
+  await refreshDashboardDomainData();
   return getDashboardFromBusinessCore();
 }

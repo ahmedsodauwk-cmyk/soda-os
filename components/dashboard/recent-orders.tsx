@@ -73,7 +73,7 @@ export default function RecentOrders({ orders }: RecentOrdersProps) {
             <Link
               key={order.id}
               href={`/orders/${order.id}`}
-              className="flex items-center justify-between gap-3 rounded-lg p-3 transition-colors hover:bg-muted/50"
+              className="flex cursor-pointer items-center justify-between gap-3 rounded-lg p-3 transition-colors hover:bg-muted/50"
             >
               <div className="flex min-w-0 items-center gap-3">
                 <Avatar size="sm">

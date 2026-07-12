@@ -5,6 +5,8 @@ export type Dictionary = {
   nav: {
     home: string;
     mySpace: string;
+    companyWorkspace: string;
+    myWorkspace: string;
     quotations: string;
     orders: string;
     projects: string;
@@ -144,6 +146,8 @@ const en: Dictionary = {
   nav: {
     home: "Home Screen",
     mySpace: "My Space",
+    companyWorkspace: "Company Workspace",
+    myWorkspace: "My Workspace",
     quotations: "Quotations",
     orders: "Orders",
     projects: "Projects",
@@ -283,6 +287,8 @@ const ar: Dictionary = {
   nav: {
     home: "الشاشة الرئيسية",
     mySpace: "مساحتي",
+    companyWorkspace: "مساحة الشركة",
+    myWorkspace: "مساحتي",
     quotations: "عروض الأسعار",
     orders: "الأوردرات",
     projects: "المشاريع",

@@ -81,7 +81,7 @@ export function CommercialCompanyOrders({
             <li key={p.id}>
               <Link
                 href={`/projects/${p.id}`}
-                className="flex items-center justify-between rounded-xl border border-border/60 px-3.5 py-3 hover:border-soda-pink/35"
+                className="flex cursor-pointer items-center justify-between rounded-xl border border-border/60 px-3.5 py-3 hover:border-soda-pink/35"
               >
                 <div>
                   <p className="font-medium">{p.name}</p>

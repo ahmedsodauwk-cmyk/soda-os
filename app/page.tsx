@@ -9,6 +9,7 @@ import RecentOrders from "@/components/dashboard/recent-orders";
 import RotatingSummary from "@/components/dashboard/rotating-summary";
 import SodaLiveFeed from "@/components/dashboard/soda-live";
 import TeamPerformance from "@/components/dashboard/team-performance";
+import TodayFocus from "@/components/dashboard/today-focus";
 import UpcomingScheduleCard from "@/components/dashboard/upcoming-schedule";
 import { WelcomeGate } from "@/components/dashboard/welcome-gate";
 import { QuotationPipelineCard } from "@/components/quotations/quotation-pipeline-card";
@@ -50,6 +51,14 @@ export default async function Home() {
               schedule: dashboard.schedule,
             }}
             operatorName={operatorName}
+          />
+
+          <TodayFocus
+            dashboard={{
+              kpis: dashboard.kpis,
+              attention: dashboard.attention,
+              schedule: dashboard.schedule,
+            }}
           />
 
           <div className="grid grid-cols-1 gap-4 lg:gap-6 xl:grid-cols-5">

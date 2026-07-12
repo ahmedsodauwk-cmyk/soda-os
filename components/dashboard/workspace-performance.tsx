@@ -45,7 +45,7 @@ export default function WorkspacePerformance({
             <Link
               key={ws.id}
               href={`/commercial/${ws.slug}`}
-              className="block rounded-lg p-3 transition-colors hover:bg-muted/50"
+              className="block cursor-pointer rounded-lg p-3 transition-colors hover:bg-muted/50"
             >
               <div className="mb-2 flex items-start justify-between gap-3">
                 <div className="min-w-0">

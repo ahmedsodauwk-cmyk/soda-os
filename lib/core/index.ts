@@ -59,6 +59,7 @@ export {
   listNotifications,
   listUnreadNotifications,
   markNotificationRead,
+  notificationActionLabel,
   recordNotificationFromEvent,
 } from "@/lib/core/notifications/engine";
 

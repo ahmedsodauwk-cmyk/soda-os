@@ -448,7 +448,7 @@ function Metric({
   href?: string;
 }) {
   return (
-    <Link href={href} className="block">
+    <Link href={href} className="block cursor-pointer">
       <Card className="transition-colors hover:border-soda-pink/40">
         <CardContent className="pt-5">
           <p className="text-xs tracking-wide text-muted-foreground uppercase">

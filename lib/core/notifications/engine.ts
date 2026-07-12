@@ -1,6 +1,6 @@
 /**
  * Notification engine — real subscriber that records actionable notices
- * from business events (not mock/fake data).
+ * from business events (Egyptian Arabic, never developer event names).
  */
 
 import type {
@@ -22,100 +22,157 @@ function hrefFor(event: BusinessEvent): string {
   }
 }
 
-const FRIENDLY_TITLES: Partial<Record<BusinessEventType, string>> = {
-  ClientCreated: "New client",
-  ClientUpdated: "Client updated",
-  OrderCreated: "New order",
-  OrderUpdated: "Order updated",
-  OrderConfirmed: "Order confirmed",
-  OrderCompleted: "Order completed",
-  OrderCancelled: "Order cancelled",
-  OrderRescheduled: "Order rescheduled",
-  PaymentReceived: "Payment received",
-  PaymentUpdated: "Payment updated",
-  InvoiceCreated: "Invoice created",
-  InvoicePaid: "Invoice paid",
-  InvoiceUpdated: "Invoice updated",
-  CrewAssigned: "Crew assigned",
-  CrewRemoved: "Crew removed",
-  CrewPaid: "Crew paid",
-  CrewBonusGenerated: "Crew bonus",
-  EquipmentAssigned: "Equipment assigned",
-  EquipmentReturned: "Equipment returned",
-  DeliveryCompleted: "Delivery completed",
-  DeliveryCreated: "Delivery logged",
-  ProjectCreated: "Project created",
-  ProjectUpdated: "Project updated",
-  QuotationConverted: "Quotation converted",
-  FinancialReversed: "Finance update",
-  FinancialVoided: "Finance update",
-  FinancialCorrected: "Finance update",
-  ExpenseRecorded: "Expense recorded",
-  TransferCompleted: "Transfer completed",
-  PeriodClosed: "Period closed",
-  PeriodReopened: "Period reopened",
-  OpeningBalancePosted: "Opening balance",
-  ManualAdjustmentPosted: "Manual adjustment",
+const FRIENDLY_TITLES_AR: Partial<Record<BusinessEventType, string>> = {
+  ClientCreated: "عميل جديد اتضاف",
+  ClientUpdated: "تحديث على عميل",
+  OrderCreated: "أوردر جديد",
+  OrderUpdated: "تحديث على أوردر",
+  OrderConfirmed: "أوردر اتأكد",
+  OrderCompleted: "أوردر اتخلّص",
+  OrderCancelled: "أوردر اتلغى",
+  OrderRescheduled: "أوردر اتغيّر معادُه",
+  PaymentReceived: "دفعة دخلت",
+  PaymentUpdated: "تحديث على دفعة",
+  InvoiceCreated: "فاتورة جديدة",
+  InvoicePaid: "فاتورة اتسددت",
+  InvoiceUpdated: "تحديث على فاتورة",
+  CrewAssigned: "تعيين في الفريق",
+  CrewRemoved: "حد اتشال من التعيين",
+  CrewPaid: "صرف للفريق",
+  CrewBonusGenerated: "بونص للفريق",
+  EquipmentAssigned: "معدة اتسلّمت",
+  EquipmentReturned: "معدة رجعت",
+  DeliveryCompleted: "تسليم خلص",
+  DeliveryCreated: "تسليم اتسجّل",
+  ProjectCreated: "مشروع جديد",
+  ProjectUpdated: "تحديث على مشروع",
+  QuotationConverted: "عرض سعر اتحول لأوردر",
+  FinancialReversed: "حركة مالية اترجعت",
+  FinancialVoided: "حركة مالية اتلغت",
+  FinancialCorrected: "تصحيح مالي",
+  ExpenseRecorded: "مصروف اتسجّل",
+  TransferCompleted: "تحويل خلص",
+  PeriodClosed: "فترة اتقفلت",
+  PeriodReopened: "فترة اتفتحت تاني",
+  OpeningBalancePosted: "رصيد افتتاحي",
+  ManualAdjustmentPosted: "تعديل يدوي",
 };
 
-function humanizeEventType(type: string): string {
-  return type
-    .replace(/([a-z])([A-Z])/g, "$1 $2")
-    .replace(/_/g, " ")
-    .trim();
-}
-
 function titleFor(event: BusinessEvent): string {
-  return FRIENDLY_TITLES[event.type] ?? humanizeEventType(event.type);
+  return (
+    FRIENDLY_TITLES_AR[event.type] ?? "حركة جديدة في الستوديو"
+  );
 }
 
 function bodyFor(event: BusinessEvent): string {
   if (event.payload.summary?.trim()) return event.payload.summary.trim();
-  const entity = event.payload.entityType;
-  const id = event.payload.entityId;
   switch (event.type) {
     case "PaymentReceived":
     case "PaymentUpdated":
-      return "A payment was recorded — open finance or the related order.";
     case "InvoiceCreated":
     case "InvoicePaid":
     case "InvoiceUpdated":
-      return "Open finance to review invoices and balances.";
+    case "ExpenseRecorded":
+    case "TransferCompleted":
+    case "FinancialReversed":
+    case "FinancialVoided":
+    case "FinancialCorrected":
+    case "OpeningBalancePosted":
+    case "ManualAdjustmentPosted":
+    case "PeriodClosed":
+    case "PeriodReopened":
+      return "شوف التفاصيل في المالية.";
     case "OrderCreated":
     case "OrderUpdated":
     case "OrderConfirmed":
     case "OrderCompleted":
     case "OrderCancelled":
     case "OrderRescheduled":
-      return "Open the order for full details.";
+    case "DeliveryCompleted":
+    case "DeliveryCreated":
+    case "CrewAssigned":
+    case "CrewRemoved":
+    case "EquipmentAssigned":
+    case "EquipmentReturned":
+      return "افتح الأوردر وشوف التفاصيل.";
     case "ClientCreated":
     case "ClientUpdated":
-      return "Open the client profile for related orders and projects.";
+      return "افتح ملف العميل.";
     case "ProjectCreated":
     case "ProjectUpdated":
-      return "Open the project hub for orders, crew, and finance.";
+      return "افتح المشروع.";
     case "QuotationConverted":
-      return "Open the quotation or related order to continue.";
+      return "العرض اتحول — كمّل من الأوردر.";
+    case "CrewPaid":
+    case "CrewBonusGenerated":
+      return "شوف الصرف في المالية.";
     default:
-      return `Related ${entity}${id ? ` · ${id}` : ""}`;
+      return "فيه تحديث محتاج نظرة.";
   }
 }
 
-/**
- * Scaffold only — Confirm/Decline are not enabled yet.
- * Keeps the shape ready for a future decision UI.
- */
-function actionsFor(_event: BusinessEvent, href: string): NotificationAction[] {
+type ActionKind = "order" | "client" | "finance" | "project" | "generic";
+
+function actionKindFor(event: BusinessEvent, href: string): ActionKind {
+  if (href.startsWith("/finance") || event.payload.entityType === "invoice" || event.payload.entityType === "payment") {
+    return "finance";
+  }
+  if (href.startsWith("/orders") || event.payload.entityType === "order" || event.payload.orderId) {
+    return "order";
+  }
+  if (href.startsWith("/clients") || event.payload.entityType === "client" || event.payload.clientId) {
+    return "client";
+  }
+  if (href.startsWith("/projects") || event.payload.entityType === "project") {
+    return "project";
+  }
+  const financeTypes = new Set([
+    "PaymentReceived",
+    "PaymentUpdated",
+    "InvoiceCreated",
+    "InvoicePaid",
+    "InvoiceUpdated",
+    "CrewPaid",
+    "ExpenseRecorded",
+    "TransferCompleted",
+    "FinancialReversed",
+    "FinancialVoided",
+    "FinancialCorrected",
+    "PeriodClosed",
+    "PeriodReopened",
+    "OpeningBalancePosted",
+    "ManualAdjustmentPosted",
+  ]);
+  if (financeTypes.has(event.type)) return "finance";
+  return "generic";
+}
+
+function actionLabel(kind: ActionKind): string {
+  switch (kind) {
+    case "order":
+      return "افتح الأوردر";
+    case "client":
+      return "افتح العميل";
+    case "finance":
+      return "افتح المالية";
+    case "project":
+      return "افتح المشروع";
+    default:
+      return "افتح التفاصيل";
+  }
+}
+
+function actionsFor(event: BusinessEvent, href: string): NotificationAction[] {
+  const kind = actionKindFor(event, href);
   return [
     {
       kind: "view",
-      label: "Open",
+      label: actionLabel(kind),
       href,
       enabled: true,
     },
-    // Reserved for future Confirm / Decline — not rendered yet.
-    { kind: "confirm", label: "Confirm", enabled: false },
-    { kind: "decline", label: "Decline", enabled: false },
+    { kind: "confirm", label: "تأكيد", enabled: false },
+    { kind: "decline", label: "رفض", enabled: false },
   ];
 }
 
@@ -168,7 +225,6 @@ export function hydrateNotificationsFromEvents(
   if (opts?.clear !== false) {
     clearNotifications();
   }
-  // Oldest first so unshift preserves newest-first order
   for (const event of [...events].reverse()) {
     try {
       recordNotificationFromEvent(event);
@@ -177,4 +233,18 @@ export function hydrateNotificationsFromEvents(
     }
   }
   return listNotifications();
+}
+
+/** Resolve human action label for UI (header + center). */
+export function notificationActionLabel(
+  item: NotificationRecord
+): string {
+  const view = item.actions?.find((a) => a.kind === "view" && a.enabled !== false);
+  if (view?.label) return view.label;
+  const href = item.href ?? "";
+  if (href.startsWith("/orders")) return "افتح الأوردر";
+  if (href.startsWith("/clients")) return "افتح العميل";
+  if (href.startsWith("/finance")) return "افتح المالية";
+  if (href.startsWith("/projects")) return "افتح المشروع";
+  return "افتح التفاصيل";
 }

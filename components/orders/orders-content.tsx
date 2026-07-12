@@ -169,7 +169,7 @@ export function OrdersContent() {
         )}
 
         <div className="min-w-0 flex-1 space-y-4">
-          <Card className="transition-colors hover:bg-muted/30">
+          <Card>
             <CardContent className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex w-full flex-col gap-2 sm:flex-row sm:items-center">
                 <div className="relative flex-1 sm:max-w-xs">
