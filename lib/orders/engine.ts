@@ -141,6 +141,8 @@ function emptyHub(): Pick<
 }
 
 function normalizeInput(input: SmartOrderInput): SmartOrderInput {
+  const deliverables = [...new Set(input.deliverables ?? [])];
+  const hasReels = deliverables.includes("Reels");
   return {
     ...input,
     clientName: input.clientName.trim(),
@@ -154,6 +156,23 @@ function normalizeInput(input: SmartOrderInput): SmartOrderInput {
     squadMemberIds: [...new Set(input.squadMemberIds ?? [])],
     workspaceId:
       input.workspaceId || workspaceIdFromProjectType(input.projectType),
+    packageName: (input.packageName ?? "").trim(),
+    deliverables,
+    reelCount: hasReels ? Math.max(0, Number(input.reelCount) || 0) : 0,
+    plannedExpenses: (input.plannedExpenses ?? []).map((line) => ({
+      kind: line.kind,
+      amount: Math.max(0, Number(line.amount) || 0),
+      ...(line.label ? { label: line.label } : {}),
+      ...(line.notes ? { notes: line.notes } : {}),
+    })),
+    memberSalaries: input.memberSalaries
+      ? Object.fromEntries(
+          Object.entries(input.memberSalaries).map(([id, amt]) => [
+            id,
+            Math.max(0, Number(amt) || 0),
+          ])
+        )
+      : undefined,
   };
 }
 
@@ -182,6 +201,10 @@ function toNewOrderInput(input: SmartOrderInput): NewOrderInput {
     latePenaltyAmount: input.latePenaltyAmount ?? 0,
     latePenaltyReason: input.latePenaltyReason ?? "",
     notes: input.notes ?? "",
+    packageName: input.packageName ?? "",
+    deliverables: input.deliverables ?? [],
+    reelCount: input.reelCount ?? 0,
+    plannedExpenses: input.plannedExpenses ?? [],
   };
 }
 
@@ -294,7 +317,11 @@ async function resolveProject(
 
 async function syncSquadAssignments(
   order: Order,
-  options?: { role?: string; employeePrice?: number }
+  options?: {
+    role?: string;
+    employeePrice?: number;
+    memberSalaries?: Record<string, number>;
+  }
 ): Promise<OrderAssignment[]> {
   // Cancelled orders never gain new assignments
   if (order.status === "Cancelled") {
@@ -309,11 +336,14 @@ async function syncSquadAssignments(
   const existingPeople = new Set(existing.map((a) => a.personId));
   const created: OrderAssignment[] = [];
   const role = options?.role ?? "Crew";
-  const employeePrice = options?.employeePrice ?? 0;
+  const defaultPrice = options?.employeePrice ?? 0;
+  const salaries = options?.memberSalaries ?? {};
 
   for (const personId of order.squadMemberIds) {
     if (existingPeople.has(personId)) continue;
     if (!getPersonById(personId)) continue;
+    const employeePrice =
+      salaries[personId] != null ? salaries[personId]! : defaultPrice;
     const assignment = await assignCrewToOrder({
       orderId: order.id,
       personId,
@@ -395,6 +425,7 @@ export async function createSmartOrder(
   const assignments = await syncSquadAssignments(order, {
     role: input.assignmentRole,
     employeePrice: input.assignmentPrice,
+    memberSalaries: input.memberSalaries,
   });
 
   await publishBusinessEvent({
@@ -471,6 +502,10 @@ export async function updateSmartOrder(
     latePenaltyAmount: merged.latePenaltyAmount ?? 0,
     latePenaltyReason: merged.latePenaltyReason ?? "",
     notes: merged.notes ?? "",
+    packageName: merged.packageName ?? "",
+    deliverables: merged.deliverables ?? [],
+    reelCount: merged.reelCount ?? 0,
+    plannedExpenses: merged.plannedExpenses ?? [],
     ...(merged.clientId ? { clientId: merged.clientId } : {}),
     ...(merged.projectId ? { projectId: merged.projectId } : {}),
   });
@@ -486,6 +521,7 @@ export async function updateSmartOrder(
   const assignments = await syncSquadAssignments(order, {
     role: patch.assignmentRole,
     employeePrice: patch.assignmentPrice,
+    memberSalaries: patch.memberSalaries,
   });
 
   const shootChanged =

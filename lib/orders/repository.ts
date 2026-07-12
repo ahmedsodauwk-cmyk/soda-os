@@ -98,6 +98,16 @@ function mergeV3Fields(saved: Order, intended: Order): Order {
         ? intended.squadMemberIds
         : saved.squadMemberIds,
     status: intended.status,
+    packageName: intended.packageName || saved.packageName,
+    deliverables:
+      intended.deliverables.length > 0
+        ? intended.deliverables
+        : saved.deliverables,
+    reelCount: intended.reelCount || saved.reelCount,
+    plannedExpenses:
+      intended.plannedExpenses.length > 0
+        ? intended.plannedExpenses
+        : saved.plannedExpenses,
   };
 }
 
@@ -197,6 +207,10 @@ export async function createOrder(input: NewOrderInput): Promise<Order> {
     latePenaltyAmount: input.latePenaltyAmount ?? 0,
     latePenaltyReason: input.latePenaltyReason ?? "",
     notes: input.notes ?? "",
+    packageName: input.packageName ?? "",
+    deliverables: input.deliverables ?? [],
+    reelCount: input.reelCount ?? 0,
+    plannedExpenses: input.plannedExpenses ?? [],
   };
 
   return persistOrderInsert(order);

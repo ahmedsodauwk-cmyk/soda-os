@@ -46,13 +46,19 @@ export interface TeamPerformanceRow {
 }
 
 export interface FinancialOverview {
-  /** Booked revenue: sum of non-cancelled order prices */
+  /**
+   * Revenue = collected money ONLY (paid payments − refunds).
+   * Agreed / booked price is NOT revenue.
+   */
   revenue: number;
-  /** Cash collected: paid payments excluding refunds */
+  /** Cash collected — same as revenue; kept for UI clarity */
   collected: number;
+  /** Sum of agreed − collected across billable orders */
   outstanding: number;
   deposits: number;
   remainingBalance: number;
+  /** Booked (agreed) total — not shown as revenue */
+  booked?: number;
 }
 
 export interface ScheduleItem {
@@ -84,6 +90,7 @@ export interface AttentionItem {
   category:
     | "overdue_delivery"
     | "unpaid_client"
+    | "waiting_payment"
     | "unassigned_team"
     | "deadline_soon";
   severity: AttentionSeverity;

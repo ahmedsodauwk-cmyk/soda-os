@@ -7,7 +7,7 @@ import { getPersonById } from "@/lib/people/repository";
 import { getProjectSeedById } from "@/lib/projects/repository";
 
 export type OrderValidationErrors = Partial<
-  Record<keyof NewOrderInput | "form" | "squadMemberIds", string>
+  Record<keyof NewOrderInput | "form" | "squadMemberIds" | "reelCount", string>
 >;
 
 export function validateOrderFinancials(input: {
@@ -113,6 +113,12 @@ export function validateSmartOrderInput(
     ...validateOrderFinancials(input),
     ...validateSquadMembers(input.squadMemberIds),
   };
+
+  if (input.deliverables?.includes("Reels")) {
+    if (!Number.isFinite(input.reelCount) || (input.reelCount ?? 0) <= 0) {
+      errors.reelCount = "Reel count is required when Reels is selected";
+    }
+  }
 
   if (input.clientId && !getClientById(input.clientId)) {
     errors.clientId = `Client not found: ${input.clientId}`;

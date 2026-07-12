@@ -116,7 +116,10 @@ export interface OrderOperatingView {
     currency: Currency;
     agreed: number;
     collected: number;
+    /** Revenue = collected only */
+    revenue: number;
     outstanding: number;
+    profit: number | null;
     status: string;
   };
 }
@@ -306,7 +309,7 @@ export function getOrderOperatingView(
           .filter((p) => p.status === "paid" && p.kind !== "refund")
           .reduce((acc, p) => acc + p.amount, 0)
     );
-  const status = snap?.status ?? (outstanding <= 0 && agreed > 0 ? "paid" : "unpaid");
+  const status = snap?.status ?? (outstanding <= 0 && agreed > 0 ? "Collected" : "Agreed");
 
   void currency;
 
@@ -322,7 +325,9 @@ export function getOrderOperatingView(
       currency,
       agreed,
       collected,
+      revenue: collected,
       outstanding,
+      profit: snap?.profit ?? null,
       status,
     },
   };

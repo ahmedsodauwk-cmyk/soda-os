@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 
 import { AppShell } from "@/components/layout/app-shell";
+import { RoleGate } from "@/components/identity/role-gate";
 import { OrderCommandCenter } from "@/components/orders/order-command-center";
 import { refreshAssignments } from "@/lib/assignments/repository";
 import {
@@ -16,7 +17,18 @@ import {
   getEquipmentAssignmentsByOrder,
   refreshEquipment,
 } from "@/lib/equipment/repository";
+import {
+  listExpensesByOrder,
+  refreshExpenses,
+} from "@/lib/finance/expenses";
 import { getFilesByOrder, refreshFiles } from "@/lib/files/repository";
+import {
+  can,
+  canEditOrderFinance,
+  canEditOps,
+  canUpdateOrderStatus,
+} from "@/lib/identity/permissions";
+import { resolveSessionForApp } from "@/lib/identity/session";
 import { getOrderOperatingView } from "@/lib/integration";
 import { refreshInvoices } from "@/lib/invoices/repository";
 import { fetchOrderById, refreshOrders } from "@/lib/orders/repository";
@@ -32,6 +44,7 @@ export const dynamic = "force-dynamic";
 
 export default async function OrderCommandCenterPage({ params }: OrderPageProps) {
   const { id } = await params;
+  const session = await resolveSessionForApp();
 
   await Promise.all([
     refreshOrders(),
@@ -43,6 +56,7 @@ export default async function OrderCommandCenterPage({ params }: OrderPageProps)
     refreshEquipment(),
     refreshInvoices(),
     refreshCalendar(),
+    refreshExpenses(),
     refreshBusinessEventsFromDb(80).catch(() => []),
   ]);
 
@@ -62,17 +76,39 @@ export default async function OrderCommandCenterPage({ params }: OrderPageProps)
   const activity = await getBusinessEventsByEntityFromDb("order", id, 40).catch(
     () => []
   );
+  const orderExpenses = listExpensesByOrder(id);
+
+  const role = session?.profile.role ?? "owner";
+  const capabilities = {
+    canEdit: canEditOps(role),
+    canEditFinance: canEditOrderFinance(role),
+    canUpdateStatus: canUpdateOrderStatus(role),
+    crewStatusOnly:
+      can(role, "orders.status") && !can(role, "orders.edit"),
+  };
+
+  const content = (
+    <OrderCommandCenter
+      view={view}
+      peopleById={peopleById}
+      files={files}
+      equipment={equipment}
+      calendar={calendar}
+      activity={activity}
+      orderExpenses={orderExpenses}
+      capabilities={capabilities}
+    />
+  );
 
   return (
-    <AppShell titleKey="pages.order" layer="orders">
-      <OrderCommandCenter
-        view={view}
-        peopleById={peopleById}
-        files={files}
-        equipment={equipment}
-        calendar={calendar}
-        activity={activity}
-      />
+    <AppShell titleKey="pages.order" layer="orders" session={session}>
+      {session ? (
+        <RoleGate session={session} anyOf={["orders.view"]}>
+          {content}
+        </RoleGate>
+      ) : (
+        content
+      )}
     </AppShell>
   );
 }

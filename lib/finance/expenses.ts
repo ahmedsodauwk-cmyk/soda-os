@@ -28,6 +28,18 @@ export const EXPENSE_CATEGORIES = [
 
 export type ExpenseCategory = (typeof EXPENSE_CATEGORIES)[number];
 
+/** Post-shoot expense report line kinds (stored as expense.category). */
+export const ORDER_EXPENSE_REPORT_KINDS = [
+  "transportation",
+  "rental",
+  "freelancer",
+  "parking",
+  "food",
+  "misc",
+] as const;
+
+export type OrderExpenseReportKind = (typeof ORDER_EXPENSE_REPORT_KINDS)[number];
+
 export interface Expense {
   id: string;
   category: string;
@@ -39,6 +51,8 @@ export interface Expense {
   receiptUrl?: string;
   expenseDate: string;
   notes?: string;
+  /** Linked order for post-shoot / planned expense reports */
+  orderId?: string;
   financialEventId?: string;
   cashMovementId?: string;
   status: "posted" | "voided";
@@ -58,6 +72,7 @@ type ExpenseRow = {
   receipt_url: string | null;
   expense_date: string;
   notes: string | null;
+  order_id?: string | null;
   financial_event_id: string | null;
   cash_movement_id: string | null;
   status: string;
@@ -80,6 +95,7 @@ function rowToExpense(row: ExpenseRow): Expense {
     ...(row.receipt_url ? { receiptUrl: row.receipt_url } : {}),
     expenseDate: row.expense_date,
     ...(row.notes ? { notes: row.notes } : {}),
+    ...(row.order_id ? { orderId: row.order_id } : {}),
     ...(row.financial_event_id
       ? { financialEventId: row.financial_event_id }
       : {}),
@@ -116,6 +132,12 @@ export function listExpenses(): Expense[] {
   return [...expensesCache];
 }
 
+export function listExpensesByOrder(orderId: string): Expense[] {
+  return expensesCache.filter(
+    (e) => e.orderId === orderId && e.status === "posted"
+  );
+}
+
 export function getExpenseById(id: string): Expense | undefined {
   return expensesCache.find((e) => e.id === id);
 }
@@ -129,6 +151,7 @@ export interface CreateExpenseInput {
   expenseDate?: string;
   notes?: string;
   createdBy?: string;
+  orderId?: string;
 }
 
 export async function createExpense(
@@ -161,7 +184,9 @@ export async function createExpense(
     occurredAt: `${expenseDate}T12:00:00.000Z`,
     createdBy: input.createdBy,
     notes: input.notes ?? `Expense: ${input.category}`,
-    parent: { parentType: "company", parentId: "soda" },
+    parent: input.orderId
+      ? { parentType: "order", parentId: input.orderId }
+      : { parentType: "company", parentId: "soda" },
     metadata: {
       category: categoryMeta,
       expenseCategory: input.category,
@@ -169,6 +194,7 @@ export async function createExpense(
       accountCode,
       receiptUrl: input.receiptUrl,
       kind: "expense",
+      orderId: input.orderId,
     },
   });
 
@@ -184,6 +210,7 @@ export async function createExpense(
       expenseCategory: input.category,
       vendor: input.vendor,
       kind: "expense",
+      orderId: input.orderId,
     },
   });
 
@@ -199,6 +226,7 @@ export async function createExpense(
     receiptUrl: input.receiptUrl,
     expenseDate,
     notes: input.notes,
+    orderId: input.orderId,
     financialEventId: event.id,
     cashMovementId: movement.id,
     status: "posted",
@@ -221,6 +249,7 @@ export async function createExpense(
       receipt_url: expense.receiptUrl ?? null,
       expense_date: expense.expenseDate,
       notes: expense.notes ?? null,
+      order_id: expense.orderId ?? null,
       financial_event_id: expense.financialEventId ?? null,
       cash_movement_id: expense.cashMovementId ?? null,
       status: expense.status,

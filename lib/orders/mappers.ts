@@ -1,10 +1,13 @@
 import type {
   DressCode,
   Order,
+  OrderDeliverable,
   OrderPriority,
   OrderStatus,
+  PlannedExpenseLine,
   ProjectType,
 } from "@/lib/orders/types";
+import { ORDER_DELIVERABLES } from "@/lib/orders/types";
 import { toPersistedOrderStatus } from "@/lib/orders/status";
 
 export type OrderRow = {
@@ -32,6 +35,10 @@ export type OrderRow = {
   late_penalty_amount?: number | string | null;
   late_penalty_reason?: string | null;
   notes: string;
+  package_name?: string | null;
+  deliverables?: unknown;
+  reel_count?: number | string | null;
+  planned_expenses?: unknown;
   created_at?: string;
   updated_at?: string;
 };
@@ -41,6 +48,33 @@ function asStringIds(value: unknown): string[] {
   return value
     .map((v) => String(v ?? "").trim())
     .filter((id) => id.length > 0);
+}
+
+function asDeliverables(value: unknown): OrderDeliverable[] {
+  if (!Array.isArray(value)) return [];
+  const allowed = new Set<string>(ORDER_DELIVERABLES);
+  return value
+    .map((v) => String(v ?? "").trim())
+    .filter((v): v is OrderDeliverable => allowed.has(v));
+}
+
+function asPlannedExpenses(value: unknown): PlannedExpenseLine[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((raw) => {
+      if (!raw || typeof raw !== "object") return null;
+      const row = raw as Record<string, unknown>;
+      const kind = String(row.kind ?? "other");
+      const amount = Number(row.amount) || 0;
+      if (amount < 0) return null;
+      return {
+        kind: kind as PlannedExpenseLine["kind"],
+        amount,
+        ...(row.label ? { label: String(row.label) } : {}),
+        ...(row.notes ? { notes: String(row.notes) } : {}),
+      } satisfies PlannedExpenseLine;
+    })
+    .filter((x): x is PlannedExpenseLine => x != null);
 }
 
 export function rowToOrder(row: OrderRow): Order {
@@ -71,10 +105,14 @@ export function rowToOrder(row: OrderRow): Order {
     latePenaltyAmount: Number(row.late_penalty_amount) || 0,
     latePenaltyReason: row.late_penalty_reason ?? "",
     notes: row.notes ?? "",
+    packageName: row.package_name ?? "",
+    deliverables: asDeliverables(row.deliverables),
+    reelCount: Number(row.reel_count) || 0,
+    plannedExpenses: asPlannedExpenses(row.planned_expenses),
   };
 }
 
-/** Full V3+ row (requires smart order + smart ops migrations). */
+/** Full V3+ row (requires smart order + smart ops + order business flow migrations). */
 export function orderToRow(order: Order): Record<string, unknown> {
   return {
     id: order.id,
@@ -101,6 +139,10 @@ export function orderToRow(order: Order): Record<string, unknown> {
     late_penalty_amount: order.latePenaltyAmount ?? 0,
     late_penalty_reason: order.latePenaltyReason ?? "",
     notes: order.notes ?? "",
+    package_name: order.packageName || null,
+    deliverables: order.deliverables ?? [],
+    reel_count: order.reelCount ?? 0,
+    planned_expenses: order.plannedExpenses ?? [],
   };
 }
 
@@ -137,6 +179,11 @@ export function orderToLegacyRow(order: Order): Record<string, unknown> {
         ? `[squad] ${order.squadMemberIds.join(",")}`
         : "",
       order.whatsapp ? `[whatsapp] ${order.whatsapp}` : "",
+      order.packageName ? `[package] ${order.packageName}` : "",
+      order.deliverables?.length
+        ? `[deliverables] ${order.deliverables.join(",")}`
+        : "",
+      order.reelCount > 0 ? `[reels] ${order.reelCount}` : "",
     ]
       .filter(Boolean)
       .join("\n"),
@@ -147,7 +194,7 @@ export function isMissingColumnError(message: string): boolean {
   return (
     /column/i.test(message) &&
     (/does not exist|schema cache|Could not find/i.test(message) ||
-      /whatsapp|brief|dress_code|late_penalty|squad_member|priority/i.test(
+      /whatsapp|brief|dress_code|late_penalty|squad_member|priority|package_name|deliverables|reel_count|planned_expenses/i.test(
         message
       ))
   );

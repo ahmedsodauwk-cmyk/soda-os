@@ -44,16 +44,20 @@ interface EditOrderDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSave: (id: string, patch: OrderPatch) => void | Promise<void>;
+  /** Owner only — hide/disable price & deposit when false */
+  canEditFinance?: boolean;
 }
 
 function EditOrderForm({
   order,
   onOpenChange,
   onSave,
+  canEditFinance = true,
 }: {
   order: Order;
   onOpenChange: (open: boolean) => void;
   onSave: EditOrderDialogProps["onSave"];
+  canEditFinance?: boolean;
 }) {
   const [form, setForm] = useState<OrderPatch>({
     clientName: order.clientName,
@@ -75,6 +79,10 @@ function EditOrderForm({
     latePenaltyAmount: order.latePenaltyAmount,
     latePenaltyReason: order.latePenaltyReason,
     notes: order.notes,
+    packageName: order.packageName,
+    deliverables: order.deliverables,
+    reelCount: order.reelCount,
+    plannedExpenses: order.plannedExpenses,
   });
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState<Partial<Record<string, string>>>({});
@@ -121,6 +129,10 @@ function EditOrderForm({
         latePenaltyAmount: form.latePenaltyAmount ?? 0,
         latePenaltyReason: form.latePenaltyReason ?? "",
         notes: form.notes ?? "",
+        packageName: form.packageName ?? order.packageName ?? "",
+        deliverables: form.deliverables ?? order.deliverables ?? [],
+        reelCount: form.reelCount ?? order.reelCount ?? 0,
+        plannedExpenses: form.plannedExpenses ?? order.plannedExpenses ?? [],
         clientId: order.clientId,
         projectId: order.projectId,
       },
@@ -145,6 +157,9 @@ function EditOrderForm({
         workspaceId: workspaceIdFromProjectType(
           form.projectType as ProjectType
         ),
+        ...(!canEditFinance
+          ? { price: order.price, deposit: order.deposit }
+          : {}),
       });
       onOpenChange(false);
     } catch (err) {
@@ -250,13 +265,19 @@ function EditOrderForm({
       </div>
       <div className="grid gap-4 sm:grid-cols-3">
         <div className="space-y-1.5">
-          <Label>Price</Label>
+          <Label>Agreed Price</Label>
           <Input
             type="number"
             min={0}
             value={form.price ?? ""}
+            disabled={!canEditFinance}
             onChange={(e) => updateField("price", Number(e.target.value) || 0)}
           />
+          {!canEditFinance ? (
+            <p className="text-[11px] text-muted-foreground">
+              Pricing locked — owner only
+            </p>
+          ) : null}
         </div>
         <div className="space-y-1.5">
           <Label>Deposit</Label>
@@ -264,6 +285,7 @@ function EditOrderForm({
             type="number"
             min={0}
             value={form.deposit ?? ""}
+            disabled={!canEditFinance}
             onChange={(e) =>
               updateField("deposit", Number(e.target.value) || 0)
             }
@@ -406,6 +428,7 @@ export function EditOrderDialog({
   open,
   onOpenChange,
   onSave,
+  canEditFinance = true,
 }: EditOrderDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -422,6 +445,7 @@ export function EditOrderDialog({
             order={order}
             onOpenChange={onOpenChange}
             onSave={onSave}
+            canEditFinance={canEditFinance}
           />
         ) : null}
       </DialogContent>

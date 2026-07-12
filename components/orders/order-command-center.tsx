@@ -1,22 +1,27 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   AlertTriangle,
   CalendarDays,
   Camera,
   FileText,
   MapPin,
+  MessageCircle,
   Users,
   Wallet,
 } from "lucide-react";
 
+import { OrderExpenseReportDialog } from "@/components/orders/order-expense-report-dialog";
 import { OrderStatusBadge } from "@/components/orders/order-status-badge";
 import { OrderEditButton } from "@/components/orders/order-edit-button";
+import { OrderStatusControls } from "@/components/orders/order-status-controls";
 import { AssignCrewDialog } from "@/components/projects/assign-crew-dialog";
 import { BackLink } from "@/components/navigation/back-link";
 import { RelatedRecords } from "@/components/navigation/related-records";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -40,10 +45,18 @@ import type { CalendarEvent } from "@/lib/calendar/types";
 import type { BusinessEvent } from "@/lib/core/types";
 import type { EquipmentAssignment } from "@/lib/equipment/types";
 import type { FileAsset } from "@/lib/files/types";
+import type { Expense } from "@/lib/finance/expenses";
 import type { OrderOperatingView } from "@/lib/integration";
 import { formatDate, formatPrice } from "@/lib/orders/utils";
 import type { Person } from "@/lib/people/types";
 import { cn } from "@/lib/utils";
+
+export interface OrderCapabilities {
+  canEdit: boolean;
+  canEditFinance: boolean;
+  canUpdateStatus: boolean;
+  crewStatusOnly: boolean;
+}
 
 interface OrderCommandCenterProps {
   view: OrderOperatingView;
@@ -52,12 +65,39 @@ interface OrderCommandCenterProps {
   equipment: Array<EquipmentAssignment & { name?: string }>;
   calendar: CalendarEvent[];
   activity: BusinessEvent[];
+  orderExpenses?: Expense[];
+  capabilities?: OrderCapabilities;
 }
 
 function personLabel(peopleById: Record<string, Person>, id: string): string {
   const p = peopleById[id];
   if (!p) return id;
   return p.nickname || p.nameEn || p.nameAr;
+}
+
+function whatsappHref(raw: string): string | null {
+  const digits = raw.replace(/\D/g, "");
+  if (!digits) return null;
+  return `https://wa.me/${digits}`;
+}
+
+function squadDisplay(
+  order: NonNullable<OrderOperatingView["order"]>,
+  assignments: OrderAssignment[],
+  peopleById: Record<string, Person>
+): string {
+  if (order.team?.trim()) return order.team.trim();
+  if (assignments.length > 0) {
+    const names = assignments
+      .slice(0, 3)
+      .map((a) => personLabel(peopleById, a.personId));
+    const extra = assignments.length > 3 ? ` +${assignments.length - 3}` : "";
+    return `${names.join(", ")}${extra}`;
+  }
+  if (order.squadMemberIds?.length) {
+    return `${order.squadMemberIds.length} crew assigned`;
+  }
+  return "No team";
 }
 
 export function OrderCommandCenter({
@@ -67,7 +107,15 @@ export function OrderCommandCenter({
   equipment,
   calendar,
   activity,
+  orderExpenses = [],
+  capabilities = {
+    canEdit: true,
+    canEditFinance: true,
+    canUpdateStatus: true,
+    crewStatusOnly: false,
+  },
 }: OrderCommandCenterProps) {
+  const router = useRouter();
   const order = view.order;
   if (!order) {
     return (
@@ -88,6 +136,17 @@ export function OrderCommandCenter({
       price: order.price,
     },
   ];
+
+  const hasCrew =
+    view.assignments.length > 0 || (order.squadMemberIds?.length ?? 0) > 0;
+  const squadLabel = squadDisplay(order, view.assignments, peopleById);
+  const wa = whatsappHref(order.whatsapp || order.phone);
+  const showExpenseReport =
+    capabilities.canEdit &&
+    (order.status === "Editing" ||
+      order.status === "Completed" ||
+      order.status === "Shooting" ||
+      order.status === "Delivered");
 
   return (
     <div className="space-y-6">
@@ -127,36 +186,71 @@ export function OrderCommandCenter({
             <Badge variant="outline" className="capitalize">
               {order.priority}
             </Badge>
+            {order.packageName ? (
+              <Badge variant="secondary">{order.packageName}</Badge>
+            ) : null}
             {order.latePenaltyEnabled ? (
               <Badge variant="destructive" className="gap-1">
                 <AlertTriangle className="size-3" />
-                Late penalty {formatPrice(order.latePenaltyAmount)}
+                Late policy
               </Badge>
             ) : null}
           </div>
           <p className="text-sm text-muted-foreground">
-            {order.clientName} · {order.projectType} · {order.team || "No team"}
+            {order.clientName} · {order.projectType} · {squadLabel}
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <OrderEditButton order={order} />
-          <AssignCrewDialog orders={stubs} />
+          {capabilities.canUpdateStatus ? (
+            <OrderStatusControls
+              order={order}
+              crewOnly={capabilities.crewStatusOnly}
+            />
+          ) : null}
+          {capabilities.canEdit ? (
+            <>
+              <OrderEditButton order={order} />
+              <AssignCrewDialog orders={stubs} />
+            </>
+          ) : null}
+          {showExpenseReport ? (
+            <OrderExpenseReportDialog
+              orderId={order.id}
+              orderLabel={order.clientName}
+              onSaved={() => router.refresh()}
+            />
+          ) : null}
+          {wa ? (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="gap-1.5"
+              nativeButton={false}
+              render={<a href={wa} target="_blank" rel="noopener noreferrer" />}
+            >
+              <MessageCircle className="size-3.5" />
+              WhatsApp
+            </Button>
+          ) : null}
         </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
         <Metric
           label="Agreed"
           value={formatPrice(view.finance.agreed)}
-          hint={view.finance.status}
+          hint="Contract — not revenue"
         />
         <Metric
-          label="Collected"
+          label="Revenue"
           value={formatPrice(view.finance.collected)}
+          hint="Collected only"
         />
         <Metric
           label="Outstanding"
           value={formatPrice(view.finance.outstanding)}
+          hint={view.finance.status}
         />
         <Metric
           label="Crew cost"
@@ -164,90 +258,174 @@ export function OrderCommandCenter({
             view.assignments.reduce((a, x) => a + assignmentFinalAmount(x), 0)
           )}
         />
+        <Metric
+          label="Profit"
+          value={
+            view.finance.profit == null
+              ? "—"
+              : formatPrice(view.finance.profit)
+          }
+          hint={
+            view.finance.profit == null
+              ? "Needs collections + expenses"
+              : undefined
+          }
+        />
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-3">
-        <Card className="lg:col-span-2">
-          <CardHeader>
-            <CardTitle className="text-base">Brief & logistics</CardTitle>
-            <CardDescription>
-              Client, project, dates, dress, and shoot notes
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="grid gap-4 sm:grid-cols-2">
-            <Field label="Client">
-              {view.client ? (
-                <Link
-                  href={`/clients/${view.client.id}`}
-                  className="text-soda-pink hover:underline"
-                >
-                  {view.client.name}
-                </Link>
-              ) : (
-                order.clientName
-              )}
-            </Field>
-            <Field label="Project">
-              {view.project ? (
-                <Link
-                  href={`/projects/${view.project.id}`}
-                  className="text-soda-pink hover:underline"
-                >
-                  {view.project.name}
-                </Link>
-              ) : (
-                order.projectId
-              )}
-            </Field>
-            <Field label="Shoot">{formatDate(order.shootDate) || "—"}</Field>
-            <Field label="Delivery">
-              {formatDate(order.deliveryDate) || "—"}
-            </Field>
-            <Field label="Location">
-              <span className="inline-flex items-center gap-1">
-                <MapPin className="size-3.5 shrink-0 text-muted-foreground" />
-                {order.location || "—"}
-              </span>
-            </Field>
-            <Field label="Dress code">{order.dressCode || "—"}</Field>
-            <div className="sm:col-span-2">
-              <Field label="Brief">{order.brief || "No brief yet"}</Field>
-            </div>
-            {order.notes ? (
-              <div className="sm:col-span-2">
-                <Field label="Notes">{order.notes}</Field>
-              </div>
-            ) : null}
-          </CardContent>
-        </Card>
-
+      <div className="grid gap-4 lg:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-base">
-              <CalendarDays className="size-4 text-soda-pink" />
-              Timeline
-            </CardTitle>
+            <CardTitle className="text-base">Brief</CardTitle>
           </CardHeader>
           <CardContent>
-            {calendar.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No dated events</p>
+            <p className="text-sm whitespace-pre-wrap">
+              {order.brief || "No brief yet"}
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Notes</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm whitespace-pre-wrap">
+              {order.notes || "—"}
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Dress Code</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm">{order.dressCode || "—"}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Late Policy</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-1 text-sm">
+            {order.latePenaltyEnabled ? (
+              <>
+                <p>{formatPrice(order.latePenaltyAmount)}</p>
+                <p className="text-muted-foreground">
+                  {order.latePenaltyReason || "No reason noted"}
+                </p>
+              </>
             ) : (
-              <ul className="space-y-2">
-                {calendar.map((ev) => (
-                  <li
-                    key={ev.id}
-                    className="rounded-lg border border-border/60 px-3 py-2 text-sm"
-                  >
-                    <p className="font-medium">{ev.title}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {formatDate(ev.startsAt.slice(0, 10))} · {ev.kind}
-                    </p>
-                  </li>
-                ))}
-              </ul>
+              <p className="text-muted-foreground">Not enabled</p>
             )}
           </CardContent>
         </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Users className="size-4 text-soda-pink" />
+              Squad
+            </CardTitle>
+            <CardDescription>Squad name — never an id</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-2 text-sm">
+            <p className="font-medium">{squadLabel}</p>
+            {hasCrew ? (
+              <ul className="space-y-1 text-muted-foreground">
+                {view.assignments.map((a) => (
+                  <li key={a.id}>
+                    <Link
+                      href={`/crew/${a.personId}`}
+                      className="hover:text-soda-pink hover:underline"
+                    >
+                      {personLabel(peopleById, a.personId)}
+                    </Link>
+                    {" · "}
+                    {a.role}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-muted-foreground">No crew assigned yet</p>
+            )}
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <MessageCircle className="size-4 text-soda-pink" />
+              WhatsApp
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {wa ? (
+              <Button
+                type="button"
+                className="gap-1.5"
+                nativeButton={false}
+                render={
+                  <a href={wa} target="_blank" rel="noopener noreferrer" />
+                }
+              >
+                <MessageCircle className="size-3.5" />
+                Open chat · {order.whatsapp || order.phone}
+              </Button>
+            ) : (
+              <p className="text-sm text-muted-foreground">No WhatsApp number</p>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <Field label="Client">
+          {view.client ? (
+            <Link
+              href={`/clients/${view.client.id}`}
+              className="text-soda-pink hover:underline"
+            >
+              {view.client.name}
+            </Link>
+          ) : (
+            order.clientName
+          )}
+        </Field>
+        <Field label="Project">
+          {view.project ? (
+            <Link
+              href={`/projects/${view.project.id}`}
+              className="text-soda-pink hover:underline"
+            >
+              {view.project.name}
+            </Link>
+          ) : (
+            order.projectId
+          )}
+        </Field>
+        <Field label="Shoot">
+          <span className="inline-flex items-center gap-1">
+            {formatDate(order.shootDate) || "—"}
+          </span>
+        </Field>
+        <Field label="Location">
+          <span className="inline-flex items-center gap-1">
+            <MapPin className="size-3.5 shrink-0 text-muted-foreground" />
+            {order.location || "—"}
+          </span>
+        </Field>
+        <Field label="Delivery">{formatDate(order.deliveryDate) || "—"}</Field>
+        <Field label="Package">{order.packageName || "—"}</Field>
+        <Field label="Deliverables">
+          {(order.deliverables ?? []).join(", ") || "—"}
+          {order.reelCount > 0 ? ` · ${order.reelCount} reels` : ""}
+        </Field>
+        <Field label="Planned expenses">
+          {formatPrice(
+            (order.plannedExpenses ?? []).reduce(
+              (a, l) => a + (Number(l.amount) || 0),
+              0
+            )
+          )}
+        </Field>
       </div>
 
       <Card>
@@ -309,7 +487,67 @@ export function OrderCommandCenter({
         </CardContent>
       </Card>
 
+      {orderExpenses.length > 0 || showExpenseReport ? (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Order expenses</CardTitle>
+            <CardDescription>
+              Actual costs linked to this order
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {orderExpenses.length === 0 ? (
+              <p className="text-sm text-muted-foreground">
+                No expenses logged yet — use Expense Report after the shoot.
+              </p>
+            ) : (
+              <ul className="space-y-2 text-sm">
+                {orderExpenses.map((e) => (
+                  <li
+                    key={e.id}
+                    className="flex items-center justify-between gap-2 rounded-lg border border-border/60 px-3 py-2"
+                  >
+                    <span className="capitalize">{e.category}</span>
+                    <span className="font-mono text-xs">
+                      {formatPrice(e.amount)}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </CardContent>
+        </Card>
+      ) : null}
+
       <div className="grid gap-4 lg:grid-cols-3">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <CalendarDays className="size-4 text-soda-pink" />
+              Timeline
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {calendar.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No dated events</p>
+            ) : (
+              <ul className="space-y-2">
+                {calendar.map((ev) => (
+                  <li
+                    key={ev.id}
+                    className="rounded-lg border border-border/60 px-3 py-2 text-sm"
+                  >
+                    <p className="font-medium">{ev.title}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {formatDate(ev.startsAt.slice(0, 10))} · {ev.kind}
+                    </p>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </CardContent>
+        </Card>
+
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
@@ -368,37 +606,37 @@ export function OrderCommandCenter({
             )}
           </CardContent>
         </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-base">
-              <Wallet className="size-4 text-soda-pink" />
-              Payments
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {view.payments.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No payments yet</p>
-            ) : (
-              <ul className="space-y-2 text-sm">
-                {view.payments.map((p) => (
-                  <li
-                    key={p.id}
-                    className="flex items-center justify-between gap-2 rounded-lg border border-border/60 px-3 py-2"
-                  >
-                    <span>
-                      {p.kind} · {p.status}
-                    </span>
-                    <span className="font-mono text-xs">
-                      {formatPrice(p.amount)}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </CardContent>
-        </Card>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Wallet className="size-4 text-soda-pink" />
+            Payments
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {view.payments.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No payments yet</p>
+          ) : (
+            <ul className="space-y-2 text-sm">
+              {view.payments.map((p) => (
+                <li
+                  key={p.id}
+                  className="flex items-center justify-between gap-2 rounded-lg border border-border/60 px-3 py-2"
+                >
+                  <span>
+                    {p.kind} · {p.status}
+                  </span>
+                  <span className="font-mono text-xs">
+                    {formatPrice(p.amount)}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>

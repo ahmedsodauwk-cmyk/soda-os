@@ -393,6 +393,10 @@ export async function convertQuotationToProject(
     latePenaltyAmount: 0,
     latePenaltyReason: "",
     notes: `From ${quotation.number}. ${quotation.notes}`.trim(),
+    packageName: "",
+    deliverables: [],
+    reelCount: 0,
+    plannedExpenses: [],
   };
   {
     const db = createOrdersDb();

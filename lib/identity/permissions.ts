@@ -12,6 +12,8 @@ export const PERMISSIONS = [
   "dashboard.finance",
   "orders.view",
   "orders.edit",
+  "orders.status",
+  "orders.finance",
   "projects.view",
   "projects.edit",
   "clients.view",
@@ -51,6 +53,7 @@ const TEAM_LEADER: Permission[] = [
   "dashboard.team",
   "orders.view",
   "orders.edit",
+  "orders.status",
   "projects.view",
   "projects.edit",
   "crew.view",
@@ -64,6 +67,7 @@ const TEAM_LEADER: Permission[] = [
 const CREW: Permission[] = [
   "dashboard.crew",
   "orders.view",
+  "orders.status",
   "calendar.view",
   "notifications.view",
   "me.wallet",
@@ -88,7 +92,10 @@ const ACCOUNTANT: Permission[] = [
 
 const CLIENT: Permission[] = ["notifications.view"];
 
-const ADMIN: Permission[] = ALL.filter((p) => p !== "settings.users");
+/** Admin = Manager: ops edit, no order pricing/finance mutation. */
+const ADMIN: Permission[] = ALL.filter(
+  (p) => p !== "settings.users" && p !== "orders.finance"
+);
 
 const ROLE_PERMISSIONS: Record<SodaRole, readonly Permission[]> = {
   owner: ALL,
@@ -114,6 +121,16 @@ export function canAny(role: SodaRole, permissions: Permission[]): boolean {
 /** Operational mutation (create/edit/delete) — accountants and clients blocked. */
 export function canEditOps(role: SodaRole): boolean {
   return can(role, "orders.edit") || can(role, "projects.edit");
+}
+
+/** Edit agreed price / deposit / financial fields on an order. Owner only. */
+export function canEditOrderFinance(role: SodaRole): boolean {
+  return can(role, "orders.finance");
+}
+
+/** Update operational order status (incl. crew: started / completed / delivered). */
+export function canUpdateOrderStatus(role: SodaRole): boolean {
+  return can(role, "orders.status") || can(role, "orders.edit");
 }
 
 export function canSeeCompanyFinance(role: SodaRole): boolean {

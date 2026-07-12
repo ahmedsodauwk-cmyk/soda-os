@@ -279,8 +279,9 @@ export function computeFinancialOverview(
   payments: Payment[]
 ): FinancialOverview {
   const billable = orders.filter(isBillable);
-  const revenue = billable.reduce((acc, o) => acc + o.price, 0);
-  const collected = paidAmount(payments) - refundAmount(payments);
+  const booked = billable.reduce((acc, o) => acc + o.price, 0);
+  /** Revenue = collected money ONLY */
+  const collected = Math.max(0, paidAmount(payments) - refundAmount(payments));
   const outstanding = billable.reduce(
     (acc, o) => acc + orderOutstanding(o, payments),
     0
@@ -290,11 +291,12 @@ export function computeFinancialOverview(
     .reduce((acc, p) => acc + p.amount, 0);
 
   return {
-    revenue,
-    collected: Math.max(0, collected),
+    revenue: collected,
+    collected,
     outstanding,
     deposits,
     remainingBalance: outstanding,
+    booked,
   };
 }
 
@@ -418,7 +420,24 @@ export function computeAttentionItems(
 
   for (const client of clients.filter((c) => c.isActive)) {
     const stats = computeClientStats(client.id, projects, orders, payments);
-    if (stats.outstandingBalance > 0) {
+    if (stats.outstandingBalance <= 0) continue;
+
+    const clientOrders = orders.filter(
+      (o) =>
+        o.clientId === client.id ||
+        (o.projectId &&
+          projects.some(
+            (p) => p.id === o.projectId && p.clientId === client.id
+          ))
+    );
+    const hasOverdue = clientOrders.some((o) => {
+      if (o.status === "Cancelled") return false;
+      const due = o.deliveryDate || o.shootDate;
+      if (!due || due >= asOf) return false;
+      return orderOutstanding(o, payments) > 0;
+    });
+
+    if (hasOverdue) {
       items.push({
         id: `unpaid-${client.id}`,
         category: "unpaid_client",
@@ -428,20 +447,35 @@ export function computeAttentionItems(
         href: `/clients/${client.id}`,
         amount: stats.outstandingBalance,
       });
+    } else {
+      items.push({
+        id: `waiting-${client.id}`,
+        category: "waiting_payment",
+        severity: "info",
+        title: `Waiting Payment — ${client.name}`,
+        detail: `Outstanding before due · ${stats.totalOrders} order(s)`,
+        href: `/clients/${client.id}`,
+        amount: stats.outstandingBalance,
+      });
     }
   }
 
   for (const project of projects.filter(isActiveProject)) {
-    if (!project.team || project.team.length === 0) {
-      items.push({
-        id: `unassigned-${project.id}`,
-        category: "unassigned_team",
-        severity: "warning",
-        title: `No team — ${project.name}`,
-        detail: `${project.clientName} · ${project.status}`,
-        href: `/projects/${project.id}`,
-      });
-    }
+    const projectOrders = orders.filter((o) => o.projectId === project.id);
+    const hasCrew =
+      (project.team && project.team.length > 0) ||
+      projectOrders.some(
+        (o) => (o.squadMemberIds?.length ?? 0) > 0 || Boolean(o.team?.trim())
+      );
+    if (hasCrew) continue;
+    items.push({
+      id: `unassigned-${project.id}`,
+      category: "unassigned_team",
+      severity: "warning",
+      title: `No team — ${project.name}`,
+      detail: `${project.clientName} · ${project.status}`,
+      href: `/projects/${project.id}`,
+    });
   }
 
   for (const order of orders) {

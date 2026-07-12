@@ -38,6 +38,55 @@ export const ORDER_PRIORITIES = ["low", "normal", "high", "urgent"] as const;
 
 export type OrderPriority = (typeof ORDER_PRIORITIES)[number];
 
+/** Deliverable checklist on create (wizard step 3). */
+export const ORDER_DELIVERABLES = [
+  "Promo",
+  "Edited Photos",
+  "RAW",
+  "Album",
+  "Session",
+  "Party",
+  "Reels",
+] as const;
+
+export type OrderDeliverable = (typeof ORDER_DELIVERABLES)[number];
+
+export const ORDER_PACKAGES = [
+  "Essential",
+  "Classic",
+  "Premium",
+  "Signature",
+  "Custom",
+] as const;
+
+export type OrderPackage = (typeof ORDER_PACKAGES)[number];
+
+export const PLANNED_EXPENSE_KINDS = [
+  "transportation",
+  "rentals",
+  "freelancers",
+  "other",
+] as const;
+
+export type PlannedExpenseKind = (typeof PLANNED_EXPENSE_KINDS)[number];
+
+export interface PlannedExpenseLine {
+  kind: PlannedExpenseKind;
+  label?: string;
+  amount: number;
+  notes?: string;
+}
+
+/** Crew operational status transitions (started / completed / material delivered). */
+export const CREW_OPERATIONAL_STATUSES = [
+  "Shooting",
+  "Editing",
+  "Completed",
+  "Delivered",
+] as const;
+
+export type CrewOperationalStatus = (typeof CREW_OPERATIONAL_STATUSES)[number];
+
 export interface Order {
   id: string;
   /** Required — Order belongs to exactly one Project */
@@ -58,7 +107,7 @@ export interface Order {
   deliveryDate: string;
   price: number;
   deposit: number;
-  /** Squad label (e.g. Wedding Squad) */
+  /** Squad label (e.g. Wedding Squad) — display name, never an id */
   team: string;
   /** Selected crew member ids for auto-assignments */
   squadMemberIds: string[];
@@ -70,16 +119,35 @@ export interface Order {
   latePenaltyAmount: number;
   latePenaltyReason: string;
   notes: string;
+  /** Commercial package name */
+  packageName: string;
+  /** Selected deliverables (Promo, Reels, …) */
+  deliverables: OrderDeliverable[];
+  /** Required when deliverables includes Reels */
+  reelCount: number;
+  /** Planned expenses captured at create time */
+  plannedExpenses: PlannedExpenseLine[];
 }
 
 /** Form input — projectId/clientId may be assigned on submit via business helpers */
 export type NewOrderInput = Omit<
   Order,
-  "id" | "projectId" | "clientId" | "priority"
+  | "id"
+  | "projectId"
+  | "clientId"
+  | "priority"
+  | "packageName"
+  | "deliverables"
+  | "reelCount"
+  | "plannedExpenses"
 > & {
   projectId?: string;
   clientId?: string;
   priority?: OrderPriority;
+  packageName?: string;
+  deliverables?: OrderDeliverable[];
+  reelCount?: number;
+  plannedExpenses?: PlannedExpenseLine[];
 };
 
 /**
@@ -97,6 +165,8 @@ export type SmartOrderInput = NewOrderInput & {
   assignmentRole?: string;
   /** Default employee price for auto-created assignments */
   assignmentPrice?: number;
+  /** Per-crew salary overrides (personId → EGP) */
+  memberSalaries?: Record<string, number>;
 };
 
 export const TEAMS = [

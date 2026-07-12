@@ -190,13 +190,16 @@ export default function FinancialOverviewCard({
         </Link>
 
         <p className="text-xs text-muted-foreground">
-          Collected{" "}
-          <Link
-            href={dashboardHref("collected")}
-            className="font-mono text-foreground hover:text-soda-pink"
-          >
-            {formatPrice(financial.collected)}
-          </Link>{" "}
+          Revenue = collected cash
+          {financial.booked != null ? (
+            <>
+              {" "}
+              · booked (agreed){" "}
+              <span className="font-mono text-foreground">
+                {formatPrice(financial.booked)}
+              </span>
+            </>
+          ) : null}{" "}
           · chart shows cash by month
         </p>
       </CardContent>

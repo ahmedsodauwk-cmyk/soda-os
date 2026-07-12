@@ -32,6 +32,7 @@ interface AttentionCenterProps {
 const categoryIcon = {
   overdue_delivery: Clock,
   unpaid_client: CreditCard,
+  waiting_payment: CreditCard,
   unassigned_team: UserX,
   deadline_soon: AlertTriangle,
 } as const;

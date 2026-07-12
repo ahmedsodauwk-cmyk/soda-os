@@ -29,10 +29,21 @@ export type OrderFinancialStatus = (typeof ORDER_FINANCIAL_STATUSES)[number];
 
 export interface OrderFinancialSnapshot {
   orderId: string;
+  /** Contracted / agreed price — NOT revenue */
   agreed: number;
+  /** Cash collected (payments − refunds) — this IS revenue */
   collected: number;
+  /** Alias of collected — revenue = collected money only */
+  revenue: number;
   outstanding: number;
   refunded: number;
+  expenseTotal: number;
+  crewCost: number;
+  /**
+   * null until both collections and expenses exist.
+   * When set: collected − (order expenses + crew cost).
+   */
+  profit: number | null;
   status: OrderFinancialStatus;
 }
 
