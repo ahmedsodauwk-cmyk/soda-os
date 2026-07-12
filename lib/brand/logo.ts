@@ -8,7 +8,7 @@
  * - `soda-logo-master.png` — official lockup (pink field + purple + white)
  *
  * NEVER redraw, simplify, or re-vectorize the mark.
- * Colors from lockup: Deep Purple #2D1B4E · Brand Pink #E93D77 · White
+ * Colors from lockup (sampled): Deep Purple #29194A · Brand Pink #D23B68 · White
  *
  * ─────────────────────────────────────────────────────────────
  * PLACEMENTS (allowed)

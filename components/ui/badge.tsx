@@ -9,9 +9,10 @@ const badgeVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground [a]:hover:bg-primary/80",
+        default:
+          "soda-badge-purple bg-[linear-gradient(135deg,color-mix(in_srgb,#29194A_88%,#D23B68_12%),#29194A)] text-white [a]:hover:brightness-110",
         secondary:
-          "bg-secondary text-secondary-foreground [a]:hover:bg-secondary/80",
+          "soda-badge-pink bg-[color-mix(in_srgb,#D23B68_16%,transparent)] text-[#9A1F4A] border-[color-mix(in_srgb,#D23B68_35%,transparent)] [a]:hover:bg-[color-mix(in_srgb,#D23B68_24%,transparent)]",
         destructive:
           "bg-destructive/10 text-destructive focus-visible:ring-destructive/20 dark:bg-destructive/20 dark:focus-visible:ring-destructive/40 [a]:hover:bg-destructive/20",
         outline:

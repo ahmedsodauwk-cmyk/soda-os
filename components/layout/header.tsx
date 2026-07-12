@@ -58,7 +58,7 @@ export default function Header({
     subtitle ?? (layer ? getSideLanguage(layer) : getSideLanguage("dashboard"));
 
   return (
-    <header className="sticky top-0 z-10 flex min-h-[4.25rem] items-center justify-between gap-4 border-b border-border/80 bg-background/85 px-4 py-3.5 backdrop-blur-md sm:px-6">
+    <header className="soda-topbar sticky top-0 z-10 flex min-h-[4.25rem] items-center justify-between gap-4 border-b px-4 py-3.5 backdrop-blur-md sm:px-6">
       <div className="flex min-w-0 items-center gap-3">
         <Sheet>
           <SheetTrigger

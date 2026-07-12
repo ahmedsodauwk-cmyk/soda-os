@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 
+import { PageAtmosphere } from "@/components/brand/page-atmosphere";
 import { SodaLogo } from "@/components/brand/soda-logo";
 import { Button } from "@/components/ui/button";
 import {
@@ -25,20 +26,15 @@ const CREW = [
  */
 export default function AboutPage() {
   return (
-    <main className="min-h-screen bg-background">
-      <div className="relative overflow-hidden">
-        <div
-          className="pointer-events-none absolute inset-0"
-          aria-hidden
-          style={{
-            background:
-              "radial-gradient(ellipse 70% 50% at 20% 0%, color-mix(in oklch, var(--soda-purple) 28%, transparent), transparent 60%), radial-gradient(ellipse 50% 40% at 90% 10%, color-mix(in oklch, var(--soda-pink) 18%, transparent), transparent 55%)",
-          }}
-        />
-
+    <main
+      data-soda-section="auth"
+      className="soda-brand-wash relative min-h-screen overflow-hidden bg-transparent"
+    >
+      <PageAtmosphere section="auth" />
+      <div className="relative z-[1] overflow-hidden">
         <div className="relative mx-auto max-w-3xl px-5 py-10 sm:px-8 sm:py-14">
           <div className="mb-10 flex items-center justify-between gap-4">
-            <SodaLogo placement="sidebar" showWord />
+            <SodaLogo placement="about" showWord />
             <Button
               variant="outline"
               size="sm"

@@ -24,7 +24,7 @@ export function PersonAvatar({
     <div className={cn("flex items-center gap-2.5", className)}>
       <Avatar size={size === "lg" ? "lg" : size === "sm" ? "sm" : "default"}>
         {avatarUrl ? <AvatarImage src={avatarUrl} alt={nameEn} /> : null}
-        <AvatarFallback className="bg-[linear-gradient(135deg,var(--soda-purple),var(--soda-pink))] text-xs font-medium text-white">
+        <AvatarFallback className="bg-[linear-gradient(135deg,#29194A,#D23B68)] text-xs font-medium text-white">
           {initials}
         </AvatarFallback>
       </Avatar>

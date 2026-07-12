@@ -109,11 +109,7 @@ async function main() {
 
   // Clean temp/preview junk from other extractors
   for (const f of fs.readdirSync(OUT)) {
-    if (
-      /preview|tight|tile|sampled|soda-logo\.png|soda-mark-256|soda-favicon/.test(
-        f
-      )
-    ) {
+    if (/preview|tight|soda-mark-256|soda-favicon/.test(f)) {
       fs.unlinkSync(path.join(OUT, f));
     }
   }
@@ -124,8 +120,11 @@ async function main() {
     .png()
     .toFile(whitePath);
 
-  // Purple tile — official brand field #2D1B4E
-  const pHex = [0x2d, 0x1b, 0x4e];
+  // Also alias transparent mark as soda-logo.png
+  await sharp(whitePath).png().toFile(path.join(OUT, "soda-logo.png"));
+
+  // Purple tile — sampled Deep Purple #29194A
+  const pHex = exactPurple;
   const markWhite = await sharp(whitePath)
     .ensureAlpha()
     .raw()
@@ -145,7 +144,26 @@ async function main() {
     .png()
     .toFile(markPath);
 
+  // Compact tile for chrome
+  await sharp(markPath)
+    .resize(64, 64)
+    .png()
+    .toFile(path.join(OUT, "soda-mark-tile.png"));
+
   await sharp(SRC).png().toFile(path.join(OUT, "soda-logo-master.png"));
+
+  fs.writeFileSync(
+    path.join(OUT, "sampled-colors.json"),
+    JSON.stringify(
+      {
+        deepPurple: hex(exactPurple).toUpperCase(),
+        brandPink: hex(exactPink).toUpperCase(),
+        white: "#FFFFFF",
+      },
+      null,
+      2
+    )
+  );
 
   const iconSize = 512;
   const iconBg = await sharp({

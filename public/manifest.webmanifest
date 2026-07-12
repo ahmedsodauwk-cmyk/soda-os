@@ -4,8 +4,8 @@
   "description": "نظام تشغيل الاستوديو للشغل التجاري والأفراح",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#2D1B4E",
-  "theme_color": "#2D1B4E",
+  "background_color": "#29194A",
+  "theme_color": "#29194A",
   "icons": [
     {
       "src": "/brand/soda-icon.png",

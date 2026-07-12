@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useActionState } from "react";
 
+import { PageAtmosphere } from "@/components/brand/page-atmosphere";
 import { SodaLogo } from "@/components/brand/soda-logo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,20 +22,18 @@ export function ForgotPasswordForm() {
   );
 
   return (
-    <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-background px-4">
-      <div
-        className="pointer-events-none absolute inset-0"
-        aria-hidden
-        style={{
-          background:
-            "radial-gradient(ellipse 60% 50% at 50% 0%, color-mix(in oklch, var(--soda-purple) 32%, transparent), transparent 65%)",
-        }}
-      />
+    <main
+      data-soda-section="auth"
+      className="soda-auth-shell relative flex min-h-screen items-center justify-center overflow-hidden px-4"
+    >
+      <PageAtmosphere section="auth" />
 
-      <div className="relative w-full max-w-md space-y-6 rounded-2xl border border-primary/20 bg-card/90 p-8 shadow-[var(--soda-shadow-lift)] backdrop-blur-md">
+      <div className="soda-auth-card relative z-[1] w-full max-w-md space-y-6 rounded-2xl p-8 backdrop-blur-md">
         <div className="flex flex-col items-center gap-3 text-center">
           <SodaLogo placement="login" showWord={false} />
-          <h1 className="font-heading text-xl font-semibold">Reset password</h1>
+          <h1 className="font-heading text-xl font-semibold text-[#29194A]">
+            Reset password
+          </h1>
           <p className="text-sm text-muted-foreground">
             We will email you a link to choose a new password.
           </p>

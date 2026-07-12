@@ -2,14 +2,13 @@
  * SODA Official Design System — brand token source of truth (RC2).
  *
  * CSS variables in `app/globals.css` are the runtime theme.
- * This module mirrors them for TS consumers (charts, docs, PDF, login).
+ * Hex values sampled from the official lockup PNG.
  *
- * Color distribution target ≈ 30% purple / 30% pink / 30% white / 10% neutrals.
- * Soft low-saturation gradients — elegant luxury, never loud ERP chrome.
+ * Deep Purple #29194A · Brand Pink #D23B68 · White #FFFFFF
+ * Surface mix target ≈30% purple / ≈30% pink / ≈30% white / ≈10% neutrals
  */
 
 export const sodaColors = {
-  /** Deep Purple — brand foundation (lockup) */
   purple: {
     50: "#F5F0FA",
     100: "#E8DEEF",
@@ -17,46 +16,37 @@ export const sodaColors = {
     300: "#9A7FB3",
     400: "#6B4F8A",
     500: "#4A3568",
-    /** Official foundation from brand lockup */
-    600: "#2D1B4E",
-    700: "#241640",
-    800: "#1A1030",
-    900: "#120B22",
-    950: "#0A0714",
+    600: "#29194A",
+    700: "#1A1030",
+    800: "#120B22",
+    900: "#0A0712",
+    950: "#06040C",
   },
-  /**
-   * Brand Pink — primary action energy + warm light.
-   * Official accent from brand lockup ≈ #E93D77
-   */
   pink: {
     50: "#FDF2F7",
-    100: "#FCE7F0",
-    200: "#F9C2D9",
-    300: "#F48BB8",
-    400: "#EF5A96",
-    /** Official accent */
-    500: "#E93D77",
-    600: "#D12A63",
-    700: "#B01E52",
-    800: "#8F1843",
-    900: "#6E1234",
+    100: "#F6D5E3",
+    200: "#F0A8C4",
+    300: "#E85A84",
+    400: "#DB4570",
+    500: "#D23B68",
+    600: "#B82E58",
+    700: "#9A1F4A",
+    800: "#7A1840",
+    900: "#5C1230",
   },
-  /** Neutrals — white-first surfaces (never pure flat gray UI) */
   ink: {
     white: "#FFFFFF",
-    fog: "#F7F4FA",
+    fog: "#F4EEF8",
     mist: "#C8C2D4",
-    slate: "#8B8499",
-    charcoal: "#16121F",
-    void: "#0C0A12",
+    slate: "#5C536C",
+    charcoal: "#160F24",
+    void: "#0A0712",
   },
 } as const;
 
-/** Semantic roles mapped to CSS custom properties */
 export const sodaSemantic = {
   primary: "var(--primary)",
   primaryForeground: "var(--primary-foreground)",
-  /** Pink action fill for CTAs */
   action: "var(--soda-action)",
   actionForeground: "var(--soda-action-foreground)",
   accentPink: "var(--soda-pink)",
@@ -76,11 +66,6 @@ export const sodaSemantic = {
   ],
 } as const;
 
-/**
- * Section personality — same design system, different atmosphere.
- * Applied via `data-soda-section` on the app shell.
- * Each page gets a unique gradient / lighting composition.
- */
 export type SodaSectionPersonality =
   | "home"
   | "orders"
@@ -94,63 +79,65 @@ export type SodaSectionPersonality =
   | "settings"
   | "notifications"
   | "wedding"
+  | "calendar"
+  | "auth"
   | "default";
 
-/** Map human-layer / page keys → section personality */
 export function resolveSectionPersonality(
   layer: string
 ): SodaSectionPersonality {
   switch (layer) {
     case "dashboard":
-    case "mySpace":
       return "home";
+    case "finance":
+    case "myWallet":
+    case "quotations":
+    case "newQuotation":
+      return "finance";
     case "orders":
-    case "calendar":
-    case "schedule":
     case "attention":
       return "orders";
     case "projects":
     case "projectHub":
-    case "workspaces":
       return "projects";
     case "clients":
       return "clients";
+    case "calendar":
+    case "schedule":
+      return "calendar";
     case "commercial":
     case "commercialClients":
     case "commercialOrders":
     case "fashion":
     case "product":
     case "events":
+    case "workspaces":
       return "commercial";
-    case "finance":
-    case "myWallet":
-    case "quotations":
-    case "newQuotation":
-      return "finance";
-    case "equipment":
-      return "equipment";
-    case "crew":
-    case "crewProfile":
-      return "crew";
-    case "statistics":
-      return "statistics";
-    case "settings":
-      return "settings";
-    case "notifications":
-      return "notifications";
     case "weddings":
     case "weddingClients":
     case "weddingOrders":
       return "wedding";
+    case "statistics":
+      return "statistics";
+    case "equipment":
+      return "equipment";
+    case "crew":
+    case "crewProfile":
+    case "people":
+    case "mySpace":
+      return "crew";
+    case "settings":
+      return "settings";
+    case "notifications":
+      return "notifications";
+    case "login":
+    case "about":
+      return "auth";
     default:
       return "default";
   }
 }
 
-/**
- * Type scale — English chrome (Outfit) + Arabic (Alexandria).
- * Arabic lines use `.font-ar` with stronger size/leading for readability.
- */
 export const sodaType = {
   pageTitle: {
     en: "font-heading text-xl font-semibold tracking-tight sm:text-[1.65rem]",
@@ -168,7 +155,6 @@ export const sodaType = {
     "font-ar text-[1.75rem] leading-[1.35] font-semibold tracking-tight sm:text-[2.05rem] sm:leading-[1.3]",
 } as const;
 
-/** Spacing rhythm (rem) */
 export const sodaSpace = {
   1: "0.25rem",
   2: "0.5rem",
@@ -181,7 +167,6 @@ export const sodaSpace = {
   12: "3rem",
 } as const;
 
-/** Radius scale — mirrors CSS --radius* */
 export const sodaRadius = {
   sm: "var(--radius-sm)",
   md: "var(--radius-md)",
@@ -190,7 +175,6 @@ export const sodaRadius = {
   full: "9999px",
 } as const;
 
-/** Elevation — soft brand-colored shadows (never flat gray) */
 export const sodaElevation = {
   none: "none",
   soft: "var(--soda-shadow-soft)",
@@ -199,7 +183,6 @@ export const sodaElevation = {
   pinkGlow: "var(--soda-shadow-pink)",
 } as const;
 
-/** Motion — premium subtle */
 export const sodaMotion = {
   fast: "120ms",
   base: "200ms",
@@ -208,7 +191,6 @@ export const sodaMotion = {
   ease: "cubic-bezier(0.22, 1, 0.36, 1)",
 } as const;
 
-/** Status — readable, lightly brand-harmonized */
 export const sodaStatus = {
   success: "oklch(0.72 0.15 155)",
   warning: "oklch(0.78 0.14 75)",
@@ -216,21 +198,17 @@ export const sodaStatus = {
   info: "oklch(0.72 0.12 250)",
 } as const;
 
-/**
- * Chart palette — Deep Purple + Pink only.
- * chart-1/3/5 = purple family; chart-2/4 = pink energy.
- */
 export const sodaChartPalette = [
-  sodaColors.purple[400],
-  sodaColors.pink[500],
-  sodaColors.purple[300],
-  sodaColors.pink[400],
   sodaColors.purple[600],
+  sodaColors.pink[500],
+  sodaColors.purple[400],
+  sodaColors.pink[300],
+  sodaColors.purple[500],
 ] as const;
 
-/** Official lockup hex — use when hardcoding brand fills */
 export const SODA_BRAND_HEX = {
-  deepPurple: "#2D1B4E",
-  vibrantPink: "#E93D77",
+  deepPurple: "#29194A",
+  brandPink: "#D23B68",
+  vibrantPink: "#D23B68",
   white: "#FFFFFF",
 } as const;

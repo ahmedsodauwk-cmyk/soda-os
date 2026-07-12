@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 
 import Sidebar from "@/components/layout/sidebar";
 import Header from "@/components/layout/header";
+import { PageAtmosphere } from "@/components/brand/page-atmosphere";
 import { Breadcrumbs } from "@/components/navigation/breadcrumbs";
 import { RecentlyViewed } from "@/components/navigation/recently-viewed";
 import { loadHydratedNotifications } from "@/lib/core/notifications/load";
@@ -75,11 +76,12 @@ export async function AppShell({
   return (
     <main
       data-soda-section={section}
-      className="soda-brand-wash soda-atmosphere flex min-h-screen bg-transparent"
+      className="soda-brand-wash relative flex min-h-screen overflow-hidden bg-transparent"
     >
+      <PageAtmosphere section={section} />
       <Sidebar user={user} />
 
-      <section className="flex min-h-0 flex-1 flex-col overflow-y-auto">
+      <section className="relative z-[1] flex min-h-0 flex-1 flex-col overflow-y-auto">
         <Header
           titleKey={titleKey}
           title={title}

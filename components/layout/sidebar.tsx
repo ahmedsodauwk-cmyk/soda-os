@@ -62,7 +62,7 @@ export function SidebarContent({ user }: SidebarContentProps) {
         <nav className="space-y-5">
           {sections.map((section) => (
             <div key={section.id} className="space-y-1">
-              <p className="flex items-center gap-1.5 px-3 pb-1 text-[10px] font-semibold tracking-[0.08em] text-muted-foreground uppercase">
+              <p className="flex items-center gap-1.5 px-3 pb-1 text-[10px] font-semibold tracking-[0.08em] text-sidebar-foreground/55 uppercase">
                 <span aria-hidden>{section.emoji}</span>
                 <span>{t(section.labelKey)}</span>
               </p>
@@ -86,14 +86,14 @@ export function SidebarContent({ user }: SidebarContentProps) {
                       className={cn(
                         "h-9 w-full cursor-pointer justify-start gap-2.5 rounded-md px-3 font-normal transition-all",
                         active
-                          ? "border-l-[3px] border-soda-pink bg-sidebar-accent text-sidebar-accent-foreground"
-                          : "border-l-[3px] border-transparent text-muted-foreground hover:border-soda-pink/30 hover:bg-sidebar-accent/60 hover:text-foreground"
+                          ? "soda-nav-active soda-selected border-l-[3px] border-soda-pink bg-sidebar-accent text-sidebar-accent-foreground shadow-[0_0_20px_color-mix(in_srgb,var(--soda-pink)_35%,transparent)]"
+                          : "border-l-[3px] border-transparent text-sidebar-foreground/70 hover:border-soda-pink/50 hover:bg-sidebar-accent/70 hover:text-sidebar-foreground"
                       )}
                     >
                       <Icon
                         className={cn(
                           "size-4",
-                          active ? "text-soda-pink" : "opacity-80"
+                          active ? "text-soda-pink" : "opacity-85"
                         )}
                       />
                       <span>{title}</span>
@@ -112,16 +112,16 @@ export function SidebarContent({ user }: SidebarContentProps) {
             className="flex w-full cursor-pointer items-center gap-2.5 rounded-lg p-2 text-left outline-none transition-colors hover:bg-sidebar-accent focus-visible:ring-2 focus-visible:ring-sidebar-ring"
           >
             <Avatar size="sm">
-              <AvatarFallback className="bg-[#2D1B4E] text-xs font-medium text-white">
+              <AvatarFallback className="bg-[linear-gradient(135deg,#29194A,#D23B68)] text-xs font-medium text-white">
                 {user?.avatarInitials ?? "SO"}
               </AvatarFallback>
             </Avatar>
 
             <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-medium">
+              <p className="truncate text-sm font-medium text-sidebar-foreground">
                 {user?.fullName ?? "SODA"}
               </p>
-              <p className="truncate text-xs text-muted-foreground">
+              <p className="truncate text-xs text-sidebar-foreground/60">
                 {ROLE_LABELS[role]}
                 {user?.email ? ` · ${user.email}` : null}
               </p>
