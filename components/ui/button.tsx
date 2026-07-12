@@ -8,12 +8,11 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default:
-          "bg-soda-action text-soda-action-foreground shadow-[0_0_20px_color-mix(in_oklch,var(--soda-pink)_28%,transparent)] hover:bg-[color-mix(in_oklch,var(--soda-action),var(--soda-purple)_14%)] hover:shadow-[0_0_28px_color-mix(in_oklch,var(--soda-pink)_40%,transparent)]",
+        default: "soda-btn-primary",
         outline:
-          "border-border bg-background hover:border-primary/35 hover:bg-primary/5 hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:border-input dark:bg-input/30 dark:hover:bg-input/50",
+          "soda-btn-secondary aria-expanded:bg-muted aria-expanded:text-foreground",
         secondary:
-          "bg-secondary text-secondary-foreground hover:bg-[color-mix(in_oklch,var(--secondary),var(--primary)_8%)] aria-expanded:bg-secondary aria-expanded:text-secondary-foreground",
+          "soda-btn-secondary aria-expanded:bg-secondary aria-expanded:text-secondary-foreground",
         ghost:
           "hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:hover:bg-muted/50",
         destructive:

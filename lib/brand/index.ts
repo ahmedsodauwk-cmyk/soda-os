@@ -71,7 +71,10 @@ export {
   sodaStatus,
   sodaChartPalette,
   SODA_BRAND_HEX,
+  resolveSectionPersonality,
 } from "@/lib/brand/tokens";
+
+export type { SodaSectionPersonality } from "@/lib/brand/tokens";
 
 export {
   SODA_LOGO,

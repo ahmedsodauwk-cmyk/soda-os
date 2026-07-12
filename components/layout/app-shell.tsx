@@ -7,6 +7,7 @@ import { Breadcrumbs } from "@/components/navigation/breadcrumbs";
 import { RecentlyViewed } from "@/components/navigation/recently-viewed";
 import { loadHydratedNotifications } from "@/lib/core/notifications/load";
 import type { HumanLayerKey } from "@/lib/brand/human-layer";
+import { resolveSectionPersonality } from "@/lib/brand/tokens";
 import { getRecentlyViewed } from "@/lib/identity/recent";
 import {
   isAuthStrict,
@@ -69,8 +70,13 @@ export async function AppShell({
       }
     : undefined;
 
+  const section = resolveSectionPersonality(layer);
+
   return (
-    <main className="flex min-h-screen bg-background soda-brand-wash">
+    <main
+      data-soda-section={section}
+      className="flex min-h-screen bg-transparent soda-brand-wash"
+    >
       <Sidebar user={user} />
 
       <section className="flex min-h-0 flex-1 flex-col overflow-y-auto">

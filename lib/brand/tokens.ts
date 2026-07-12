@@ -1,23 +1,19 @@
 /**
- * SODA Official Design System — Sprint 11 token source of truth.
+ * SODA Official Design System — brand token source of truth.
  *
  * CSS variables in `app/globals.css` are the runtime theme.
  * This module mirrors them for TS consumers (charts, docs, PDF, login).
  *
  * ─────────────────────────────────────────────────────────────
- * COLOR ROLES (Sprint 11 — calm premium)
+ * COLOR ROLES (official lockup only)
  * ─────────────────────────────────────────────────────────────
- * Dark surfaces = primary foundation (void / charcoal cards)
- * White = readability on dark UI
- * Deep Dark Purple (#2D1B4E) = supporting brand (sidebar tint, mark field)
- * Vibrant Pink (#E93D77) = accent only
- *   CTAs, progress, selection, notifications, interactive highlights
- *
- * Do not flood purple across every surface — keep it supporting.
+ * Primary White · Deep Purple (#2D1B4E) · Pink (#E93D77)
+ * Soft low-saturation gradients — elegant luxury, never loud.
+ * No third-party accent colors.
  */
 
 export const sodaColors = {
-  /** Deep Dark Purple — brand foundation (mark field, supporting tint) */
+  /** Deep Purple — brand foundation */
   purple: {
     50: "#F5F0FA",
     100: "#E8DEEF",
@@ -33,7 +29,7 @@ export const sodaColors = {
     950: "#0A0714",
   },
   /**
-   * Vibrant Pink — energy accents + primary actions only.
+   * Brand Pink — primary actions + warm accents.
    * Official accent from brand lockup ≈ #E93D77
    */
   pink: {
@@ -49,10 +45,10 @@ export const sodaColors = {
     800: "#8F1843",
     900: "#6E1234",
   },
-  /** Neutrals / surfaces — dark foundation + white readability */
+  /** Neutrals — white-first surfaces (never pure flat gray UI) */
   ink: {
     white: "#FFFFFF",
-    fog: "#F4F2F7",
+    fog: "#F7F4FA",
     mist: "#C8C2D4",
     slate: "#8B8499",
     charcoal: "#16121F",
@@ -62,7 +58,6 @@ export const sodaColors = {
 
 /** Semantic roles mapped to CSS custom properties */
 export const sodaSemantic = {
-  /** Supporting brand purple (not every surface) */
   primary: "var(--primary)",
   primaryForeground: "var(--primary-foreground)",
   /** Pink action fill for CTAs */
@@ -84,6 +79,59 @@ export const sodaSemantic = {
     "var(--chart-5)",
   ],
 } as const;
+
+/**
+ * Section personality — same design system, different wash balance.
+ * Applied via `data-soda-section` on the app shell.
+ */
+export type SodaSectionPersonality =
+  | "home"
+  | "finance"
+  | "orders"
+  | "commercial"
+  | "wedding"
+  | "statistics"
+  | "settings"
+  | "default";
+
+/** Map human-layer / page keys → section personality class */
+export function resolveSectionPersonality(
+  layer: string
+): SodaSectionPersonality {
+  switch (layer) {
+    case "dashboard":
+      return "home";
+    case "finance":
+    case "myWallet":
+    case "quotations":
+    case "newQuotation":
+      return "finance";
+    case "orders":
+    case "projects":
+    case "projectHub":
+    case "calendar":
+    case "schedule":
+    case "attention":
+      return "orders";
+    case "commercial":
+    case "commercialClients":
+    case "commercialOrders":
+    case "fashion":
+    case "product":
+    case "events":
+      return "commercial";
+    case "weddings":
+    case "weddingClients":
+    case "weddingOrders":
+      return "wedding";
+    case "statistics":
+      return "statistics";
+    case "settings":
+      return "settings";
+    default:
+      return "default";
+  }
+}
 
 /**
  * Type scale — English chrome (Outfit) + Arabic (Alexandria).
@@ -128,7 +176,7 @@ export const sodaRadius = {
   full: "9999px",
 } as const;
 
-/** Elevation — restrained; pink glow only for intentional accents */
+/** Elevation — soft brand-colored shadows (never flat gray) */
 export const sodaElevation = {
   none: "none",
   soft: "var(--soda-shadow-soft)",
@@ -155,7 +203,7 @@ export const sodaStatus = {
 } as const;
 
 /**
- * Chart palette — dark purple foundation + pink accents.
+ * Chart palette — Deep Purple + Pink only.
  * chart-1/3/5 = purple family; chart-2/4 = pink energy.
  */
 export const sodaChartPalette = [
