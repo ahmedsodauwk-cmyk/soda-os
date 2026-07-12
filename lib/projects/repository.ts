@@ -13,6 +13,7 @@ import {
   type ProjectRow,
 } from "@/lib/projects/mappers";
 import type { Project } from "@/lib/projects/types";
+import { withRefreshTtl } from "@/lib/supabase/refresh-ttl";
 import { ensureTaxonomyPersisted } from "@/lib/taxonomy/persist";
 
 let projectsCache: Project[] = [];
@@ -54,19 +55,24 @@ function enrichProject(seed: Project): Project {
   };
 }
 
-export async function refreshProjects(): Promise<Project[]> {
-  await ensureTaxonomyPersisted();
-  const db = createProjectsDb();
-  const { data, error } = await db
-    .from("projects")
-    .select("*")
-    .order("created_at", { ascending: false });
-  if (error) {
-    throw new Error(`Failed to load projects: ${error.message}`);
-  }
-  const raw = ((data ?? []) as ProjectRow[]).map(rowToProject);
-  return setCache(raw);
-}
+export const refreshProjects = withRefreshTtl({
+  key: "projects",
+  hasData: () => projectsCache.length > 0,
+  read: () => [...projectsCache],
+  load: async () => {
+    await ensureTaxonomyPersisted();
+    const db = createProjectsDb();
+    const { data, error } = await db
+      .from("projects")
+      .select("*")
+      .order("created_at", { ascending: false });
+    if (error) {
+      throw new Error(`Failed to load projects: ${error.message}`);
+    }
+    const raw = ((data ?? []) as ProjectRow[]).map(rowToProject);
+    return setCache(raw);
+  },
+});
 
 export function getProjects(): Project[] {
   return projectsCache.filter((p) => p.isActive).map(enrichProject);

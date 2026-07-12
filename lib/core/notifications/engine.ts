@@ -71,14 +71,27 @@ function titleFor(event: BusinessEvent): string {
   return FRIENDLY_TITLES_AR[event.type] ?? "تحديث من الستوديو";
 }
 
+/** Reject Latin / PascalCase / English ops copy — UI is Arabic-only. */
+function isNonHumanSummary(raw: string): boolean {
+  if (/[A-Za-z]{3,}/.test(raw)) return true;
+  if (/^[A-Z][a-zA-Z]+(?:[A-Z][a-zA-Z]+)+/.test(raw)) return true;
+  return false;
+}
+
 function humanSummary(event: BusinessEvent): string | null {
   const raw = event.payload.summary?.trim();
   if (!raw) return null;
-  // Strip developer-ish assignment summaries
+  // Known English payloads → Arabic (never surface raw summary)
   if (/^Crew assigned to order/i.test(raw)) {
     return "فيه تعيين جديد على أوردر — أكّد أو ارفض من هنا.";
   }
-  if (/^[A-Z][a-zA-Z]+(?:[A-Z][a-zA-Z]+)+/.test(raw)) return null;
+  if (/^Order confirmed/i.test(raw)) {
+    return "الأوردر اتأكد — افتحه وشوف التفاصيل.";
+  }
+  if (/^Client payment/i.test(raw)) {
+    return "فلوس دخلت الخزنة — شوف التفاصيل في المالية.";
+  }
+  if (isNonHumanSummary(raw)) return null;
   return raw;
 }
 
@@ -330,5 +343,42 @@ export function notificationPriorityLabel(
       return "خفيف";
     default:
       return "";
+  }
+}
+
+/**
+ * ONE display mapper for bell + notifications page.
+ * Never surfaces PascalCase event names or English payload leftovers.
+ */
+export function notificationDisplayTitle(item: NotificationRecord): string {
+  const t = item.title?.trim();
+  if (t && !isNonHumanSummary(t)) return t;
+  return FRIENDLY_TITLES_AR[item.eventType] ?? "تحديث من الستوديو";
+}
+
+export function notificationDisplayBody(item: NotificationRecord): string {
+  const b = item.body?.trim();
+  if (b && !isNonHumanSummary(b)) return b;
+  return notificationActionLabel(item);
+}
+
+export function notificationHref(item: NotificationRecord): string {
+  if (item.href?.startsWith("/")) return item.href;
+  switch (item.entityType) {
+    case "order":
+      return `/orders/${item.entityId}`;
+    case "client":
+      return `/clients/${item.entityId}`;
+    case "project":
+      return `/projects/${item.entityId}`;
+    case "person":
+      return `/crew/${item.entityId}`;
+    case "payment":
+    case "invoice":
+      return "/finance";
+    case "quotation":
+      return `/quotations/${item.entityId}`;
+    default:
+      return "/notifications";
   }
 }

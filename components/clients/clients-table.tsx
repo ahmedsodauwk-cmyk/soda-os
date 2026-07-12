@@ -136,6 +136,7 @@ export function ClientsTable({
                   <DropdownMenuContent align="end">
                     <DropdownMenuItem
                       render={<Link href={`/clients/${client.id}`} />}
+                      nativeButton={false}
                     >
                       <Eye />
                       View details

@@ -133,6 +133,7 @@ export function SidebarContent({ user }: SidebarContentProps) {
             <DropdownMenuSeparator />
             <DropdownMenuItem
               className="cursor-pointer"
+              nativeButton={false}
               render={<Link href="/settings" />}
             >
               <Settings />
@@ -140,6 +141,7 @@ export function SidebarContent({ user }: SidebarContentProps) {
             </DropdownMenuItem>
             <DropdownMenuItem
               className="cursor-pointer"
+              nativeButton={false}
               render={<Link href="/settings/password" />}
             >
               <Settings />
@@ -150,6 +152,7 @@ export function SidebarContent({ user }: SidebarContentProps) {
             </div>
             <DropdownMenuItem
               className="cursor-pointer"
+              nativeButton={false}
               render={<Link href="/about" />}
             >
               <Info />

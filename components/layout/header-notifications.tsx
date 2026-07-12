@@ -16,43 +16,15 @@ import {
 } from "@/components/ui/dropdown-menu";
 import {
   notificationActionLabel,
+  notificationDisplayBody,
+  notificationDisplayTitle,
+  notificationHref,
   notificationPriorityLabel,
 } from "@/lib/core/notifications/engine";
 import type { NotificationRecord } from "@/lib/core/types";
 
 interface HeaderNotificationsProps {
   initial: NotificationRecord[];
-}
-
-function safeHref(item: NotificationRecord): string {
-  if (item.href && item.href.startsWith("/")) return item.href;
-  switch (item.entityType) {
-    case "order":
-      return `/orders/${item.entityId}`;
-    case "client":
-      return `/clients/${item.entityId}`;
-    case "project":
-      return `/projects/${item.entityId}`;
-    case "person":
-      return `/crew/${item.entityId}`;
-    case "payment":
-    case "invoice":
-      return "/finance";
-    case "quotation":
-      return `/quotations/${item.entityId}`;
-    default:
-      return "/notifications";
-  }
-}
-
-function isDevEventName(title: string): boolean {
-  return /^[A-Z][a-zA-Z]+(?:[A-Z][a-zA-Z]+)+$/.test(title.trim());
-}
-
-function friendlyTitle(item: NotificationRecord): string {
-  const t = item.title?.trim();
-  if (t && !isDevEventName(t)) return t;
-  return "تحديث من الستوديو";
 }
 
 export function HeaderNotifications({ initial }: HeaderNotificationsProps) {
@@ -67,7 +39,8 @@ export function HeaderNotifications({ initial }: HeaderNotificationsProps) {
     setReadIds((prev) => new Set(prev).add(id));
   }
 
-  // No Tooltip wrapping DropdownMenuTrigger — nesting causes Base UI Error #31.
+  // Root cause of Base UI Error #31: Menu.Item defaults to nativeButton,
+  // but render={<Link />} produces <a>. Must set nativeButton={false}.
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
@@ -90,15 +63,7 @@ export function HeaderNotifications({ initial }: HeaderNotificationsProps) {
       </DropdownMenuTrigger>
 
       <DropdownMenuContent align="end" className="w-80">
-        <DropdownMenuLabel className="flex items-center justify-between gap-2">
-          <span>التنبيهات</span>
-          <Link
-            href="/notifications"
-            className="cursor-pointer text-xs font-normal text-soda-pink hover:underline"
-          >
-            كل التنبيهات
-          </Link>
-        </DropdownMenuLabel>
+        <DropdownMenuLabel>التنبيهات</DropdownMenuLabel>
         <DropdownMenuSeparator />
         {items.length === 0 ? (
           <DropdownMenuItem disabled className="text-muted-foreground">
@@ -106,18 +71,19 @@ export function HeaderNotifications({ initial }: HeaderNotificationsProps) {
           </DropdownMenuItem>
         ) : (
           items.slice(0, 8).map((item) => {
-            const href = safeHref(item);
+            const href = notificationHref(item);
             const priorityLabel = notificationPriorityLabel(item.priority);
             return (
               <DropdownMenuItem
                 key={item.id}
                 className="cursor-pointer items-start whitespace-normal"
                 onClick={() => markRead(item.id)}
+                nativeButton={false}
                 render={<Link href={href} />}
               >
                 <div className="min-w-0 space-y-0.5" dir="rtl">
                   <p className="font-ar text-sm font-medium">
-                    {friendlyTitle(item)}
+                    {notificationDisplayTitle(item)}
                     {priorityLabel ? (
                       <span className="ms-2 text-[10px] font-normal text-soda-pink">
                         {priorityLabel}
@@ -125,7 +91,7 @@ export function HeaderNotifications({ initial }: HeaderNotificationsProps) {
                     ) : null}
                   </p>
                   <p className="font-ar line-clamp-2 text-xs text-muted-foreground">
-                    {item.body || notificationActionLabel(item)}
+                    {notificationDisplayBody(item)}
                   </p>
                   <p className="font-ar text-[11px] text-soda-pink">
                     {notificationActionLabel(item)}
@@ -138,6 +104,7 @@ export function HeaderNotifications({ initial }: HeaderNotificationsProps) {
         <DropdownMenuSeparator />
         <DropdownMenuItem
           className="cursor-pointer justify-center font-medium text-soda-pink"
+          nativeButton={false}
           render={<Link href="/notifications" />}
         >
           مركز التنبيهات

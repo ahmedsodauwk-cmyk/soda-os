@@ -11,12 +11,12 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  hydrateNotificationsFromEvents,
-  refreshBusinessEventsFromDb,
-} from "@/lib/core";
+import { loadHydratedNotifications } from "@/lib/core/notifications/load";
 import {
   notificationActionLabel,
+  notificationDisplayBody,
+  notificationDisplayTitle,
+  notificationHref,
   notificationPriorityLabel,
 } from "@/lib/core/notifications/engine";
 import type { NotificationRecord } from "@/lib/core/types";
@@ -24,37 +24,6 @@ import { resolveSessionForApp } from "@/lib/identity/session";
 import { cn } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
-
-function hrefForNotification(item: NotificationRecord): string {
-  if (item.href?.startsWith("/")) return item.href;
-  switch (item.entityType) {
-    case "order":
-      return `/orders/${item.entityId}`;
-    case "client":
-      return `/clients/${item.entityId}`;
-    case "project":
-      return `/projects/${item.entityId}`;
-    case "person":
-      return `/crew/${item.entityId}`;
-    case "payment":
-    case "invoice":
-      return "/finance";
-    case "quotation":
-      return `/quotations/${item.entityId}`;
-    default:
-      return "/";
-  }
-}
-
-function isDevEventName(title: string): boolean {
-  return /^[A-Z][a-zA-Z]+(?:[A-Z][a-zA-Z]+)+$/.test(title.trim());
-}
-
-function friendlyTitle(item: NotificationRecord): string {
-  const t = item.title?.trim();
-  if (t && !isDevEventName(t)) return t;
-  return "تحديث من الستوديو";
-}
 
 function priorityClass(priority: NotificationRecord["priority"]): string {
   switch (priority) {
@@ -71,11 +40,10 @@ export default async function NotificationsPage() {
   const session = await resolveSessionForApp();
   if (!session) redirect("/login");
 
+  // Same hydrate path as AppShell bell — Human Notification Layer only.
   let notifications: NotificationRecord[] = [];
   try {
-    // Prefer larger window for the center; warm TTL dedupes AppShell's smaller fetch.
-    const events = await refreshBusinessEventsFromDb(80).catch(() => []);
-    notifications = hydrateNotificationsFromEvents(events);
+    notifications = await loadHydratedNotifications();
   } catch {
     notifications = [];
   }
@@ -101,7 +69,7 @@ export default async function NotificationsPage() {
               </p>
             ) : (
               notifications.map((n) => {
-                const href = hrefForNotification(n);
+                const href = notificationHref(n);
                 const action = notificationActionLabel(n);
                 const priorityLabel = notificationPriorityLabel(n.priority);
                 return (
@@ -116,7 +84,7 @@ export default async function NotificationsPage() {
                       <div className="min-w-0" dir="rtl">
                         <div className="flex flex-wrap items-center gap-2">
                           <p className="font-ar text-sm font-medium">
-                            {friendlyTitle(n)}
+                            {notificationDisplayTitle(n)}
                           </p>
                           {priorityLabel ? (
                             <span className="rounded-sm bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground">
@@ -125,7 +93,7 @@ export default async function NotificationsPage() {
                           ) : null}
                         </div>
                         <p className="font-ar line-clamp-2 text-xs text-muted-foreground">
-                          {n.body || action}
+                          {notificationDisplayBody(n)}
                         </p>
                         <Link
                           href={href}

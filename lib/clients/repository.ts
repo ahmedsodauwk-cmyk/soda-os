@@ -7,6 +7,7 @@ import { publishBusinessEvent } from "@/lib/core/publish";
 import { getOrders } from "@/lib/orders/repository";
 import { getPayments } from "@/lib/payments/repository";
 import { getProjects } from "@/lib/projects/repository";
+import { withRefreshTtl } from "@/lib/supabase/refresh-ttl";
 
 /**
  * In-memory mirror so existing sync callers (other modules) keep working.
@@ -54,11 +55,16 @@ async function selectAllRows(): Promise<ClientRow[]> {
   return (data ?? []) as ClientRow[];
 }
 
-/** Load all clients from Supabase into the sync cache. */
-export async function refreshClients(): Promise<Client[]> {
-  const rows = await selectAllRows();
-  return setCache(rows.map(rowToClient));
-}
+/** Load all clients from Supabase into the sync cache (warm TTL). */
+export const refreshClients = withRefreshTtl({
+  key: "clients",
+  hasData: () => clientsCache.length > 0,
+  read: () => getAllClients(),
+  load: async () => {
+    const rows = await selectAllRows();
+    return setCache(rows.map(rowToClient));
+  },
+});
 
 export function getClients(): Client[] {
   return clientsCache.filter((c) => c.isActive);

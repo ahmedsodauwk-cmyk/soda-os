@@ -13,6 +13,7 @@ import {
   generateOrderId,
   workspaceIdFromProjectType,
 } from "@/lib/orders/utils";
+import { withRefreshTtl } from "@/lib/supabase/refresh-ttl";
 import { ensureTaxonomyPersisted } from "@/lib/taxonomy/persist";
 
 let ordersCache: Order[] = [];
@@ -26,18 +27,23 @@ function upsertCache(order: Order): void {
   ordersCache = [order, ...ordersCache.filter((o) => o.id !== order.id)];
 }
 
-export async function refreshOrders(): Promise<Order[]> {
-  await ensureTaxonomyPersisted();
-  const db = createOrdersDb();
-  const { data, error } = await db
-    .from("orders")
-    .select("*")
-    .order("created_at", { ascending: false });
-  if (error) {
-    throw new Error(`Failed to load orders: ${error.message}`);
-  }
-  return setCache(((data ?? []) as OrderRow[]).map(rowToOrder));
-}
+export const refreshOrders = withRefreshTtl({
+  key: "orders",
+  hasData: () => ordersCache.length > 0,
+  read: () => getOrders(),
+  load: async () => {
+    await ensureTaxonomyPersisted();
+    const db = createOrdersDb();
+    const { data, error } = await db
+      .from("orders")
+      .select("*")
+      .order("created_at", { ascending: false });
+    if (error) {
+      throw new Error(`Failed to load orders: ${error.message}`);
+    }
+    return setCache(((data ?? []) as OrderRow[]).map(rowToOrder));
+  },
+});
 
 export function getOrders(): Order[] {
   return [...ordersCache];

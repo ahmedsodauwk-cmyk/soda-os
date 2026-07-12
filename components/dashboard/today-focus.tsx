@@ -66,29 +66,29 @@ export default function TodayFocus({ dashboard }: TodayFocusProps) {
 
   return (
     <Card className="soda-cc-card">
-      <CardHeader>
-        <CardTitle>تركيز النهاردة</CardTitle>
-        <CardDescription className="font-ar" dir="rtl">
+      <CardHeader className="py-3 pb-2">
+        <CardTitle className="text-base">تركيز النهاردة</CardTitle>
+        <CardDescription className="font-ar text-xs" dir="rtl">
           أهم شغل اليوم — تصوير، تسليم، ومتابعات.
           {dashboard.schedule.todayShoots.length > 0
             ? ` · ${n(dashboard.schedule.todayShoots.length)} شوت`
             : ""}
         </CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="pb-3 pt-0">
         {unique.length === 0 ? (
           <p className="font-ar text-sm text-muted-foreground" dir="rtl">
             مفيش حاجة ضاغطة النهاردة — الستوديو هادي.
           </p>
         ) : (
-          <ul className="space-y-2">
-            {unique.map((item) => {
+          <ul className="space-y-1">
+            {unique.slice(0, 4).map((item) => {
               const Icon = item.icon;
               return (
                 <li key={item.id}>
                   <Link
                     href={item.href}
-                    className="flex cursor-pointer items-start gap-3 rounded-lg px-2 py-2.5 transition-colors hover:bg-muted/50"
+                    className="flex cursor-pointer items-start gap-3 rounded-lg px-2 py-1.5 transition-colors hover:bg-muted/50"
                   >
                     <Icon className="mt-0.5 size-4 shrink-0 text-soda-pink" />
                     <div className="min-w-0" dir="rtl">

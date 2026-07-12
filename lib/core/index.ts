@@ -61,9 +61,14 @@ export {
   listUnreadNotifications,
   markNotificationRead,
   notificationActionLabel,
+  notificationDisplayBody,
+  notificationDisplayTitle,
+  notificationHref,
   notificationPriorityLabel,
   recordNotificationFromEvent,
 } from "@/lib/core/notifications/engine";
+
+export { loadHydratedNotifications } from "@/lib/core/notifications/load";
 
 export {
   compareNotificationsByPriority,

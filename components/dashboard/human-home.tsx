@@ -22,17 +22,17 @@ export function HumanMessage({ dashboard, operatorName }: HumanMessageProps) {
 
   return (
     <Card className="soda-cc-card soda-brief-shell overflow-hidden">
-      <CardHeader className="pb-2">
-        <CardTitle className="flex items-center gap-2 text-base">
-          <MessageCircle className="size-4 text-soda-pink" />
+      <CardHeader className="py-3 pb-1.5">
+        <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
+          <MessageCircle className="size-3.5 text-soda-pink sm:size-4" />
           رسالة النهاردة
         </CardTitle>
-        <CardDescription className="font-ar" dir="rtl">
+        <CardDescription className="font-ar text-xs" dir="rtl">
           {brief.label}
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-2" dir="rtl">
-        <p className="font-ar text-sm leading-relaxed text-foreground/90">
+      <CardContent className="space-y-1 pb-3" dir="rtl">
+        <p className="font-ar text-sm leading-snug text-foreground/90">
           {brief.hook}
         </p>
         {brief.closer ? (
@@ -54,21 +54,23 @@ export function SmartTip({ dashboard }: SmartTipProps) {
 
   return (
     <Card className="soda-cc-card">
-      <CardHeader className="pb-2">
-        <CardTitle className="flex items-center gap-2 text-base">
-          <Lightbulb className="size-4 text-soda-pink" />
+      <CardHeader className="py-3 pb-1.5">
+        <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
+          <Lightbulb className="size-3.5 text-soda-pink sm:size-4" />
           نصيحة ذكية
         </CardTitle>
-        <CardDescription className="font-ar" dir="rtl">
+        <CardDescription className="font-ar text-xs" dir="rtl">
           خطوة واحدة تستاهل نظرة دلوقتي.
         </CardDescription>
       </CardHeader>
-      <CardContent dir="rtl">
+      <CardContent className="pb-3" dir="rtl">
         {tip ? (
-          <div className="space-y-2">
+          <div className="space-y-1">
             <p className="font-ar text-xs text-muted-foreground">{tip.eyebrow}</p>
             <p className="font-ar text-sm font-medium leading-snug">{tip.title}</p>
-            <p className="font-ar text-xs text-muted-foreground">{tip.detail}</p>
+            <p className="font-ar line-clamp-2 text-xs text-muted-foreground">
+              {tip.detail}
+            </p>
             <Link
               href={tip.href}
               className="font-ar inline-block cursor-pointer text-xs font-medium text-soda-pink hover:underline"

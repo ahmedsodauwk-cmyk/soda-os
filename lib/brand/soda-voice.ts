@@ -122,34 +122,37 @@ export function getDayPeriod(date: Date = new Date()): DayPeriod {
   return "evening";
 }
 
-/** Rotating natural greetings — `{name}` replaced with profile / Junior Soda. */
+/**
+ * Time-of-day greetings — ALWAYS `👋 … يا {Display Name}`.
+ * Never Owner, never أهلاً بيك, never English.
+ */
 const GREETINGS: Record<DayPeriod, string[]> = {
   morning: [
-    `صباح الخير يا {name}`,
-    `صباح النور يا {name}`,
-    `يلا نبدأ بهدوء يا {name}`,
-    `صباحك فل يا {name}`,
-    `نهاردة يوم شغل يا {name}`,
+    `👋 صباحك فل يا {name}`,
+    `👋 صباح الخير يا {name}`,
+    `👋 صباح النور يا {name}`,
+    `👋 يلا نبدأ بهدوء يا {name}`,
+    `👋 نهاردة يوم شغل يا {name}`,
   ],
   afternoon: [
-    `نهارك أبيض يا {name}`,
-    `أهلاً بيك يا {name}`,
-    `نص اليوم عدّى يا {name}`,
-    `إزيك يا {name}، الدنيا ماشية؟`,
-    `كمّل بهدوء يا {name}`,
+    `👋 نهارك أبيض يا {name}`,
+    `👋 إزيك يا {name}`,
+    `👋 نص اليوم عدّى يا {name}`,
+    `👋 كمّل بهدوء يا {name}`,
+    `👋 الدنيا ماشية يا {name}`,
   ],
   evening: [
-    `مساء الفل يا {name}`,
-    `مساء الخير يا {name}`,
-    `خلّينا نلمّ بهدوء يا {name}`,
-    `يوم طويل يا {name}، قفّل بهدوء`,
-    `أهلاً بيك في آخر اليوم يا {name}`,
+    `👋 مساء الفل يا {name}`,
+    `👋 مساء الخير يا {name}`,
+    `👋 خلّينا نلمّ بهدوء يا {name}`,
+    `👋 يوم طويل يا {name}`,
+    `👋 قفّل بهدوء يا {name}`,
   ],
   late_night: [
-    `ليلة هادية يا {name}`,
-    `لسه صاحي يا {name}؟ خلّينا نقفّل بهدوء`,
-    `أهلاً بيك يا {name}`,
-    `وقت هادي يا {name} — رتّب وبس`,
+    `👋 ليلة هادية يا {name}`,
+    `👋 لسه صاحي يا {name}`,
+    `👋 وقت هادي يا {name}`,
+    `👋 رتّب وبس يا {name}`,
   ],
 };
 

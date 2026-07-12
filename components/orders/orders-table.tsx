@@ -119,7 +119,10 @@ export function OrdersTable({ orders, onEdit, onDelete }: OrdersTableProps) {
                     <span className="sr-only">Open menu</span>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuItem render={<Link href={viewHref} />}>
+                    <DropdownMenuItem
+                      render={<Link href={viewHref} />}
+                      nativeButton={false}
+                    >
                       <Eye />
                       View order
                     </DropdownMenuItem>

@@ -1,4 +1,3 @@
-import { cache } from "react";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
@@ -6,10 +5,7 @@ import Sidebar from "@/components/layout/sidebar";
 import Header from "@/components/layout/header";
 import { Breadcrumbs } from "@/components/navigation/breadcrumbs";
 import { RecentlyViewed } from "@/components/navigation/recently-viewed";
-import {
-  hydrateNotificationsFromEvents,
-  refreshBusinessEventsFromDb,
-} from "@/lib/core";
+import { loadHydratedNotifications } from "@/lib/core/notifications/load";
 import type { HumanLayerKey } from "@/lib/brand/human-layer";
 import { getRecentlyViewed } from "@/lib/identity/recent";
 import {
@@ -34,12 +30,6 @@ interface AppShellProps {
   session?: SodaSession | null;
 }
 
-/** Per-request dedupe — AppShell + nested pages share one events hydrate. */
-const loadShellNotifications = cache(async () => {
-  const events = await refreshBusinessEventsFromDb(20).catch(() => []);
-  return hydrateNotificationsFromEvents(events);
-});
-
 export async function AppShell({
   titleKey,
   title,
@@ -60,7 +50,7 @@ export async function AppShell({
     sessionProp !== undefined
       ? Promise.resolve(sessionProp)
       : resolveSessionForApp(),
-    loadShellNotifications(),
+    loadHydratedNotifications(),
     getRecentlyViewed(),
   ]);
 
@@ -93,10 +83,10 @@ export async function AppShell({
           user={user}
         />
 
-        <div className="soda-page-enter mx-auto w-full max-w-[1600px] p-5 sm:p-6 lg:p-7">
+        <div className="soda-page-enter mx-auto w-full max-w-[1600px] p-4 sm:p-5 lg:p-6">
           {showBreadcrumbs ? <Breadcrumbs pathname={pathname} /> : null}
           {recent.length > 0 ? (
-            <div className="mb-4">
+            <div className="mb-3">
               <RecentlyViewed items={recent} />
             </div>
           ) : null}

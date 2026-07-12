@@ -18,6 +18,7 @@ import type {
 import { getProjects } from "@/lib/projects/repository";
 
 import { isOrderActiveWorkload, isOrderCompleted } from "@/lib/orders/status";
+import { withRefreshTtl } from "@/lib/supabase/refresh-ttl";
 
 const ACTIVE_ORDER = new Set([
   "Confirmed",
@@ -80,11 +81,16 @@ async function selectAllRows(): Promise<PersonRow[]> {
   return (data ?? []) as PersonRow[];
 }
 
-/** Load all people from Supabase into the sync cache. */
-export async function refreshPeople(): Promise<Person[]> {
-  const rows = await selectAllRows();
-  return setCache(rows.map(rowToPerson));
-}
+/** Load all people from Supabase into the sync cache (warm TTL). */
+export const refreshPeople = withRefreshTtl({
+  key: "people",
+  hasData: () => peopleCache.length > 0,
+  read: () => getAllPeople(),
+  load: async () => {
+    const rows = await selectAllRows();
+    return setCache(rows.map(rowToPerson));
+  },
+});
 
 export function getPeople(): Person[] {
   return peopleCache.filter((p) => p.status !== "inactive");

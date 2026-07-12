@@ -133,7 +133,10 @@ export function buildHeroOperationalLines(
   }
 
   if (lines.length === 0) {
-    lines.push({ text: "أهلاً بيك.", href: "/attention" });
+    lines.push({
+      text: "مفيش ضغط ظاهر دلوقتي — الستوديو هادي.",
+      href: "/attention",
+    });
     lines.push({
       text: "دي نظرة سريعة على اللي مستنيك النهارده.",
       href: "/schedule/today",

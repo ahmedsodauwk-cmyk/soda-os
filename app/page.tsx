@@ -42,14 +42,14 @@ export default async function Home() {
   return (
     <AppShell titleKey="pages.home" layer="dashboard" session={session}>
       <WelcomeGate dashboard={voiceInput}>
-        <div className="soda-page-enter space-y-5 sm:space-y-6">
+        <div className="soda-page-enter space-y-3 sm:space-y-4">
           <DashboardHero dashboard={voiceInput} operatorName={operatorName} />
 
-          <div className="grid grid-cols-1 gap-4 lg:grid-cols-5 lg:gap-5">
+          <div className="grid grid-cols-1 gap-3 lg:grid-cols-5 lg:gap-4">
             <div className="lg:col-span-3">
               <TodayFocus dashboard={voiceInput} />
             </div>
-            <div className="grid gap-4 sm:grid-cols-2 lg:col-span-2 lg:grid-cols-1">
+            <div className="grid gap-3 sm:grid-cols-2 lg:col-span-2 lg:grid-cols-1">
               <HumanMessage
                 dashboard={voiceInput}
                 operatorName={operatorName}
@@ -60,7 +60,7 @@ export default async function Home() {
 
           <QuickActions />
 
-          <div className="grid grid-cols-1 gap-4 lg:gap-5 xl:grid-cols-5">
+          <div className="grid grid-cols-1 gap-3 lg:gap-4 xl:grid-cols-5">
             <div className="xl:col-span-2">
               <SodaLiveFeed events={liveEvents} className="h-full" />
             </div>
@@ -69,7 +69,7 @@ export default async function Home() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 gap-4 lg:gap-5 xl:grid-cols-5">
+          <div className="grid grid-cols-1 gap-3 lg:gap-4 xl:grid-cols-5">
             <div id="attention" className="scroll-mt-24 xl:col-span-2">
               <AttentionCenter items={dashboard.attention} />
             </div>
@@ -81,7 +81,7 @@ export default async function Home() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 gap-4 lg:gap-5 xl:grid-cols-2">
+          <div className="grid grid-cols-1 gap-3 lg:gap-4 xl:grid-cols-2">
             <div id="schedule" className="scroll-mt-24">
               <UpcomingScheduleCard schedule={dashboard.schedule} />
             </div>
