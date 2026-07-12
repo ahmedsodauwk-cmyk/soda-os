@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 export default async function ClientsPage() {
   await refreshClients();
   return (
-    <AppShell title="Clients" subtitle={getModuleSlogan("clients")}>
+    <AppShell title="العملاء" subtitle={getModuleSlogan("clients")}>
       <ClientsHub />
     </AppShell>
   );

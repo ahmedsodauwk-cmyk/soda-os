@@ -117,7 +117,7 @@ export function WeddingClientsView({
         <ClientEntryActions
           defaultType="individual"
           defaultSegment="wedding"
-          triggerLabel="+ New"
+          triggerLabel="➕ إنشاء عميل"
         />
       </div>
 

@@ -30,7 +30,7 @@ export default async function Home() {
 
   return (
     <AppShell
-      title="Command Center"
+      title="نظرة سريعة"
       subtitle={getModuleSlogan("dashboard")}
     >
       <WelcomeGate

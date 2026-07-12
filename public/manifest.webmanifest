@@ -1,0 +1,23 @@
+{
+  "name": "SODA VISUALS",
+  "short_name": "SODA",
+  "description": "نظام تشغيل الاستوديو للشغل التجاري والأفراح",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#2D1B4E",
+  "theme_color": "#2D1B4E",
+  "icons": [
+    {
+      "src": "/brand/soda-mark.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/brand/soda-logo-master.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

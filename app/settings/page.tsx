@@ -22,7 +22,7 @@ export default async function SettingsPage() {
   if (!session) redirect("/login");
 
   return (
-    <AppShell title="Settings" subtitle="Account, password, and team access">
+    <AppShell title="الإعدادات" subtitle="الحساب وكلمة السر وصلاحيات الفريق">
       <div className="grid gap-4 lg:grid-cols-2">
         <Card className="soda-cc-card">
           <CardHeader>
@@ -71,7 +71,7 @@ export default async function SettingsPage() {
             { label: "Notifications", href: "/notifications" },
             { label: "Finance", href: "/finance" },
             { label: "Crew", href: "/crew" },
-            { label: "About SODA", href: "/about" },
+            { label: "About SODA VISUALS", href: "/about" },
           ]}
         />
       </div>

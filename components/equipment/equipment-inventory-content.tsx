@@ -25,6 +25,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { UI_ACTIONS } from "@/lib/brand/ui-actions";
 import {
   createEquipment,
   deleteEquipment,
@@ -207,7 +208,11 @@ function EquipmentFormFields({
       </div>
       <DialogFooter>
         <Button type="submit" disabled={saving}>
-          {saving ? "Saving…" : mode === "edit" ? "Save" : "Create"}
+          {saving
+            ? UI_ACTIONS.saving
+            : mode === "edit"
+              ? UI_ACTIONS.save
+              : UI_ACTIONS.create}
         </Button>
       </DialogFooter>
     </form>
@@ -311,7 +316,7 @@ export function EquipmentInventoryContent() {
                 className="h-7"
                 onClick={() => setEditing(item)}
               >
-                Edit
+                {UI_ACTIONS.edit}
               </Button>
               <Button
                 variant="ghost"

@@ -14,7 +14,7 @@ export default async function ProjectsPage() {
     refreshOrders(),
   ]);
   return (
-    <AppShell title="Projects" subtitle={getModuleSlogan("projects")}>
+    <AppShell title="المشاريع" subtitle={getModuleSlogan("projects")}>
       <ProjectsListContent />
     </AppShell>
   );

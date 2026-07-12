@@ -43,7 +43,7 @@ export default async function CalendarPage() {
   }
 
   return (
-    <AppShell title="Calendar" subtitle={getModuleSlogan("calendar")}>
+    <AppShell title="الجدول" subtitle={getModuleSlogan("calendar")}>
       <CalendarContent
         events={events}
         asOf={asOf}

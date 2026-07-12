@@ -34,7 +34,7 @@ export function LoginForm() {
           <SodaLogo placement="login" showWord={false} />
           <div className="space-y-2">
             <h1 className="font-heading text-2xl font-semibold tracking-tight">
-              SODA OS
+              SODA VISUALS
             </h1>
             <p
               className="font-ar text-[0.9375rem] leading-[1.85] text-muted-foreground"

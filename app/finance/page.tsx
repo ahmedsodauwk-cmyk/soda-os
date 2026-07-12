@@ -60,15 +60,14 @@ export default async function FinancePage() {
   const closings = listPeriodClosings().slice(0, 5);
 
   return (
-    <AppShell title="Finance" subtitle={getModuleSlogan("finance")}>
+    <AppShell title="المالية" subtitle={getModuleSlogan("finance")}>
       <div className="space-y-6">
         <div className="rounded-xl border border-border/60 bg-muted/10 px-6 py-8">
           <p className="font-heading text-base font-semibold tracking-tight">
-            Company wallet
+            محفظة الشركة
           </p>
           <p className="mt-1 max-w-xl text-sm text-muted-foreground">
-            Live rollup from the Financial Core. Balances are derived from
-            transactions — never edited directly.
+            ملخص حي من الحسابات — الأرصدة جاية من حركة الشغل والدفعات.
           </p>
           <dl className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
             <div>

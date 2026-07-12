@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { UI_ACTIONS } from "@/lib/brand/ui-actions";
 import {
   Select,
   SelectContent,
@@ -98,12 +99,12 @@ export function CreateInvoiceDialog({
         }
       >
         <Plus className="size-3.5" />
-        Create invoice
+        {UI_ACTIONS.createInvoice}
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <form onSubmit={handleSubmit}>
           <DialogHeader>
-            <DialogTitle>Create invoice</DialogTitle>
+            <DialogTitle>{UI_ACTIONS.createInvoice}</DialogTitle>
             <DialogDescription>
               Issue an invoice for this project / order.
             </DialogDescription>
@@ -196,7 +197,7 @@ export function CreateInvoiceDialog({
                 saving || !number.trim() || !amount || !issueDate || !dueDate
               }
             >
-              {saving ? "Saving…" : "Create invoice"}
+              {saving ? UI_ACTIONS.saving : UI_ACTIONS.createInvoice}
             </Button>
           </DialogFooter>
         </form>

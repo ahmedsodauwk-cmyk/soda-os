@@ -15,7 +15,7 @@ export default async function MeHomePage() {
 
   return (
     <RoleGate session={session} anyOf={["dashboard.crew", "me.performance"]}>
-      <AppShell title="My Dashboard" subtitle="Your shoots, wallet, and targets">
+      <AppShell title="مساحتي" subtitle="الشوتات والمحفظة والتارجيت">
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {navForRole(session.profile.role)
             .filter((i) => i.href.startsWith("/me/") || i.href === "/orders" || i.href === "/calendar" || i.href === "/notifications")

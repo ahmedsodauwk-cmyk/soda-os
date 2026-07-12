@@ -26,6 +26,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { getClients } from "@/lib/clients/repository";
 import type { Client } from "@/lib/clients/types";
 import { getSuccessMessage } from "@/lib/brand/soda-voice";
+import { UI_ACTIONS } from "@/lib/brand/ui-actions";
 import {
   createClientInline,
   getClientOrderContext,
@@ -95,7 +96,7 @@ interface AddOrderDialogProps {
 export function AddOrderDialog({
   onAdd,
   defaultProjectType,
-  triggerLabel = "Add Order",
+  triggerLabel = "➕ إنشاء أوردر",
 }: AddOrderDialogProps) {
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState<FormState>(() =>
@@ -723,10 +724,10 @@ export function AddOrderDialog({
                 variant="outline"
                 onClick={() => setOpen(false)}
               >
-                Cancel
+                {UI_ACTIONS.cancel}
               </Button>
               <Button type="submit" disabled={saving}>
-                {saving ? "Creating…" : "Create Order"}
+                {saving ? UI_ACTIONS.creating : UI_ACTIONS.createOrder}
               </Button>
             </DialogFooter>
           </form>

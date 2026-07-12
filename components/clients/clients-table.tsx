@@ -22,6 +22,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { getEmptyState } from "@/lib/brand/soda-voice";
+import { UI_ACTIONS } from "@/lib/brand/ui-actions";
 import type { Client } from "@/lib/clients/types";
 import {
   formatDate,
@@ -142,7 +143,7 @@ export function ClientsTable({
                     {onEdit ? (
                       <DropdownMenuItem onClick={() => onEdit(client)}>
                         <Pencil />
-                        Edit client
+                        {UI_ACTIONS.edit}
                       </DropdownMenuItem>
                     ) : null}
                     {onDelete ? (
@@ -151,7 +152,7 @@ export function ClientsTable({
                         onClick={() => onDelete(client)}
                       >
                         <Trash2 />
-                        Delete client
+                        {UI_ACTIONS.delete}
                       </DropdownMenuItem>
                     ) : null}
                   </DropdownMenuContent>

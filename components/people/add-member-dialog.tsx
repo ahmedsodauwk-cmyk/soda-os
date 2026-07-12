@@ -16,6 +16,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { UI_ACTIONS } from "@/lib/brand/ui-actions";
 import { createPerson } from "@/lib/people/repository";
 import type { Person } from "@/lib/people/types";
 
@@ -153,7 +154,7 @@ export function AddMemberDialog({ onCreated }: AddMemberDialogProps) {
             </div>
           </div>
           <DialogFooter>
-            <Button type="submit">Create person</Button>
+            <Button type="submit">{UI_ACTIONS.createPerson}</Button>
           </DialogFooter>
         </form>
       </DialogContent>

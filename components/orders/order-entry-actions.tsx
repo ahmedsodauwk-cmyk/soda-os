@@ -19,7 +19,7 @@ interface OrderEntryActionsProps {
 
 export function OrderEntryActions({
   defaultProjectType,
-  triggerLabel,
+  triggerLabel = "➕ إنشاء أوردر",
 }: OrderEntryActionsProps) {
   const router = useRouter();
 

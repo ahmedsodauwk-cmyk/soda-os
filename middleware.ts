@@ -29,6 +29,18 @@ function isAuthStrict(): boolean {
   return process.env.VERCEL_ENV === "production";
 }
 
+/** True when request likely carries a Supabase auth cookie. */
+function hasSupabaseAuthCookie(request: NextRequest): boolean {
+  return request.cookies
+    .getAll()
+    .some(
+      (c) =>
+        c.name.includes("auth-token") ||
+        c.name.startsWith("sb-") ||
+        c.name.includes("supabase")
+    );
+}
+
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
@@ -39,13 +51,30 @@ export async function middleware(request: NextRequest) {
     headers: requestHeaders,
   });
 
+  const authStrict = isAuthStrict();
+  const publicPath = isPublicPath(pathname);
+  const hasAuth = hasSupabaseAuthCookie(request);
+
+  // Fast path: no session cookie — skip Supabase round-trip when possible.
+  if (!hasAuth) {
+    const passthrough = NextResponse.next({
+      request: { headers: requestHeaders },
+    });
+    if (!authStrict) return passthrough;
+    if (publicPath) return passthrough;
+    const url = request.nextUrl.clone();
+    url.pathname = "/login";
+    url.searchParams.set("next", pathname);
+    return NextResponse.redirect(url);
+  }
+
   const { response, user } = await updateSession(requestWithPath);
 
-  if (!isAuthStrict()) {
+  if (!authStrict) {
     return response;
   }
 
-  if (isPublicPath(pathname)) {
+  if (publicPath) {
     if (
       user &&
       (pathname === "/login" ||
@@ -71,6 +100,6 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|brand/|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    "/((?!_next/static|_next/image|favicon.ico|brand/|manifest.webmanifest|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };

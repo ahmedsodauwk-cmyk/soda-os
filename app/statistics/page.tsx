@@ -25,7 +25,7 @@ export default async function StatisticsPage() {
   const stats = getOperationsStatistics(asOf);
 
   return (
-    <AppShell title="Statistics" subtitle={getModuleSlogan("dashboard")}>
+    <AppShell title="الإحصائيات" subtitle={getModuleSlogan("dashboard")}>
       <div className="space-y-6">
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <StatCard label="Monthly revenue" value={formatPrice(stats.monthlyRevenue)} />

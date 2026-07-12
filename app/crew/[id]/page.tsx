@@ -22,7 +22,7 @@ export default async function CrewMemberPage({ params }: CrewMemberPageProps) {
   ]);
 
   return (
-    <AppShell title="The Crew" subtitle={getModuleSlogan("crewProfile")}>
+    <AppShell title="الفريق" subtitle={getModuleSlogan("crewProfile")}>
       <CrewProfile personId={id} />
     </AppShell>
   );

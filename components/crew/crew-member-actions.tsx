@@ -16,6 +16,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { UI_ACTIONS } from "@/lib/brand/ui-actions";
 import {
   CREW_RESPONSIBILITIES,
   EMPLOYMENT_TYPES,
@@ -105,7 +106,7 @@ export function CrewMemberActions({
           onClick={() => setOpen(true)}
         >
           <Pencil className="size-3.5" />
-          Edit
+          {UI_ACTIONS.edit}
         </Button>
         <Button
           variant="ghost"
@@ -114,7 +115,7 @@ export function CrewMemberActions({
           onClick={() => void handleDelete()}
         >
           <Trash2 className="size-3.5" />
-          Delete
+          {UI_ACTIONS.delete}
         </Button>
       </div>
 
@@ -245,7 +246,7 @@ export function CrewMemberActions({
             </div>
             <DialogFooter>
               <Button type="submit" disabled={saving}>
-                {saving ? "Saving…" : "Save changes"}
+                {saving ? UI_ACTIONS.saving : UI_ACTIONS.saveChanges}
               </Button>
             </DialogFooter>
           </form>

@@ -1011,14 +1011,14 @@ export const HUB_SECTION_COPY: Record<HubSectionCopyKey, SectionCopy> = {
 /* -------------------------------------------------------------------------- */
 
 export const ABOUT_COPY = {
-  eyebrow: "About SODA",
+  eyebrow: "About SODA VISUALS",
   headline: "بنحوّل اللحظة لقصة تفضل.",
   missionTitle: "Mission",
   mission:
     "نساعد الستوديو يشتغل بإيقاع واضح — من أول مكالمة لحد آخر تسليمة — من غير ما الإبداع يتوه في الزحمة.",
   visionTitle: "Vision",
   vision:
-    "SODA OS يبقى نظام التشغيل بتاع كل creative studio عايز شغل مرتّب وطاقة عالية في نفس الوقت.",
+    "SODA VISUALS يبقى نظام التشغيل بتاع كل creative studio عايز شغل مرتّب وطاقة عالية في نفس الوقت.",
   valuesTitle: "Values",
   values: [
     {

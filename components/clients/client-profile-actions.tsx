@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 
 import { EditClientDialog } from "@/components/clients/edit-client-dialog";
 import { Button } from "@/components/ui/button";
+import { UI_ACTIONS } from "@/lib/brand/ui-actions";
 import {
   deleteClient,
   updateClient,
@@ -43,7 +44,7 @@ export function ClientProfileActions({ client }: ClientProfileActionsProps) {
           className="h-8"
           onClick={() => setEditing(true)}
         >
-          Edit
+          {UI_ACTIONS.edit}
         </Button>
         <Button
           variant="ghost"
@@ -51,7 +52,7 @@ export function ClientProfileActions({ client }: ClientProfileActionsProps) {
           className="h-8 text-destructive"
           onClick={() => void handleDelete()}
         >
-          Delete
+          {UI_ACTIONS.delete}
         </Button>
       </div>
       <EditClientDialog

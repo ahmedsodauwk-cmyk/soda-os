@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { UI_ACTIONS } from "@/lib/brand/ui-actions";
 import {
   Select,
   SelectContent,
@@ -91,12 +92,12 @@ export function CreateDeliveryDialog({
         }
       >
         <Plus className="size-3.5" />
-        Create delivery
+        {UI_ACTIONS.createDelivery}
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <form onSubmit={handleSubmit}>
           <DialogHeader>
-            <DialogTitle>Create delivery</DialogTitle>
+            <DialogTitle>{UI_ACTIONS.createDelivery}</DialogTitle>
             <DialogDescription>
               Track a deliverable against an order on this project.
             </DialogDescription>
@@ -194,7 +195,7 @@ export function CreateDeliveryDialog({
                 !dueDate
               }
             >
-              {saving ? "Saving…" : "Create delivery"}
+              {saving ? UI_ACTIONS.saving : UI_ACTIONS.createDelivery}
             </Button>
           </DialogFooter>
         </form>

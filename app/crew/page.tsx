@@ -13,7 +13,7 @@ export default async function CrewPage() {
   );
 
   return (
-    <AppShell title="The Crew" subtitle={getModuleSlogan("crew")}>
+    <AppShell title="الفريق" subtitle={getModuleSlogan("crew")}>
       <CrewList crew={crew} performanceById={performanceById} />
     </AppShell>
   );

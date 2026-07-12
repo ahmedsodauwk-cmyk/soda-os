@@ -28,7 +28,7 @@ export function OrdersHub() {
         <p className="text-sm text-muted-foreground">
           Choose a segment or manage all orders below.
         </p>
-        <OrderEntryActions triggerLabel="+ New Order" />
+        <OrderEntryActions triggerLabel="➕ إنشاء أوردر" />
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">

@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 export default async function WeddingOrdersPage() {
   await refreshOrders();
   return (
-    <AppShell title="Wedding Orders" subtitle={getModuleSlogan("weddings")}>
+    <AppShell title="أوردرات الأفراح" subtitle={getModuleSlogan("weddings")}>
       <WeddingOrdersView />
     </AppShell>
   );

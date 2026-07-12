@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 export default async function OrdersPage() {
   await Promise.all([refreshClients(), refreshProjects(), refreshOrders()]);
   return (
-    <AppShell title="Orders" subtitle={getModuleSlogan("orders")}>
+    <AppShell title="الأوردرات" subtitle={getModuleSlogan("orders")}>
       <OrdersHub />
     </AppShell>
   );

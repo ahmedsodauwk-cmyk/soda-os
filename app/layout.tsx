@@ -26,13 +26,30 @@ const alexandria = Alexandria({
 });
 
 export const metadata: Metadata = {
-  title: "SODA OS — Command Center",
-  description: "SODA Visuals Studio — commercial & wedding operations",
+  title: {
+    default: "SODA VISUALS",
+    template: "%s · SODA VISUALS",
+  },
+  description:
+    "SODA VISUALS — نظام تشغيل الاستوديو للشغل التجاري والأفراح",
+  applicationName: "SODA VISUALS",
+  manifest: "/manifest.webmanifest",
   icons: {
     icon: [
       { url: "/brand/soda-mark.svg", type: "image/svg+xml" },
       { url: "/brand/soda-logo-master.png", type: "image/png" },
     ],
+  },
+  openGraph: {
+    title: "SODA VISUALS",
+    description: "نظام تشغيل الاستوديو — شغل مرتّب وطاقة عالية",
+    siteName: "SODA VISUALS",
+    type: "website",
+  },
+  twitter: {
+    card: "summary",
+    title: "SODA VISUALS",
+    description: "نظام تشغيل الاستوديو — شغل مرتّب وطاقة عالية",
   },
 };
 

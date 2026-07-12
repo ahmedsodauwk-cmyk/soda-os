@@ -45,6 +45,8 @@ export {
 
 export type { HumanLayerKey } from "@/lib/brand/human-layer";
 
+export { UI_ACTIONS } from "@/lib/brand/ui-actions";
+
 export { SODA_QUOTES } from "@/lib/brand/quotes";
 
 export {

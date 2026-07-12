@@ -18,6 +18,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { UI_ACTIONS } from "@/lib/brand/ui-actions";
 import { getClients } from "@/lib/clients/repository";
 import { createQuotation } from "@/lib/quotations";
 import type { ClientSegment } from "@/lib/clients/types";
@@ -201,7 +202,7 @@ export function NewQuotationForm() {
               <p className="text-sm text-red-500">{error}</p>
             ) : null}
 
-            <Button type="submit">Create quotation</Button>
+            <Button type="submit">{UI_ACTIONS.createQuotation}</Button>
           </form>
         </CardContent>
       </Card>

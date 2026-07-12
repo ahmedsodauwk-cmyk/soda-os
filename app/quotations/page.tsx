@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 export default async function QuotationsPage() {
   await refreshQuotations();
   return (
-    <AppShell title="Quotations" subtitle={getModuleSlogan("quotations")}>
+    <AppShell title="عروض الأسعار" subtitle={getModuleSlogan("quotations")}>
       <QuotationsHub />
     </AppShell>
   );

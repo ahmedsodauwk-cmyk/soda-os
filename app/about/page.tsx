@@ -160,7 +160,7 @@ export default function AboutPage() {
           </section>
 
           <p className="mt-12 text-center text-xs tracking-[0.14em] text-muted-foreground uppercase">
-            SODA OS · Experience v1.0
+            SODA VISUALS · Experience v1.0
           </p>
         </div>
       </div>

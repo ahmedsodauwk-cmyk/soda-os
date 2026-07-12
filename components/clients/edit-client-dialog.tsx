@@ -21,6 +21,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { UI_ACTIONS } from "@/lib/brand/ui-actions";
 import {
   CLIENT_SEGMENTS,
   CLIENT_TYPES,
@@ -223,10 +224,10 @@ function EditClientForm({
           variant="outline"
           onClick={() => onOpenChange(false)}
         >
-          Cancel
+          {UI_ACTIONS.cancel}
         </Button>
         <Button type="submit" disabled={saving}>
-          {saving ? "Saving…" : "Save changes"}
+          {saving ? UI_ACTIONS.saving : UI_ACTIONS.saveChanges}
         </Button>
       </DialogFooter>
     </form>

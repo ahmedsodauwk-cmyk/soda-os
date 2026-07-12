@@ -4,7 +4,7 @@
  * Assets in `/public/brand/`:
  * - `soda-mark.svg` — white geometric صودا on Deep Dark Purple (#2D1B4E)
  * - `soda-mark-white.svg` — white mark only (transparent) for dark UI overlays
- * - `soda-wordmark.svg` — mark + SODA OS word
+ * - `soda-wordmark.svg` — mark + SODA VISUALS word
  * - `soda-logo-master.png` — official lockup master (source of truth)
  *
  * Colors: Deep Dark Purple #2D1B4E · Vibrant Pink #E93D77 · White
@@ -12,7 +12,7 @@
  * ─────────────────────────────────────────────────────────────
  * PLACEMENTS (allowed)
  * ─────────────────────────────────────────────────────────────
- * ✓ Sidebar header (compact mark + “SODA OS” word)
+ * ✓ Sidebar header (compact mark + “SODA VISUALS” word)
  * ✓ Favicon / app icon (mark only)
  * ✓ Loading overlay (mark, subtle pulse)
  * ✓ Login shell / About hero
@@ -41,9 +41,9 @@ export const SODA_LOGO = {
   masterSrc: "/brand/soda-logo-master.png",
   /** Favicon / app icon */
   iconSrc: "/brand/soda-mark.svg",
-  alt: "SODA",
-  productName: "SODA OS",
-  studioTagline: "Visuals Studio",
+  alt: "SODA VISUALS",
+  productName: "SODA VISUALS",
+  studioTagline: "Studio OS",
   studioName: "SODA Visuals Studio",
 } as const;
 

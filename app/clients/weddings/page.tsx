@@ -19,7 +19,7 @@ export default async function WeddingClientsPage() {
     refreshPayments(),
   ]);
   return (
-    <AppShell title="Wedding Clients" subtitle={getModuleSlogan("weddings")}>
+    <AppShell title="عملاء الأفراح" subtitle={getModuleSlogan("weddings")}>
       <WeddingClientsView
         clients={getClientsBySegment("wedding")}
         projects={getProjects()}

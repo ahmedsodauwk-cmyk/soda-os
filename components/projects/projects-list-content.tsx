@@ -27,6 +27,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { UI_ACTIONS } from "@/lib/brand/ui-actions";
 import { getAllClients, refreshClients } from "@/lib/clients/repository";
 import type { Client } from "@/lib/clients/types";
 import {
@@ -197,7 +198,7 @@ function AddProjectDialog({
           </div>
           <DialogFooter>
             <Button type="submit" disabled={saving || !clientId}>
-              {saving ? "Creating…" : "Create project"}
+              {saving ? UI_ACTIONS.creating : UI_ACTIONS.createProject}
             </Button>
           </DialogFooter>
         </form>

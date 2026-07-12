@@ -6,6 +6,7 @@ import { Pencil } from "lucide-react";
 
 import { EditOrderDialog } from "@/components/orders/edit-order-dialog";
 import { Button } from "@/components/ui/button";
+import { UI_ACTIONS } from "@/lib/brand/ui-actions";
 import { updateSmartOrder } from "@/lib/integration";
 import type { Order, SmartOrderInput } from "@/lib/orders/types";
 
@@ -29,7 +30,7 @@ export function OrderEditButton({ order }: { order: Order }) {
         onClick={() => setOpen(true)}
       >
         <Pencil className="size-3.5" />
-        Edit
+        {UI_ACTIONS.edit}
       </Button>
       <EditOrderDialog
         order={order}

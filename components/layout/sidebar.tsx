@@ -137,7 +137,7 @@ export function SidebarContent({ user }: SidebarContentProps) {
             </DropdownMenuItem>
             <DropdownMenuItem render={<Link href="/about" />}>
               <Info />
-              About SODA
+              About SODA VISUALS
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <form action={signOutAction}>

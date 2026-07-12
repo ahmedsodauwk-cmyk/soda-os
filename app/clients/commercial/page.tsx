@@ -19,7 +19,7 @@ export default async function CommercialClientsPage() {
     refreshPayments(),
   ]);
   return (
-    <AppShell title="Commercial Clients" subtitle={getModuleSlogan("commercial")}>
+    <AppShell title="العملاء التجاريين" subtitle={getModuleSlogan("commercial")}>
       <CommercialClientsView
         clients={getClientsBySegment("commercial")}
         projects={getProjects()}

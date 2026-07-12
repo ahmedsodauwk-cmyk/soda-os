@@ -2,6 +2,8 @@
  * Session + profile resolution for SODA identity.
  */
 
+import { cache } from "react";
+
 import { createClient } from "@/lib/supabase/server";
 import {
   parseSodaRole,
@@ -119,8 +121,8 @@ async function ensureProfile(
   };
 }
 
-/** Verified session + profile. Null when signed out. */
-export async function getSodaSession(): Promise<SodaSession | null> {
+/** Verified session + profile. Null when signed out. Deduped per request. */
+export const getSodaSession = cache(async (): Promise<SodaSession | null> => {
   try {
     const supabase = await createClient();
     const { data, error } = await supabase.auth.getUser();
@@ -143,7 +145,7 @@ export async function getSodaSession(): Promise<SodaSession | null> {
   } catch {
     return null;
   }
-}
+});
 
 export async function requireSodaSession(): Promise<SodaSession> {
   const session = await getSodaSession();
@@ -193,10 +195,13 @@ export function isAuthStrict(): boolean {
  * Resolve session for AppShell / pages.
  * Strict: null when signed out (caller redirects).
  * Non-strict: owner fallback so local/dev keeps working before Auth enable.
+ * Deduped per request via getSodaSession cache.
  */
-export async function resolveSessionForApp(): Promise<SodaSession | null> {
-  const session = await getSodaSession();
-  if (session) return session;
-  if (!isAuthStrict()) return fallbackOwnerSession();
-  return null;
-}
+export const resolveSessionForApp = cache(
+  async (): Promise<SodaSession | null> => {
+    const session = await getSodaSession();
+    if (session) return session;
+    if (!isAuthStrict()) return fallbackOwnerSession();
+    return null;
+  }
+);

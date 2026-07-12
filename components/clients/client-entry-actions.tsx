@@ -15,7 +15,7 @@ interface ClientEntryActionsProps {
 export function ClientEntryActions({
   defaultType,
   defaultSegment,
-  triggerLabel,
+  triggerLabel = "➕ إنشاء عميل",
 }: ClientEntryActionsProps) {
   const router = useRouter();
 

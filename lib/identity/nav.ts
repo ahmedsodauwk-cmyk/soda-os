@@ -1,5 +1,6 @@
 /**
  * Role-filtered navigation — sidebar / mobile menu.
+ * Titles use SODA Voice (Egyptian Arabic) + light emoji cues.
  */
 
 import type { LucideIcon } from "lucide-react";
@@ -42,7 +43,7 @@ export type NavItem = {
 
 export const NAV_ITEMS: NavItem[] = [
   {
-    title: "Dashboard",
+    title: "⚡ نظرة سريعة",
     href: "/",
     icon: LayoutDashboard,
     anyOf: [
@@ -53,133 +54,133 @@ export const NAV_ITEMS: NavItem[] = [
     ],
   },
   {
-    title: "My Dashboard",
+    title: "👤 مساحتي",
     href: "/me",
     icon: User,
     anyOf: ["dashboard.crew"],
   },
   {
-    title: "Quotations",
+    title: "📄 عروض الأسعار",
     href: "/quotations",
     icon: FileText,
     anyOf: ["quotations.view"],
   },
   {
-    title: "Orders",
+    title: "📸 الأوردرات",
     href: "/orders",
     icon: ShoppingCart,
     anyOf: ["orders.view"],
   },
   {
-    title: "Projects",
+    title: "📁 المشاريع",
     href: "/projects",
     icon: FolderKanban,
     anyOf: ["projects.view"],
   },
   {
-    title: "Commercial",
+    title: "🏢 التجاري",
     href: "/commercial",
     icon: Briefcase,
     anyOf: ["commercial.view"],
   },
   {
-    title: "Weddings",
+    title: "💍 الأفراح",
     href: "/orders/weddings",
     icon: Heart,
     anyOf: ["orders.view", "dashboard.company"],
   },
   {
-    title: "Clients",
+    title: "🤝 العملاء",
     href: "/clients",
     icon: Users,
     anyOf: ["clients.view"],
   },
   {
-    title: "The Crew",
+    title: "🎥 الفريق",
     href: "/crew",
     icon: UsersRound,
     anyOf: ["crew.view", "crew.stats"],
   },
   {
-    title: "Equipment",
+    title: "📷 المعدات",
     href: "/equipment",
     icon: Camera,
     anyOf: ["equipment.view"],
   },
   {
-    title: "Calendar",
+    title: "📅 الجدول",
     href: "/calendar",
     icon: Calendar,
     anyOf: ["calendar.view"],
   },
   {
-    title: "Finance",
+    title: "💰 المالية",
     href: "/finance",
     icon: DollarSign,
     anyOf: ["finance.view", "dashboard.finance"],
   },
   {
-    title: "Statistics",
+    title: "📊 الإحصائيات",
     href: "/statistics",
     icon: BarChart3,
     anyOf: ["statistics.view"],
   },
   {
-    title: "Wallet",
+    title: "💳 محفظتي",
     href: "/me/wallet",
     icon: Wallet,
     anyOf: ["me.wallet"],
   },
   {
-    title: "Bonus",
+    title: "🎁 البونص",
     href: "/me/bonus",
     icon: Gift,
     anyOf: ["me.bonus"],
   },
   {
-    title: "Target",
+    title: "🎯 التارجيت",
     href: "/me/target",
     icon: Target,
     anyOf: ["me.target"],
   },
   {
-    title: "Penalties",
+    title: "⚠️ الجزاءات",
     href: "/me/penalties",
     icon: AlertTriangle,
     anyOf: ["me.penalties"],
   },
   {
-    title: "Files",
+    title: "📂 ملفاتي",
     href: "/me/files",
     icon: FolderOpen,
     anyOf: ["me.files"],
   },
   {
-    title: "Briefs",
+    title: "📝 البريفز",
     href: "/me/briefs",
     icon: ScrollText,
     anyOf: ["me.briefs"],
   },
   {
-    title: "Dress Code",
+    title: "👔 الدريس كود",
     href: "/me/dress-code",
     icon: Shirt,
     anyOf: ["me.dress_code"],
   },
   {
-    title: "Performance",
+    title: "📈 أدائي",
     href: "/me/performance",
     icon: TrendingUp,
     anyOf: ["me.performance"],
   },
   {
-    title: "Notifications",
+    title: "🔔 التنبيهات",
     href: "/notifications",
     icon: Bell,
     anyOf: ["notifications.view"],
   },
   {
-    title: "Settings",
+    title: "⚙️ الإعدادات",
     href: "/settings",
     icon: Settings,
     anyOf: ["settings.view"],

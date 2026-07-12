@@ -4,7 +4,6 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Search } from "lucide-react";
 
-import { AddOrderDialog } from "@/components/orders/add-order-dialog";
 import { EditOrderDialog } from "@/components/orders/edit-order-dialog";
 import { OrdersTable } from "@/components/orders/orders-table";
 import { WorkspaceSidePanel } from "@/components/orders/workspace-side-panel";
@@ -20,7 +19,6 @@ import {
 } from "@/components/ui/select";
 import {
   applyOrderStatus,
-  createSmartOrder,
   updateSmartOrder,
 } from "@/lib/orders/engine";
 import {
@@ -110,12 +108,6 @@ export function OrdersContent() {
   function handleWorkspaceSelect(id: string) {
     setWorkspaceFilter(id);
     setSubcategoryFilter(null);
-  }
-
-  async function handleAddOrder(input: SmartOrderInput) {
-    await createSmartOrder(input);
-    setOrders(getOrders());
-    router.refresh();
   }
 
   async function handleSaveOrder(id: string, patch: Partial<SmartOrderInput>) {
@@ -209,8 +201,6 @@ export function OrdersContent() {
                   </SelectContent>
                 </Select>
               </div>
-
-              <AddOrderDialog onAdd={handleAddOrder} />
             </CardContent>
           </Card>
 

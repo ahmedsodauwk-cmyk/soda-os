@@ -30,6 +30,7 @@ import {
 } from "@/lib/clients/types";
 import { formatClientType } from "@/lib/clients/utils";
 import { getSuccessMessage } from "@/lib/brand/soda-voice";
+import { UI_ACTIONS } from "@/lib/brand/ui-actions";
 
 const emptyForm: NewClientInput = {
   type: "individual",
@@ -69,7 +70,7 @@ export function AddClientDialog({
   onAdd,
   defaultType,
   defaultSegment,
-  triggerLabel = "Add Client",
+  triggerLabel = "➕ إنشاء عميل",
 }: AddClientDialogProps) {
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState<NewClientInput>(() =>
@@ -308,9 +309,9 @@ export function AddClientDialog({
               variant="outline"
               onClick={() => setOpen(false)}
             >
-              Cancel
+              {UI_ACTIONS.cancel}
             </Button>
-            <Button type="submit">Create Client</Button>
+            <Button type="submit">{UI_ACTIONS.createClient}</Button>
           </DialogFooter>
         </form>
       </DialogContent>

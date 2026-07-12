@@ -4,7 +4,6 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Search } from "lucide-react";
 
-import { AddClientDialog } from "@/components/clients/add-client-dialog";
 import { ClientsTable } from "@/components/clients/clients-table";
 import { EditClientDialog } from "@/components/clients/edit-client-dialog";
 import { Card, CardContent } from "@/components/ui/card";
@@ -17,7 +16,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  createClient,
   deleteClient,
   getAllClients,
   refreshClients,
@@ -55,12 +53,6 @@ export function ClientsContent() {
     () => filterClients(clients, search, typeFilter),
     [clients, search, typeFilter]
   );
-
-  async function handleAddClient(input: NewClientInput) {
-    await createClient(input);
-    setClients(getAllClients());
-    router.refresh();
-  }
 
   async function handleSaveClient(
     id: string,
@@ -118,8 +110,6 @@ export function ClientsContent() {
               </SelectContent>
             </Select>
           </div>
-
-          <AddClientDialog onAdd={handleAddClient} />
         </CardContent>
       </Card>
 

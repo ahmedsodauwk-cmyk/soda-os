@@ -8,8 +8,8 @@ export default async function EquipmentPage() {
   await refreshEquipment();
   return (
     <AppShell
-      title="Equipment"
-      subtitle="Inventory — cameras, lenses, and kit."
+      title="المعدات"
+      subtitle="الكاميرات والعدسات والعدة."
     >
       <EquipmentInventoryContent />
     </AppShell>

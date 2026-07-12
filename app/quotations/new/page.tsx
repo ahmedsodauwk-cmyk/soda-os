@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 export default async function NewQuotationPage() {
   await Promise.all([refreshClients(), refreshQuotations()]);
   return (
-    <AppShell title="New quotation" subtitle={getModuleSlogan("quotations")}>
+    <AppShell title="عرض سعر جديد" subtitle={getModuleSlogan("quotations")}>
       <NewQuotationForm />
     </AppShell>
   );

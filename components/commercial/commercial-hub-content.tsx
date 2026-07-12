@@ -98,7 +98,7 @@ export function CommercialHubContent() {
 
           <OrderEntryActions
             defaultProjectType="Commercial"
-            triggerLabel="+ New Order"
+            triggerLabel="➕ إنشاء أوردر"
           />
         </CardContent>
       </Card>

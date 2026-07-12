@@ -16,6 +16,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { UI_ACTIONS } from "@/lib/brand/ui-actions";
 import {
   CREW_RESPONSIBILITIES,
   EMPLOYMENT_TYPES,
@@ -232,7 +233,7 @@ export function AddCrewMemberDialog({ onCreated }: AddCrewMemberDialogProps) {
             </div>
           </div>
           <DialogFooter>
-            <Button type="submit">Create crew member</Button>
+            <Button type="submit">{UI_ACTIONS.createCrew}</Button>
           </DialogFooter>
         </form>
       </DialogContent>

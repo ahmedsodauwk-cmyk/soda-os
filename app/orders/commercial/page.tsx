@@ -16,7 +16,7 @@ export default async function CommercialOrdersPage() {
     refreshPayments(),
   ]);
   return (
-    <AppShell title="Commercial Orders" subtitle={getModuleSlogan("commercial")}>
+    <AppShell title="الأوردرات التجارية" subtitle={getModuleSlogan("commercial")}>
       <CommercialOrdersView />
     </AppShell>
   );

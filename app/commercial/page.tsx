@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 export default async function CommercialPage() {
   await Promise.all([refreshProjects(), refreshOrders()]);
   return (
-    <AppShell title="Commercial" subtitle={getModuleSlogan("workspaces")}>
+    <AppShell title="التجاري" subtitle={getModuleSlogan("workspaces")}>
       <CommercialHubContent />
     </AppShell>
   );

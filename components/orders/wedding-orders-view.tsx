@@ -29,7 +29,7 @@ export function WeddingOrdersView() {
         </Button>
         <OrderEntryActions
           defaultProjectType="Wedding"
-          triggerLabel="+ New"
+          triggerLabel="➕ إنشاء أوردر"
         />
       </div>
 

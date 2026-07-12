@@ -100,8 +100,8 @@ export type HumanLayerKey =
 /** Canonical map — English key → one short Egyptian Arabic business line. */
 export const HUMAN_LAYER: Record<HumanLayerKey, string> = {
   /* Modules */
-  dashboard: "ملخص الشركة في لحظة واحدة.",
-  orders: "كل الشغل الجاري داخل الشركة.",
+  dashboard: "ملخص الشركة في لحظة — نظرة سريعة على الشغل.",
+  orders: "كل الشغل الجاري داخل الشركة — الأوردرات الحية.",
   projects: "المشاريع اللي شغالين عليها دلوقتي.",
   clients: "قاعدة العملاء — شركات وأفراح.",
   workspaces: "مسارات الشغل التجاري حسب التخصص.",
@@ -112,10 +112,10 @@ export const HUMAN_LAYER: Record<HumanLayerKey, string> = {
   product: "مسار تصوير المنتجات.",
   events: "مسار الإيفنتس التجاري.",
   commercial: "كل شغل الشركات والمؤسسات.",
-  finance: "ملخص الحسابات الخاصة بيك.",
+  finance: "ملخص الحسابات الخاصة بيك — محفظة الاستوديو.",
   quotations: "عروض الأسعار من الاستفسار لحد العربون.",
   about: "قصة صودا والفريق ورا الشغل.",
-  login: "ادخل على نظام تشغيل صودا.",
+  login: "ادخل على SODA VISUALS — نظام تشغيل الاستوديو.",
   crew: "فريق صودا اللي بينفذ الشغل.",
   crewProfile: "ملف عضو الفريق — الشغل والمستحقات.",
   calendar: "جدول التصوير والتسليمات من الأوردرات الحية.",

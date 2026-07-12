@@ -22,43 +22,43 @@ import { cn } from "@/lib/utils";
 
 const actions = [
   {
-    label: "New Quotation",
+    label: "➕ عرض سعر",
     href: "/quotations/new",
     icon: FileText,
     enabled: true,
   },
   {
-    label: "New Order",
+    label: "➕ إنشاء أوردر",
     href: "/orders",
     icon: Plus,
     enabled: true,
   },
   {
-    label: "New Client",
+    label: "➕ إنشاء عميل",
     href: "/clients",
     icon: UserPlus,
     enabled: true,
   },
   {
-    label: "The Crew",
+    label: "🎥 الفريق",
     href: "/crew",
     icon: UsersRound,
     enabled: true,
   },
   {
-    label: "Commercial",
+    label: "🏢 التجاري",
     href: "/commercial",
     icon: Briefcase,
     enabled: true,
   },
   {
-    label: "Open Calendar",
+    label: "📅 الجدول",
     href: "/calendar",
     icon: CalendarDays,
     enabled: true,
   },
   {
-    label: "View Reports",
+    label: "📊 التقارير",
     href: "/statistics",
     icon: BarChart3,
     enabled: true,

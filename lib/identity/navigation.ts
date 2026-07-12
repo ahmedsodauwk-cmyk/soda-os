@@ -152,7 +152,7 @@ export type Crumb = { label: string; href?: string };
 
 export function crumbsForPath(pathname: string): Crumb[] {
   const parts = pathname.split("/").filter(Boolean);
-  const crumbs: Crumb[] = [{ label: "Home", href: "/" }];
+  const crumbs: Crumb[] = [{ label: "نظرة سريعة", href: "/" }];
   if (parts.length === 0) return crumbs;
 
   let acc = "";
@@ -171,31 +171,33 @@ export function crumbsForPath(pathname: string): Crumb[] {
 
 function labelForSegment(segment: string, parent?: string): string {
   const known: Record<string, string> = {
-    orders: "Orders",
-    projects: "Projects",
-    clients: "Clients",
-    crew: "Crew",
-    people: "People",
-    finance: "Finance",
-    calendar: "Calendar",
-    commercial: "Commercial",
-    quotations: "Quotations",
-    equipment: "Equipment",
-    statistics: "Statistics",
-    settings: "Settings",
-    notifications: "Notifications",
-    me: "My space",
-    wallet: "Wallet",
-    bonus: "Bonus",
-    target: "Target",
-    penalties: "Penalties",
-    files: "Files",
-    briefs: "Briefs",
-    "dress-code": "Dress code",
-    performance: "Performance",
-    weddings: "Weddings",
-    about: "About",
-    login: "Sign in",
+    orders: "الأوردرات",
+    projects: "المشاريع",
+    clients: "العملاء",
+    crew: "الفريق",
+    people: "الفريق",
+    finance: "المالية",
+    calendar: "الجدول",
+    commercial: "التجاري",
+    quotations: "عروض الأسعار",
+    equipment: "المعدات",
+    statistics: "الإحصائيات",
+    settings: "الإعدادات",
+    notifications: "التنبيهات",
+    me: "مساحتي",
+    wallet: "محفظتي",
+    bonus: "البونص",
+    target: "التارجيت",
+    penalties: "الجزاءات",
+    files: "ملفاتي",
+    briefs: "البريفز",
+    "dress-code": "الدريس كود",
+    performance: "أدائي",
+    weddings: "الأفراح",
+    about: "عن صودا",
+    login: "تسجيل الدخول",
+    password: "كلمة السر",
+    new: "جديد",
   };
   if (known[segment]) return known[segment];
   if (parent === "orders") return "Order";

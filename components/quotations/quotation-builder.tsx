@@ -28,6 +28,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { UI_ACTIONS } from "@/lib/brand/ui-actions";
 import { runQuotationConversionFlow } from "@/lib/integration";
 import {
   APPROVAL_STATUSES,
@@ -370,7 +371,7 @@ export function QuotationBuilder({ quotationId }: QuotationBuilderProps) {
             disabled={converted}
             onClick={() => save("Builder save")}
           >
-            Save
+            {UI_ACTIONS.save}
           </Button>
         </div>
       </div>

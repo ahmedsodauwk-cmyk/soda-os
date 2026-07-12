@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/table";
 import { OrderStatusBadge } from "@/components/orders/order-status-badge";
 import { getEmptyState } from "@/lib/brand/soda-voice";
+import { UI_ACTIONS } from "@/lib/brand/ui-actions";
 import { formatDate, formatPrice, getInitials } from "@/lib/orders/utils";
 import type { Order } from "@/lib/orders/types";
 
@@ -125,7 +126,7 @@ export function OrdersTable({ orders, onEdit, onDelete }: OrdersTableProps) {
                     {onEdit ? (
                       <DropdownMenuItem onClick={() => onEdit(order)}>
                         <Pencil />
-                        Edit order
+                        {UI_ACTIONS.edit}
                       </DropdownMenuItem>
                     ) : null}
                     {onDelete ? (
@@ -134,7 +135,7 @@ export function OrdersTable({ orders, onEdit, onDelete }: OrdersTableProps) {
                         onClick={() => onDelete(order)}
                       >
                         <Trash2 />
-                        Delete order
+                        {UI_ACTIONS.delete}
                       </DropdownMenuItem>
                     ) : null}
                   </DropdownMenuContent>

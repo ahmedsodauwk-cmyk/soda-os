@@ -28,20 +28,25 @@ export async function AppShell({
   children,
   showBreadcrumbs = true,
 }: AppShellProps) {
-  const session = await resolveSessionForApp();
-  if (!session && isAuthStrict()) {
-    redirect("/login");
-  }
-
-  const events = await refreshBusinessEventsFromDb(40).catch(() => []);
-  const notifications = hydrateNotificationsFromEvents(events);
-  const recent = await getRecentlyViewed();
   const headerList = await headers();
   const pathname =
     headerList.get("x-pathname") ||
     headerList.get("x-invoke-path") ||
     headerList.get("next-url") ||
     "/";
+
+  // Parallelize shell data — session is React-cached when pages also call it.
+  const [session, events, recent] = await Promise.all([
+    resolveSessionForApp(),
+    refreshBusinessEventsFromDb(20).catch(() => []),
+    getRecentlyViewed(),
+  ]);
+
+  if (!session && isAuthStrict()) {
+    redirect("/login");
+  }
+
+  const notifications = hydrateNotificationsFromEvents(events);
 
   const user = session
     ? {
