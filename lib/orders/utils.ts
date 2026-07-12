@@ -38,11 +38,15 @@ export function formatPrice(amount: number): string {
 }
 
 export function formatDate(dateStr: string): string {
+  const raw = dateStr?.trim();
+  if (!raw) return "";
+  const date = new Date(raw);
+  if (Number.isNaN(date.getTime())) return "";
   return new Intl.DateTimeFormat("en-GB", {
     day: "numeric",
     month: "short",
     year: "numeric",
-  }).format(new Date(dateStr));
+  }).format(date);
 }
 
 export function generateOrderId(existingCount: number): string {

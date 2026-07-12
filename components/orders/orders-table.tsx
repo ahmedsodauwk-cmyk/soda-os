@@ -98,8 +98,8 @@ export function OrdersTable({ orders, onEdit, onDelete }: OrdersTableProps) {
                 {order.phone}
               </TableCell>
               <TableCell>{order.projectType}</TableCell>
-              <TableCell>{formatDate(order.shootDate)}</TableCell>
-              <TableCell>{formatDate(order.deliveryDate)}</TableCell>
+              <TableCell>{formatDate(order.shootDate) || "—"}</TableCell>
+              <TableCell>{formatDate(order.deliveryDate) || "—"}</TableCell>
               <TableCell>{order.team}</TableCell>
               <TableCell className="text-right font-medium">
                 {formatPrice(order.price)}
