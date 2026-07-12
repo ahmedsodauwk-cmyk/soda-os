@@ -1,6 +1,6 @@
 /**
- * Notification engine — real subscriber that records actionable notices
- * from business events (Egyptian Arabic, never developer event names).
+ * Human Notification Layer — Business Events → Human Language → Priority → Center.
+ * Never exposes raw PascalCase event names to the UI.
  */
 
 import type {
@@ -10,6 +10,10 @@ import type {
   NotificationRecord,
 } from "@/lib/core/types";
 import { hrefForBusinessEvent } from "@/lib/identity/navigation";
+import {
+  compareNotificationsByPriority,
+  priorityForEvent,
+} from "@/lib/core/notifications/priority";
 
 const MAX_MEMORY = 500;
 const notifications: NotificationRecord[] = [];
@@ -22,21 +26,26 @@ function hrefFor(event: BusinessEvent): string {
   }
 }
 
+/**
+ * Human titles — Egyptian Arabic teammate voice.
+ * Maps mission examples onto existing Business Core events
+ * (OrderAssigned → OrderCreated / CrewAssigned; CrewConfirmed → CrewAssigned).
+ */
 const FRIENDLY_TITLES_AR: Partial<Record<BusinessEventType, string>> = {
-  ClientCreated: "عميل جديد اتضاف",
+  ClientCreated: "عميل جديد انضم",
   ClientUpdated: "تحديث على عميل",
-  OrderCreated: "أوردر جديد",
+  OrderCreated: "أوردر جديد وصل",
   OrderUpdated: "تحديث على أوردر",
   OrderConfirmed: "أوردر اتأكد",
   OrderCompleted: "أوردر اتخلّص",
   OrderCancelled: "أوردر اتلغى",
   OrderRescheduled: "أوردر اتغيّر معادُه",
-  PaymentReceived: "دفعة دخلت",
+  PaymentReceived: "تحصيل جديد دخل",
   PaymentUpdated: "تحديث على دفعة",
   InvoiceCreated: "فاتورة جديدة",
   InvoicePaid: "فاتورة اتسددت",
   InvoiceUpdated: "تحديث على فاتورة",
-  CrewAssigned: "تعيين في الفريق",
+  CrewAssigned: "تعيين محتاج تأكيدك",
   CrewRemoved: "حد اتشال من التعيين",
   CrewPaid: "صرف للفريق",
   CrewBonusGenerated: "بونص للفريق",
@@ -59,15 +68,27 @@ const FRIENDLY_TITLES_AR: Partial<Record<BusinessEventType, string>> = {
 };
 
 function titleFor(event: BusinessEvent): string {
-  return (
-    FRIENDLY_TITLES_AR[event.type] ?? "حركة جديدة في الستوديو"
-  );
+  return FRIENDLY_TITLES_AR[event.type] ?? "تحديث من الستوديو";
+}
+
+function humanSummary(event: BusinessEvent): string | null {
+  const raw = event.payload.summary?.trim();
+  if (!raw) return null;
+  // Strip developer-ish assignment summaries
+  if (/^Crew assigned to order/i.test(raw)) {
+    return "فيه تعيين جديد على أوردر — أكّد أو ارفض من هنا.";
+  }
+  if (/^[A-Z][a-zA-Z]+(?:[A-Z][a-zA-Z]+)+/.test(raw)) return null;
+  return raw;
 }
 
 function bodyFor(event: BusinessEvent): string {
-  if (event.payload.summary?.trim()) return event.payload.summary.trim();
+  const summary = humanSummary(event);
+  if (summary) return summary;
+
   switch (event.type) {
     case "PaymentReceived":
+      return "فلوس دخلت الخزنة — شوف التفاصيل في المالية.";
     case "PaymentUpdated":
     case "InvoiceCreated":
     case "InvoicePaid":
@@ -83,6 +104,9 @@ function bodyFor(event: BusinessEvent): string {
     case "PeriodReopened":
       return "شوف التفاصيل في المالية.";
     case "OrderCreated":
+      return "أوردر جديد دخل النظام — افتحه ورتّب الخطوة الجاية.";
+    case "CrewAssigned":
+      return "تعيين جديد على أوردر — أكّد الحضور أو ارفض التعيين.";
     case "OrderUpdated":
     case "OrderConfirmed":
     case "OrderCompleted":
@@ -90,7 +114,6 @@ function bodyFor(event: BusinessEvent): string {
     case "OrderRescheduled":
     case "DeliveryCompleted":
     case "DeliveryCreated":
-    case "CrewAssigned":
     case "CrewRemoved":
     case "EquipmentAssigned":
     case "EquipmentReturned":
@@ -114,16 +137,31 @@ function bodyFor(event: BusinessEvent): string {
 type ActionKind = "order" | "client" | "finance" | "project" | "generic";
 
 function actionKindFor(event: BusinessEvent, href: string): ActionKind {
-  if (href.startsWith("/finance") || event.payload.entityType === "invoice" || event.payload.entityType === "payment") {
+  if (
+    href.startsWith("/finance") ||
+    event.payload.entityType === "invoice" ||
+    event.payload.entityType === "payment"
+  ) {
     return "finance";
   }
-  if (href.startsWith("/orders") || event.payload.entityType === "order" || event.payload.orderId) {
+  if (
+    href.startsWith("/orders") ||
+    event.payload.entityType === "order" ||
+    event.payload.orderId
+  ) {
     return "order";
   }
-  if (href.startsWith("/clients") || event.payload.entityType === "client" || event.payload.clientId) {
+  if (
+    href.startsWith("/clients") ||
+    event.payload.entityType === "client" ||
+    event.payload.clientId
+  ) {
     return "client";
   }
-  if (href.startsWith("/projects") || event.payload.entityType === "project") {
+  if (
+    href.startsWith("/projects") ||
+    event.payload.entityType === "project"
+  ) {
     return "project";
   }
   const financeTypes = new Set([
@@ -164,19 +202,47 @@ function actionLabel(kind: ActionKind): string {
 
 function actionsFor(event: BusinessEvent, href: string): NotificationAction[] {
   const kind = actionKindFor(event, href);
+  const view: NotificationAction = {
+    kind: "view",
+    label: actionLabel(kind),
+    href,
+    enabled: true,
+  };
+
+  // CrewAssigned ≈ mission "CrewConfirmed" — Confirm/Decline via assignment status.
+  if (event.type === "CrewAssigned") {
+    const assignmentId =
+      event.payload.assignmentId ??
+      (event.payload.entityType === "assignment"
+        ? event.payload.entityId
+        : undefined);
+    return [
+      view,
+      {
+        kind: "confirm",
+        label: "تأكيد",
+        enabled: Boolean(assignmentId),
+        assignmentId,
+        href: href,
+      },
+      {
+        kind: "decline",
+        label: "رفض",
+        enabled: Boolean(assignmentId),
+        assignmentId,
+        href: href,
+      },
+    ];
+  }
+
   return [
-    {
-      kind: "view",
-      label: actionLabel(kind),
-      href,
-      enabled: true,
-    },
+    view,
     { kind: "confirm", label: "تأكيد", enabled: false },
     { kind: "decline", label: "رفض", enabled: false },
   ];
 }
 
-/** Record a notification from a business event (subscriber). */
+/** Record a human notification from a business event (subscriber). */
 export function recordNotificationFromEvent(event: BusinessEvent): void {
   const href = hrefFor(event);
   const record: NotificationRecord = {
@@ -190,6 +256,7 @@ export function recordNotificationFromEvent(event: BusinessEvent): void {
     read: false,
     entityType: event.payload.entityType,
     entityId: event.payload.entityId,
+    priority: priorityForEvent(event),
     actions: actionsFor(event, href),
   };
   notifications.unshift(record);
@@ -199,11 +266,13 @@ export function recordNotificationFromEvent(event: BusinessEvent): void {
 }
 
 export function listNotifications(limit = 50): NotificationRecord[] {
-  return notifications.slice(0, Math.max(0, limit));
+  return [...notifications]
+    .sort(compareNotificationsByPriority)
+    .slice(0, Math.max(0, limit));
 }
 
 export function listUnreadNotifications(): NotificationRecord[] {
-  return notifications.filter((n) => !n.read);
+  return listNotifications().filter((n) => !n.read);
 }
 
 export function markNotificationRead(id: string): boolean {
@@ -236,10 +305,10 @@ export function hydrateNotificationsFromEvents(
 }
 
 /** Resolve human action label for UI (header + center). */
-export function notificationActionLabel(
-  item: NotificationRecord
-): string {
-  const view = item.actions?.find((a) => a.kind === "view" && a.enabled !== false);
+export function notificationActionLabel(item: NotificationRecord): string {
+  const view = item.actions?.find(
+    (a) => a.kind === "view" && a.enabled !== false
+  );
   if (view?.label) return view.label;
   const href = item.href ?? "";
   if (href.startsWith("/orders")) return "افتح الأوردر";
@@ -247,4 +316,19 @@ export function notificationActionLabel(
   if (href.startsWith("/finance")) return "افتح المالية";
   if (href.startsWith("/projects")) return "افتح المشروع";
   return "افتح التفاصيل";
+}
+
+export function notificationPriorityLabel(
+  priority: NotificationRecord["priority"]
+): string {
+  switch (priority) {
+    case "urgent":
+      return "عاجل";
+    case "high":
+      return "مهم";
+    case "low":
+      return "خفيف";
+    default:
+      return "";
+  }
 }

@@ -7,7 +7,7 @@
 const BY_ID: Record<string, string> = {};
 
 const BY_ENGLISH_NAME: Record<string, string> = {
-  "Junior Soda": "چونيور صودا",
+  "Junior Soda": "جونيور صودا",
 };
 
 /** Resolve Arabic display name; falls back to the English name if unmapped. */

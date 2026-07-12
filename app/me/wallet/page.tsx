@@ -13,7 +13,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { resolveSessionForApp } from "@/lib/identity/session";
-import { refreshAllDomainData } from "@/lib/supabase/refresh-all";
+import { refreshMeWalletDomainData } from "@/lib/supabase/refresh-all";
 import { getCrewWallet } from "@/lib/wallets/crew-wallet";
 import { formatPrice } from "@/lib/orders/utils";
 
@@ -23,13 +23,13 @@ export default async function MeWalletPage() {
   const session = await resolveSessionForApp();
   if (!session) redirect("/login");
 
-  await refreshAllDomainData().catch(() => undefined);
+  await refreshMeWalletDomainData().catch(() => undefined);
   const personId = session.profile.personId;
   const wallet = personId ? getCrewWallet(personId) : null;
 
   return (
     <RoleGate session={session} anyOf={["me.wallet"]}>
-      <AppShell titleKey="pages.myWallet" layer="myWallet">
+      <AppShell titleKey="pages.myWallet" layer="myWallet" session={session}>
         <BackLink href="/me" label="مساحتي" />
         <div className="grid gap-4 lg:grid-cols-3">
           <Card className="soda-cc-card lg:col-span-2">

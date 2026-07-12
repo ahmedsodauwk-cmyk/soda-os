@@ -4,6 +4,7 @@ import Link from "next/link";
 import { AppShell } from "@/components/layout/app-shell";
 import { InviteUserForm } from "@/components/auth/invite-user-form";
 import { LanguageSwitcher } from "@/components/i18n/language-switcher";
+import { ThemeSwitcher } from "@/components/theme/theme-switcher";
 import { RelatedRecords } from "@/components/navigation/related-records";
 import {
   Card,
@@ -23,7 +24,7 @@ export default async function SettingsPage() {
   if (!session) redirect("/login");
 
   return (
-    <AppShell titleKey="pages.settings" layer="settings">
+    <AppShell titleKey="pages.settings" layer="settings" session={session}>
       <div className="grid gap-4 lg:grid-cols-2">
         <Card className="soda-cc-card">
           <CardHeader>
@@ -33,7 +34,7 @@ export default async function SettingsPage() {
           <CardContent className="space-y-2 text-sm">
             <p>
               <span className="text-muted-foreground">Name · </span>
-              {session.profile.fullName}
+              {session.profile.displayName || session.profile.fullName}
             </p>
             <p>
               <span className="text-muted-foreground">Email · </span>
@@ -61,6 +62,18 @@ export default async function SettingsPage() {
           </CardHeader>
           <CardContent>
             <LanguageSwitcher variant="inline" />
+          </CardContent>
+        </Card>
+
+        <Card className="soda-cc-card">
+          <CardHeader>
+            <CardTitle>Appearance</CardTitle>
+            <CardDescription dir="rtl" className="font-ar">
+              فاتح · داكن · حسب النظام — ألوان صودا: أبيض، بنفسجي عميق، وردي.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ThemeSwitcher />
           </CardContent>
         </Card>
 

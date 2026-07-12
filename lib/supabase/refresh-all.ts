@@ -26,7 +26,7 @@ import { refreshCrewEarnings } from "@/lib/wallets/crew-wallet";
 /** Warm-instance TTL — skip full Supabase fan-out on rapid navigations. */
 const REFRESH_TTL_MS = 20_000;
 
-type RefreshKind = "all" | "dashboard";
+type RefreshKind = "all" | "dashboard" | "crewProfile" | "meWallet";
 
 let lastRefreshAt: Partial<Record<RefreshKind, number>> = {};
 let inFlight: Partial<Record<RefreshKind, Promise<void>>> = {};
@@ -39,15 +39,34 @@ function isFresh(kind: RefreshKind): boolean {
 function markFresh(kind: RefreshKind): void {
   const now = Date.now();
   lastRefreshAt[kind] = now;
-  // Full refresh also satisfies dashboard freshness.
-  if (kind === "all") lastRefreshAt.dashboard = now;
+  // Full refresh also satisfies narrower freshness.
+  if (kind === "all") {
+    lastRefreshAt.dashboard = now;
+    lastRefreshAt.crewProfile = now;
+    lastRefreshAt.meWallet = now;
+  }
+  if (kind === "dashboard") {
+    lastRefreshAt.crewProfile = now;
+    lastRefreshAt.meWallet = now;
+  }
 }
 
 async function runRefresh(kind: RefreshKind, work: () => Promise<void>) {
   if (isFresh(kind)) return;
-  if (kind === "dashboard" && isFresh("all")) return;
+  if (kind !== "all" && isFresh("all")) return;
+  if (
+    (kind === "crewProfile" || kind === "meWallet") &&
+    isFresh("dashboard")
+  ) {
+    return;
+  }
 
-  const existing = inFlight[kind] ?? (kind === "dashboard" ? inFlight.all : undefined);
+  const existing =
+    inFlight[kind] ??
+    (kind !== "all" ? inFlight.all : undefined) ??
+    ((kind === "crewProfile" || kind === "meWallet")
+      ? inFlight.dashboard
+      : undefined);
   if (existing) {
     await existing;
     return;
@@ -115,7 +134,21 @@ async function refreshAllDomainDataInner(): Promise<void> {
   await ensureDefaultCashAccounts();
 }
 
-/** Full domain refresh — Statistics, Me, wallet, smoke scripts. */
+/**
+ * Lean crew-profile refresh — people + assignments + orders + equipment.
+ * Real bottleneck was full domain fan-out on every /crew/[id] open.
+ */
+async function refreshCrewProfileDomainsInner(): Promise<void> {
+  bootstrapBusinessCore();
+  await Promise.all([
+    refreshPeople(),
+    refreshOrders(),
+    refreshAssignments(),
+    refreshEquipment(),
+  ]);
+}
+
+/** Full domain refresh — Statistics, smoke scripts. */
 export async function refreshAllDomainData(): Promise<void> {
   await runRefresh("all", refreshAllDomainDataInner);
 }
@@ -126,6 +159,29 @@ export async function refreshAllDomainData(): Promise<void> {
  */
 export const refreshDashboardDomainData = cache(async (): Promise<void> => {
   await runRefresh("dashboard", refreshDashboardDomainsInner);
+});
+
+/**
+ * Lean refresh for /crew/[id] profile transitions.
+ * Avoids finance/files/period-closing fan-out on every profile open.
+ */
+export const refreshCrewProfileDomainData = cache(async (): Promise<void> => {
+  await runRefresh("crewProfile", refreshCrewProfileDomainsInner);
+});
+
+/**
+ * Lean refresh for /me/* wallet surfaces — earnings + assignments + orders.
+ */
+export const refreshMeWalletDomainData = cache(async (): Promise<void> => {
+  await runRefresh("meWallet", async () => {
+    bootstrapBusinessCore();
+    await Promise.all([
+      refreshOrders(),
+      refreshAssignments(),
+      refreshCrewEarnings(),
+      refreshPayments(),
+    ]);
+  });
 });
 
 /** Test / scripts — force a full refresh ignoring TTL. */

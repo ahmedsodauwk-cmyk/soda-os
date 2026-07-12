@@ -328,12 +328,27 @@
 @keyframes soda-page-in {
   from {
     opacity: 0;
-    transform: translateY(8px);
+    transform: translateY(6px);
   }
   to {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+/* Soft brand wash — White / Deep Purple / Pink (theme-aware) */
+.soda-brand-wash {
+  background:
+    radial-gradient(
+      ellipse 55% 40% at 0% 0%,
+      color-mix(in srgb, var(--soda-pink) 8%, transparent) 0%,
+      transparent 55%
+    ),
+    radial-gradient(
+      ellipse 50% 45% at 100% 0%,
+      color-mix(in srgb, #2d1b4e 12%, transparent) 0%,
+      transparent 50%
+    );
 }
 
 @keyframes soda-mark-pulse {

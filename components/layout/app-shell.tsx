@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
@@ -33,6 +34,12 @@ interface AppShellProps {
   session?: SodaSession | null;
 }
 
+/** Per-request dedupe — AppShell + nested pages share one events hydrate. */
+const loadShellNotifications = cache(async () => {
+  const events = await refreshBusinessEventsFromDb(20).catch(() => []);
+  return hydrateNotificationsFromEvents(events);
+});
+
 export async function AppShell({
   titleKey,
   title,
@@ -49,11 +56,11 @@ export async function AppShell({
     headerList.get("next-url") ||
     "/";
 
-  const [sessionResolved, events, recent] = await Promise.all([
+  const [sessionResolved, notifications, recent] = await Promise.all([
     sessionProp !== undefined
       ? Promise.resolve(sessionProp)
       : resolveSessionForApp(),
-    refreshBusinessEventsFromDb(20).catch(() => []),
+    loadShellNotifications(),
     getRecentlyViewed(),
   ]);
 
@@ -63,11 +70,9 @@ export async function AppShell({
     redirect("/login");
   }
 
-  const notifications = hydrateNotificationsFromEvents(events);
-
   const user = session
     ? {
-        fullName: session.profile.fullName,
+        fullName: session.profile.displayName || session.profile.fullName,
         role: session.profile.role,
         avatarInitials: session.profile.avatarInitials,
         email: session.profile.email,
@@ -75,10 +80,10 @@ export async function AppShell({
     : undefined;
 
   return (
-    <main className="flex min-h-screen bg-background">
+    <main className="flex min-h-screen bg-background soda-brand-wash">
       <Sidebar user={user} />
 
-      <section className="flex flex-1 flex-col overflow-y-auto">
+      <section className="flex min-h-0 flex-1 flex-col overflow-y-auto">
         <Header
           titleKey={titleKey}
           title={title}

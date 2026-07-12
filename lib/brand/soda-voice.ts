@@ -46,8 +46,8 @@ export type {
   WelcomeMode,
 } from "@/lib/brand/types";
 
-/** Fallback display name when profile full_name is unavailable. */
-export const SODA_OPERATOR = "چونيور صودا";
+/** Fallback display name when profile displayName / full_name is unavailable. */
+export const SODA_OPERATOR = "جونيور صودا";
 export const SODA_OPERATOR_EN = "Junior Soda";
 
 /** localStorage key for last Command Center visit (date YYYY-MM-DD). */
@@ -170,7 +170,11 @@ const ROLE_NAME_BLOCKLIST = new Set([
   "عميل",
 ]);
 
-function resolveOperatorName(name?: string | null): string {
+/**
+ * Display name only — never role labels.
+ * Prefer profile.displayName / full_name; fallback جونيور صودا.
+ */
+export function resolveDisplayName(name?: string | null): string {
   const trimmed = name?.trim();
   if (!trimmed) return SODA_OPERATOR;
   const first = trimmed.split(/\s+/)[0] ?? trimmed;
@@ -181,6 +185,11 @@ function resolveOperatorName(name?: string | null): string {
     return SODA_OPERATOR;
   }
   return first;
+}
+
+/** @deprecated Prefer resolveDisplayName */
+function resolveOperatorName(name?: string | null): string {
+  return resolveDisplayName(name);
 }
 
 const HOOKS: Record<DayPeriod, Record<BusinessMood, string[]>> = {

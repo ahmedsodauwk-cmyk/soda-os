@@ -1,9 +1,6 @@
 import { AppShell } from "@/components/layout/app-shell";
 import { CrewProfile } from "@/components/crew/crew-profile";
-import { refreshCrew } from "@/lib/crew";
-import { refreshEquipment } from "@/lib/equipment/repository";
-import { refreshOrders } from "@/lib/orders/repository";
-import { refreshAssignments } from "@/lib/assignments/repository";
+import { refreshCrewProfileDomainData } from "@/lib/supabase/refresh-all";
 
 export const dynamic = "force-dynamic";
 
@@ -13,12 +10,8 @@ interface CrewMemberPageProps {
 
 export default async function CrewMemberPage({ params }: CrewMemberPageProps) {
   const { id } = await params;
-  await Promise.all([
-    refreshCrew(),
-    refreshEquipment(),
-    refreshOrders(),
-    refreshAssignments(),
-  ]);
+  // Lean refresh — people/orders/assignments/equipment only (not full domain).
+  await refreshCrewProfileDomainData();
 
   return (
     <AppShell titleKey="pages.crewProfile" layer="crewProfile">

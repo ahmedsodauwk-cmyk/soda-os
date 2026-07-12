@@ -16,6 +16,7 @@ export type {
   BusinessEventType,
   NotificationAction,
   NotificationActionKind,
+  NotificationPriority,
   NotificationRecord,
 } from "@/lib/core/types";
 
@@ -60,8 +61,15 @@ export {
   listUnreadNotifications,
   markNotificationRead,
   notificationActionLabel,
+  notificationPriorityLabel,
   recordNotificationFromEvent,
 } from "@/lib/core/notifications/engine";
+
+export {
+  compareNotificationsByPriority,
+  notificationPriorityRank,
+  priorityForEvent,
+} from "@/lib/core/notifications/priority";
 
 export {
   clearStatsDirty,

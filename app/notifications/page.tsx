@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 
 import { AppShell } from "@/components/layout/app-shell";
 import { RoleGate } from "@/components/identity/role-gate";
+import { NotificationDecisionButtons } from "@/components/notifications/notification-decision-buttons";
 import {
   Card,
   CardContent,
@@ -14,9 +15,13 @@ import {
   hydrateNotificationsFromEvents,
   refreshBusinessEventsFromDb,
 } from "@/lib/core";
-import { notificationActionLabel } from "@/lib/core/notifications/engine";
+import {
+  notificationActionLabel,
+  notificationPriorityLabel,
+} from "@/lib/core/notifications/engine";
 import type { NotificationRecord } from "@/lib/core/types";
 import { resolveSessionForApp } from "@/lib/identity/session";
+import { cn } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -51,12 +56,24 @@ function friendlyTitle(item: NotificationRecord): string {
   return "تحديث من الستوديو";
 }
 
+function priorityClass(priority: NotificationRecord["priority"]): string {
+  switch (priority) {
+    case "urgent":
+      return "border-destructive/40 bg-destructive/5";
+    case "high":
+      return "border-soda-pink/25 bg-soda-pink/5";
+    default:
+      return "border-transparent";
+  }
+}
+
 export default async function NotificationsPage() {
   const session = await resolveSessionForApp();
   if (!session) redirect("/login");
 
   let notifications: NotificationRecord[] = [];
   try {
+    // Prefer larger window for the center; warm TTL dedupes AppShell's smaller fetch.
     const events = await refreshBusinessEventsFromDb(80).catch(() => []);
     notifications = hydrateNotificationsFromEvents(events);
   } catch {
@@ -74,7 +91,7 @@ export default async function NotificationsPage() {
           <CardHeader>
             <CardTitle>مركز التنبيهات</CardTitle>
             <CardDescription dir="rtl" className="font-ar">
-              كل تنبيه بياخدك للأوردر أو العميل أو المالية المتعلقة بيه.
+              تنبيهات بشرية من حركة الستوديو — من غير أسماء تقنية.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-1">
@@ -86,16 +103,27 @@ export default async function NotificationsPage() {
               notifications.map((n) => {
                 const href = hrefForNotification(n);
                 const action = notificationActionLabel(n);
+                const priorityLabel = notificationPriorityLabel(n.priority);
                 return (
                   <div
                     key={n.id}
-                    className="rounded-lg border border-transparent px-3 py-2.5"
+                    className={cn(
+                      "rounded-lg border px-3 py-2.5",
+                      priorityClass(n.priority)
+                    )}
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0" dir="rtl">
-                        <p className="font-ar text-sm font-medium">
-                          {friendlyTitle(n)}
-                        </p>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <p className="font-ar text-sm font-medium">
+                            {friendlyTitle(n)}
+                          </p>
+                          {priorityLabel ? (
+                            <span className="rounded-sm bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground">
+                              {priorityLabel}
+                            </span>
+                          ) : null}
+                        </div>
                         <p className="font-ar line-clamp-2 text-xs text-muted-foreground">
                           {n.body || action}
                         </p>
@@ -105,6 +133,7 @@ export default async function NotificationsPage() {
                         >
                           {action}
                         </Link>
+                        <NotificationDecisionButtons actions={n.actions} />
                       </div>
                       <span className="shrink-0 text-[10px] text-muted-foreground">
                         {n.createdAt.slice(0, 16).replace("T", " ")}

@@ -16,6 +16,7 @@ export {
   toEasternDigits,
   getDayPeriod,
   getGreeting,
+  resolveDisplayName,
   getModuleSlogan,
   getWorkspaceSlogan,
   extractVoiceSignals,

@@ -16,7 +16,13 @@ import { homePathForRole } from "@/lib/identity/nav";
 export type SodaProfile = {
   id: string;
   email: string;
+  /** Display name for greetings — never role. Mirrors full_name. */
   fullName: string;
+  /**
+   * Preferred greeting name (same as fullName until a dedicated column exists).
+   * Human Experience Layer always uses this over role labels.
+   */
+  displayName: string;
   role: SodaRole;
   personId: string | null;
   avatarInitials: string;
@@ -68,6 +74,7 @@ async function ensureProfile(
       id: row.id,
       email: row.email ?? email,
       fullName: name,
+      displayName: name,
       role: parseSodaRole(row.role, "owner"),
       personId: row.person_id,
       avatarInitials: initialsFrom(name, row.email ?? email),
@@ -102,6 +109,7 @@ async function ensureProfile(
       id: userId,
       email,
       fullName: name,
+      displayName: name,
       role: "owner",
       personId: null,
       avatarInitials: initialsFrom(name, email),
@@ -110,10 +118,12 @@ async function ensureProfile(
   }
 
   const row = inserted as ProfileRow;
+  const resolvedName = row.full_name?.trim() || name;
   return {
     id: row.id,
     email: row.email ?? email,
-    fullName: row.full_name?.trim() || name,
+    fullName: resolvedName,
+    displayName: resolvedName,
     role: parseSodaRole(row.role, role),
     personId: row.person_id,
     avatarInitials: initialsFrom(row.full_name ?? name, row.email ?? email),
@@ -175,10 +185,11 @@ export function fallbackOwnerSession(): SodaSession {
     profile: {
       id: "local-owner",
       email: "owner@soda.studio",
-      fullName: "چونيور صودا",
+      fullName: "جونيور صودا",
+      displayName: "جونيور صودا",
       role: "owner",
       personId: null,
-      avatarInitials: "چص",
+      avatarInitials: "جص",
       isActive: true,
     },
   };

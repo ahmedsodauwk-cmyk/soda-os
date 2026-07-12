@@ -111,25 +111,31 @@ export interface AuditLogEntry {
   payload: BusinessEventPayload;
 }
 
+/** Human Experience — urgency for the Notification Center (never raw event names). */
+export type NotificationPriority = "urgent" | "high" | "normal" | "low";
+
 export interface NotificationRecord {
   id: string;
   eventId: string;
   eventType: BusinessEventType;
   createdAt: string;
+  /** Egyptian Arabic — never PascalCase event names. */
   title: string;
   body: string;
   href?: string;
   read: boolean;
   entityType: BusinessEntityType;
   entityId: string;
+  /** Human priority for sorting / visual weight. */
+  priority: NotificationPriority;
   /**
-   * Optional future Confirm / Decline slots.
-   * Sprint 3: structure only — do not render live Confirm/Decline yet.
+   * Confirm / Decline for crew assignment decisions (CrewAssigned).
+   * Other events keep view-only + disabled placeholders.
    */
   actions?: NotificationAction[];
 }
 
-/** Future notification decision CTA — reserved for Confirm/Decline flows. */
+/** Notification decision CTA — Confirm/Decline for crew assignments. */
 export type NotificationActionKind = "confirm" | "decline" | "view";
 
 export interface NotificationAction {
@@ -138,4 +144,6 @@ export interface NotificationAction {
   href?: string;
   /** When false, UI may show a disabled placeholder; default true when present. */
   enabled?: boolean;
+  /** Assignment id for confirm/decline server actions. */
+  assignmentId?: string;
 }

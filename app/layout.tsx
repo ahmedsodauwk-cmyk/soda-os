@@ -8,6 +8,12 @@ import {
   LOCALE_COOKIE,
   parseLocale,
 } from "@/lib/i18n/config";
+import { ThemeProvider } from "@/lib/theme/provider";
+import {
+  THEME_COOKIE,
+  parseTheme,
+  themeBootScript,
+} from "@/lib/theme/config";
 import "./globals.css";
 
 /** Distinctive geometric sans — English UI + headings. */
@@ -67,18 +73,27 @@ export default async function RootLayout({
 }>) {
   const jar = await cookies();
   const locale = parseLocale(jar.get(LOCALE_COOKIE)?.value) || DEFAULT_LOCALE;
+  const theme = parseTheme(jar.get(THEME_COOKIE)?.value);
   const dir = locale === "ar" ? "rtl" : "ltr";
 
   return (
     <html
       lang={locale}
       dir={dir}
-      className={`dark ${outfit.variable} ${geistMono.variable} ${alexandria.variable} h-full antialiased`}
+      className={`${outfit.variable} ${geistMono.variable} ${alexandria.variable} h-full antialiased`}
+      suppressHydrationWarning
     >
+      <head>
+        <script
+          dangerouslySetInnerHTML={{ __html: themeBootScript() }}
+        />
+      </head>
       <body className={`${outfit.className} flex min-h-full flex-col`}>
-        <LocaleProvider initialLocale={locale}>
-          <TooltipProvider>{children}</TooltipProvider>
-        </LocaleProvider>
+        <ThemeProvider initialTheme={theme}>
+          <LocaleProvider initialLocale={locale}>
+            <TooltipProvider>{children}</TooltipProvider>
+          </LocaleProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

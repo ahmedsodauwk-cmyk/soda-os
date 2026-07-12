@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/card";
 import type { Permission } from "@/lib/identity/permissions";
 import { resolveSessionForApp } from "@/lib/identity/session";
-import { refreshAllDomainData } from "@/lib/supabase/refresh-all";
+import { refreshMeWalletDomainData } from "@/lib/supabase/refresh-all";
 import { getCrewWallet } from "@/lib/wallets/crew-wallet";
 import { formatPrice } from "@/lib/orders/utils";
 
@@ -35,7 +35,8 @@ function makeMePage(config: MePageConfig) {
   return async function MeSectionPage() {
     const session = await resolveSessionForApp();
     if (!session) redirect("/login");
-    await refreshAllDomainData().catch(() => undefined);
+    // Lean refresh — wallet domains only (not full finance/files fan-out).
+    await refreshMeWalletDomainData().catch(() => undefined);
     const wallet = session.profile.personId
       ? getCrewWallet(session.profile.personId)
       : null;
@@ -46,6 +47,7 @@ function makeMePage(config: MePageConfig) {
           title={config.title}
           layer="mySpace"
           subtitle={config.sideLanguage}
+          session={session}
         >
           <BackLink href="/me" label="My Space" />
           <Card className="soda-cc-card">

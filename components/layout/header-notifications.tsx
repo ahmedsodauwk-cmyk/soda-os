@@ -14,7 +14,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { notificationActionLabel } from "@/lib/core/notifications/engine";
+import {
+  notificationActionLabel,
+  notificationPriorityLabel,
+} from "@/lib/core/notifications/engine";
 import type { NotificationRecord } from "@/lib/core/types";
 
 interface HeaderNotificationsProps {
@@ -104,6 +107,7 @@ export function HeaderNotifications({ initial }: HeaderNotificationsProps) {
         ) : (
           items.slice(0, 8).map((item) => {
             const href = safeHref(item);
+            const priorityLabel = notificationPriorityLabel(item.priority);
             return (
               <DropdownMenuItem
                 key={item.id}
@@ -114,6 +118,11 @@ export function HeaderNotifications({ initial }: HeaderNotificationsProps) {
                 <div className="min-w-0 space-y-0.5" dir="rtl">
                   <p className="font-ar text-sm font-medium">
                     {friendlyTitle(item)}
+                    {priorityLabel ? (
+                      <span className="ms-2 text-[10px] font-normal text-soda-pink">
+                        {priorityLabel}
+                      </span>
+                    ) : null}
                   </p>
                   <p className="font-ar line-clamp-2 text-xs text-muted-foreground">
                     {item.body || notificationActionLabel(item)}
