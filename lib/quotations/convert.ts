@@ -1,5 +1,5 @@
 /**
- * Convert an approved quotation (with deposit) into the SODA OS business graph:
+ * Convert an approved quotation (with deposit) into the SODA VISUALS business graph:
  * Client → Project → Order → Journey → Invoice → Payment → crew assignment stubs.
  */
 

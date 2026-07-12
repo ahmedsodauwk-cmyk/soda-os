@@ -3,7 +3,6 @@ import { notFound } from "next/navigation";
 import { AppShell } from "@/components/layout/app-shell";
 import { ProjectHubContent } from "@/components/projects/project-hub-content";
 import { refreshAssignments } from "@/lib/assignments/repository";
-import { getModuleSlogan } from "@/lib/brand/soda-voice";
 import { getFilesByProject, refreshFiles } from "@/lib/files/repository";
 import { refreshInvoices } from "@/lib/invoices/repository";
 import { refreshOrders } from "@/lib/orders/repository";
@@ -47,10 +46,7 @@ export default async function ProjectHubPage({ params }: ProjectHubPageProps) {
       : project.files;
 
   return (
-    <AppShell
-      title={project.name}
-      subtitle={getModuleSlogan("projectHub")}
-    >
+    <AppShell title={project.name} layer="projectHub">
       <ProjectHubContent project={{ ...project, files }} />
     </AppShell>
   );

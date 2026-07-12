@@ -39,13 +39,16 @@ export {
 
 export {
   HUMAN_LAYER,
+  SIDE_LANGUAGE,
   getHumanLayer,
+  getSideLanguage,
   isHumanLayerKey,
 } from "@/lib/brand/human-layer";
 
 export type { HumanLayerKey } from "@/lib/brand/human-layer";
 
-export { UI_ACTIONS } from "@/lib/brand/ui-actions";
+export { UI_ACTIONS, getUiActions } from "@/lib/brand/ui-actions";
+export { useUiActions } from "@/lib/brand/use-ui-actions";
 
 export { SODA_QUOTES } from "@/lib/brand/quotes";
 

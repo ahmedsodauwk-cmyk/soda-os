@@ -5,7 +5,6 @@ import {
   refreshAssignments,
 } from "@/lib/assignments/repository";
 import { getBusinessToday } from "@/lib/business/types";
-import { getModuleSlogan } from "@/lib/brand/soda-voice";
 import { detectCrewScheduleConflicts } from "@/lib/calendar/conflicts";
 import {
   getCalendarEvents,
@@ -43,7 +42,7 @@ export default async function CalendarPage() {
   }
 
   return (
-    <AppShell title="الجدول" subtitle={getModuleSlogan("calendar")}>
+    <AppShell titleKey="pages.calendar" layer="calendar">
       <CalendarContent
         events={events}
         asOf={asOf}

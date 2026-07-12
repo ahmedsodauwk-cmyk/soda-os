@@ -1,6 +1,7 @@
 /**
- * SODA HUMAN LAYER — Egyptian Arabic business explanations under English titles.
- * Not translations. Not slogans. Ops-manager voice for Egyptian business owners.
+ * SODA Side Language — Egyptian Arabic human explanations under UI titles.
+ * NEVER follows UI language. Not translations. Not slogans.
+ * Max ~2 short lines. Calm teammate voice for Egyptian studio owners.
  */
 
 export type HumanLayerKey =
@@ -24,6 +25,12 @@ export type HumanLayerKey =
   | "crew"
   | "crewProfile"
   | "calendar"
+  | "statistics"
+  | "equipment"
+  | "settings"
+  | "notifications"
+  | "mySpace"
+  | "myWallet"
   /* Dashboard sections */
   | "companyPulse"
   | "sodaLive"
@@ -97,28 +104,38 @@ export type HumanLayerKey =
   | "orderBasedPayments"
   | "deliveries";
 
-/** Canonical map — English key → one short Egyptian Arabic business line. */
+/** Canonical map — English key → SODA Side Language (Egyptian Arabic, ≤2 lines). */
 export const HUMAN_LAYER: Record<HumanLayerKey, string> = {
-  /* Modules */
-  dashboard: "ملخص الشركة في لحظة — نظرة سريعة على الشغل.",
-  orders: "كل الشغل الجاري داخل الشركة — الأوردرات الحية.",
-  projects: "المشاريع اللي شغالين عليها دلوقتي.",
-  clients: "قاعدة العملاء — شركات وأفراح.",
-  workspaces: "مسارات الشغل التجاري حسب التخصص.",
-  projectHub: "تفاصيل المشروع من الطلب للتسليم والدفع.",
-  rtm: "مسار RTM التجاري.",
-  weddings: "كل شغل الأفراح.",
-  fashion: "مسار الفاشن التجاري.",
-  product: "مسار تصوير المنتجات.",
-  events: "مسار الإيفنتس التجاري.",
-  commercial: "كل شغل الشركات والمؤسسات.",
-  finance: "ملخص الحسابات الخاصة بيك — محفظة الاستوديو.",
-  quotations: "عروض الأسعار من الاستفسار لحد العربون.",
-  about: "قصة صودا والفريق ورا الشغل.",
-  login: "ادخل على SODA VISUALS — نظام تشغيل الاستوديو.",
-  crew: "فريق صودا اللي بينفذ الشغل.",
-  crewProfile: "ملف عضو الفريق — الشغل والمستحقات.",
-  calendar: "جدول التصوير والتسليمات من الأوردرات الحية.",
+  /* Modules — Side Language (identity of SODA VISUALS) */
+  dashboard:
+    "دي نظرة سريعة على اللي مستنيك النهارده.\nالأولويات، الشغل الحي، وحركة الشركة.",
+  orders:
+    "كل شغل الشركة بيبدأ من هنا.\nتابع الأوردرات، الفريق، وحالة التنفيذ.",
+  projects: "كل مشروع ليه رحلته.\nمن أول الاتفاق لحد التسليم.",
+  clients:
+    "هنا هتلاقي كل عملاء الشركة.\nضيف عميل جديد أو كمل شغلك مع عميل موجود.",
+  workspaces: "مسارات الشغل التجاري حسب التخصص.\nاختار المسار وكمل من مكانه.",
+  projectHub: "تفاصيل المشروع من الاتفاق للتسليم والدفع.\nكل حاجة في مكان واحد.",
+  rtm: "مسار RTM التجاري.\nشوف الشغل والحساب من هنا.",
+  weddings: "كل شغل الأفراح.\nالعملاء والأوردرات والمواعيد.",
+  fashion: "مسار الفاشن التجاري.\nالشغل والحساب في سطر واحد.",
+  product: "مسار تصوير المنتجات.\nمن الأوردر لحد التسليم.",
+  events: "مسار الإيفنتس التجاري.\nتابع التنفيذ والحساب هنا.",
+  commercial: "كل شغل الشركات والمؤسسات.\nالمسارات، الأوردرات، والعملاء.",
+  finance:
+    "هنا هتتابع فلوس الشركة كلها.\nالتحصيلات، المصروفات، الأرباح، وحركة الحسابات.",
+  quotations: "عروض الأسعار من الاستفسار لحد العربون.\nابنِ العرض وحوّله لأوردر.",
+  about: "قصة صودا والفريق ورا الشغل.\nإزاي بنشتغل ولماذا.",
+  login: "ادخل على SODA VISUALS.\nنظام تشغيل الاستوديو للشغل مرتّب.",
+  crew: "كل بيانات الفريق في مكان واحد.\nشوف المهام، الأرباح، والأداء.",
+  crewProfile: "ملف عضو الفريق.\nالشغل، المستحقات، والأداء.",
+  calendar: "جدول التصوير والتسليمات.\nمن الأوردرات الحية مباشرة.",
+  statistics: "لو عايز تعرف الشركة ماشية إزاي،\nابدأ من هنا.",
+  equipment: "الكاميرات والعدسات والعدة.\nمين معاه إيه، وإيه فاضي.",
+  settings: "الحساب، اللغة، وكلمة السر.\nوصلاحيات الفريق لو محتاج.",
+  notifications: "تنبيهات الأوردرات والعملاء والمالية.\nاللي محتاج نظرة بسرعة.",
+  mySpace: "مساحتك الشخصية في صودا.\nالشوتات، المحفظة، والتارجيت.",
+  myWallet: "مستحقاتك والمدفوع من الشغل.\nمحفظة واضحة من غير لف.",
 
   /* Dashboard */
   companyPulse: "أهم الحاجات اللي محتاجة انتباه دلوقتي.",
@@ -199,12 +216,19 @@ export const HUMAN_LAYER: Record<HumanLayerKey, string> = {
   deliveries: "التسليمات المرتبطة بالشغل ده.",
 };
 
-/** Resolve a Human Layer line. Unknown keys return empty (callers skip render). */
+/** Alias — SODA Side Language is the human layer. */
+export const SIDE_LANGUAGE = HUMAN_LAYER;
+
+/** Resolve a Side Language line. Unknown keys return empty (callers skip render). */
 export function getHumanLayer(key: HumanLayerKey): string {
   return HUMAN_LAYER[key];
 }
 
-/** True when a string is a known Human Layer key. */
+export function getSideLanguage(key: HumanLayerKey): string {
+  return HUMAN_LAYER[key];
+}
+
+/** True when a string is a known Human Layer / Side Language key. */
 export function isHumanLayerKey(key: string): key is HumanLayerKey {
   return key in HUMAN_LAYER;
 }

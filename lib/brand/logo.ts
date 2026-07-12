@@ -42,9 +42,12 @@ export const SODA_LOGO = {
   /** Favicon / app icon */
   iconSrc: "/brand/soda-mark.svg",
   alt: "SODA VISUALS",
-  productName: "SODA VISUALS",
-  studioTagline: "Studio OS",
-  studioName: "SODA Visuals Studio",
+  /** Sidebar word line */
+  productName: "SODA",
+  studioTagline: "VISUALS",
+  studioName: "SODA Visuals",
+  /** Full product lockup for docs / metadata */
+  fullName: "SODA VISUALS",
 } as const;
 
 /** Recommended pixel sizes by placement */
@@ -100,6 +103,6 @@ export const SODA_PDF_HEADER = {
   clearSpaceRatio: 0.25,
   accentLine: true,
   accentColorToken: "soda-pink",
-  productName: SODA_LOGO.productName,
+  productName: SODA_LOGO.fullName,
   tagline: SODA_LOGO.studioTagline,
 } as const;

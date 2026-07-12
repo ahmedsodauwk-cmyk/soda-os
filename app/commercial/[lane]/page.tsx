@@ -27,6 +27,7 @@ export default async function CommercialLanePage({
   return (
     <AppShell
       title={workspace.label}
+      layer="commercial"
       subtitle={getWorkspaceSlogan(workspace.id)}
     >
       <CommercialLaneContent workspace={workspace} />

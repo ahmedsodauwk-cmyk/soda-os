@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import {
   BarChart3,
@@ -18,54 +20,63 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { DASHBOARD_SECTION_COPY } from "@/lib/brand/soda-voice";
+import { useI18n } from "@/lib/i18n/provider";
+import type { DictKey } from "@/lib/i18n/dictionaries";
 import { cn } from "@/lib/utils";
 
-const actions = [
+const actions: {
+  labelKey: DictKey;
+  href: string;
+  icon: typeof FileText;
+  enabled: boolean;
+}[] = [
   {
-    label: "➕ عرض سعر",
+    labelKey: "quickActions.newQuotation",
     href: "/quotations/new",
     icon: FileText,
     enabled: true,
   },
   {
-    label: "➕ إنشاء أوردر",
+    labelKey: "quickActions.createOrder",
     href: "/orders",
     icon: Plus,
     enabled: true,
   },
   {
-    label: "➕ إنشاء عميل",
+    labelKey: "quickActions.createClient",
     href: "/clients",
     icon: UserPlus,
     enabled: true,
   },
   {
-    label: "🎥 الفريق",
+    labelKey: "quickActions.crew",
     href: "/crew",
     icon: UsersRound,
     enabled: true,
   },
   {
-    label: "🏢 التجاري",
+    labelKey: "quickActions.commercial",
     href: "/commercial",
     icon: Briefcase,
     enabled: true,
   },
   {
-    label: "📅 الجدول",
+    labelKey: "quickActions.calendar",
     href: "/calendar",
     icon: CalendarDays,
     enabled: true,
   },
   {
-    label: "📊 التقارير",
+    labelKey: "quickActions.reports",
     href: "/statistics",
     icon: BarChart3,
     enabled: true,
   },
-] as const;
+];
 
 export default function QuickActions() {
+  const { t } = useI18n();
+
   return (
     <Card className="soda-cc-card">
       <CardHeader className="pb-3">
@@ -81,6 +92,7 @@ export default function QuickActions() {
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
           {actions.map((action) => {
             const Icon = action.icon;
+            const label = t(action.labelKey);
             const className = cn(
               "h-auto flex-col gap-2 py-4",
               action.enabled &&
@@ -91,28 +103,27 @@ export default function QuickActions() {
             if (!action.enabled) {
               return (
                 <Button
-                  key={action.label}
+                  key={action.labelKey}
                   variant="outline"
                   disabled
                   className={className}
                 >
                   <Icon className="size-4" />
-                  <span className="text-xs font-medium">{action.label}</span>
-                  <span className="text-[10px] text-muted-foreground">Soon</span>
+                  <span className="text-xs font-medium">{label}</span>
                 </Button>
               );
             }
 
             return (
               <Button
-                key={action.label}
+                key={action.labelKey}
                 variant="outline"
-                className={className}
                 nativeButton={false}
                 render={<Link href={action.href} />}
+                className={className}
               >
                 <Icon className="size-4" />
-                <span className="text-xs font-medium">{action.label}</span>
+                <span className="text-xs font-medium">{label}</span>
               </Button>
             );
           })}

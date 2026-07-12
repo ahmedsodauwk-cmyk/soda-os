@@ -17,10 +17,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { LanguageSwitcher } from "@/components/i18n/language-switcher";
 import { SodaLogo } from "@/components/brand/soda-logo";
 import { signOutAction } from "@/lib/auth/actions";
 import { navForRole } from "@/lib/identity/nav";
 import { ROLE_LABELS, type SodaRole } from "@/lib/identity/roles";
+import { useI18n } from "@/lib/i18n/provider";
 
 export type SidebarUser = {
   fullName: string;
@@ -35,6 +37,7 @@ interface SidebarContentProps {
 
 export function SidebarContent({ user }: SidebarContentProps) {
   const pathname = usePathname();
+  const { t } = useI18n();
   const role = user?.role ?? "owner";
   const menu = navForRole(role);
 
@@ -48,6 +51,7 @@ export function SidebarContent({ user }: SidebarContentProps) {
         <nav className="space-y-0.5">
           {menu.map((item) => {
             const Icon = item.icon;
+            const title = t(item.titleKey);
             const isActive =
               item.href !== "#" &&
               (item.href === "/"
@@ -61,7 +65,7 @@ export function SidebarContent({ user }: SidebarContentProps) {
 
             return (
               <Button
-                key={item.title}
+                key={item.titleKey}
                 variant="ghost"
                 nativeButton={false}
                 render={
@@ -83,7 +87,7 @@ export function SidebarContent({ user }: SidebarContentProps) {
                     isActive ? "text-soda-pink" : "opacity-80"
                   )}
                 />
-                <span>{item.title}</span>
+                <span>{title}</span>
               </Button>
             );
           })}
@@ -93,7 +97,9 @@ export function SidebarContent({ user }: SidebarContentProps) {
       <div className="space-y-4 border-t border-sidebar-border p-4">
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <p className="text-xs font-medium text-muted-foreground">Storage</p>
+            <p className="text-xs font-medium text-muted-foreground">
+              {t("common.storage")}
+            </p>
             <p className="font-mono text-xs text-soda-pink">75%</p>
           </div>
           <Progress value={75} className="gap-0" />
@@ -121,23 +127,26 @@ export function SidebarContent({ user }: SidebarContentProps) {
           </DropdownMenuTrigger>
 
           <DropdownMenuContent align="start" className="w-56">
-            <DropdownMenuLabel>My Account</DropdownMenuLabel>
+            <DropdownMenuLabel>{t("common.myAccount")}</DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem render={<Link href="/settings" />}>
               <User />
-              Profile
+              {t("common.profile")}
             </DropdownMenuItem>
             <DropdownMenuItem render={<Link href="/settings" />}>
               <Settings />
-              Settings
+              {t("common.settings")}
             </DropdownMenuItem>
             <DropdownMenuItem render={<Link href="/settings/password" />}>
               <Settings />
-              Change password
+              {t("common.changePassword")}
             </DropdownMenuItem>
+            <div className="px-2 py-1.5">
+              <LanguageSwitcher variant="inline" />
+            </div>
             <DropdownMenuItem render={<Link href="/about" />}>
               <Info />
-              About SODA VISUALS
+              {t("common.aboutSoda")}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <form action={signOutAction}>
@@ -147,7 +156,7 @@ export function SidebarContent({ user }: SidebarContentProps) {
                 render={<button type="submit" className="w-full" />}
               >
                 <LogOut />
-                Log out
+                {t("actions.logOut")}
               </DropdownMenuItem>
             </form>
           </DropdownMenuContent>

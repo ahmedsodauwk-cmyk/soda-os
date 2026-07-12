@@ -34,7 +34,13 @@ export type ModuleSloganKey =
   | "login"
   | "crew"
   | "crewProfile"
-  | "calendar";
+  | "calendar"
+  | "statistics"
+  | "equipment"
+  | "settings"
+  | "notifications"
+  | "mySpace"
+  | "myWallet";
 
 export type EmptyStateKey =
   | "orders"

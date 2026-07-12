@@ -1,6 +1,5 @@
 import { AppShell } from "@/components/layout/app-shell";
 import { CommercialOrdersView } from "@/components/orders/commercial-orders-view";
-import { getModuleSlogan } from "@/lib/brand/soda-voice";
 import { refreshClients } from "@/lib/clients/repository";
 import { refreshOrders } from "@/lib/orders/repository";
 import { refreshPayments } from "@/lib/payments/repository";
@@ -16,7 +15,7 @@ export default async function CommercialOrdersPage() {
     refreshPayments(),
   ]);
   return (
-    <AppShell title="الأوردرات التجارية" subtitle={getModuleSlogan("commercial")}>
+    <AppShell titleKey="pages.commercialOrders" layer="commercialOrders">
       <CommercialOrdersView />
     </AppShell>
   );

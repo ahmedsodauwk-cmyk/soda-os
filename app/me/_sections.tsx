@@ -21,7 +21,10 @@ export const dynamic = "force-dynamic";
 
 type MePageConfig = {
   title: string;
-  subtitle: string;
+  /** English card description (UI chrome). */
+  description: string;
+  /** SODA Side Language — Egyptian Arabic under the page title. */
+  sideLanguage: string;
   permission: Permission;
   body: (
     wallet: ReturnType<typeof getCrewWallet> | null
@@ -39,12 +42,16 @@ function makeMePage(config: MePageConfig) {
 
     return (
       <RoleGate session={session} anyOf={[config.permission]}>
-        <AppShell title={config.title} subtitle={config.subtitle}>
+        <AppShell
+          title={config.title}
+          layer="mySpace"
+          subtitle={config.sideLanguage}
+        >
           <BackLink href="/me" label="My Dashboard" />
           <Card className="soda-cc-card">
             <CardHeader>
               <CardTitle>{config.title}</CardTitle>
-              <CardDescription>{config.subtitle}</CardDescription>
+              <CardDescription>{config.description}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
               {config.body(wallet)}
@@ -75,7 +82,8 @@ function makeMePage(config: MePageConfig) {
 
 export const MeBonusPage = makeMePage({
   title: "Bonus",
-  subtitle: "Monthly target bonus progress",
+  description: "Monthly target bonus progress",
+  sideLanguage: "البونص الشهري حسب التارجيت.\nشوف تقدمك ومستحقاتك.",
   permission: "me.bonus",
   body: (wallet) =>
     wallet ? (
@@ -101,7 +109,8 @@ export const MeBonusPage = makeMePage({
 
 export const MeTargetPage = makeMePage({
   title: "Target",
-  subtitle: "Your monthly completion target",
+  description: "Your monthly completion target",
+  sideLanguage: "التارجيت الشهري بتاعك.\nكم أوردر خلّصت وقد إيه فاضل.",
   permission: "me.target",
   body: (wallet) =>
     wallet ? (
@@ -121,7 +130,8 @@ export const MeTargetPage = makeMePage({
 
 export const MePenaltiesPage = makeMePage({
   title: "Penalties",
-  subtitle: "Policy deductions and notes",
+  description: "Policy deductions and notes",
+  sideLanguage: "الجزاءات والخصومات المسجّلة.\nلو في حاجة هتظهر هنا مع الأوردر.",
   permission: "me.penalties",
   body: () => (
     <p className="text-sm text-muted-foreground">
@@ -133,7 +143,8 @@ export const MePenaltiesPage = makeMePage({
 
 export const MeFilesPage = makeMePage({
   title: "Files",
-  subtitle: "Briefs and shoot files for your assignments",
+  description: "Briefs and shoot files for your assignments",
+  sideLanguage: "ملفات الشوتات والتعيينات.\nالبريفز والتسليمات اللي تخصّك.",
   permission: "me.files",
   body: () => (
     <p className="text-sm text-muted-foreground">
@@ -148,7 +159,8 @@ export const MeFilesPage = makeMePage({
 
 export const MeBriefsPage = makeMePage({
   title: "Briefs",
-  subtitle: "Call sheets and creative briefs",
+  description: "Call sheets and creative briefs",
+  sideLanguage: "البريفز وورق التصوير.\nافتح الأوردر أو الجدول عشان تشوف اليوم.",
   permission: "me.briefs",
   body: () => (
     <p className="text-sm text-muted-foreground">
@@ -167,7 +179,8 @@ export const MeBriefsPage = makeMePage({
 
 export const MeDressCodePage = makeMePage({
   title: "Dress Code",
-  subtitle: "Studio appearance standards",
+  description: "Studio appearance standards",
+  sideLanguage: "معايير المظهر في الشوتات.\nلبس مرتّب ومن غير مفاجآت قدام العميل.",
   permission: "me.dress_code",
   body: () => (
     <ul className="list-disc space-y-1 pl-5 text-sm text-muted-foreground">
@@ -180,7 +193,8 @@ export const MeDressCodePage = makeMePage({
 
 export const MePerformancePage = makeMePage({
   title: "Performance",
-  subtitle: "Completed work and reliability",
+  description: "Completed work and reliability",
+  sideLanguage: "أدائك على الشغل المكتمل.\nالأوردرات والمستحقات في سطر واحد.",
   permission: "me.performance",
   body: (wallet) =>
     wallet ? (

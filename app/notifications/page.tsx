@@ -52,10 +52,7 @@ export default async function NotificationsPage() {
 
   return (
     <RoleGate session={session} anyOf={["notifications.view"]}>
-      <AppShell
-        title="التنبيهات"
-        subtitle="أوردرات وعملاء ومالية وجدول"
-      >
+      <AppShell titleKey="pages.notifications" layer="notifications">
         <Card className="soda-cc-card">
           <CardHeader>
             <CardTitle>Activity</CardTitle>

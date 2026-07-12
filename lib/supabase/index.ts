@@ -1,5 +1,5 @@
 /**
- * Supabase foundation for Soda OS (Sprint 15–16).
+ * Supabase foundation for SODA VISUALS (Sprint 15–16).
  *
  * Connection helpers + health probe. Domain repositories remain on
  * in-memory / mock stores until a later sprint wires Postgres reads/writes.

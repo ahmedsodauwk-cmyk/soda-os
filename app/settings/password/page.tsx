@@ -19,7 +19,7 @@ export default async function ChangePasswordPage() {
   if (!session) redirect("/login");
 
   return (
-    <AppShell title="Change password" subtitle="Update your sign-in password">
+    <AppShell titleKey="pages.changePassword" layer="settings">
       <BackLink href="/settings" label="Settings" />
       <Card className="soda-cc-card max-w-lg">
         <CardHeader>

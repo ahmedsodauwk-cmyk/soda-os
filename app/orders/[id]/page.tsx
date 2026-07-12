@@ -3,7 +3,6 @@ import { notFound } from "next/navigation";
 import { AppShell } from "@/components/layout/app-shell";
 import { OrderCommandCenter } from "@/components/orders/order-command-center";
 import { refreshAssignments } from "@/lib/assignments/repository";
-import { getModuleSlogan } from "@/lib/brand/soda-voice";
 import {
   getCalendarEventsByOrder,
   refreshCalendar,
@@ -65,7 +64,7 @@ export default async function OrderCommandCenterPage({ params }: OrderPageProps)
   );
 
   return (
-    <AppShell title="Order" subtitle={getModuleSlogan("orders")}>
+    <AppShell titleKey="pages.order" layer="orders">
       <OrderCommandCenter
         view={view}
         peopleById={peopleById}

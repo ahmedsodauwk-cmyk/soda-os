@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useActionState } from "react";
 
 import { SodaLogo } from "@/components/brand/soda-logo";
+import { LanguageSwitcher } from "@/components/i18n/language-switcher";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,11 +13,13 @@ import {
   signInAction,
   type AuthActionResult,
 } from "@/lib/auth/actions";
+import { useI18n } from "@/lib/i18n/provider";
 
 const initial: AuthActionResult | null = null;
 
 export function LoginForm() {
   const [state, formAction, pending] = useActionState(signInAction, initial);
+  const { t } = useI18n();
 
   return (
     <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-background px-4">
@@ -30,6 +33,10 @@ export function LoginForm() {
       />
 
       <div className="soda-page-enter relative w-full max-w-md space-y-8 rounded-2xl border border-primary/20 bg-card/90 p-8 shadow-[var(--soda-shadow-lift)] backdrop-blur-md">
+        <div className="absolute top-4 end-4">
+          <LanguageSwitcher variant="button" />
+        </div>
+
         <div className="flex flex-col items-center gap-4 text-center">
           <SodaLogo placement="login" showWord={false} />
           <div className="space-y-2">
@@ -47,7 +54,7 @@ export function LoginForm() {
 
         <form className="space-y-4" action={formAction}>
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email">{t("common.email")}</Label>
             <Input
               id="email"
               name="email"
@@ -58,7 +65,7 @@ export function LoginForm() {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="password">{t("common.password")}</Label>
             <Input
               id="password"
               name="password"
@@ -76,7 +83,7 @@ export function LoginForm() {
           ) : null}
 
           <Button type="submit" className="w-full" disabled={pending}>
-            {pending ? "Signing in…" : "Sign in"}
+            {pending ? t("actions.signingIn") : t("actions.signIn")}
           </Button>
         </form>
 
@@ -85,13 +92,13 @@ export function LoginForm() {
             href="/forgot-password"
             className="text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
           >
-            Forgot password?
+            {t("common.forgotPassword")}
           </Link>
           <Link
             href="/bootstrap"
             className="text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
           >
-            First owner setup
+            {t("common.firstOwnerSetup")}
           </Link>
         </div>
       </div>

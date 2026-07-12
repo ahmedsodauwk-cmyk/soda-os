@@ -9,7 +9,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { getBusinessToday } from "@/lib/business/types";
-import { getModuleSlogan } from "@/lib/brand/soda-voice";
 import { bootstrapBusinessCore } from "@/lib/core";
 import { getOperationsStatistics } from "@/lib/ops/stats";
 import { formatPrice } from "@/lib/orders/utils";
@@ -25,7 +24,7 @@ export default async function StatisticsPage() {
   const stats = getOperationsStatistics(asOf);
 
   return (
-    <AppShell title="الإحصائيات" subtitle={getModuleSlogan("dashboard")}>
+    <AppShell titleKey="pages.statistics" layer="statistics">
       <div className="space-y-6">
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <StatCard label="Monthly revenue" value={formatPrice(stats.monthlyRevenue)} />

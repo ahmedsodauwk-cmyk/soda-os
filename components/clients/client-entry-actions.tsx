@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 
 import { AddClientDialog } from "@/components/clients/add-client-dialog";
+import { useUiActions } from "@/lib/brand/use-ui-actions";
 import { createClient } from "@/lib/clients/repository";
 import type { ClientType, NewClientInput } from "@/lib/clients/types";
 
@@ -15,9 +16,10 @@ interface ClientEntryActionsProps {
 export function ClientEntryActions({
   defaultType,
   defaultSegment,
-  triggerLabel = "➕ إنشاء عميل",
+  triggerLabel,
 }: ClientEntryActionsProps) {
   const router = useRouter();
+  const actions = useUiActions();
 
   async function handleAdd(input: NewClientInput) {
     await createClient(input);
@@ -29,7 +31,7 @@ export function ClientEntryActions({
       onAdd={handleAdd}
       defaultType={defaultType}
       defaultSegment={defaultSegment}
-      triggerLabel={triggerLabel}
+      triggerLabel={triggerLabel ?? actions.createClient}
     />
   );
 }

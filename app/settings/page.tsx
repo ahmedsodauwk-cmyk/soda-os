@@ -3,6 +3,7 @@ import Link from "next/link";
 
 import { AppShell } from "@/components/layout/app-shell";
 import { InviteUserForm } from "@/components/auth/invite-user-form";
+import { LanguageSwitcher } from "@/components/i18n/language-switcher";
 import { RelatedRecords } from "@/components/navigation/related-records";
 import {
   Card,
@@ -22,7 +23,7 @@ export default async function SettingsPage() {
   if (!session) redirect("/login");
 
   return (
-    <AppShell title="الإعدادات" subtitle="الحساب وكلمة السر وصلاحيات الفريق">
+    <AppShell titleKey="pages.settings" layer="settings">
       <div className="grid gap-4 lg:grid-cols-2">
         <Card className="soda-cc-card">
           <CardHeader>
@@ -48,6 +49,18 @@ export default async function SettingsPage() {
             >
               Change password
             </Link>
+          </CardContent>
+        </Card>
+
+        <Card className="soda-cc-card">
+          <CardHeader>
+            <CardTitle>Language</CardTitle>
+            <CardDescription>
+              English 🇺🇸 · العربية 🇪🇬 — preference is saved on this device
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <LanguageSwitcher variant="inline" />
           </CardContent>
         </Card>
 

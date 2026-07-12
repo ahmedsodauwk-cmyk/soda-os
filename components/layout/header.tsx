@@ -22,22 +22,41 @@ import {
   type SidebarUser,
 } from "@/components/layout/sidebar";
 import { HumanTitle } from "@/components/brand/human-title";
-import { getModuleSlogan } from "@/lib/brand/soda-voice";
+import { LanguageSwitcher } from "@/components/i18n/language-switcher";
+import { getSideLanguage } from "@/lib/brand/human-layer";
+import type { HumanLayerKey } from "@/lib/brand/human-layer";
+import { useI18n } from "@/lib/i18n/provider";
+import type { DictKey } from "@/lib/i18n/dictionaries";
 import type { NotificationRecord } from "@/lib/core/types";
 
 interface HeaderProps {
+  /** i18n key for the page title (UI language). */
+  titleKey?: DictKey;
+  /** Fallback English title when titleKey is omitted. */
   title?: string;
+  /** Side Language override (always Egyptian Arabic). */
   subtitle?: string;
+  /** Side Language key — preferred over subtitle. */
+  layer?: HumanLayerKey;
   notifications?: NotificationRecord[];
   user?: SidebarUser;
 }
 
 export default function Header({
-  title = "Dashboard",
-  subtitle = getModuleSlogan("dashboard"),
+  titleKey,
+  title,
+  subtitle,
+  layer = "dashboard",
   notifications = [],
   user,
 }: HeaderProps) {
+  const { t } = useI18n();
+  const displayTitle = titleKey
+    ? t(titleKey)
+    : (title ?? t("pages.home"));
+  const sideLanguage =
+    subtitle ?? (layer ? getSideLanguage(layer) : getSideLanguage("dashboard"));
+
   return (
     <header className="sticky top-0 z-10 flex min-h-[4.25rem] items-center justify-between gap-4 border-b border-border/80 bg-background/85 px-4 py-3.5 backdrop-blur-md sm:px-6">
       <div className="flex min-w-0 items-center gap-3">
@@ -48,7 +67,7 @@ export default function Header({
             }
           >
             <Menu />
-            <span className="sr-only">Open menu</span>
+            <span className="sr-only">{t("actions.openMenu")}</span>
           </SheetTrigger>
 
           <SheetContent side="left" className="w-60 gap-0 p-0" showCloseButton>
@@ -60,14 +79,15 @@ export default function Header({
         </Sheet>
 
         <HumanTitle
-          title={title}
-          explanation={subtitle}
+          title={displayTitle}
+          explanation={sideLanguage}
           as="h1"
           size="page"
         />
       </div>
 
       <div className="flex items-center gap-2">
+        <LanguageSwitcher variant="icon" />
         <HeaderSearch />
         <HeaderNotifications initial={notifications} />
 
@@ -83,9 +103,9 @@ export default function Header({
             }
           >
             <Settings />
-            <span className="sr-only">Settings</span>
+            <span className="sr-only">{t("common.settings")}</span>
           </TooltipTrigger>
-          <TooltipContent>Settings</TooltipContent>
+          <TooltipContent>{t("common.settings")}</TooltipContent>
         </Tooltip>
       </div>
     </header>

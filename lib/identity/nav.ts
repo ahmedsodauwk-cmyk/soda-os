@@ -1,6 +1,6 @@
 /**
  * Role-filtered navigation — sidebar / mobile menu.
- * Titles use SODA Voice (Egyptian Arabic) + light emoji cues.
+ * Labels come from i18n (selected UI language). Icons only — no decorative emojis.
  */
 
 import type { LucideIcon } from "lucide-react";
@@ -32,9 +32,11 @@ import {
 
 import { can, type Permission } from "@/lib/identity/permissions";
 import type { SodaRole } from "@/lib/identity/roles";
+import type { DictKey } from "@/lib/i18n/dictionaries";
 
 export type NavItem = {
-  title: string;
+  /** i18n key under nav.* */
+  titleKey: DictKey;
   href: string;
   icon: LucideIcon;
   /** All required; item shown if role has any listed permission */
@@ -43,7 +45,7 @@ export type NavItem = {
 
 export const NAV_ITEMS: NavItem[] = [
   {
-    title: "⚡ نظرة سريعة",
+    titleKey: "nav.home",
     href: "/",
     icon: LayoutDashboard,
     anyOf: [
@@ -54,133 +56,133 @@ export const NAV_ITEMS: NavItem[] = [
     ],
   },
   {
-    title: "👤 مساحتي",
+    titleKey: "nav.mySpace",
     href: "/me",
     icon: User,
     anyOf: ["dashboard.crew"],
   },
   {
-    title: "📄 عروض الأسعار",
+    titleKey: "nav.quotations",
     href: "/quotations",
     icon: FileText,
     anyOf: ["quotations.view"],
   },
   {
-    title: "📸 الأوردرات",
+    titleKey: "nav.orders",
     href: "/orders",
     icon: ShoppingCart,
     anyOf: ["orders.view"],
   },
   {
-    title: "📁 المشاريع",
+    titleKey: "nav.projects",
     href: "/projects",
     icon: FolderKanban,
     anyOf: ["projects.view"],
   },
   {
-    title: "🏢 التجاري",
+    titleKey: "nav.commercial",
     href: "/commercial",
     icon: Briefcase,
     anyOf: ["commercial.view"],
   },
   {
-    title: "💍 الأفراح",
+    titleKey: "nav.weddings",
     href: "/orders/weddings",
     icon: Heart,
     anyOf: ["orders.view", "dashboard.company"],
   },
   {
-    title: "🤝 العملاء",
+    titleKey: "nav.clients",
     href: "/clients",
     icon: Users,
     anyOf: ["clients.view"],
   },
   {
-    title: "🎥 الفريق",
+    titleKey: "nav.crew",
     href: "/crew",
     icon: UsersRound,
     anyOf: ["crew.view", "crew.stats"],
   },
   {
-    title: "📷 المعدات",
+    titleKey: "nav.equipment",
     href: "/equipment",
     icon: Camera,
     anyOf: ["equipment.view"],
   },
   {
-    title: "📅 الجدول",
+    titleKey: "nav.calendar",
     href: "/calendar",
     icon: Calendar,
     anyOf: ["calendar.view"],
   },
   {
-    title: "💰 المالية",
+    titleKey: "nav.finance",
     href: "/finance",
     icon: DollarSign,
     anyOf: ["finance.view", "dashboard.finance"],
   },
   {
-    title: "📊 الإحصائيات",
+    titleKey: "nav.statistics",
     href: "/statistics",
     icon: BarChart3,
     anyOf: ["statistics.view"],
   },
   {
-    title: "💳 محفظتي",
+    titleKey: "nav.myWallet",
     href: "/me/wallet",
     icon: Wallet,
     anyOf: ["me.wallet"],
   },
   {
-    title: "🎁 البونص",
+    titleKey: "nav.bonus",
     href: "/me/bonus",
     icon: Gift,
     anyOf: ["me.bonus"],
   },
   {
-    title: "🎯 التارجيت",
+    titleKey: "nav.target",
     href: "/me/target",
     icon: Target,
     anyOf: ["me.target"],
   },
   {
-    title: "⚠️ الجزاءات",
+    titleKey: "nav.penalties",
     href: "/me/penalties",
     icon: AlertTriangle,
     anyOf: ["me.penalties"],
   },
   {
-    title: "📂 ملفاتي",
+    titleKey: "nav.myFiles",
     href: "/me/files",
     icon: FolderOpen,
     anyOf: ["me.files"],
   },
   {
-    title: "📝 البريفز",
+    titleKey: "nav.briefs",
     href: "/me/briefs",
     icon: ScrollText,
     anyOf: ["me.briefs"],
   },
   {
-    title: "👔 الدريس كود",
+    titleKey: "nav.dressCode",
     href: "/me/dress-code",
     icon: Shirt,
     anyOf: ["me.dress_code"],
   },
   {
-    title: "📈 أدائي",
+    titleKey: "nav.myPerformance",
     href: "/me/performance",
     icon: TrendingUp,
     anyOf: ["me.performance"],
   },
   {
-    title: "🔔 التنبيهات",
+    titleKey: "nav.notifications",
     href: "/notifications",
     icon: Bell,
     anyOf: ["notifications.view"],
   },
   {
-    title: "⚙️ الإعدادات",
+    titleKey: "nav.settings",
     href: "/settings",
     icon: Settings,
     anyOf: ["settings.view"],
@@ -193,11 +195,9 @@ export function navForRole(role: SodaRole): NavItem[] {
   );
 
   if (role === "crew_member") {
-    // Crew: hide company Dashboard; keep My Dashboard.
     return items.filter((i) => i.href !== "/");
   }
 
-  // Everyone else: hide personal "My Dashboard" alias.
   return items.filter((i) => i.href !== "/me");
 }
 

@@ -7,10 +7,7 @@ export const dynamic = "force-dynamic";
 export default async function EquipmentPage() {
   await refreshEquipment();
   return (
-    <AppShell
-      title="المعدات"
-      subtitle="الكاميرات والعدسات والعدة."
-    >
+    <AppShell titleKey="pages.equipment" layer="equipment">
       <EquipmentInventoryContent />
     </AppShell>
   );

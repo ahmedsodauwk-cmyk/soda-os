@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 
 import { AddOrderDialog } from "@/components/orders/add-order-dialog";
+import { useUiActions } from "@/lib/brand/use-ui-actions";
 import { refreshAssignments } from "@/lib/assignments/repository";
 import { refreshClients } from "@/lib/clients/repository";
 import { refreshFinance } from "@/lib/finance/repository";
@@ -19,9 +20,10 @@ interface OrderEntryActionsProps {
 
 export function OrderEntryActions({
   defaultProjectType,
-  triggerLabel = "➕ إنشاء أوردر",
+  triggerLabel,
 }: OrderEntryActionsProps) {
   const router = useRouter();
+  const actions = useUiActions();
 
   async function handleAdd(input: SmartOrderInput) {
     await refreshClients();
@@ -38,7 +40,7 @@ export function OrderEntryActions({
     <AddOrderDialog
       onAdd={handleAdd}
       defaultProjectType={defaultProjectType}
-      triggerLabel={triggerLabel}
+      triggerLabel={triggerLabel ?? actions.createOrder}
     />
   );
 }

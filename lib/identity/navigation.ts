@@ -147,12 +147,44 @@ export function dashboardHref(key: DashboardLinkKey): string {
   return DASHBOARD_LINKS[key];
 }
 
-/** Breadcrumb crumb. */
-export type Crumb = { label: string; href?: string };
+/** Breadcrumb crumb — `labelKey` prefers i18n; `label` is fallback display. */
+export type Crumb = { label: string; labelKey?: string; href?: string };
+
+const SEGMENT_CRUMB_KEY: Record<string, string> = {
+  orders: "crumbs.orders",
+  projects: "crumbs.projects",
+  clients: "crumbs.clients",
+  crew: "crumbs.crew",
+  people: "crumbs.people",
+  finance: "crumbs.finance",
+  calendar: "crumbs.calendar",
+  commercial: "crumbs.commercial",
+  quotations: "crumbs.quotations",
+  equipment: "crumbs.equipment",
+  statistics: "crumbs.statistics",
+  settings: "crumbs.settings",
+  notifications: "crumbs.notifications",
+  me: "crumbs.me",
+  wallet: "crumbs.wallet",
+  bonus: "crumbs.bonus",
+  target: "crumbs.target",
+  penalties: "crumbs.penalties",
+  files: "crumbs.files",
+  briefs: "crumbs.briefs",
+  "dress-code": "crumbs.dressCode",
+  performance: "crumbs.performance",
+  weddings: "crumbs.weddings",
+  about: "crumbs.about",
+  login: "crumbs.login",
+  password: "crumbs.password",
+  new: "crumbs.new",
+};
 
 export function crumbsForPath(pathname: string): Crumb[] {
   const parts = pathname.split("/").filter(Boolean);
-  const crumbs: Crumb[] = [{ label: "نظرة سريعة", href: "/" }];
+  const crumbs: Crumb[] = [
+    { label: "Home", labelKey: "crumbs.home", href: "/" },
+  ];
   if (parts.length === 0) return crumbs;
 
   let acc = "";
@@ -160,50 +192,32 @@ export function crumbsForPath(pathname: string): Crumb[] {
     const part = parts[i]!;
     acc += `/${part}`;
     const isLast = i === parts.length - 1;
-    const label = labelForSegment(part, parts[i - 1]);
+    const { label, labelKey } = labelForSegment(part, parts[i - 1]);
     crumbs.push({
       label,
+      labelKey,
       href: isLast ? undefined : acc,
     });
   }
   return crumbs;
 }
 
-function labelForSegment(segment: string, parent?: string): string {
-  const known: Record<string, string> = {
-    orders: "الأوردرات",
-    projects: "المشاريع",
-    clients: "العملاء",
-    crew: "الفريق",
-    people: "الفريق",
-    finance: "المالية",
-    calendar: "الجدول",
-    commercial: "التجاري",
-    quotations: "عروض الأسعار",
-    equipment: "المعدات",
-    statistics: "الإحصائيات",
-    settings: "الإعدادات",
-    notifications: "التنبيهات",
-    me: "مساحتي",
-    wallet: "محفظتي",
-    bonus: "البونص",
-    target: "التارجيت",
-    penalties: "الجزاءات",
-    files: "ملفاتي",
-    briefs: "البريفز",
-    "dress-code": "الدريس كود",
-    performance: "أدائي",
-    weddings: "الأفراح",
-    about: "عن صودا",
-    login: "تسجيل الدخول",
-    password: "كلمة السر",
-    new: "جديد",
-  };
-  if (known[segment]) return known[segment];
-  if (parent === "orders") return "Order";
-  if (parent === "projects") return "Project";
-  if (parent === "clients") return "Client";
-  if (parent === "crew" || parent === "people") return "Member";
-  if (parent === "quotations") return "Quotation";
-  return segment;
+function labelForSegment(
+  segment: string,
+  parent?: string
+): { label: string; labelKey?: string } {
+  const key = SEGMENT_CRUMB_KEY[segment];
+  if (key) {
+    return { label: segment, labelKey: key };
+  }
+  if (parent === "orders") return { label: "Order", labelKey: "pages.order" };
+  if (parent === "projects")
+    return { label: "Project", labelKey: "pages.project" };
+  if (parent === "clients")
+    return { label: "Client", labelKey: "pages.client" };
+  if (parent === "crew" || parent === "people")
+    return { label: "Member", labelKey: "pages.crewProfile" };
+  if (parent === "quotations")
+    return { label: "Quotation", labelKey: "pages.quotation" };
+  return { label: segment };
 }

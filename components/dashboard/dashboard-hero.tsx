@@ -10,6 +10,8 @@ import type { DashboardVoiceInput } from "@/lib/brand/types";
 
 interface DashboardHeroProps {
   dashboard: DashboardVoiceInput;
+  /** Profile full_name when logged in — preferred over Junior Soda. */
+  operatorName?: string | null;
 }
 
 /** Client-only local time so greeting matches the owner's clock. */
@@ -32,12 +34,15 @@ function useLocalNow(): Date {
  * Always-visible Command Center hero.
  * Largest text = time-of-day Arabic greeting; below = real operational lines only.
  */
-export default function DashboardHero({ dashboard }: DashboardHeroProps) {
+export default function DashboardHero({
+  dashboard,
+  operatorName,
+}: DashboardHeroProps) {
   const now = useLocalNow();
   const hydrated = now.getTime() !== 0;
   const greeting = hydrated
-    ? getHeroGreeting(now)
-    : getHeroGreeting(new Date());
+    ? getHeroGreeting(now, operatorName)
+    : getHeroGreeting(new Date(), operatorName);
   const lines = buildHeroOperationalLines(dashboard);
 
   return (

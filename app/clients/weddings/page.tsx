@@ -1,6 +1,5 @@
 import { AppShell } from "@/components/layout/app-shell";
 import { WeddingClientsView } from "@/components/clients/wedding-clients-view";
-import { getModuleSlogan } from "@/lib/brand/soda-voice";
 import {
   getClientsBySegment,
   refreshClients,
@@ -19,7 +18,7 @@ export default async function WeddingClientsPage() {
     refreshPayments(),
   ]);
   return (
-    <AppShell title="عملاء الأفراح" subtitle={getModuleSlogan("weddings")}>
+    <AppShell titleKey="pages.weddingClients" layer="weddingClients">
       <WeddingClientsView
         clients={getClientsBySegment("wedding")}
         projects={getProjects()}

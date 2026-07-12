@@ -12,10 +12,11 @@ import TeamPerformance from "@/components/dashboard/team-performance";
 import UpcomingScheduleCard from "@/components/dashboard/upcoming-schedule";
 import { WelcomeGate } from "@/components/dashboard/welcome-gate";
 import { QuotationPipelineCard } from "@/components/quotations/quotation-pipeline-card";
-import { getCompanyPulse, getModuleSlogan } from "@/lib/brand";
+import { getCompanyPulse } from "@/lib/brand";
 import { buildActivityFeed } from "@/lib/dashboard/activity-feed";
 import { loadDashboardSnapshot } from "@/lib/dashboard";
 import { buildRotatingSummaries } from "@/lib/dashboard/rotating-summaries";
+import { resolveSessionForApp } from "@/lib/identity/session";
 
 export const dynamic = "force-dynamic";
 
@@ -23,16 +24,17 @@ export const dynamic = "force-dynamic";
  * Command Center — living operational surface from real studio data.
  */
 export default async function Home() {
-  const dashboard = await loadDashboardSnapshot();
+  const [dashboard, session] = await Promise.all([
+    loadDashboardSnapshot(),
+    resolveSessionForApp(),
+  ]);
   const liveEvents = buildActivityFeed();
   const pulse = getCompanyPulse(dashboard);
   const rotatingPanels = buildRotatingSummaries(dashboard);
+  const operatorName = session?.profile.fullName ?? null;
 
   return (
-    <AppShell
-      title="نظرة سريعة"
-      subtitle={getModuleSlogan("dashboard")}
-    >
+    <AppShell titleKey="pages.home" layer="dashboard">
       <WelcomeGate
         dashboard={{
           kpis: dashboard.kpis,
@@ -47,6 +49,7 @@ export default async function Home() {
               attention: dashboard.attention,
               schedule: dashboard.schedule,
             }}
+            operatorName={operatorName}
           />
 
           <div className="grid grid-cols-1 gap-4 lg:gap-6 xl:grid-cols-5">

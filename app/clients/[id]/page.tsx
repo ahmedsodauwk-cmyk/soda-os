@@ -1,6 +1,5 @@
 import { AppShell } from "@/components/layout/app-shell";
 import { ClientProfile } from "@/components/clients/client-profile";
-import { getModuleSlogan } from "@/lib/brand/soda-voice";
 import { refreshClients } from "@/lib/clients/repository";
 import { refreshOrders } from "@/lib/orders/repository";
 import { refreshPayments } from "@/lib/payments/repository";
@@ -23,7 +22,7 @@ export default async function ClientDetailPage({
     refreshQuotations(),
   ]);
   return (
-    <AppShell title="Client" subtitle={getModuleSlogan("clients")}>
+    <AppShell titleKey="pages.client" layer="clients">
       <ClientProfile clientId={id} />
     </AppShell>
   );

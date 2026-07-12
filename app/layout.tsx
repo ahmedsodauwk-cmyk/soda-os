@@ -1,6 +1,13 @@
 import type { Metadata } from "next";
 import { Alexandria, Geist_Mono, Outfit } from "next/font/google";
+import { cookies } from "next/headers";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { LocaleProvider } from "@/lib/i18n/provider";
+import {
+  DEFAULT_LOCALE,
+  LOCALE_COOKIE,
+  parseLocale,
+} from "@/lib/i18n/config";
 import "./globals.css";
 
 /** Distinctive geometric sans — English UI + headings. */
@@ -53,18 +60,25 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const jar = await cookies();
+  const locale = parseLocale(jar.get(LOCALE_COOKIE)?.value) || DEFAULT_LOCALE;
+  const dir = locale === "ar" ? "rtl" : "ltr";
+
   return (
     <html
-      lang="en"
+      lang={locale}
+      dir={dir}
       className={`dark ${outfit.variable} ${geistMono.variable} ${alexandria.variable} h-full antialiased`}
     >
       <body className={`${outfit.className} flex min-h-full flex-col`}>
-        <TooltipProvider>{children}</TooltipProvider>
+        <LocaleProvider initialLocale={locale}>
+          <TooltipProvider>{children}</TooltipProvider>
+        </LocaleProvider>
       </body>
     </html>
   );

@@ -2,7 +2,7 @@ import { AppShell } from "@/components/layout/app-shell";
 import { FinancialOpsPanel } from "@/components/finance/financial-ops-panel";
 import { PaymentsEntryContent } from "@/components/finance/payments-entry-content";
 import { Badge } from "@/components/ui/badge";
-import { getEmptyState, getModuleSlogan } from "@/lib/brand";
+import { getEmptyState } from "@/lib/brand";
 import { bootstrapBusinessCore } from "@/lib/core/bootstrap";
 import { getFinancialReportSnapshot } from "@/lib/core/rules/aggregators";
 import {
@@ -60,7 +60,7 @@ export default async function FinancePage() {
   const closings = listPeriodClosings().slice(0, 5);
 
   return (
-    <AppShell title="المالية" subtitle={getModuleSlogan("finance")}>
+    <AppShell titleKey="pages.finance" layer="finance">
       <div className="space-y-6">
         <div className="rounded-xl border border-border/60 bg-muted/10 px-6 py-8">
           <p className="font-heading text-base font-semibold tracking-tight">

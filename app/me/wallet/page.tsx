@@ -29,7 +29,7 @@ export default async function MeWalletPage() {
 
   return (
     <RoleGate session={session} anyOf={["me.wallet"]}>
-      <AppShell title="محفظتي" subtitle="المستحقات والمدفوع من الشغل">
+      <AppShell titleKey="pages.myWallet" layer="myWallet">
         <BackLink href="/me" label="مساحتي" />
         <div className="grid gap-4 lg:grid-cols-3">
           <Card className="soda-cc-card lg:col-span-2">

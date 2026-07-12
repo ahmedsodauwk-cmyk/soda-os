@@ -1,6 +1,5 @@
 import { AppShell } from "@/components/layout/app-shell";
 import { QuotationBuilder } from "@/components/quotations/quotation-builder";
-import { getModuleSlogan } from "@/lib/brand/soda-voice";
 import { refreshQuotations } from "@/lib/quotations/repository";
 
 interface QuotationDetailPageProps {
@@ -16,7 +15,7 @@ export default async function QuotationDetailPage({
   await refreshQuotations();
 
   return (
-    <AppShell title="Quotation" subtitle={getModuleSlogan("quotations")}>
+    <AppShell titleKey="pages.quotation" layer="quotations">
       <QuotationBuilder key={id} quotationId={id} />
     </AppShell>
   );

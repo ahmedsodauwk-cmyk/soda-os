@@ -9,21 +9,31 @@ import {
   hydrateNotificationsFromEvents,
   refreshBusinessEventsFromDb,
 } from "@/lib/core";
+import type { HumanLayerKey } from "@/lib/brand/human-layer";
 import { getRecentlyViewed } from "@/lib/identity/recent";
 import {
   isAuthStrict,
   resolveSessionForApp,
 } from "@/lib/identity/session";
+import type { DictKey } from "@/lib/i18n/dictionaries";
 
 interface AppShellProps {
-  title: string;
-  subtitle: string;
+  /** i18n page title key — switches with UI language. */
+  titleKey?: DictKey;
+  /** Raw title when entity name is dynamic (project / lane). */
+  title?: string;
+  /** SODA Side Language key — always Egyptian Arabic. */
+  layer: HumanLayerKey;
+  /** Optional Side Language override (still Egyptian Arabic). */
+  subtitle?: string;
   children: React.ReactNode;
   showBreadcrumbs?: boolean;
 }
 
 export async function AppShell({
+  titleKey,
   title,
+  layer,
   subtitle,
   children,
   showBreadcrumbs = true,
@@ -35,7 +45,6 @@ export async function AppShell({
     headerList.get("next-url") ||
     "/";
 
-  // Parallelize shell data — session is React-cached when pages also call it.
   const [session, events, recent] = await Promise.all([
     resolveSessionForApp(),
     refreshBusinessEventsFromDb(20).catch(() => []),
@@ -63,7 +72,9 @@ export async function AppShell({
 
       <section className="flex flex-1 flex-col overflow-y-auto">
         <Header
+          titleKey={titleKey}
           title={title}
+          layer={layer}
           subtitle={subtitle}
           notifications={notifications}
           user={user}

@@ -46,12 +46,12 @@ export type {
   WelcomeMode,
 } from "@/lib/brand/types";
 
-/** Always address the operator as Junior Soda — Arabic voice uses چونيور صودا. */
+/** Fallback display name when profile full_name is unavailable. */
 export const SODA_OPERATOR = "چونيور صودا";
 export const SODA_OPERATOR_EN = "Junior Soda";
 
 /** localStorage key for last Command Center visit (date YYYY-MM-DD). */
-export const SODA_LAST_VISIT_KEY = "soda-os:last-visit";
+export const SODA_LAST_VISIT_KEY = "soda-visuals:last-visit";
 
 /* -------------------------------------------------------------------------- */
 /*  Helpers                                                                   */
@@ -122,13 +122,35 @@ export function getDayPeriod(date: Date = new Date()): DayPeriod {
   return "evening";
 }
 
-/** Fixed hero greetings — one per period, no random fluff. */
+/** Rotating natural greetings — `{name}` replaced with profile / Junior Soda. */
 const GREETINGS: Record<DayPeriod, string[]> = {
-  morning: [`صباح الخير يا جونيور صودا`],
-  afternoon: [`نهارك أبيض يا جونيور صودا`],
-  evening: [`مساء الفل يا جونيور صودا`],
-  late_night: [`ليلة هادية يا جونيور صودا`],
+  morning: [
+    `صباح الخير يا {name}`,
+    `صباح النور يا {name}`,
+    `يلا نبدأ بهدوء يا {name}`,
+  ],
+  afternoon: [
+    `نهارك أبيض يا {name}`,
+    `أهلاً بيك يا {name}`,
+    `نص اليوم عدّى يا {name}`,
+  ],
+  evening: [
+    `مساء الفل يا {name}`,
+    `مساء الخير يا {name}`,
+    `خلّينا نلمّ بهدوء يا {name}`,
+  ],
+  late_night: [
+    `ليلة هادية يا {name}`,
+    `لسه صاحي يا {name}؟ خلّينا نقفّل بهدوء`,
+    `أهلاً بيك يا {name}`,
+  ],
 };
+
+function resolveOperatorName(name?: string | null): string {
+  const trimmed = name?.trim();
+  if (trimmed) return trimmed.split(/\s+/)[0] ?? trimmed;
+  return SODA_OPERATOR;
+}
 
 const HOOKS: Record<DayPeriod, Record<BusinessMood, string[]>> = {
   morning: {
@@ -264,9 +286,11 @@ const CLOSERS: Record<DayPeriod, Record<BusinessMood, string[]>> = {
 
 export function getGreeting(
   period: DayPeriod = getDayPeriod(),
-  now: Date = new Date()
+  now: Date = new Date(),
+  operatorName?: string | null
 ): string {
-  return pickStable(GREETINGS[period], daySeed(now));
+  const template = pickStable(GREETINGS[period], daySeed(now));
+  return template.replaceAll("{name}", resolveOperatorName(operatorName));
 }
 
 function getHook(
@@ -310,6 +334,12 @@ export const MODULE_SLOGANS: Record<ModuleSloganKey, string> = {
   crew: HUMAN_LAYER.crew,
   crewProfile: HUMAN_LAYER.crewProfile,
   calendar: HUMAN_LAYER.calendar,
+  statistics: HUMAN_LAYER.statistics,
+  equipment: HUMAN_LAYER.equipment,
+  settings: HUMAN_LAYER.settings,
+  notifications: HUMAN_LAYER.notifications,
+  mySpace: HUMAN_LAYER.mySpace,
+  myWallet: HUMAN_LAYER.myWallet,
 };
 
 /** Resolve slogan for a workspace id/slug (falls back to workspaces). */
@@ -492,15 +522,17 @@ export function getCompanyPulse(
 
 export function getWelcomeBackCopy(
   input: DashboardVoiceInput,
-  now: Date = new Date()
+  now: Date = new Date(),
+  operatorName?: string | null
 ): BriefCardCopy {
-  const brief = getBriefCopy(input, now);
+  const brief = getBriefCopy(input, now, operatorName);
+  const name = resolveOperatorName(operatorName);
   return {
     ...brief,
     label: "Welcome Back",
-    greeting: `منوّر تاني يا ${SODA_OPERATOR}`,
+    greeting: `منوّر تاني يا ${name}`,
     hook: "غبت كام يوم — خلّينا نرجّعك على السكة بسرعة.",
-    closer: "يلا ندخل Command Center ونشوف إيه اللي بضاغط.",
+    closer: "يلا ندخل ونشوف إيه اللي بضاغط.",
   };
 }
 
@@ -682,12 +714,13 @@ function buildBriefActions(
 
 export function getBriefCopy(
   input: DashboardVoiceInput,
-  now: Date = new Date()
+  now: Date = new Date(),
+  operatorName?: string | null
 ): BriefCardCopy {
   const period = getDayPeriod(now);
   const signals = extractVoiceSignals(input);
   const mood = deriveBusinessMood(signals);
-  const greeting = getGreeting(period, now);
+  const greeting = getGreeting(period, now, operatorName);
   const hook = getHook(period, mood, now);
   const lines = buildBriefLines(signals, mood);
   const closer = getCloser(period, mood, now);
@@ -730,60 +763,60 @@ export function getMoodMessage(
 
 export const EMPTY_STATES: Record<EmptyStateKey, EmptyStateCopy> = {
   orders: {
-    title: "No orders yet.",
-    description: "",
+    title: "لسه مفيش أوردرات.",
+    description: "اعمل أول أوردر وهيظهر هنا.",
   },
   clients: {
-    title: "No clients yet.",
-    description: "",
+    title: "لسه مفيش عملاء.",
+    description: "ضيف أول عميل وابدأ رحلته مع الشركة.",
   },
   workspaces: {
-    title: "No commercial lanes match",
-    description: "",
+    title: "لسه مفيش مسارات هنا.",
+    description: "أول ما يبدأ شغل تجاري هتلاقيه ظاهر.",
   },
   projects: {
-    title: "No projects yet.",
-    description: "",
+    title: "لسه مفيش مشاريع.",
+    description: "أول مشروع هيظهر هنا تلقائيًا.",
   },
   files: {
-    title: "No files yet.",
-    description: "",
+    title: "لسه مفيش ملفات.",
+    description: "ارفع أول ملف وهيتحط هنا.",
   },
   shoots: {
-    title: "No upcoming shoots",
-    description: "",
+    title: "لسه مفيش شوتات قريبة.",
+    description: "أول ما يتحدد معاد تصوير هتشوفه هنا.",
   },
   deliveries: {
-    title: "No upcoming deliveries",
-    description: "",
+    title: "لسه مفيش تسليمات قريبة.",
+    description: "التسليمات هتظهر أول ما تتحدد.",
   },
   deadlines: {
-    title: "No deadlines in the next 14 days",
-    description: "",
+    title: "مفيش ديدلاينز قريبة.",
+    description: "الديدلاينز الجاية هتتلمّ هنا.",
   },
   payments: {
-    title: "No payments yet.",
-    description: "",
+    title: "لسه مفيش دفعات.",
+    description: "أول دفعة هتتسجل هنا.",
   },
   team: {
-    title: "No crew assigned",
-    description: "",
+    title: "لسه مفيش فريق متعيّن.",
+    description: "عيّن حد من الفريق وهيظهر هنا.",
   },
   attentionClear: {
-    title: "Nothing needs attention",
-    description: "",
+    title: "كل الأمور مستقرة حالياً.",
+    description: "مفيش حاجة ضاغطة محتاجة نظرة دلوقتي.",
   },
   notes: {
-    title: "No notes",
-    description: "",
+    title: "لسه مفيش ملاحظات.",
+    description: "اكتب أول ملاحظة وهيتحفظ هنا.",
   },
   activity: {
-    title: "No activity",
-    description: "",
+    title: "لسه مفيش نشاط.",
+    description: "أول ما يحصل حركة هتشوفها هنا.",
   },
   deliverables: {
-    title: "No deliverables",
-    description: "",
+    title: "لسه مفيش تسليمات مطلوبة.",
+    description: "التسليمات هتظهر مع تقدّم الشغل.",
   },
 };
 

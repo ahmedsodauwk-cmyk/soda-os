@@ -5,7 +5,7 @@
 - `soda-logo-master.png` — official lockup (white geometric صودا on Deep Dark Purple `#2D1B4E`, presented on Vibrant Pink `#E93D77`)
 - `soda-mark.svg` — app mark (white صودا on `#2D1B4E`, square, for favicon / sidebar)
 - `soda-mark-white.svg` — white mark only (transparent) for dark UI overlays
-- `soda-wordmark.svg` — mark + SODA OS word
+- `soda-wordmark.svg` — mark + SODA VISUALS word
 
 ## Colors
 

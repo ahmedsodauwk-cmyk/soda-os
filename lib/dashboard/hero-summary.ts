@@ -3,17 +3,9 @@
  * Zero metrics are omitted (never invent filler).
  */
 
-import { toEasternDigits } from "@/lib/brand/soda-voice";
+import { getGreeting, toEasternDigits } from "@/lib/brand/soda-voice";
 import type { DashboardSnapshot } from "@/lib/dashboard/types";
 import type { DashboardVoiceInput, DayPeriod } from "@/lib/brand/types";
-
-/** Exact time-of-day greetings for Command Center hero. */
-export const HERO_GREETINGS: Record<DayPeriod, string> = {
-  morning: "صباح الخير يا جونيور صودا",
-  afternoon: "نهارك أبيض يا جونيور صودا",
-  evening: "مساء الفل يا جونيور صودا",
-  late_night: "ليلة هادية يا جونيور صودا",
-};
 
 /**
  * Local-time buckets:
@@ -27,13 +19,27 @@ export function getHeroDayPeriod(date: Date = new Date()): DayPeriod {
   return "evening";
 }
 
-export function getHeroGreeting(date: Date = new Date()): string {
-  return HERO_GREETINGS[getHeroDayPeriod(date)];
+/** Rotating natural greeting — prefers profile first name. */
+export function getHeroGreeting(
+  date: Date = new Date(),
+  operatorName?: string | null
+): string {
+  return getGreeting(getHeroDayPeriod(date), date, operatorName);
 }
+
+/** @deprecated Prefer getHeroGreeting(date, name) — kept for soft compatibility. */
+export const HERO_GREETINGS: Record<DayPeriod, string> = {
+  morning: "صباح الخير يا جونيور صودا",
+  afternoon: "نهارك أبيض يا جونيور صودا",
+  evening: "مساء الفل يا جونيور صودا",
+  late_night: "ليلة هادية يا جونيور صودا",
+};
 
 /** Short operational lines — omit any zero metric. */
 export function buildHeroOperationalLines(
-  input: DashboardVoiceInput | Pick<DashboardSnapshot, "kpis" | "attention" | "schedule">
+  input:
+    | DashboardVoiceInput
+    | Pick<DashboardSnapshot, "kpis" | "attention" | "schedule">
 ): string[] {
   const n = toEasternDigits;
   const lines: string[] = [];
@@ -81,27 +87,34 @@ export function buildHeroOperationalLines(
     );
   }
 
-  if (unpaid > 0) {
+  if (unpaid > 0 && lines.length < 3) {
     lines.push(
       unpaid === 1
         ? "فيه عميل مستني متابعة فلوس"
         : `فيه ${n(unpaid)} عملاء عليهم فلوس`
     );
-  } else if (reviewWaiting > 0 && lines.length < 3) {
+  }
+
+  if (reviewWaiting > 0 && lines.length < 3 && overdue === 0) {
     lines.push(
       reviewWaiting === 1
-        ? "فيه عميل مستني مراجعة"
-        : `فيه ${n(reviewWaiting)} حاجات مستنية مراجعة`
+        ? "فيه حاجة مستنية قرار منك"
+        : `فيه ${n(reviewWaiting)} حاجات مستنية قرار`
     );
   }
 
-  if (todayShoots === 0 && upcomingShoots > 0 && lines.length < 3) {
+  if (upcomingShoots > 0 && todayShoots === 0 && lines.length < 3) {
     lines.push(`عندك ${n(upcomingShoots)} شوتات قريبة في الجدول`);
   }
 
-  if (todayDeliveries === 0 && upcomingDeliveries > 0 && lines.length < 3) {
+  if (upcomingDeliveries > 0 && todayDeliveries === 0 && lines.length < 3) {
     lines.push(`فيه ${n(upcomingDeliveries)} تسليمات قريبة`);
   }
 
-  return lines.slice(0, 4);
+  if (lines.length === 0) {
+    lines.push("أهلاً بيك.");
+    lines.push("دي نظرة سريعة على اللي مستنيك النهارده.");
+  }
+
+  return lines.slice(0, 3);
 }

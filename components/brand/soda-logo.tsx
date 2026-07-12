@@ -32,7 +32,7 @@ export function SodaLogo({
       <img
         src={config.src}
         alt={SODA_LOGO.alt}
-        width={isWordmark ? Math.round(size * (220 / 64)) : size}
+        width={isWordmark ? Math.round(size * (320 / 64)) : size}
         height={size}
         className={cn(
           "shrink-0 object-contain object-center",

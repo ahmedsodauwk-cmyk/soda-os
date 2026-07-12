@@ -67,8 +67,8 @@ interface HumanTitleProps {
 }
 
 /**
- * SODA Human Layer title block:
- * English title (primary) + one short Egyptian Arabic business explanation.
+ * SODA Side Language title block:
+ * UI-language title (primary) + Egyptian Arabic Side Language (always).
  */
 export function HumanTitle({
   title,

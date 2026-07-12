@@ -1,6 +1,5 @@
 import { AppShell } from "@/components/layout/app-shell";
 import { ProjectsListContent } from "@/components/projects/projects-list-content";
-import { getModuleSlogan } from "@/lib/brand/soda-voice";
 import { refreshClients } from "@/lib/clients/repository";
 import { refreshOrders } from "@/lib/orders/repository";
 import { refreshProjects } from "@/lib/projects/repository";
@@ -14,7 +13,7 @@ export default async function ProjectsPage() {
     refreshOrders(),
   ]);
   return (
-    <AppShell title="المشاريع" subtitle={getModuleSlogan("projects")}>
+    <AppShell titleKey="pages.projects" layer="projects">
       <ProjectsListContent />
     </AppShell>
   );

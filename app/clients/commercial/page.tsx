@@ -1,6 +1,5 @@
 import { AppShell } from "@/components/layout/app-shell";
 import { CommercialClientsView } from "@/components/clients/commercial-clients-view";
-import { getModuleSlogan } from "@/lib/brand/soda-voice";
 import {
   getClientsBySegment,
   refreshClients,
@@ -19,7 +18,7 @@ export default async function CommercialClientsPage() {
     refreshPayments(),
   ]);
   return (
-    <AppShell title="العملاء التجاريين" subtitle={getModuleSlogan("commercial")}>
+    <AppShell titleKey="pages.commercialClients" layer="commercialClients">
       <CommercialClientsView
         clients={getClientsBySegment("commercial")}
         projects={getProjects()}
