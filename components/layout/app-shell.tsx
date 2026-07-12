@@ -14,6 +14,7 @@ import { getRecentlyViewed } from "@/lib/identity/recent";
 import {
   isAuthStrict,
   resolveSessionForApp,
+  type SodaSession,
 } from "@/lib/identity/session";
 import type { DictKey } from "@/lib/i18n/dictionaries";
 
@@ -28,6 +29,8 @@ interface AppShellProps {
   subtitle?: string;
   children: React.ReactNode;
   showBreadcrumbs?: boolean;
+  /** Pass a resolved session to skip a duplicate auth fetch (e.g. Home). */
+  session?: SodaSession | null;
 }
 
 export async function AppShell({
@@ -37,6 +40,7 @@ export async function AppShell({
   subtitle,
   children,
   showBreadcrumbs = true,
+  session: sessionProp,
 }: AppShellProps) {
   const headerList = await headers();
   const pathname =
@@ -45,11 +49,15 @@ export async function AppShell({
     headerList.get("next-url") ||
     "/";
 
-  const [session, events, recent] = await Promise.all([
-    resolveSessionForApp(),
+  const [sessionResolved, events, recent] = await Promise.all([
+    sessionProp !== undefined
+      ? Promise.resolve(sessionProp)
+      : resolveSessionForApp(),
     refreshBusinessEventsFromDb(20).catch(() => []),
     getRecentlyViewed(),
   ]);
+
+  const session = sessionResolved;
 
   if (!session && isAuthStrict()) {
     redirect("/login");

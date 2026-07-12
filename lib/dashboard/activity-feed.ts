@@ -85,7 +85,7 @@ export function buildActivityFeed(): ActivityFeedEvent[] {
       kind: "status",
       category: "Order status",
       description: `${order.clientName} · ${order.projectType} → ${order.status}`,
-      href: "/orders",
+      href: `/orders/${order.id}`,
     });
 
     if (order.deliveryDate) {
@@ -96,7 +96,7 @@ export function buildActivityFeed(): ActivityFeedEvent[] {
         kind: "delivery",
         category: "Delivery",
         description: `${order.clientName} · delivery ${order.deliveryDate}`,
-        href: "/orders",
+        href: `/orders/${order.id}`,
       });
     }
 
@@ -112,7 +112,7 @@ export function buildActivityFeed(): ActivityFeedEvent[] {
         kind: "shoot",
         category: "Shoot",
         description: `${order.clientName} · ${order.location || "TBD"} · ${order.status}`,
-        href: "/orders",
+        href: `/orders/${order.id}`,
       });
     }
   }
@@ -128,7 +128,7 @@ export function buildActivityFeed(): ActivityFeedEvent[] {
       kind: "order",
       category: "New order",
       description: `${order.clientName} · ${order.projectType} · ${order.price.toLocaleString("en-EG")} EGP`,
-      href: "/orders",
+      href: `/orders/${order.id}`,
     });
   }
 
@@ -141,7 +141,9 @@ export function buildActivityFeed(): ActivityFeedEvent[] {
       kind: "payment",
       category: "Payment",
       description: `${clientName(payment.clientId)} · ${payment.label ?? payment.kind} · ${payment.amount.toLocaleString("en-EG")} EGP`,
-      href: "/clients",
+      href: payment.orderId
+        ? `/orders/${payment.orderId}`
+        : `/clients/${payment.clientId}`,
     });
   }
 

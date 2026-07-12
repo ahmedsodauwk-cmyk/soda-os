@@ -306,6 +306,7 @@ export function computeUpcomingSchedule(
 
   const toShootItem = (order: Order, when: ScheduleItem["when"]): ScheduleItem => ({
     id: `shoot-${order.id}`,
+    orderId: order.id,
     title: `${order.projectType} shoot`,
     clientName: order.clientName,
     date: order.shootDate,
@@ -313,6 +314,7 @@ export function computeUpcomingSchedule(
     kind: "shoot",
     status: order.status,
     when,
+    href: `/orders/${order.id}`,
   });
 
   const pipeline = orders.filter(
@@ -335,6 +337,7 @@ export function computeUpcomingSchedule(
     .map(
       (o): ScheduleItem => ({
         id: `delivery-${o.id}`,
+        orderId: o.id,
         title: `${o.projectType} delivery`,
         clientName: o.clientName,
         date: o.deliveryDate,
@@ -347,6 +350,7 @@ export function computeUpcomingSchedule(
             : o.deliveryDate === tomorrow
               ? "tomorrow"
               : "upcoming",
+        href: `/orders/${o.id}`,
       })
     );
 
@@ -360,6 +364,7 @@ export function computeUpcomingSchedule(
     .map(
       (o): ScheduleItem => ({
         id: `deadline-${o.id}`,
+        orderId: o.id,
         title: `${o.clientName} — due`,
         clientName: o.clientName,
         date: o.deliveryDate,
@@ -372,6 +377,7 @@ export function computeUpcomingSchedule(
             : o.deliveryDate === tomorrow
               ? "tomorrow"
               : "upcoming",
+        href: `/orders/${o.id}`,
       })
     );
 
@@ -405,7 +411,7 @@ export function computeAttentionItems(
         severity: "critical",
         title: `Overdue delivery — ${order.clientName}`,
         detail: `${order.projectType} · due ${order.deliveryDate} · ${order.status}`,
-        href: "/orders",
+        href: `/orders/${order.id}`,
       });
     }
   }
@@ -419,7 +425,7 @@ export function computeAttentionItems(
         severity: "warning",
         title: `Unpaid — ${client.name}`,
         detail: `Outstanding on ${stats.totalOrders} order(s)`,
-        href: "/clients",
+        href: `/clients/${client.id}`,
         amount: stats.outstandingBalance,
       });
     }
@@ -451,7 +457,7 @@ export function computeAttentionItems(
         severity: "info",
         title: `Deadline soon — ${order.clientName}`,
         detail: `${project?.name ?? order.projectType} · due ${order.deliveryDate}`,
-        href: project ? `/projects/${project.id}` : "/orders",
+        href: `/orders/${order.id}`,
       });
     }
   }

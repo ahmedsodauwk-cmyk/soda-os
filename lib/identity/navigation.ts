@@ -139,6 +139,7 @@ export const DASHBOARD_LINKS = {
   wallet: "/me/wallet",
   notifications: "/notifications",
   statistics: "/statistics",
+  quotations: "/quotations",
 } as const;
 
 export type DashboardLinkKey = keyof typeof DASHBOARD_LINKS;

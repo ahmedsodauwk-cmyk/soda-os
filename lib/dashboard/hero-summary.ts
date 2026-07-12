@@ -35,14 +35,19 @@ export const HERO_GREETINGS: Record<DayPeriod, string> = {
   late_night: "ليلة هادية يا جونيور صودا",
 };
 
-/** Short operational lines — omit any zero metric. */
+export type HeroOperationalLine = {
+  text: string;
+  href: string;
+};
+
+/** Short operational lines — omit any zero metric. Each line drills somewhere useful. */
 export function buildHeroOperationalLines(
   input:
     | DashboardVoiceInput
     | Pick<DashboardSnapshot, "kpis" | "attention" | "schedule">
-): string[] {
+): HeroOperationalLine[] {
   const n = toEasternDigits;
-  const lines: string[] = [];
+  const lines: HeroOperationalLine[] = [];
 
   const todayShoots = input.schedule.todayShoots.length;
   const todayDeliveries = input.schedule.deliveries.filter(
@@ -64,56 +69,75 @@ export function buildHeroOperationalLines(
   const upcomingDeliveries = input.kpis.upcomingDeliveries;
 
   if (todayShoots > 0) {
-    lines.push(
-      todayShoots === 1
-        ? "عندك شوت واحد النهاردة"
-        : `عندك ${n(todayShoots)} شوتات النهاردة`
-    );
+    lines.push({
+      text:
+        todayShoots === 1
+          ? "عندك شوت واحد النهاردة"
+          : `عندك ${n(todayShoots)} شوتات النهاردة`,
+      href: "/#schedule",
+    });
   }
 
   if (todayDeliveries > 0) {
-    lines.push(
-      todayDeliveries === 1
-        ? "فيه تسليم النهاردة"
-        : `فيه ${n(todayDeliveries)} تسليم النهاردة`
-    );
+    lines.push({
+      text:
+        todayDeliveries === 1
+          ? "فيه تسليم النهاردة"
+          : `فيه ${n(todayDeliveries)} تسليم النهاردة`,
+      href: "/#schedule",
+    });
   }
 
   if (overdue > 0) {
-    lines.push(
-      overdue === 1
-        ? "فيه تسليمة متأخرة محتاجة متابعة"
-        : `فيه ${n(overdue)} تسليمات متأخرة`
-    );
+    lines.push({
+      text:
+        overdue === 1
+          ? "فيه تسليمة متأخرة محتاجة متابعة"
+          : `فيه ${n(overdue)} تسليمات متأخرة`,
+      href: "/#attention",
+    });
   }
 
   if (unpaid > 0 && lines.length < 3) {
-    lines.push(
-      unpaid === 1
-        ? "فيه عميل مستني متابعة فلوس"
-        : `فيه ${n(unpaid)} عملاء عليهم فلوس`
-    );
+    lines.push({
+      text:
+        unpaid === 1
+          ? "فيه عميل مستني متابعة فلوس"
+          : `فيه ${n(unpaid)} عملاء عليهم فلوس`,
+      href: "/#attention",
+    });
   }
 
   if (reviewWaiting > 0 && lines.length < 3 && overdue === 0) {
-    lines.push(
-      reviewWaiting === 1
-        ? "فيه حاجة مستنية قرار منك"
-        : `فيه ${n(reviewWaiting)} حاجات مستنية قرار`
-    );
+    lines.push({
+      text:
+        reviewWaiting === 1
+          ? "فيه حاجة مستنية قرار منك"
+          : `فيه ${n(reviewWaiting)} حاجات مستنية قرار`,
+      href: "/#attention",
+    });
   }
 
   if (upcomingShoots > 0 && todayShoots === 0 && lines.length < 3) {
-    lines.push(`عندك ${n(upcomingShoots)} شوتات قريبة في الجدول`);
+    lines.push({
+      text: `عندك ${n(upcomingShoots)} شوتات قريبة في الجدول`,
+      href: "/calendar",
+    });
   }
 
   if (upcomingDeliveries > 0 && todayDeliveries === 0 && lines.length < 3) {
-    lines.push(`فيه ${n(upcomingDeliveries)} تسليمات قريبة`);
+    lines.push({
+      text: `فيه ${n(upcomingDeliveries)} تسليمات قريبة`,
+      href: "/#schedule",
+    });
   }
 
   if (lines.length === 0) {
-    lines.push("أهلاً بيك.");
-    lines.push("دي نظرة سريعة على اللي مستنيك النهارده.");
+    lines.push({ text: "أهلاً بيك.", href: "/#attention" });
+    lines.push({
+      text: "دي نظرة سريعة على اللي مستنيك النهارده.",
+      href: "/#schedule",
+    });
   }
 
   return lines.slice(0, 3);

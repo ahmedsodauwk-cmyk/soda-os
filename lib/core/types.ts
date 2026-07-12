@@ -122,4 +122,20 @@ export interface NotificationRecord {
   read: boolean;
   entityType: BusinessEntityType;
   entityId: string;
+  /**
+   * Optional future Confirm / Decline slots.
+   * Sprint 3: structure only — do not render live Confirm/Decline yet.
+   */
+  actions?: NotificationAction[];
+}
+
+/** Future notification decision CTA — reserved for Confirm/Decline flows. */
+export type NotificationActionKind = "confirm" | "decline" | "view";
+
+export interface NotificationAction {
+  kind: NotificationActionKind;
+  label: string;
+  href?: string;
+  /** When false, UI may show a disabled placeholder; default true when present. */
+  enabled?: boolean;
 }

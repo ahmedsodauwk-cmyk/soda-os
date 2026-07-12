@@ -450,6 +450,7 @@ export function getCompanyPulse(
       label: "Overdue deliveries",
       insight: `${signals.overdueCount} overdue delivery${signals.overdueCount === 1 ? "" : "ies"} need action.`,
       tone: "pressure",
+      href: "/#attention",
     });
   }
 
@@ -459,6 +460,7 @@ export function getCompanyPulse(
       label: "Upcoming shoots",
       insight: `${signals.todayShoots} shoot${signals.todayShoots === 1 ? "" : "s"} today.`,
       tone: signals.todayShoots >= 2 ? "watch" : "neutral",
+      href: "/#schedule",
     });
   } else if (signals.upcomingShoots >= 1) {
     insights.push({
@@ -466,6 +468,7 @@ export function getCompanyPulse(
       label: "Upcoming shoots",
       insight: `${signals.upcomingShoots} upcoming shoot${signals.upcomingShoots === 1 ? "" : "s"}.`,
       tone: "watch",
+      href: "/calendar",
     });
   }
 
@@ -475,6 +478,7 @@ export function getCompanyPulse(
       label: "Unpaid clients",
       insight: `${signals.unpaidCount} unpaid client balance${signals.unpaidCount === 1 ? "" : "s"}.`,
       tone: "watch",
+      href: "/#attention",
     });
   }
 
@@ -486,6 +490,7 @@ export function getCompanyPulse(
       label: "Crew overload",
       insight: `${top.name}: ${top.currentWorkload} active assignments.`,
       tone: "watch",
+      href: `/crew/${top.id}`,
     });
   }
 
@@ -500,6 +505,7 @@ export function getCompanyPulse(
       label: "Late approvals",
       insight: `${lateApprovals.length} item${lateApprovals.length === 1 ? "" : "s"} waiting on approval / deadline.`,
       tone: "pressure",
+      href: "/#attention",
     });
   }
 
@@ -510,6 +516,7 @@ export function getCompanyPulse(
       label: "Upcoming deadlines",
       insight: `${snapshot.schedule.deadlines.length} deadline${snapshot.schedule.deadlines.length === 1 ? "" : "s"} — next: ${next.title} (${next.date}).`,
       tone: "watch",
+      href: next.href || "/#schedule",
     });
   }
 

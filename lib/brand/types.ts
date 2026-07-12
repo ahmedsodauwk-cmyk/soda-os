@@ -195,6 +195,8 @@ export interface CompanyPulseInsight {
   /** Arabic / mixed brand-voice insight */
   insight: string;
   tone: "good" | "watch" | "pressure" | "neutral";
+  /** Next logical surface for this insight */
+  href?: string;
 }
 
 /** SODA LIVE awareness item — never critical ops. */

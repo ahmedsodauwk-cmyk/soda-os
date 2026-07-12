@@ -41,33 +41,39 @@ export function QuotationPipelineCard() {
             title="Pending"
             value={String(m.pendingCount)}
             icon={FileText}
+            href="/quotations"
           />
           <StatCard
             title="Waiting client"
             value={String(m.waitingClientCount)}
             icon={Handshake}
+            href="/quotations"
           />
           <StatCard
             title="Waiting deposit"
             value={String(m.waitingDepositCount)}
             icon={Wallet}
+            href="/quotations"
           />
           <StatCard
             title="Pipeline value"
             value={formatEgp(m.pipelineValue)}
             icon={TrendingUp}
+            href="/quotations"
           />
           <StatCard
             title="Won this month"
             value={String(m.wonThisMonth)}
             icon={TrendingUp}
             trend="up"
+            href="/quotations"
           />
           <StatCard
             title="Lost this month"
             value={String(m.lostThisMonth)}
             icon={TrendingDown}
             trend={m.lostThisMonth > 0 ? "down" : "neutral"}
+            href="/quotations"
           />
           <StatCard
             title="Conversion rate"
@@ -75,6 +81,7 @@ export function QuotationPipelineCard() {
               m.conversionRate == null ? "—" : `${m.conversionRate}%`
             }
             icon={Percent}
+            href="/quotations"
           />
           <StatCard
             title="Avg approval time"
@@ -84,6 +91,7 @@ export function QuotationPipelineCard() {
                 : `${m.averageApprovalDays}d`
             }
             icon={Timer}
+            href="/quotations"
           />
         </div>
       </CardContent>

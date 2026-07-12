@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import {
@@ -62,11 +63,13 @@ export default function DashboardHero({
       {lines.length > 0 ? (
         <ul className="space-y-1.5" dir="rtl">
           {lines.map((line) => (
-            <li
-              key={line}
-              className="font-ar text-base leading-[1.75] text-foreground/85 sm:text-lg sm:leading-[1.7]"
-            >
-              {line}
+            <li key={line.text}>
+              <Link
+                href={line.href}
+                className="font-ar text-base leading-[1.75] text-foreground/85 underline-offset-4 transition-colors hover:text-soda-pink hover:underline sm:text-lg sm:leading-[1.7]"
+              >
+                {line.text}
+              </Link>
             </li>
           ))}
         </ul>

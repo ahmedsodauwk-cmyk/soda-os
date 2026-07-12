@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Activity, AlertTriangle, CheckCircle2, Eye } from "lucide-react";
 
@@ -94,26 +95,39 @@ export default function CompanyPulse({ insights }: CompanyPulseProps) {
             {COMPANY_PULSE_STABLE}
           </p>
         ) : (
-          <div
-            key={`${insight.id}-${tick}`}
-            className={cn(
-              "soda-live-fade-enter flex items-start gap-3 rounded-xl border px-3.5 py-3",
-              toneStyles[insight.tone].className
-            )}
-          >
-            {(() => {
-              const Icon = toneStyles[insight.tone].icon;
-              return <Icon className="mt-0.5 size-4 shrink-0 opacity-90" />;
-            })()}
-            <div className="min-w-0 space-y-1">
-              <p className="text-[11px] font-medium tracking-[0.12em] uppercase opacity-80">
-                {insight.label}
-              </p>
-              <p className="text-sm leading-relaxed text-foreground/90">
-                {insight.insight}
-              </p>
-            </div>
-          </div>
+          (() => {
+            const Icon = toneStyles[insight.tone].icon;
+            const body = (
+              <div
+                className={cn(
+                  "soda-live-fade-enter flex items-start gap-3 rounded-xl border px-3.5 py-3",
+                  toneStyles[insight.tone].className,
+                  insight.href && "transition-opacity hover:opacity-90"
+                )}
+              >
+                <Icon className="mt-0.5 size-4 shrink-0 opacity-90" />
+                <div className="min-w-0 space-y-1">
+                  <p className="text-[11px] font-medium tracking-[0.12em] uppercase opacity-80">
+                    {insight.label}
+                  </p>
+                  <p className="text-sm leading-relaxed text-foreground/90">
+                    {insight.insight}
+                  </p>
+                </div>
+              </div>
+            );
+            return insight.href ? (
+              <Link
+                key={`${insight.id}-${tick}`}
+                href={insight.href}
+                className="block"
+              >
+                {body}
+              </Link>
+            ) : (
+              <div key={`${insight.id}-${tick}`}>{body}</div>
+            );
+          })()
         )}
       </CardContent>
     </Card>

@@ -47,7 +47,7 @@ function makeMePage(config: MePageConfig) {
           layer="mySpace"
           subtitle={config.sideLanguage}
         >
-          <BackLink href="/me" label="My Dashboard" />
+          <BackLink href="/me" label="My Space" />
           <Card className="soda-cc-card">
             <CardHeader>
               <CardTitle>{config.title}</CardTitle>

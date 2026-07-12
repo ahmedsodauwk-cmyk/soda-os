@@ -57,6 +57,8 @@ export interface FinancialOverview {
 
 export interface ScheduleItem {
   id: string;
+  /** Underlying order id for drill-down */
+  orderId: string;
   title: string;
   clientName: string;
   date: string;
@@ -64,6 +66,7 @@ export interface ScheduleItem {
   kind: "shoot" | "delivery" | "deadline";
   status: OrderStatus | string;
   when: "today" | "tomorrow" | "upcoming";
+  href: string;
 }
 
 export interface UpcomingSchedule {

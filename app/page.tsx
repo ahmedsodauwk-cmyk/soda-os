@@ -34,7 +34,7 @@ export default async function Home() {
   const operatorName = session?.profile.fullName ?? null;
 
   return (
-    <AppShell titleKey="pages.home" layer="dashboard">
+    <AppShell titleKey="pages.home" layer="dashboard" session={session}>
       <WelcomeGate
         dashboard={{
           kpis: dashboard.kpis,

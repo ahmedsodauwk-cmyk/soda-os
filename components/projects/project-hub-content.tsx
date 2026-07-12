@@ -25,6 +25,7 @@ import { ProjectWorkflowActions } from "@/components/projects/project-workflow-a
 import { RecordProjectPaymentDialog } from "@/components/projects/record-project-payment-dialog";
 import { UploadProjectFileDialog } from "@/components/projects/upload-project-file-dialog";
 import { JourneyStepper } from "@/components/business/journey-stepper";
+import { RelatedRecords } from "@/components/navigation/related-records";
 import { OrderStatusBadge } from "@/components/orders/order-status-badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -148,6 +149,39 @@ export function ProjectHubContent({ project }: ProjectHubContentProps) {
           Back to {workspaceLabel}
         </Button>
 
+        <RelatedRecords
+          title="Related records"
+          items={[
+            ...(project.clientId
+              ? [
+                  {
+                    label: "Client",
+                    href: `/clients/${project.clientId}`,
+                    detail: project.clientName,
+                  },
+                ]
+              : []),
+            ...(project.orders[0]
+              ? [
+                  {
+                    label: "Orders",
+                    href: `/orders/${project.orders[0].id}`,
+                    detail: `${project.ordersCount} linked`,
+                  },
+                ]
+              : [
+                  {
+                    label: "Orders",
+                    href: "/orders",
+                    detail: "No orders yet",
+                  },
+                ]),
+            { label: "Finance", href: "/finance", detail: "Payments" },
+            { label: "Calendar", href: "/calendar", detail: "Schedule" },
+            { label: "Quotations", href: "/quotations", detail: "Quotes" },
+          ]}
+        />
+
         <Card>
           <CardContent className="space-y-4 p-4 sm:p-6">
             <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
@@ -166,7 +200,17 @@ export function ProjectHubContent({ project }: ProjectHubContentProps) {
                   {getModuleSlogan("projectHub")}
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  {project.clientName} · {project.id} · Updated{" "}
+                  {project.clientId ? (
+                    <Link
+                      href={`/clients/${project.clientId}`}
+                      className="hover:text-soda-pink hover:underline"
+                    >
+                      {project.clientName}
+                    </Link>
+                  ) : (
+                    project.clientName
+                  )}{" "}
+                  · {project.id} · Updated{" "}
                   {formatRelativeActivity(project.lastActivity)}
                 </p>
                 {project.description && (
@@ -387,9 +431,10 @@ export function ProjectHubContent({ project }: ProjectHubContentProps) {
           </CardHeader>
           <CardContent className="space-y-2">
             {project.orders.map((order) => (
-              <div
+              <Link
                 key={order.id}
-                className="flex flex-col gap-2 rounded-lg border border-border/60 px-3 py-3 sm:flex-row sm:items-center sm:justify-between"
+                href={`/orders/${order.id}`}
+                className="flex flex-col gap-2 rounded-lg border border-border/60 px-3 py-3 transition-colors hover:border-soda-pink/35 sm:flex-row sm:items-center sm:justify-between"
               >
                 <div>
                   <p className="font-mono text-sm font-medium">{order.id}</p>
@@ -407,7 +452,7 @@ export function ProjectHubContent({ project }: ProjectHubContentProps) {
                     {formatPrice(order.price)}
                   </p>
                 </div>
-              </div>
+              </Link>
             ))}
           </CardContent>
         </Card>

@@ -14,6 +14,8 @@ export type {
   BusinessEventInput,
   BusinessEventPayload,
   BusinessEventType,
+  NotificationAction,
+  NotificationActionKind,
   NotificationRecord,
 } from "@/lib/core/types";
 

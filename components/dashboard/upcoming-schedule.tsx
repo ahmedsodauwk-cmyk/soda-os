@@ -55,7 +55,10 @@ function Section({
         <div className="space-y-0">
           {items.map((item, index) => (
             <div key={item.id}>
-              <div className="flex items-start justify-between gap-3 py-2.5">
+              <Link
+                href={item.href}
+                className="flex items-start justify-between gap-3 rounded-md py-2.5 transition-colors hover:bg-muted/50"
+              >
                 <div className="min-w-0">
                   <p className="truncate text-sm font-medium">{item.title}</p>
                   <p className="truncate text-xs text-muted-foreground">
@@ -66,7 +69,7 @@ function Section({
                 <Badge variant="secondary" className="shrink-0">
                   {whenBadge(item.when)}
                 </Badge>
-              </div>
+              </Link>
               {index < items.length - 1 ? <Separator /> : null}
             </div>
           ))}

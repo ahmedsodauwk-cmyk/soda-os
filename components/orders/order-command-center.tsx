@@ -115,7 +115,6 @@ export function OrderCommandCenter({
             : []),
           { label: "Finance", href: "/finance", detail: "Payments" },
           { label: "Calendar", href: "/calendar", detail: order.shootDate },
-          { label: "Crew assignments", href: `/orders/${order.id}`, detail: "This order" },
         ]}
       />
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">

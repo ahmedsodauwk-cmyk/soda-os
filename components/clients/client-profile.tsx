@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { MonthlyAccountPanel } from "@/components/business/monthly-account-panel";
 import { HumanExplanation } from "@/components/brand/human-title";
 import { ClientProfileActions } from "@/components/clients/client-profile-actions";
+import { RelatedRecords } from "@/components/navigation/related-records";
 import { OrderStatusBadge } from "@/components/orders/order-status-badge";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -132,10 +133,35 @@ export async function ClientProfile({ clientId }: ClientProfileProps) {
               nativeButton={false}
               render={<Link href={`/orders/commercial/${clientId}`} />}
             >
-              Orders drill-down
+              View orders
             </Button>
           </div>
         </div>
+
+        <RelatedRecords
+          title="Related records"
+          items={[
+            { label: "Orders", href: `/orders/commercial/${clientId}`, detail: String(profile.orderCount) },
+            ...(profile.projects[0] || operating.projects[0]
+              ? [
+                  {
+                    label: "Projects",
+                    href: `/projects/${(profile.projects[0] ?? operating.projects[0])!.id}`,
+                    detail: String(profile.projectCount),
+                  },
+                ]
+              : [
+                  {
+                    label: "Projects",
+                    href: "/projects",
+                    detail: "None yet",
+                  },
+                ]),
+            { label: "Quotations", href: "/quotations", detail: "Quotes" },
+            { label: "Finance", href: "/finance", detail: "Payments" },
+            { label: "Calendar", href: "/calendar", detail: "Schedule" },
+          ]}
+        />
 
         <div className="flex flex-wrap items-start gap-4">
           <div className="flex size-16 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,var(--soda-purple),var(--soda-pink))] text-lg font-bold text-white">
@@ -270,17 +296,19 @@ export async function ClientProfile({ clientId }: ClientProfileProps) {
                 ? profile.orders
                 : operating.orders
               ).map((o) => (
-                <li
-                  key={o.id}
-                  className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border/60 px-3.5 py-3"
-                >
-                  <div>
-                    <p className="font-medium">{o.id}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {o.shootDate} → {o.deliveryDate}
-                    </p>
-                  </div>
-                  <OrderStatusBadge status={o.status} />
+                <li key={o.id}>
+                  <Link
+                    href={`/orders/${o.id}`}
+                    className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border/60 px-3.5 py-3 transition-colors hover:border-soda-pink/35"
+                  >
+                    <div>
+                      <p className="font-medium">{o.id}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {o.shootDate} → {o.deliveryDate}
+                      </p>
+                    </div>
+                    <OrderStatusBadge status={o.status} />
+                  </Link>
                 </li>
               ))}
             </ul>
@@ -298,9 +326,10 @@ export async function ClientProfile({ clientId }: ClientProfileProps) {
             </p>
           ) : (
             payments.map((p) => (
-              <div
+              <Link
                 key={p.id}
-                className="flex items-center justify-between rounded-xl border border-border/60 px-3.5 py-3"
+                href={p.orderId ? `/orders/${p.orderId}` : "/finance"}
+                className="flex items-center justify-between rounded-xl border border-border/60 px-3.5 py-3 transition-colors hover:border-soda-pink/35"
               >
                 <div>
                   <p className="font-medium">{p.label ?? p.kind}</p>
@@ -310,7 +339,7 @@ export async function ClientProfile({ clientId }: ClientProfileProps) {
                   </p>
                 </div>
                 <Badge variant="outline">{egp(p.amount)}</Badge>
-              </div>
+              </Link>
             ))
           )}
           <p className="text-xs text-muted-foreground">
@@ -332,16 +361,17 @@ export async function ClientProfile({ clientId }: ClientProfileProps) {
                 </p>
               ) : (
                 profile.invoices.map((inv) => (
-                  <div
+                  <Link
                     key={inv.id}
-                    className="rounded-lg border border-border/50 px-3 py-2 text-sm"
+                    href="/finance"
+                    className="block rounded-lg border border-border/50 px-3 py-2 text-sm transition-colors hover:border-soda-pink/35"
                   >
                     <p className="font-medium">{inv.number}</p>
                     <p className="text-xs text-muted-foreground">
                       {inv.periodMonth} · {inv.status} · {egp(inv.amount)} · paid{" "}
                       {egp(inv.paidAmount)}
                     </p>
-                  </div>
+                  </Link>
                 ))
               )}
             </CardContent>
@@ -430,6 +460,46 @@ export async function ClientProfile({ clientId }: ClientProfileProps) {
         </Button>
         <ClientProfileActions client={client} />
       </div>
+
+      <RelatedRecords
+        title="Related records"
+        items={[
+          ...(orders[0]
+            ? [
+                {
+                  label: "Orders",
+                  href: `/orders/${orders[0].id}`,
+                  detail: String(stats.totalOrders),
+                },
+              ]
+            : [
+                {
+                  label: "Orders",
+                  href: "/orders",
+                  detail: "None yet",
+                },
+              ]),
+          ...(projects[0]
+            ? [
+                {
+                  label: "Projects",
+                  href: `/projects/${projects[0].id}`,
+                  detail: String(projects.length),
+                },
+              ]
+            : [
+                {
+                  label: "Projects",
+                  href: "/projects",
+                  detail: "None yet",
+                },
+              ]),
+          { label: "Quotations", href: "/quotations", detail: "Quotes" },
+          { label: "Finance", href: "/finance", detail: "Payments" },
+          { label: "Calendar", href: "/calendar", detail: "Schedule" },
+        ]}
+      />
+
       <div>
         <h2 className="font-heading text-2xl font-semibold tracking-tight">
           {client.name}
@@ -511,16 +581,17 @@ export async function ClientProfile({ clientId }: ClientProfileProps) {
           </p>
         ) : (
           orders.map((o) => (
-            <div
+            <Link
               key={o.id}
-              className="flex items-center justify-between rounded-xl border border-border/60 px-3.5 py-3"
+              href={`/orders/${o.id}`}
+              className="flex items-center justify-between rounded-xl border border-border/60 px-3.5 py-3 transition-colors hover:border-soda-pink/35"
             >
               <div>
                 <p className="font-medium">{o.id}</p>
                 <p className="text-xs text-muted-foreground">{o.shootDate}</p>
               </div>
               <OrderStatusBadge status={o.status} />
-            </div>
+            </Link>
           ))
         )}
       </section>
@@ -536,9 +607,10 @@ export async function ClientProfile({ clientId }: ClientProfileProps) {
           </p>
         ) : (
           payments.map((p) => (
-            <div
+            <Link
               key={p.id}
-              className="flex items-center justify-between rounded-xl border border-border/60 px-3.5 py-3"
+              href={p.orderId ? `/orders/${p.orderId}` : "/finance"}
+              className="flex items-center justify-between rounded-xl border border-border/60 px-3.5 py-3 transition-colors hover:border-soda-pink/35"
             >
               <div>
                 <p className="font-medium">{p.label ?? p.kind}</p>
@@ -548,7 +620,7 @@ export async function ClientProfile({ clientId }: ClientProfileProps) {
                 </p>
               </div>
               <Badge variant="outline">{egp(p.amount)}</Badge>
-            </div>
+            </Link>
           ))
         )}
         <p className="text-xs text-muted-foreground">

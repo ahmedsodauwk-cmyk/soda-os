@@ -46,6 +46,14 @@ function safeHref(item: NotificationRecord): string {
   }
 }
 
+function friendlyTitle(item: NotificationRecord): string {
+  const t = item.title?.trim();
+  if (t && !/^[A-Z][a-zA-Z]+(?:[A-Z][a-zA-Z]+)+$/.test(t)) return t;
+  // PascalCase event-type fallback → spaced words
+  if (t) return t.replace(/([a-z])([A-Z])/g, "$1 $2");
+  return "Activity update";
+}
+
 export function HeaderNotifications({ initial }: HeaderNotificationsProps) {
   const [readIds, setReadIds] = useState<Set<string>>(() => new Set());
 
@@ -97,7 +105,7 @@ export function HeaderNotifications({ initial }: HeaderNotificationsProps) {
             No recent activity
           </DropdownMenuItem>
         ) : (
-          items.slice(0, 12).map((item) => {
+          items.slice(0, 8).map((item) => {
             const href = safeHref(item);
             return (
               <DropdownMenuItem
@@ -106,15 +114,24 @@ export function HeaderNotifications({ initial }: HeaderNotificationsProps) {
                 onClick={() => markRead(item.id)}
               >
                 <Link href={href} className="min-w-0 space-y-0.5 px-2 py-1.5">
-                  <p className="text-sm font-medium">{item.title}</p>
+                  <p className="text-sm font-medium">{friendlyTitle(item)}</p>
                   <p className="line-clamp-2 text-xs text-muted-foreground">
-                    {item.body}
+                    {item.body || "Open related record"}
                   </p>
                 </Link>
               </DropdownMenuItem>
             );
           })
         )}
+        <DropdownMenuSeparator />
+        <DropdownMenuItem className="p-0" onClick={() => undefined}>
+          <Link
+            href="/notifications"
+            className="flex w-full items-center justify-center px-2 py-2 text-sm font-medium text-soda-pink"
+          >
+            Notification center
+          </Link>
+        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );
