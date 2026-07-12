@@ -1,13 +1,14 @@
 /**
- * SODA Logo System — Sprint 11 official usage rules.
+ * SODA Logo System — official extracted mark (RC2).
  *
- * Assets in `/public/brand/`:
- * - `soda-mark.svg` — white geometric صودا on Deep Dark Purple (#2D1B4E)
- * - `soda-mark-white.svg` — white mark only (transparent) for dark UI overlays
- * - `soda-wordmark.svg` — mark + SODA VISUALS word
- * - `soda-logo-master.png` — official lockup master (source of truth)
+ * Assets in `/public/brand/` (source of truth = lockup PNG extraction):
+ * - `soda-mark-white.png` — white geometric mark only (transparent)
+ * - `soda-mark.png` — white mark on Deep Purple tile
+ * - `soda-icon.png` — app / favicon tile
+ * - `soda-logo-master.png` — official lockup (pink field + purple + white)
  *
- * Colors: Deep Dark Purple #2D1B4E · Vibrant Pink #E93D77 · White
+ * NEVER redraw, simplify, or re-vectorize the mark.
+ * Colors from lockup: Deep Purple #2D1B4E · Brand Pink #E93D77 · White
  *
  * ─────────────────────────────────────────────────────────────
  * PLACEMENTS (allowed)
@@ -31,16 +32,16 @@
  */
 
 export const SODA_LOGO = {
-  /** Primary mark path (SVG) — purple tile + white صودا */
-  markSrc: "/brand/soda-mark.svg",
-  /** White-only mark for dark overlays */
-  markWhiteSrc: "/brand/soda-mark-white.svg",
-  /** Horizontal wordmark for splash / PDF */
-  wordmarkSrc: "/brand/soda-wordmark.svg",
-  /** Official master PNG */
+  /** Primary mark — white on Deep Purple tile */
+  markSrc: "/brand/soda-mark.png",
+  /** White-only mark for dark overlays / splash */
+  markWhiteSrc: "/brand/soda-mark-white.png",
+  /** Same as mark for wordmark placements (word rendered in component) */
+  wordmarkSrc: "/brand/soda-mark.png",
+  /** Official master lockup PNG */
   masterSrc: "/brand/soda-logo-master.png",
   /** Favicon / app icon */
-  iconSrc: "/brand/soda-mark.svg",
+  iconSrc: "/brand/soda-icon.png",
   alt: "SODA VISUALS",
   /** Sidebar word line */
   productName: "SODA",
@@ -79,7 +80,7 @@ export type SodaLogoPlacement =
 /** Which asset + size to use per placement */
 export const SODA_LOGO_PLACEMENTS: Record<
   SodaLogoPlacement,
-  { src: string; size: number; showWord?: boolean }
+  { src: string; size: number; showWord?: boolean; onDark?: boolean }
 > = {
   sidebar: {
     src: SODA_LOGO.markSrc,
@@ -87,9 +88,20 @@ export const SODA_LOGO_PLACEMENTS: Record<
     showWord: true,
   },
   favicon: { src: SODA_LOGO.iconSrc, size: SODA_LOGO_SIZES.favicon },
-  splash: { src: SODA_LOGO.markSrc, size: SODA_LOGO_SIZES.splash },
-  login: { src: SODA_LOGO.wordmarkSrc, size: SODA_LOGO_SIZES.splash },
-  about: { src: SODA_LOGO.wordmarkSrc, size: SODA_LOGO_SIZES.about },
+  splash: {
+    src: SODA_LOGO.markSrc,
+    size: SODA_LOGO_SIZES.splash,
+  },
+  login: {
+    src: SODA_LOGO.markSrc,
+    size: SODA_LOGO_SIZES.splash,
+    showWord: true,
+  },
+  about: {
+    src: SODA_LOGO.markSrc,
+    size: SODA_LOGO_SIZES.about,
+    showWord: true,
+  },
   reports: { src: SODA_LOGO.markSrc, size: SODA_LOGO_SIZES.document },
   pdf: { src: SODA_LOGO.markSrc, size: SODA_LOGO_SIZES.document },
   empty: { src: SODA_LOGO.markSrc, size: SODA_LOGO_SIZES.empty },

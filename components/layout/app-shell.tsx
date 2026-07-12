@@ -75,7 +75,7 @@ export async function AppShell({
   return (
     <main
       data-soda-section={section}
-      className="flex min-h-screen bg-transparent soda-brand-wash"
+      className="soda-brand-wash soda-atmosphere flex min-h-screen bg-transparent"
     >
       <Sidebar user={user} />
 

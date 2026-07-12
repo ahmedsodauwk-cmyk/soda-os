@@ -49,9 +49,10 @@ export const metadata: Metadata = {
   manifest: "/manifest.webmanifest",
   icons: {
     icon: [
-      { url: "/brand/soda-mark.svg", type: "image/svg+xml" },
-      { url: "/brand/soda-logo-master.png", type: "image/png" },
+      { url: "/brand/soda-icon.png", type: "image/png", sizes: "512x512" },
+      { url: "/brand/favicon-32.png", type: "image/png", sizes: "32x32" },
     ],
+    apple: [{ url: "/brand/apple-touch-icon.png", type: "image/png" }],
   },
   openGraph: {
     title: "SODA VISUALS",

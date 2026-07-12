@@ -5,9 +5,9 @@
 @custom-variant dark (&:is(.dark *));
 
 /* -------------------------------------------------------------------------- */
-/*  SODA Design System — Official Brand                                       */
-/*  White · Deep Purple (#2D1B4E) · Pink (#E93D77)                            */
-/*  Soft low-saturation gradients — elegant luxury, never loud                */
+/*  SODA VISUALS — Official Brand Identity (RC2)                              */
+/*  Deep Purple #29194A · Brand Pink #D23B68 · White                          */
+/*  Target surface mix ≈30% purple / ≈30% pink / ≈30% white / ≈10% neutrals  */
 /* -------------------------------------------------------------------------- */
 
 @theme inline {
@@ -46,11 +46,11 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
-  /* Brand extensions */
   --color-soda-pink: var(--soda-pink);
   --color-soda-pink-muted: var(--soda-pink-muted);
   --color-soda-pink-soft: var(--soda-pink-soft);
   --color-soda-purple: var(--soda-purple);
+  --color-soda-purple-deep: var(--soda-purple-deep);
   --color-soda-glow: var(--soda-glow);
   --color-soda-action: var(--soda-action);
   --color-soda-action-foreground: var(--soda-action-foreground);
@@ -64,68 +64,99 @@
 }
 
 /* -------------------------------------------------------------------------- */
-/*  Light — soft White / Purple / Pink luxury wash                            */
+/*  Light — brand-dominant luxury canvas                                      */
 /* -------------------------------------------------------------------------- */
 
 :root {
-  --soda-purple: #2d1b4e;
+  /* Sampled from official lockup */
+  --soda-purple-deep: #29194a;
+  --soda-purple: #29194a;
   --soda-purple-bright: #4a3568;
-  --soda-pink: #e93d77;
-  --soda-pink-muted: color-mix(in srgb, #e93d77 18%, transparent);
-  --soda-pink-soft: color-mix(in srgb, #e93d77 9%, transparent);
-  --soda-glow: color-mix(in srgb, #2d1b4e 22%, transparent);
-  --soda-action: #e93d77;
+  --soda-purple-mid: #3d2a5c;
+  --soda-pink: #d23b68;
+  --soda-pink-bright: #e85a84;
+  --soda-pink-muted: color-mix(in srgb, #d23b68 22%, transparent);
+  --soda-pink-soft: color-mix(in srgb, #d23b68 12%, transparent);
+  --soda-glow: color-mix(in srgb, #29194a 28%, transparent);
+  --soda-action: #d23b68;
   --soda-action-foreground: #ffffff;
+  --soda-white: #ffffff;
 
-  /* Soft section tint (overridden per data-soda-section) */
-  --soda-section-pink: 10%;
-  --soda-section-purple: 8%;
+  /* Atmosphere knobs (overridden per route) */
+  --soda-glow-tr: 22%;
+  --soda-glow-bl: 18%;
+  --soda-glow-side: 14%;
+  --soda-glow-pink: 20%;
+  --soda-glow-purple: 24%;
+  --soda-atm-tr-x: 92%;
+  --soda-atm-tr-y: 4%;
+  --soda-atm-bl-x: 8%;
+  --soda-atm-bl-y: 96%;
+  --soda-atm-side-x: 0%;
+  --soda-atm-side-y: 45%;
 
-  /* Not pure white — warm fog with brand breath */
-  --background: #f7f4fa;
-  --foreground: #16121f;
-  /* Cards inherit surrounding wash — never flat white */
-  --card: color-mix(in srgb, #ffffff 86%, #f5f0fa 14%);
-  --card-foreground: #16121f;
-  --popover: color-mix(in srgb, #ffffff 92%, #f5f0fa 8%);
-  --popover-foreground: #16121f;
-  --primary: #2d1b4e;
+  --background: #f4eef8;
+  --foreground: #160f24;
+  --card: color-mix(in srgb, #ffffff 78%, #efe6f6 22%);
+  --card-foreground: #160f24;
+  --popover: color-mix(in srgb, #ffffff 88%, #f7eef5 12%);
+  --popover-foreground: #160f24;
+  --primary: #29194a;
   --primary-foreground: #ffffff;
-  --secondary: color-mix(in srgb, #ffffff 70%, #efeaf4 30%);
-  --secondary-foreground: #241640;
-  --muted: color-mix(in srgb, #f0edf4 88%, #e8deef 12%);
-  --muted-foreground: #6b6578;
-  --accent: color-mix(in srgb, #fce7f0 85%, #ffffff 15%);
-  --accent-foreground: #b01e52;
+  --secondary: color-mix(in srgb, #ffffff 55%, #e8dff2 45%);
+  --secondary-foreground: #29194a;
+  --muted: color-mix(in srgb, #ebe4f2 70%, #f6d5e3 30%);
+  --muted-foreground: #5c536c;
+  --accent: color-mix(in srgb, #f6d5e3 72%, #ffffff 28%);
+  --accent-foreground: #9a1f4a;
   --destructive: #c43a3a;
-  --border: color-mix(in srgb, #e4dfe8 70%, #c9b8d9 30%);
-  --input: color-mix(in srgb, #e4dfe8 75%, #c9b8d9 25%);
-  --ring: #e93d77;
-  --chart-1: #4a3568;
-  --chart-2: #e93d77;
-  --chart-3: #6b4f8a;
-  --chart-4: #ef5a96;
-  --chart-5: #2d1b4e;
+  --border: color-mix(in srgb, #d8cce6 55%, #e8a0b8 45%);
+  --input: color-mix(in srgb, #ddd2ea 60%, #e8a0b8 40%);
+  --ring: #d23b68;
+  --chart-1: #29194a;
+  --chart-2: #d23b68;
+  --chart-3: #4a3568;
+  --chart-4: #e85a84;
+  --chart-5: #3d2a5c;
   --radius: 0.625rem;
-  --sidebar: color-mix(in srgb, #f3f0f6 88%, #e8deef 12%);
-  --sidebar-foreground: #16121f;
-  --sidebar-primary: #2d1b4e;
-  --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: color-mix(in srgb, #efeaf4 80%, #fce7f0 20%);
-  --sidebar-accent-foreground: #241640;
-  --sidebar-border: color-mix(in srgb, #e4dfe8 65%, #c9b8d9 35%);
-  --sidebar-ring: #e93d77;
 
-  /* Soft brand-colored shadows — never gray chrome */
+  /* Sidebar — deep purple brand field (~30% purple in chrome) */
+  --sidebar: #29194a;
+  --sidebar-foreground: #ffffff;
+  --sidebar-primary: #d23b68;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: color-mix(in srgb, #d23b68 28%, #3d2a5c 72%);
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: color-mix(in srgb, #d23b68 35%, transparent);
+  --sidebar-ring: #d23b68;
+
   --soda-shadow-soft:
-    0 1px 2px color-mix(in srgb, #2d1b4e 6%, transparent),
-    0 4px 18px color-mix(in srgb, #2d1b4e 7%, transparent),
-    0 2px 10px color-mix(in srgb, #e93d77 4%, transparent);
+    0 1px 2px color-mix(in srgb, #29194a 10%, transparent),
+    0 6px 22px color-mix(in srgb, #29194a 12%, transparent),
+    0 2px 12px color-mix(in srgb, #d23b68 8%, transparent);
   --soda-shadow-lift:
-    0 8px 28px color-mix(in srgb, #2d1b4e 10%, transparent),
-    0 4px 14px color-mix(in srgb, #e93d77 6%, transparent);
-  --soda-shadow-glow: 0 0 28px color-mix(in srgb, #2d1b4e 16%, transparent);
-  --soda-shadow-pink: 0 4px 20px color-mix(in srgb, #e93d77 22%, transparent);
+    0 10px 36px color-mix(in srgb, #29194a 16%, transparent),
+    0 4px 18px color-mix(in srgb, #d23b68 12%, transparent);
+  --soda-shadow-glow: 0 0 40px color-mix(in srgb, #29194a 22%, transparent);
+  --soda-shadow-pink: 0 6px 28px color-mix(in srgb, #d23b68 32%, transparent);
+  --soda-gradient-primary: linear-gradient(
+    135deg,
+    #29194a 0%,
+    #4a3568 42%,
+    #d23b68 100%
+  );
+  --soda-gradient-header: linear-gradient(
+    105deg,
+    color-mix(in srgb, #29194a 14%, transparent) 0%,
+    color-mix(in srgb, #d23b68 10%, transparent) 55%,
+    color-mix(in srgb, #ffffff 40%, transparent) 100%
+  );
+  --soda-gradient-card: linear-gradient(
+    155deg,
+    color-mix(in srgb, #ffffff 70%, transparent) 0%,
+    color-mix(in srgb, #29194a 6%, transparent) 48%,
+    color-mix(in srgb, #d23b68 8%, transparent) 100%
+  );
   --soda-ease: cubic-bezier(0.22, 1, 0.36, 1);
   --soda-duration: 200ms;
   --soda-duration-slow: 320ms;
@@ -133,63 +164,87 @@
 }
 
 /* -------------------------------------------------------------------------- */
-/*  Dark — deep purple void + pink energy                                     */
+/*  Dark — purple void + pink energy (never generic gray)                     */
 /* -------------------------------------------------------------------------- */
 
 .dark {
+  --soda-purple-deep: #1a1030;
   --soda-purple: #6b4f8a;
   --soda-purple-bright: #9a7fb3;
-  --soda-pink: #e93d77;
-  --soda-pink-muted: color-mix(in srgb, #e93d77 18%, transparent);
-  --soda-pink-soft: color-mix(in srgb, #e93d77 12%, transparent);
-  --soda-glow: color-mix(in srgb, #2d1b4e 35%, transparent);
-  --soda-action: #e93d77;
+  --soda-purple-mid: #4a3568;
+  --soda-pink: #d23b68;
+  --soda-pink-bright: #e85a84;
+  --soda-pink-muted: color-mix(in srgb, #d23b68 24%, transparent);
+  --soda-pink-soft: color-mix(in srgb, #d23b68 14%, transparent);
+  --soda-glow: color-mix(in srgb, #29194a 45%, transparent);
+  --soda-action: #d23b68;
   --soda-action-foreground: #ffffff;
 
-  --soda-section-pink: 8%;
-  --soda-section-purple: 14%;
+  --soda-glow-tr: 28%;
+  --soda-glow-bl: 22%;
+  --soda-glow-side: 18%;
+  --soda-glow-pink: 18%;
+  --soda-glow-purple: 32%;
 
-  --background: #0c0a12;
+  --background: #0a0712;
   --foreground: #f7f5f9;
-  --card: color-mix(in srgb, #16121f 88%, #2d1b4e 12%);
+  --card: color-mix(in srgb, #16121f 70%, #29194a 30%);
   --card-foreground: #f7f5f9;
-  --popover: color-mix(in srgb, #16121f 92%, #2d1b4e 8%);
+  --popover: color-mix(in srgb, #16121f 75%, #29194a 25%);
   --popover-foreground: #f7f5f9;
   --primary: #9a7fb3;
   --primary-foreground: #ffffff;
-  --secondary: color-mix(in srgb, #1e1a28 85%, #2d1b4e 15%);
+  --secondary: color-mix(in srgb, #1e1a28 70%, #29194a 30%);
   --secondary-foreground: #f0edf4;
-  --muted: #1e1a28;
-  --muted-foreground: #a39aaf;
-  --accent: color-mix(in srgb, #2a1520 80%, #2d1b4e 20%);
+  --muted: color-mix(in srgb, #1e1a28 75%, #29194a 25%);
+  --muted-foreground: #b5a9c4;
+  --accent: color-mix(in srgb, #2a1520 55%, #29194a 45%);
   --accent-foreground: #f9c2d9;
   --destructive: #e85a5a;
-  --border: rgb(247 245 249 / 9%);
-  --input: rgb(247 245 249 / 12%);
-  --ring: #e93d77;
+  --border: color-mix(in srgb, #d23b68 18%, rgb(247 245 249 / 10%));
+  --input: color-mix(in srgb, #d23b68 12%, rgb(247 245 249 / 14%));
+  --ring: #d23b68;
   --chart-1: #9a7fb3;
-  --chart-2: #e93d77;
+  --chart-2: #d23b68;
   --chart-3: #6b4f8a;
-  --chart-4: #ef5a96;
+  --chart-4: #e85a84;
   --chart-5: #4a3568;
+
   --sidebar: #120b22;
   --sidebar-foreground: #f7f5f9;
-  --sidebar-primary: #2d1b4e;
+  --sidebar-primary: #d23b68;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #1a1030;
-  --sidebar-accent-foreground: #f7f5f9;
-  --sidebar-border: rgb(247 245 249 / 8%);
-  --sidebar-ring: #e93d77;
+  --sidebar-accent: color-mix(in srgb, #d23b68 22%, #1a1030 78%);
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: color-mix(in srgb, #d23b68 28%, transparent);
+  --sidebar-ring: #d23b68;
 
   --soda-shadow-soft:
-    0 1px 2px color-mix(in srgb, #2d1b4e 40%, transparent),
-    0 4px 20px color-mix(in srgb, #2d1b4e 28%, transparent),
-    0 2px 12px color-mix(in srgb, #e93d77 8%, transparent);
+    0 1px 2px color-mix(in srgb, #29194a 50%, transparent),
+    0 6px 24px color-mix(in srgb, #29194a 36%, transparent),
+    0 2px 14px color-mix(in srgb, #d23b68 12%, transparent);
   --soda-shadow-lift:
-    0 12px 40px color-mix(in srgb, #2d1b4e 36%, transparent),
-    0 4px 16px color-mix(in srgb, #e93d77 12%, transparent);
-  --soda-shadow-glow: 0 0 32px color-mix(in srgb, #2d1b4e 30%, transparent);
-  --soda-shadow-pink: 0 4px 24px color-mix(in srgb, #e93d77 28%, transparent);
+    0 14px 48px color-mix(in srgb, #29194a 44%, transparent),
+    0 4px 20px color-mix(in srgb, #d23b68 18%, transparent);
+  --soda-shadow-glow: 0 0 48px color-mix(in srgb, #29194a 40%, transparent);
+  --soda-shadow-pink: 0 6px 32px color-mix(in srgb, #d23b68 36%, transparent);
+  --soda-gradient-primary: linear-gradient(
+    135deg,
+    #4a3568 0%,
+    #6b4f8a 40%,
+    #d23b68 100%
+  );
+  --soda-gradient-header: linear-gradient(
+    105deg,
+    color-mix(in srgb, #29194a 55%, transparent) 0%,
+    color-mix(in srgb, #d23b68 18%, transparent) 55%,
+    color-mix(in srgb, #0a0712 40%, transparent) 100%
+  );
+  --soda-gradient-card: linear-gradient(
+    155deg,
+    color-mix(in srgb, #29194a 35%, transparent) 0%,
+    color-mix(in srgb, #d23b68 12%, transparent) 100%
+  );
 }
 
 @layer base {
@@ -201,25 +256,25 @@
     background-color: var(--background);
     background-image:
       radial-gradient(
-        ellipse 80% 55% at 8% -5%,
-        color-mix(in srgb, #e93d77 7%, transparent) 0%,
+        ellipse 75% 55% at 100% 0%,
+        color-mix(in srgb, #29194a 16%, transparent) 0%,
         transparent 55%
       ),
       radial-gradient(
-        ellipse 70% 50% at 96% 0%,
-        color-mix(in srgb, #2d1b4e 9%, transparent) 0%,
-        transparent 52%
+        ellipse 65% 50% at 0% 100%,
+        color-mix(in srgb, #d23b68 14%, transparent) 0%,
+        transparent 55%
       ),
       radial-gradient(
-        ellipse 60% 40% at 50% 100%,
-        color-mix(in srgb, #2d1b4e 4%, transparent) 0%,
-        transparent 60%
+        ellipse 50% 40% at 50% 40%,
+        color-mix(in srgb, #ffffff 35%, transparent) 0%,
+        transparent 70%
       ),
       linear-gradient(
-        165deg,
-        color-mix(in srgb, #ffffff 55%, #f7f4fa 45%) 0%,
-        color-mix(in srgb, #f7f4fa 70%, #f5f0fa 30%) 48%,
-        color-mix(in srgb, #f7f4fa 75%, #fdf2f7 25%) 100%
+        160deg,
+        color-mix(in srgb, #ffffff 40%, #f4eef8 60%) 0%,
+        color-mix(in srgb, #f4eef8 55%, #efe0f0 45%) 45%,
+        color-mix(in srgb, #f4eef8 50%, #f6d5e3 50%) 100%
       );
     background-attachment: fixed;
     min-height: 100dvh;
@@ -227,16 +282,16 @@
   .dark body {
     background-image:
       radial-gradient(
-        ellipse 70% 45% at 0% 0%,
-        color-mix(in srgb, #e93d77 10%, transparent) 0%,
-        transparent 50%
-      ),
-      radial-gradient(
-        ellipse 60% 50% at 100% 0%,
-        color-mix(in srgb, #2d1b4e 28%, transparent) 0%,
+        ellipse 70% 50% at 100% 0%,
+        color-mix(in srgb, #29194a 55%, transparent) 0%,
         transparent 55%
       ),
-      linear-gradient(180deg, #0c0a12 0%, #120b22 100%);
+      radial-gradient(
+        ellipse 60% 45% at 0% 100%,
+        color-mix(in srgb, #d23b68 18%, transparent) 0%,
+        transparent 50%
+      ),
+      linear-gradient(180deg, #0a0712 0%, #120b22 55%, #1a1030 100%);
   }
   html {
     @apply font-sans;
@@ -249,7 +304,7 @@
     letter-spacing: -0.02em;
   }
   ::selection {
-    background: color-mix(in srgb, var(--soda-pink) 42%, transparent);
+    background: color-mix(in srgb, var(--soda-pink) 48%, transparent);
     color: #ffffff;
   }
 }
@@ -272,19 +327,298 @@
   letter-spacing: 0;
 }
 
+/* -------------------------------------------------------------------------- */
+/*  Page atmosphere — unique lighting composition per route                   */
+/* -------------------------------------------------------------------------- */
+
+.soda-atmosphere {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  z-index: 0;
+}
+
+.soda-atmosphere::before,
+.soda-atmosphere::after {
+  content: "";
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.9;
+  will-change: transform, opacity;
+}
+
+.soda-atmosphere::before {
+  width: min(72vw, 720px);
+  height: min(72vw, 720px);
+  top: var(--soda-atm-tr-y);
+  right: calc(100% - var(--soda-atm-tr-x) - 20%);
+  background: radial-gradient(
+    circle,
+    color-mix(
+      in srgb,
+      var(--soda-pink) var(--soda-glow-pink),
+      transparent
+    ) 0%,
+    transparent 68%
+  );
+}
+
+.soda-atmosphere::after {
+  width: min(80vw, 800px);
+  height: min(80vw, 800px);
+  bottom: calc(100% - var(--soda-atm-bl-y) - 15%);
+  left: calc(var(--soda-atm-bl-x) - 25%);
+  background: radial-gradient(
+    circle,
+    color-mix(
+      in srgb,
+      var(--soda-purple-deep) var(--soda-glow-purple),
+      transparent
+    ) 0%,
+    transparent 70%
+  );
+}
+
+.soda-atmosphere-side {
+  position: absolute;
+  width: min(50vw, 480px);
+  height: min(70vh, 640px);
+  top: var(--soda-atm-side-y);
+  left: var(--soda-atm-side-x);
+  border-radius: 50%;
+  filter: blur(90px);
+  background: radial-gradient(
+    circle,
+    color-mix(
+      in srgb,
+      var(--soda-purple-mid) var(--soda-glow-side),
+      transparent
+    ) 0%,
+    transparent 72%
+  );
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .soda-atmosphere::before {
+    animation: soda-glow-drift 18s var(--soda-ease) infinite alternate;
+  }
+  .soda-atmosphere::after {
+    animation: soda-glow-drift-alt 22s var(--soda-ease) infinite alternate;
+  }
+}
+
+@keyframes soda-glow-drift {
+  from {
+    transform: translate(0, 0) scale(1);
+  }
+  to {
+    transform: translate(-3%, 4%) scale(1.06);
+  }
+}
+
+@keyframes soda-glow-drift-alt {
+  from {
+    transform: translate(0, 0) scale(1);
+  }
+  to {
+    transform: translate(4%, -3%) scale(1.05);
+  }
+}
+
+/* Route personalities — different glow positions / intensities */
+[data-soda-section="home"] {
+  --soda-glow-pink: 26%;
+  --soda-glow-purple: 16%;
+  --soda-glow-side: 12%;
+  --soda-atm-tr-x: 88%;
+  --soda-atm-tr-y: -2%;
+  --soda-atm-bl-x: 12%;
+  --soda-atm-bl-y: 98%;
+  --soda-atm-side-x: -8%;
+  --soda-atm-side-y: 35%;
+}
+
+[data-soda-section="orders"] {
+  --soda-glow-pink: 28%;
+  --soda-glow-purple: 12%;
+  --soda-glow-side: 10%;
+  --soda-atm-tr-x: 96%;
+  --soda-atm-tr-y: 8%;
+  --soda-atm-bl-x: 4%;
+  --soda-atm-bl-y: 90%;
+  --soda-atm-side-x: 100%;
+  --soda-atm-side-y: 55%;
+}
+
+[data-soda-section="projects"] {
+  --soda-glow-pink: 14%;
+  --soda-glow-purple: 28%;
+  --soda-glow-side: 16%;
+  --soda-atm-tr-x: 70%;
+  --soda-atm-tr-y: -5%;
+  --soda-atm-bl-x: 30%;
+  --soda-atm-bl-y: 100%;
+  --soda-atm-side-x: -5%;
+  --soda-atm-side-y: 60%;
+}
+
+[data-soda-section="clients"] {
+  --soda-glow-pink: 18%;
+  --soda-glow-purple: 20%;
+  --soda-glow-side: 14%;
+  --soda-atm-tr-x: 50%;
+  --soda-atm-tr-y: 0%;
+  --soda-atm-bl-x: 80%;
+  --soda-atm-bl-y: 95%;
+  --soda-atm-side-x: 0%;
+  --soda-atm-side-y: 20%;
+}
+
+[data-soda-section="commercial"] {
+  --soda-glow-pink: 8%;
+  --soda-glow-purple: 34%;
+  --soda-glow-side: 20%;
+  --soda-atm-tr-x: 100%;
+  --soda-atm-tr-y: 0%;
+  --soda-atm-bl-x: 0%;
+  --soda-atm-bl-y: 100%;
+  --soda-atm-side-x: 50%;
+  --soda-atm-side-y: 80%;
+}
+
+[data-soda-section="finance"] {
+  --soda-glow-pink: 10%;
+  --soda-glow-purple: 30%;
+  --soda-glow-side: 18%;
+  --soda-atm-tr-x: 10%;
+  --soda-atm-tr-y: 5%;
+  --soda-atm-bl-x: 95%;
+  --soda-atm-bl-y: 85%;
+  --soda-atm-side-x: 100%;
+  --soda-atm-side-y: 30%;
+}
+
+[data-soda-section="equipment"] {
+  --soda-glow-pink: 12%;
+  --soda-glow-purple: 24%;
+  --soda-glow-side: 22%;
+  --soda-atm-tr-x: 60%;
+  --soda-atm-tr-y: 10%;
+  --soda-atm-bl-x: 20%;
+  --soda-atm-bl-y: 70%;
+  --soda-atm-side-x: -10%;
+  --soda-atm-side-y: 80%;
+}
+
+[data-soda-section="crew"] {
+  --soda-glow-pink: 22%;
+  --soda-glow-purple: 18%;
+  --soda-glow-side: 12%;
+  --soda-atm-tr-x: 30%;
+  --soda-atm-tr-y: -8%;
+  --soda-atm-bl-x: 70%;
+  --soda-atm-bl-y: 100%;
+  --soda-atm-side-x: 90%;
+  --soda-atm-side-y: 40%;
+}
+
+[data-soda-section="statistics"] {
+  --soda-glow-pink: 12%;
+  --soda-glow-purple: 32%;
+  --soda-glow-side: 16%;
+  --soda-atm-tr-x: 85%;
+  --soda-atm-tr-y: 15%;
+  --soda-atm-bl-x: 15%;
+  --soda-atm-bl-y: 80%;
+  --soda-atm-side-x: 40%;
+  --soda-atm-side-y: 100%;
+}
+
+[data-soda-section="settings"] {
+  --soda-glow-pink: 8%;
+  --soda-glow-purple: 10%;
+  --soda-glow-side: 8%;
+  --soda-atm-tr-x: 95%;
+  --soda-atm-tr-y: 0%;
+  --soda-atm-bl-x: 5%;
+  --soda-atm-bl-y: 100%;
+  --soda-atm-side-x: 50%;
+  --soda-atm-side-y: 50%;
+}
+
+[data-soda-section="notifications"] {
+  --soda-glow-pink: 30%;
+  --soda-glow-purple: 14%;
+  --soda-glow-side: 10%;
+  --soda-atm-tr-x: 75%;
+  --soda-atm-tr-y: 0%;
+  --soda-atm-bl-x: 25%;
+  --soda-atm-bl-y: 100%;
+  --soda-atm-side-x: 0%;
+  --soda-atm-side-y: 50%;
+}
+
+[data-soda-section="wedding"] {
+  --soda-glow-pink: 30%;
+  --soda-glow-purple: 22%;
+  --soda-glow-side: 14%;
+  --soda-atm-tr-x: 40%;
+  --soda-atm-tr-y: -5%;
+  --soda-atm-bl-x: 90%;
+  --soda-atm-bl-y: 90%;
+  --soda-atm-side-x: -5%;
+  --soda-atm-side-y: 70%;
+}
+
+[data-soda-section="auth"] {
+  --soda-glow-pink: 32%;
+  --soda-glow-purple: 36%;
+  --soda-glow-side: 20%;
+  --soda-atm-tr-x: 70%;
+  --soda-atm-tr-y: 5%;
+  --soda-atm-bl-x: 20%;
+  --soda-atm-bl-y: 90%;
+  --soda-atm-side-x: 100%;
+  --soda-atm-side-y: 60%;
+}
+
+[data-soda-section="calendar"] {
+  --soda-glow-pink: 16%;
+  --soda-glow-purple: 22%;
+  --soda-glow-side: 18%;
+  --soda-atm-tr-x: 20%;
+  --soda-atm-tr-y: 0%;
+  --soda-atm-bl-x: 85%;
+  --soda-atm-bl-y: 95%;
+  --soda-atm-side-x: 100%;
+  --soda-atm-side-y: 45%;
+}
+
+.soda-brand-wash {
+  position: relative;
+  isolation: isolate;
+}
+
+.soda-brand-wash > *:not(.soda-atmosphere) {
+  position: relative;
+  z-index: 1;
+}
+
 /* Hero / brief brand treatments */
 .soda-brief-shell {
   position: relative;
-  border-color: color-mix(in srgb, #2d1b4e 35%, transparent);
+  border-color: color-mix(in srgb, #29194a 40%, transparent);
   background:
     radial-gradient(
       ellipse 70% 50% at 100% 0%,
-      color-mix(in srgb, #e93d77 9%, transparent) 0%,
+      color-mix(in srgb, #d23b68 16%, transparent) 0%,
       transparent 55%
     ),
     linear-gradient(
       135deg,
-      color-mix(in srgb, #2d1b4e 18%, transparent) 0%,
+      color-mix(in srgb, #29194a 28%, transparent) 0%,
       var(--card) 68%
     );
   box-shadow: var(--soda-shadow-soft);
@@ -297,7 +631,7 @@
   inset-inline-start: 0;
   width: 3px;
   border-radius: 0 3px 3px 0;
-  background: linear-gradient(180deg, #2d1b4e 0%, #e93d77 100%);
+  background: linear-gradient(180deg, #29194a 0%, #d23b68 100%);
   pointer-events: none;
 }
 
@@ -311,19 +645,19 @@
 
 @media (prefers-reduced-motion: no-preference) {
   .soda-cc-card:hover {
-    border-color: color-mix(in srgb, #e93d77 28%, transparent);
-    box-shadow: var(--soda-shadow-lift);
-    transform: translateY(-1px);
+    border-color: color-mix(in srgb, #d23b68 40%, transparent);
+    box-shadow: var(--soda-shadow-lift), var(--soda-shadow-pink);
+    transform: translateY(-2px);
   }
 }
 
 .soda-kpi-icon {
-  background: color-mix(in srgb, #2d1b4e 18%, transparent);
+  background: color-mix(in srgb, #29194a 22%, transparent);
   color: var(--soda-purple-bright);
 }
 
 .soda-kpi-icon-pink {
-  background: color-mix(in srgb, #e93d77 14%, transparent);
+  background: color-mix(in srgb, #d23b68 18%, transparent);
   color: var(--soda-pink);
 }
 
@@ -331,18 +665,25 @@
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--ring) 40%, transparent);
 }
 
-/* Sidebar — deep purple brand field */
+/* Sidebar — deep purple brand rail */
 .soda-sidebar-rail {
   position: relative;
   background:
+    radial-gradient(
+      ellipse 90% 40% at 50% 0%,
+      color-mix(in srgb, #d23b68 28%, transparent) 0%,
+      transparent 60%
+    ),
     linear-gradient(
       180deg,
-      color-mix(in srgb, #2d1b4e 22%, transparent) 0%,
-      color-mix(in srgb, #e93d77 4%, transparent) 28%,
-      transparent 48%
-    ),
-    var(--sidebar);
-  box-shadow: inset -1px 0 0 color-mix(in srgb, #2d1b4e 8%, transparent);
+      #3d2a5c 0%,
+      #29194a 38%,
+      #1a1030 100%
+    );
+  box-shadow:
+    inset -1px 0 0 color-mix(in srgb, #d23b68 25%, transparent),
+    4px 0 32px color-mix(in srgb, #29194a 25%, transparent);
+  color: #ffffff;
 }
 
 .soda-sidebar-rail::before {
@@ -350,14 +691,32 @@
   position: absolute;
   inset-block: 0;
   inset-inline-end: 0;
-  width: 1px;
+  width: 2px;
   background: linear-gradient(
     180deg,
-    color-mix(in srgb, #e93d77 40%, transparent) 0%,
-    color-mix(in srgb, #2d1b4e 40%, transparent) 45%,
+    color-mix(in srgb, #d23b68 70%, transparent) 0%,
+    color-mix(in srgb, #29194a 40%, transparent) 45%,
     transparent 100%
   );
   pointer-events: none;
+}
+
+.dark .soda-sidebar-rail {
+  background:
+    radial-gradient(
+      ellipse 90% 40% at 50% 0%,
+      color-mix(in srgb, #d23b68 22%, transparent) 0%,
+      transparent 60%
+    ),
+    linear-gradient(180deg, #1a1030 0%, #120b22 50%, #0a0712 100%);
+}
+
+/* Header — soft purple / pink wash */
+.soda-topbar {
+  background: var(--soda-gradient-header);
+  background-color: color-mix(in srgb, var(--background) 72%, transparent);
+  border-bottom-color: color-mix(in srgb, #d23b68 22%, transparent);
+  box-shadow: 0 1px 0 color-mix(in srgb, #29194a 6%, transparent);
 }
 
 .soda-live-fade-enter {
@@ -382,7 +741,7 @@
 @keyframes soda-page-in {
   from {
     opacity: 0;
-    transform: translateY(6px);
+    transform: translateY(8px);
   }
   to {
     opacity: 1;
@@ -390,165 +749,190 @@
   }
 }
 
-/* -------------------------------------------------------------------------- */
-/*  Page brand wash + section personality                                     */
-/* -------------------------------------------------------------------------- */
-
-.soda-brand-wash {
-  background:
-    radial-gradient(
-      ellipse 55% 42% at 0% 0%,
-      color-mix(
-        in srgb,
-        var(--soda-pink) var(--soda-section-pink),
-        transparent
-      )
-        0%,
-      transparent 55%
-    ),
-    radial-gradient(
-      ellipse 52% 46% at 100% 0%,
-      color-mix(
-        in srgb,
-        #2d1b4e var(--soda-section-purple),
-        transparent
-      )
-        0%,
-      transparent 52%
-    ),
-    radial-gradient(
-      ellipse 45% 35% at 70% 100%,
-      color-mix(in srgb, #2d1b4e 5%, transparent) 0%,
-      transparent 55%
-    );
-}
-
-/* Home: Warm White + Pink */
-[data-soda-section="home"] {
-  --soda-section-pink: 14%;
-  --soda-section-purple: 5%;
-}
-
-/* Finance: White + Purple */
-[data-soda-section="finance"] {
-  --soda-section-pink: 4%;
-  --soda-section-purple: 14%;
-}
-
-/* Orders: White + Pink */
-[data-soda-section="orders"] {
-  --soda-section-pink: 12%;
-  --soda-section-purple: 5%;
-}
-
-/* Commercial: Purple dominant */
-[data-soda-section="commercial"] {
-  --soda-section-pink: 3%;
-  --soda-section-purple: 18%;
-}
-
-/* Wedding: Pink + Purple blend */
-[data-soda-section="wedding"] {
-  --soda-section-pink: 13%;
-  --soda-section-purple: 12%;
-}
-
-/* Statistics: Purple dominant */
-[data-soda-section="statistics"] {
-  --soda-section-pink: 4%;
-  --soda-section-purple: 16%;
-}
-
-/* Settings: Clean White */
-[data-soda-section="settings"] {
-  --soda-section-pink: 2%;
-  --soda-section-purple: 3%;
-}
-
-/* Cards — slightly inherit surrounding gradient */
+/* Cards — white → soft purple / pink tint (never flat) */
 [data-slot="card"],
 .soda-card {
-  background:
-    linear-gradient(
-      155deg,
-      color-mix(in srgb, #ffffff 55%, transparent) 0%,
-      transparent 55%
-    ),
-    linear-gradient(
-      320deg,
-      color-mix(in srgb, var(--soda-pink) 4%, transparent) 0%,
-      transparent 45%
-    ),
-    linear-gradient(
-      200deg,
-      color-mix(in srgb, #2d1b4e 5%, transparent) 0%,
-      transparent 50%
-    ),
-    var(--card);
+  background: var(--soda-gradient-card), var(--card);
   box-shadow: var(--soda-shadow-soft);
+  border-color: color-mix(in srgb, #29194a 12%, transparent);
+  transition:
+    box-shadow var(--soda-duration) var(--soda-ease),
+    transform var(--soda-duration) var(--soda-ease),
+    border-color var(--soda-duration) var(--soda-ease);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  [data-slot="card"]:hover,
+  .soda-card:hover {
+    box-shadow: var(--soda-shadow-lift);
+    border-color: color-mix(in srgb, #d23b68 28%, transparent);
+  }
 }
 
 .dark [data-slot="card"],
 .dark .soda-card {
+  background: var(--soda-gradient-card), var(--card);
+}
+
+/* Tables — subtle brand wash */
+[data-slot="table"],
+.soda-table {
   background:
     linear-gradient(
-      155deg,
-      color-mix(in srgb, #2d1b4e 18%, transparent) 0%,
-      transparent 55%
+      180deg,
+      color-mix(in srgb, #29194a 4%, transparent) 0%,
+      transparent 40%
     ),
     linear-gradient(
-      320deg,
-      color-mix(in srgb, #e93d77 6%, transparent) 0%,
-      transparent 45%
-    ),
-    var(--card);
+      90deg,
+      color-mix(in srgb, #d23b68 3%, transparent) 0%,
+      transparent 30%
+    );
+}
+
+/* Selected / active glow */
+.soda-selected,
+[aria-current="page"].soda-nav-active {
+  box-shadow: 0 0 0 1px color-mix(in srgb, #d23b68 45%, transparent),
+    0 0 24px color-mix(in srgb, #d23b68 22%, transparent);
 }
 
 /* -------------------------------------------------------------------------- */
-/*  Buttons — Primary Pink · Secondary White + Purple border                  */
+/*  Buttons — Purple → Pink primary · White + purple secondary                */
 /* -------------------------------------------------------------------------- */
 
 .soda-btn-primary {
-  background-color: var(--soda-action);
-  background-image: none;
+  background-image: var(--soda-gradient-primary);
+  background-color: var(--soda-pink);
   color: var(--soda-action-foreground);
   border-color: transparent;
   box-shadow: var(--soda-shadow-pink);
+  background-size: 160% 160%;
+  background-position: 0% 50%;
 }
 
 .soda-btn-primary:hover:not(:disabled) {
-  background-color: transparent;
-  background-image: linear-gradient(
-    135deg,
-    var(--soda-pink) 0%,
-    var(--soda-purple) 100%
-  );
-  color: #ffffff;
-  box-shadow: var(--soda-shadow-lift);
+  background-position: 100% 50%;
+  box-shadow: var(--soda-shadow-lift), var(--soda-shadow-pink);
+  filter: brightness(1.05);
 }
 
 .soda-btn-secondary {
-  background-color: #ffffff;
-  color: var(--soda-purple);
-  border-color: color-mix(in srgb, #2d1b4e 55%, transparent);
+  background:
+    linear-gradient(
+      135deg,
+      color-mix(in srgb, #ffffff 90%, #29194a 10%) 0%,
+      #ffffff 100%
+    );
+  color: var(--soda-purple-deep);
+  border-color: color-mix(in srgb, #29194a 55%, transparent);
   box-shadow: var(--soda-shadow-soft);
 }
 
 .soda-btn-secondary:hover:not(:disabled) {
-  background-color: color-mix(in srgb, #2d1b4e 6%, #ffffff);
-  border-color: #2d1b4e;
-  color: #2d1b4e;
+  background: color-mix(in srgb, #29194a 8%, #ffffff);
+  border-color: #29194a;
+  color: #29194a;
+  box-shadow: var(--soda-shadow-glow);
 }
 
 .dark .soda-btn-secondary {
-  background-color: color-mix(in srgb, #ffffff 8%, transparent);
+  background: color-mix(in srgb, #ffffff 10%, transparent);
   color: #f7f5f9;
   border-color: color-mix(in srgb, #9a7fb3 55%, transparent);
 }
 
 .dark .soda-btn-secondary:hover:not(:disabled) {
-  background-color: color-mix(in srgb, #2d1b4e 35%, transparent);
-  border-color: #9a7fb3;
+  background: color-mix(in srgb, #29194a 40%, transparent);
+  border-color: #d23b68;
+}
+
+/* Dialogs — white with pink/purple lighting */
+[data-slot="dialog-content"],
+.soda-dialog {
+  background:
+    radial-gradient(
+      ellipse 80% 50% at 100% 0%,
+      color-mix(in srgb, #d23b68 12%, transparent) 0%,
+      transparent 55%
+    ),
+    radial-gradient(
+      ellipse 60% 40% at 0% 100%,
+      color-mix(in srgb, #29194a 10%, transparent) 0%,
+      transparent 50%
+    ),
+    var(--popover);
+  box-shadow: var(--soda-shadow-lift);
+  border: 1px solid color-mix(in srgb, #d23b68 18%, transparent);
+}
+
+/* Inputs — soft brand border */
+[data-slot="input"],
+.soda-input {
+  background: color-mix(in srgb, #ffffff 88%, #f4eef8 12%);
+  border-color: color-mix(in srgb, #29194a 18%, transparent);
+}
+
+[data-slot="input"]:focus-visible,
+.soda-input:focus-visible {
+  border-color: var(--soda-pink);
+  box-shadow: 0 0 0 3px color-mix(in srgb, #d23b68 28%, transparent);
+}
+
+.dark [data-slot="input"],
+.dark .soda-input {
+  background: color-mix(in srgb, #16121f 80%, #29194a 20%);
+}
+
+/* Badges */
+.soda-badge-pink {
+  background: color-mix(in srgb, #d23b68 18%, transparent);
+  color: #9a1f4a;
+  border-color: color-mix(in srgb, #d23b68 35%, transparent);
+}
+
+.soda-badge-purple {
+  background: color-mix(in srgb, #29194a 16%, transparent);
+  color: #29194a;
+  border-color: color-mix(in srgb, #29194a 30%, transparent);
+}
+
+/* Auth shell */
+.soda-auth-shell {
+  background:
+    radial-gradient(
+      ellipse 55% 45% at 70% 10%,
+      color-mix(in srgb, #d23b68 28%, transparent) 0%,
+      transparent 60%
+    ),
+    radial-gradient(
+      ellipse 60% 50% at 15% 85%,
+      color-mix(in srgb, #29194a 40%, transparent) 0%,
+      transparent 55%
+    ),
+    radial-gradient(
+      ellipse 40% 35% at 90% 70%,
+      color-mix(in srgb, #4a3568 25%, transparent) 0%,
+      transparent 50%
+    ),
+    linear-gradient(165deg, #1a1030 0%, #29194a 45%, #120b22 100%);
+}
+
+.soda-auth-card {
+  background:
+    radial-gradient(
+      ellipse 70% 50% at 100% 0%,
+      color-mix(in srgb, #d23b68 14%, transparent) 0%,
+      transparent 55%
+    ),
+    radial-gradient(
+      ellipse 50% 40% at 0% 100%,
+      color-mix(in srgb, #29194a 10%, transparent) 0%,
+      transparent 50%
+    ),
+    color-mix(in srgb, #ffffff 92%, #f4eef8 8%);
+  border: 1px solid color-mix(in srgb, #d23b68 22%, transparent);
+  box-shadow: var(--soda-shadow-lift), 0 0 60px color-mix(in srgb, #d23b68 15%, transparent);
 }
 
 @keyframes soda-mark-pulse {
@@ -570,7 +954,9 @@
 @media (prefers-reduced-motion: reduce) {
   .soda-live-fade-enter,
   .soda-page-enter,
-  .soda-mark-pulse {
+  .soda-mark-pulse,
+  .soda-atmosphere::before,
+  .soda-atmosphere::after {
     animation: none;
   }
 }
@@ -580,7 +966,7 @@
   button,
   [data-slot="button"] {
     transition-property: color, background-color, border-color, background-image,
-      box-shadow, opacity, transform;
+      background-position, box-shadow, opacity, transform, filter;
     transition-duration: var(--soda-duration);
     transition-timing-function: var(--soda-ease);
   }

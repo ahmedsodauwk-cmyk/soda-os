@@ -55,7 +55,7 @@ export default function RecentOrders({ orders }: RecentOrdersProps) {
           <div className="flex flex-col items-center gap-3 py-6 text-center">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src="/brand/soda-mark.svg"
+              src="/brand/soda-mark.png"
               alt=""
               width={28}
               height={28}

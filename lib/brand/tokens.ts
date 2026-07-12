@@ -1,19 +1,15 @@
 /**
- * SODA Official Design System — brand token source of truth.
+ * SODA Official Design System — brand token source of truth (RC2).
  *
  * CSS variables in `app/globals.css` are the runtime theme.
  * This module mirrors them for TS consumers (charts, docs, PDF, login).
  *
- * ─────────────────────────────────────────────────────────────
- * COLOR ROLES (official lockup only)
- * ─────────────────────────────────────────────────────────────
- * Primary White · Deep Purple (#2D1B4E) · Pink (#E93D77)
- * Soft low-saturation gradients — elegant luxury, never loud.
- * No third-party accent colors.
+ * Color distribution target ≈ 30% purple / 30% pink / 30% white / 10% neutrals.
+ * Soft low-saturation gradients — elegant luxury, never loud ERP chrome.
  */
 
 export const sodaColors = {
-  /** Deep Purple — brand foundation */
+  /** Deep Purple — brand foundation (lockup) */
   purple: {
     50: "#F5F0FA",
     100: "#E8DEEF",
@@ -29,7 +25,7 @@ export const sodaColors = {
     950: "#0A0714",
   },
   /**
-   * Brand Pink — primary actions + warm accents.
+   * Brand Pink — primary action energy + warm light.
    * Official accent from brand lockup ≈ #E93D77
    */
   pink: {
@@ -81,38 +77,44 @@ export const sodaSemantic = {
 } as const;
 
 /**
- * Section personality — same design system, different wash balance.
+ * Section personality — same design system, different atmosphere.
  * Applied via `data-soda-section` on the app shell.
+ * Each page gets a unique gradient / lighting composition.
  */
 export type SodaSectionPersonality =
   | "home"
-  | "finance"
   | "orders"
+  | "projects"
+  | "clients"
   | "commercial"
-  | "wedding"
+  | "finance"
+  | "equipment"
+  | "crew"
   | "statistics"
   | "settings"
+  | "notifications"
+  | "wedding"
   | "default";
 
-/** Map human-layer / page keys → section personality class */
+/** Map human-layer / page keys → section personality */
 export function resolveSectionPersonality(
   layer: string
 ): SodaSectionPersonality {
   switch (layer) {
     case "dashboard":
+    case "mySpace":
       return "home";
-    case "finance":
-    case "myWallet":
-    case "quotations":
-    case "newQuotation":
-      return "finance";
     case "orders":
-    case "projects":
-    case "projectHub":
     case "calendar":
     case "schedule":
     case "attention":
       return "orders";
+    case "projects":
+    case "projectHub":
+    case "workspaces":
+      return "projects";
+    case "clients":
+      return "clients";
     case "commercial":
     case "commercialClients":
     case "commercialOrders":
@@ -120,14 +122,26 @@ export function resolveSectionPersonality(
     case "product":
     case "events":
       return "commercial";
-    case "weddings":
-    case "weddingClients":
-    case "weddingOrders":
-      return "wedding";
+    case "finance":
+    case "myWallet":
+    case "quotations":
+    case "newQuotation":
+      return "finance";
+    case "equipment":
+      return "equipment";
+    case "crew":
+    case "crewProfile":
+      return "crew";
     case "statistics":
       return "statistics";
     case "settings":
       return "settings";
+    case "notifications":
+      return "notifications";
+    case "weddings":
+    case "weddingClients":
+    case "weddingOrders":
+      return "wedding";
     default:
       return "default";
   }

@@ -13,7 +13,7 @@ interface SodaLogoProps {
 }
 
 /**
- * Official SODA mark — geometric صودا on Deep Dark Purple.
+ * Official SODA mark — extracted white geometric symbol (never redrawn).
  * Never stretch or crop — square box + object-contain.
  */
 export function SodaLogo({
@@ -24,28 +24,21 @@ export function SodaLogo({
   const config = SODA_LOGO_PLACEMENTS[placement];
   const size = config.size;
   const withWord = showWord ?? config.showWord ?? false;
-  const isWordmark = config.src === SODA_LOGO.wordmarkSrc;
 
   return (
     <div className={cn("flex items-center gap-3", className)}>
-      {/* eslint-disable-next-line @next/next/no-img-element -- brand SVG mark */}
+      {/* eslint-disable-next-line @next/next/no-img-element -- brand PNG mark */}
       <img
         src={config.src}
         alt={SODA_LOGO.alt}
-        width={isWordmark ? Math.round(size * (320 / 64)) : size}
+        width={size}
         height={size}
         className={cn(
-          "shrink-0 object-contain object-center",
-          isWordmark
-            ? "h-auto w-auto max-h-full"
-            : "aspect-square rounded-[22%]",
+          "aspect-square shrink-0 object-contain object-center",
+          !config.onDark && "rounded-[22%]",
           placement === "empty" && "opacity-40"
         )}
-        style={
-          isWordmark
-            ? { height: size, width: "auto", maxWidth: size * 3.4 }
-            : { width: size, height: size }
-        }
+        style={{ width: size, height: size }}
         draggable={false}
       />
       {withWord ? (

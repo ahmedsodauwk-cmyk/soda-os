@@ -8,14 +8,20 @@
   "theme_color": "#2D1B4E",
   "icons": [
     {
-      "src": "/brand/soda-mark.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
+      "src": "/brand/soda-icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/brand/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png",
       "purpose": "any"
     },
     {
       "src": "/brand/soda-logo-master.png",
-      "sizes": "512x512",
+      "sizes": "1024x1024",
       "type": "image/png",
       "purpose": "any"
     }
