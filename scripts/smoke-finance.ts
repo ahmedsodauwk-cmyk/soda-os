@@ -6,9 +6,11 @@ import {
 } from "../lib/finance/repository";
 import { createDomainDb } from "../lib/supabase/domain-db";
 import { loadEnvLocal } from "./load-env-local";
+import { assertNonProductionTarget } from "./assert-non-production";
 
 async function main() {
   loadEnvLocal();
+  assertNonProductionTarget("smoke-finance");
   await refreshFinance();
   const before = listFinancialEvents().length;
   const ev = await createFinancialEvent({

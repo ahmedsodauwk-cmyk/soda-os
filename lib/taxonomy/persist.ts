@@ -1,6 +1,9 @@
 /**
  * Persist product taxonomy (workspaces + subcategories) into Supabase.
  * These are structural reference rows required by FKs — not demo business data.
+ * Soft-fail on network/DB errors is intentional so reads can proceed.
+ * NEVER create clients, orders, projects, crew, or finance records here.
+ * See docs/SODA_MASTER/FOUNDER_DATA_POLICY.md.
  */
 import { createDomainDb } from "@/lib/supabase/domain-db";
 import {

@@ -1,6 +1,10 @@
 /**
  * Create the first Owner auth user + profile (production bootstrap).
  *
+ * IDENTITY ONLY — Auth user + profiles row + owner role.
+ * Does NOT create clients, orders, projects, crew, or any business entities.
+ * See docs/SODA_MASTER/FOUNDER_DATA_POLICY.md.
+ *
  * Run: npm run bootstrap:owner
  * Env: NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY
  * Optional: BOOTSTRAP_OWNER_EMAIL, BOOTSTRAP_OWNER_PASSWORD, BOOTSTRAP_OWNER_NAME

@@ -14,9 +14,11 @@ import {
 } from "../lib/people/repository";
 import { getSupabaseServiceRoleKey } from "../lib/supabase/env";
 import { loadEnvLocal, maskSecret } from "./load-env-local";
+import { assertNonProductionTarget } from "./assert-non-production";
 
 async function main() {
   loadEnvLocal();
+  assertNonProductionTarget("smoke-crew-crud");
 
   console.log("=== Crew/People CRUD smoke ===");
   console.log(

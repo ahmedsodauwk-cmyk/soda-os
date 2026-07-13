@@ -36,9 +36,11 @@ import {
 import { createQuotationsDb } from "../lib/quotations/db";
 import { ensureTaxonomyPersisted } from "../lib/taxonomy/persist";
 import { loadEnvLocal } from "./load-env-local";
+import { assertNonProductionTarget } from "./assert-non-production";
 
 async function main() {
   loadEnvLocal();
+  assertNonProductionTarget("smoke-modules-crud");
   console.log("=== Modules CRUD smoke ===");
   await ensureTaxonomyPersisted();
   console.log("taxonomy ok");

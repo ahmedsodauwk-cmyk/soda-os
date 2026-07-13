@@ -3,8 +3,10 @@
  * Run: NODE_OPTIONS=--use-system-ca npx tsx scripts/smoke-smart-ops.ts
  */
 import { loadEnvLocal } from "./load-env-local";
+import { assertNonProductionTarget } from "./assert-non-production";
 
 loadEnvLocal();
+assertNonProductionTarget("smoke-smart-ops");
 
 async function main() {
   const { bootstrapBusinessCore } = await import("../lib/core/bootstrap");

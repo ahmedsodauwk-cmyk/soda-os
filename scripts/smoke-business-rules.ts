@@ -52,6 +52,7 @@ import {
   syncPendingEarningsForOrder,
 } from "../lib/wallets/crew-wallet";
 import { loadEnvLocal } from "./load-env-local";
+import { assertNonProductionTarget } from "./assert-non-production";
 
 async function cleanupLedgerForOrder(orderId: string) {
   const db = createDomainDb();
@@ -73,6 +74,7 @@ async function cleanupLedgerForOrder(orderId: string) {
 
 async function main() {
   loadEnvLocal();
+  assertNonProductionTarget("smoke-business-rules");
   console.log("=== Business Rules Engine E2E smoke ===");
   bootstrapBusinessCore();
   console.log(`  rules registered: ${listRegisteredRules().length}`);

@@ -10,9 +10,11 @@ import {
   updateEquipment,
 } from "../lib/equipment/repository";
 import { loadEnvLocal, maskSecret } from "./load-env-local";
+import { assertNonProductionTarget } from "./assert-non-production";
 
 async function main() {
   loadEnvLocal();
+  assertNonProductionTarget("smoke-equipment-crud");
   console.log("=== Equipment CRUD smoke ===");
   console.log(`  URL: ${maskSecret(process.env.NEXT_PUBLIC_SUPABASE_URL)}`);
 

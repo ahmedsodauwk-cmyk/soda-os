@@ -18,9 +18,11 @@ import {
 } from "../lib/clients/repository";
 import { getSupabaseServiceRoleKey } from "../lib/supabase/env";
 import { loadEnvLocal, maskSecret } from "./load-env-local";
+import { assertNonProductionTarget } from "./assert-non-production";
 
 async function main() {
   loadEnvLocal();
+  assertNonProductionTarget("smoke-clients-crud");
 
   console.log("=== Clients CRUD smoke ===");
   console.log(

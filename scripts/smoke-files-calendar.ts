@@ -17,9 +17,11 @@ import {
 } from "../lib/projects/repository";
 import { ensureTaxonomyPersisted } from "../lib/taxonomy/persist";
 import { loadEnvLocal } from "./load-env-local";
+import { assertNonProductionTarget } from "./assert-non-production";
 
 async function main() {
   loadEnvLocal();
+  assertNonProductionTarget("smoke-files-calendar");
   console.log("=== Files + Calendar smoke ===");
   await ensureTaxonomyPersisted();
 

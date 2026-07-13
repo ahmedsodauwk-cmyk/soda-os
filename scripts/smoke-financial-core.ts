@@ -57,6 +57,7 @@ import {
   syncPendingEarningsForOrder,
 } from "../lib/wallets/crew-wallet";
 import { loadEnvLocal } from "./load-env-local";
+import { assertNonProductionTarget } from "./assert-non-production";
 
 async function cleanupLedgerForOrder(orderId: string) {
   const db = createDomainDb();
@@ -94,6 +95,7 @@ async function cleanupLedgerForOrder(orderId: string) {
 
 async function main() {
   loadEnvLocal();
+  assertNonProductionTarget("smoke-financial-core");
   console.log("=== Financial Core E2E smoke ===");
   bootstrapBusinessCore();
 

@@ -5,6 +5,9 @@
  *
  * Checks env → API reachability → expected tables → reversible read/write.
  * Exits 0 only when connection + read + write all succeed.
+ *
+ * Write probe uses ONLY `public._connection_tests` (infra table) — never
+ * clients/orders/projects. See docs/SODA_MASTER/FOUNDER_DATA_POLICY.md.
  */
 
 import { createClient } from "@supabase/supabase-js";

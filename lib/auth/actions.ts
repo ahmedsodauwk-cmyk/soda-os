@@ -139,6 +139,8 @@ export async function changePasswordAction(
 /**
  * One-time first-owner bootstrap. Only succeeds when zero active owners exist.
  * Requires SUPABASE_SERVICE_ROLE_KEY on the server (Vercel env for production).
+ * IDENTITY ONLY — creates Auth user + profile + owner role; never business entities.
+ * See docs/SODA_MASTER/FOUNDER_DATA_POLICY.md.
  */
 export async function bootstrapOwnerAction(
   _prev: AuthActionResult | null,

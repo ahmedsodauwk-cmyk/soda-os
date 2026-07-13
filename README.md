@@ -1,5 +1,7 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+**Founder Data Policy:** Production data is sacred — read `docs/SODA_MASTER/FOUNDER_DATA_POLICY.md` before writing to Supabase or running smoke scripts.
+
 ## Getting Started
 
 First, run the development server:

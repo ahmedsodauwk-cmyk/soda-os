@@ -37,6 +37,7 @@ import { deleteProject, refreshProjects } from "../lib/projects/repository";
 import { createDomainDb } from "../lib/supabase/domain-db";
 import { ensureTaxonomyPersisted } from "../lib/taxonomy/persist";
 import { loadEnvLocal } from "./load-env-local";
+import { assertNonProductionTarget } from "./assert-non-production";
 
 async function cleanupLedgerForOrder(orderId: string) {
   const db = createDomainDb();
@@ -56,6 +57,7 @@ async function cleanupLedgerForOrder(orderId: string) {
 
 async function main() {
   loadEnvLocal();
+  assertNonProductionTarget("smoke-smart-order-engine");
   console.log("=== Smart Order Engine V3 smoke ===");
   await ensureTaxonomyPersisted();
   await refreshClients();

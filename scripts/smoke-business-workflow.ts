@@ -56,6 +56,7 @@ import {
 import { createDomainDb } from "../lib/supabase/domain-db";
 import { ensureTaxonomyPersisted } from "../lib/taxonomy/persist";
 import { loadEnvLocal } from "./load-env-local";
+import { assertNonProductionTarget } from "./assert-non-production";
 
 async function cleanupLedgerForPayment(paymentId: string) {
   const db = createDomainDb();
@@ -78,6 +79,7 @@ async function cleanupLedgerForPayment(paymentId: string) {
 
 async function main() {
   loadEnvLocal();
+  assertNonProductionTarget("smoke-business-workflow");
   console.log("=== Business workflow smoke ===");
   await ensureTaxonomyPersisted();
 
