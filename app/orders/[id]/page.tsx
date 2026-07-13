@@ -26,6 +26,7 @@ import {
   can,
   canEditOrderFinance,
   canEditOps,
+  canSeeCompanyFinance,
   canUpdateOrderStatus,
 } from "@/lib/identity/permissions";
 import { resolveSessionForApp } from "@/lib/identity/session";
@@ -42,7 +43,7 @@ interface OrderPageProps {
 
 export const dynamic = "force-dynamic";
 
-export default async function OrderCommandCenterPage({ params }: OrderPageProps) {
+export default async function OrderWorkspacePage({ params }: OrderPageProps) {
   const { id } = await params;
   const session = await resolveSessionForApp();
 
@@ -79,12 +80,19 @@ export default async function OrderCommandCenterPage({ params }: OrderPageProps)
   const orderExpenses = listExpensesByOrder(id);
 
   const role = session?.profile.role ?? "owner";
+  const seeMoney = canSeeCompanyFinance(role) || canEditOrderFinance(role);
   const capabilities = {
     canEdit: canEditOps(role),
     canEditFinance: canEditOrderFinance(role),
     canUpdateStatus: canUpdateOrderStatus(role),
-    crewStatusOnly:
-      can(role, "orders.status") && !can(role, "orders.edit"),
+    crewStatusOnly: can(role, "orders.status") && !can(role, "orders.edit"),
+    canCollectPayment:
+      canEditOrderFinance(role) ||
+      can(role, "finance.edit") ||
+      can(role, "finance.view"),
+    canAddExpense: canEditOps(role) || can(role, "finance.view"),
+    canSeeFullMoney: seeMoney,
+    canAssignCrew: canEditOps(role),
   };
 
   const content = (

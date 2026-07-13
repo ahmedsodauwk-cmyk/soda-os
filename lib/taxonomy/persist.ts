@@ -32,7 +32,9 @@ export async function ensureTaxonomyPersisted(): Promise<void> {
     .from("workspaces")
     .upsert(workspaceRows, { onConflict: "id" });
   if (wErr) {
-    throw new Error(`Failed to upsert workspaces: ${wErr.message}`);
+    // Soft-fail network/TLS so order reads can still proceed when cache/API works.
+    console.warn(`ensureTaxonomyPersisted workspaces: ${wErr.message}`);
+    return;
   }
 
   const subRows = seedSubcategories.map((s) => ({
@@ -48,7 +50,8 @@ export async function ensureTaxonomyPersisted(): Promise<void> {
     .from("workspace_subcategories")
     .upsert(subRows, { onConflict: "id" });
   if (sErr) {
-    throw new Error(`Failed to upsert subcategories: ${sErr.message}`);
+    console.warn(`ensureTaxonomyPersisted subcategories: ${sErr.message}`);
+    return;
   }
 
   ensured = true;

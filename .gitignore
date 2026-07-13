@@ -40,3 +40,10 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Local timeline capture artifacts
+.timeline-shots/
+
+# Local Order Workspace screenshot artifacts
+.workspace-shots/
+
