@@ -1,7 +1,7 @@
 /**
- * Order Workspace — Financial Assistant prompts.
+ * SODA Brain (internal) — Financial Assistant prompts.
+ * Called only via evaluateOrderOperationalTruth — do not import from UI.
  * UX copy derived from real order money/crew/expense state.
- * Not an accounting engine — diagnoses; Do Now executes.
  */
 
 import {

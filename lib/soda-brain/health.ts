@@ -1,7 +1,7 @@
 /**
- * Order Workspace — health verdict.
+ * SODA Brain (internal) — health verdict signals.
+ * Called only via evaluateOrderOperationalTruth — do not import from UI.
  * Thin composition over existing finance / status / assignment signals.
- * No new accounting or status engines.
  */
 
 import {

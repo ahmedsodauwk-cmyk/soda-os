@@ -1,7 +1,7 @@
 /**
- * Order Workspace — Do Now + Needs Decision generators.
+ * SODA Brain (internal) — Do Now + Needs Decision + What's Next generators.
+ * Called only via evaluateOrderOperationalTruth — do not import from UI.
  * Pure: observe loaded order state → emit actions → filter by capabilities.
- * Destinations map to in-page surfaces / existing dialogs — no new engines.
  */
 
 import {

@@ -34,26 +34,18 @@ import {
 } from "@/lib/assignments/types";
 import type { CalendarEvent } from "@/lib/calendar/types";
 import type { BusinessEvent } from "@/lib/core/types";
-import { getBusinessToday } from "@/lib/business/types";
 import type { EquipmentAssignment } from "@/lib/equipment/types";
 import type { FileAsset } from "@/lib/files/types";
 import type { Expense } from "@/lib/finance/expenses";
 import type { OrderOperatingView } from "@/lib/integration";
-import {
-  generateDoNowActions,
-  generateNeedsDecision,
-  generateWhatsNext,
-  type DoNowDestination,
-  type WorkspaceCapabilities,
-} from "@/lib/orders/do-now";
-import { deriveFinancialAssistantPrompt } from "@/lib/orders/financial-assistant";
 import { buildOrderTimeline } from "@/lib/orders/timeline";
 import { formatDate, formatPrice } from "@/lib/orders/utils";
 import {
-  deriveOrderHealth,
-  orderLane,
-  type OrderHealthLevel,
-} from "@/lib/orders/workspace-health";
+  evaluateOrderOperationalTruth,
+  type DoNowDestination,
+  type OrderHealthBand,
+  type WorkspaceCapabilities,
+} from "@/lib/soda-brain";
 import type { Person } from "@/lib/people/types";
 import { cn } from "@/lib/utils";
 
@@ -115,7 +107,7 @@ function destinationToSection(dest: DoNowDestination): string {
 }
 
 const HEALTH_STYLES: Record<
-  OrderHealthLevel,
+  OrderHealthBand,
   { ring: string; glow: string; text: string }
 > = {
   healthy: {
@@ -123,15 +115,10 @@ const HEALTH_STYLES: Record<
     glow: "from-emerald-500/20 via-transparent to-transparent",
     text: "text-emerald-700 dark:text-emerald-300",
   },
-  watch: {
+  attention: {
     ring: "border-amber-500/40 bg-amber-500/10",
     glow: "from-amber-500/20 via-transparent to-transparent",
     text: "text-amber-800 dark:text-amber-300",
-  },
-  at_risk: {
-    ring: "border-orange-500/45 bg-orange-500/10",
-    glow: "from-orange-500/25 via-transparent to-transparent",
-    text: "text-orange-800 dark:text-orange-300",
   },
   critical: {
     ring: "border-red-500/45 bg-red-500/10",
@@ -221,48 +208,33 @@ export function OrderCommandCenter({
     },
   ];
 
-  const asOf = getBusinessToday();
-  const lane = orderLane(order.projectType);
   const wa = whatsappHref(order.whatsapp || order.phone);
 
-  const health = deriveOrderHealth({
-    order,
-    finance: view.finance,
-    assignments: view.assignments,
-    deliveries: view.deliveries,
-    expenseCount: orderExpenses.filter((e) => e.status === "posted").length,
-    fileCount: files.length,
-    asOf,
-  });
-
-  const doNowInput = {
-    order,
-    finance: {
-      outstanding: view.finance.outstanding,
-      collected: view.finance.collected,
-      agreed: view.finance.agreed,
-    },
-    assignments: view.assignments,
-    deliveries: view.deliveries,
-    payments: view.payments,
-    expenseCount: orderExpenses.filter((e) => e.status === "posted").length,
-    fileCount: files.length,
-    asOf,
-    capabilities,
-  };
-
-  const doNow = generateDoNowActions(doNowInput);
-  const decisions = generateNeedsDecision(doNowInput);
-  const whatsNext = generateWhatsNext(doNowInput);
-  const moneyPrompt = deriveFinancialAssistantPrompt({
-    order,
-    finance: view.finance,
-    payments: view.payments,
-    assignments: view.assignments,
+  const brain = evaluateOrderOperationalTruth({
+    view,
     expenses: orderExpenses,
-    asOf,
-    canSeeMoneyPrompts: capabilities.canSeeFullMoney,
+    fileCount: files.length,
+    capabilities,
   });
+
+  if (!brain) {
+    return (
+      <div className="rounded-2xl border border-border/60 bg-card/40 px-6 py-12 text-center text-sm text-muted-foreground">
+        Order not found
+      </div>
+    );
+  }
+
+  const {
+    asOf,
+    lane,
+    health,
+    needsDecision: decisions,
+    doNow,
+    whatsNext,
+    financialAssistant: moneyPrompt,
+    humanMessage,
+  } = brain;
 
   const healthStyle = HEALTH_STYLES[health.level];
   const showExpense =
@@ -453,6 +425,11 @@ export function OrderCommandCenter({
                   {health.label}
                 </p>
                 <p className="text-sm text-muted-foreground">{health.reason}</p>
+                {humanMessage ? (
+                  <p className="text-sm font-medium text-emerald-700 dark:text-emerald-300">
+                    {humanMessage}
+                  </p>
+                ) : null}
               </div>
             </div>
 
