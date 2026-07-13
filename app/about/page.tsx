@@ -7,21 +7,12 @@ import { Button } from "@/components/ui/button";
 import {
   ABOUT_COPY,
   getModuleSlogan,
-  getTeamDisplayName,
   SODA_OPERATOR,
 } from "@/lib/brand";
 
-const CREW = [
-  { id: "tm-ahmed", name: "Ahmed Hassan", role: "Creative Director" },
-  { id: "tm-sara", name: "Sara Nabil", role: "Lead Editor" },
-  { id: "tm-youssef", name: "Youssef Amir", role: "Senior Photographer" },
-  { id: "tm-layla", name: "Layla Mansour", role: "Producer" },
-  { id: "tm-karim", name: "Karim Fouad", role: "Colorist" },
-  { id: "tm-dina", name: "Dina Farid", role: "Account Manager" },
-] as const;
-
 /**
- * About SODA — premium brand story page.
+ * About SODA VISUALS — premium brand story page.
+ * Crew list awaits Founder official names — do not invent members.
  * Linked from sidebar user menu / footer — does not reshuffle main nav IA.
  */
 export default function AboutPage() {
@@ -124,22 +115,15 @@ export default function AboutPage() {
                   {SODA_OPERATOR}
                 </span>
                 <span className="text-xs text-muted-foreground">
-                  Studio Lead
+                  Founder
                 </span>
               </li>
-              {CREW.map((member) => (
-                <li
-                  key={member.id}
-                  className="flex items-center justify-between rounded-xl border border-border/60 bg-card px-4 py-3"
-                >
-                  <span className="font-ar text-sm font-medium" dir="rtl">
-                    {getTeamDisplayName(member.name, member.id)}
-                  </span>
-                  <span className="text-xs text-muted-foreground">
-                    {member.role}
-                  </span>
-                </li>
-              ))}
+              <li className="col-span-full rounded-xl border border-dashed border-border/70 bg-muted/15 px-4 py-6 text-center">
+                <p className="text-sm text-muted-foreground">
+                  Official crew list awaits Founder confirmation. No placeholder
+                  names are shown.
+                </p>
+              </li>
             </ul>
           </section>
 

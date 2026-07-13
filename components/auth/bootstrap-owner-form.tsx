@@ -58,7 +58,7 @@ export function BootstrapOwnerForm() {
               id="email"
               name="email"
               type="email"
-              defaultValue="owner@soda.studio"
+              defaultValue="owner@sodavisuals.com"
               autoComplete="username"
               required
             />

@@ -10,10 +10,18 @@ import {
   type AuthActionResult,
 } from "@/lib/auth/actions";
 import { SODA_ROLES, ROLE_LABELS } from "@/lib/identity/roles";
+import { DEFAULT_COMPANY_EMAIL_DOMAIN } from "@/lib/auth/company-email";
 
 const initial: AuthActionResult | null = null;
 
-export function InviteUserForm() {
+/**
+ * Founder-only invite. Do not invent names — only invite people the Founder lists.
+ */
+export function InviteUserForm({
+  emailDomain = DEFAULT_COMPANY_EMAIL_DOMAIN,
+}: {
+  emailDomain?: string;
+}) {
   const [state, formAction, pending] = useActionState(
     inviteUserAction,
     initial
@@ -26,8 +34,25 @@ export function InviteUserForm() {
         <Input id="fullName" name="fullName" required />
       </div>
       <div className="space-y-2">
-        <Label htmlFor="email">Email</Label>
-        <Input id="email" name="email" type="email" required />
+        <Label htmlFor="username">Username</Label>
+        <Input
+          id="username"
+          name="username"
+          autoComplete="off"
+          placeholder={`local-part → @${emailDomain}`}
+        />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="email">Email (optional if username set)</Label>
+        <Input
+          id="email"
+          name="email"
+          type="email"
+          placeholder={`name@${emailDomain}`}
+        />
+        <p className="text-xs text-muted-foreground">
+          Default domain: @{emailDomain}. Changeable in Settings.
+        </p>
       </div>
       <div className="space-y-2">
         <Label htmlFor="role">Role</Label>

@@ -62,6 +62,16 @@ export async function AppShell({
     redirect("/login");
   }
 
+  // Force password change gate (temp-password / invite policy).
+  if (
+    session?.profile.mustChangePassword &&
+    !pathname.startsWith("/settings/password") &&
+    pathname !== "/login" &&
+    pathname !== "/forgot-password"
+  ) {
+    redirect("/settings/password?forced=1");
+  }
+
   const user = session
     ? {
         fullName: session.profile.displayName || session.profile.fullName,

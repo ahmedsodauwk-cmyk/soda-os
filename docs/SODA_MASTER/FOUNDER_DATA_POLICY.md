@@ -98,5 +98,6 @@ Unacceptable provenance:
 ## Related
 
 - Production audit notes: `docs/SODA_MASTER/PRODUCTION_AUDIT.md`
+- Auth architecture: `docs/SODA_MASTER/AUTH_ARCHITECTURE.md`
 - Smoke guard: `scripts/assert-non-production.ts`
 - Taxonomy persist (allowed): `lib/taxonomy/persist.ts`

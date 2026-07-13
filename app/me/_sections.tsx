@@ -181,7 +181,7 @@ export const MeBriefsPage = makeMePage({
 
 export const MeDressCodePage = makeMePage({
   title: "Dress Code",
-  description: "Studio appearance standards",
+  description: "SODA VISUALS appearance standards",
   sideLanguage: "معايير المظهر في الشوتات.\nلبس مرتّب ومن غير مفاجآت قدام العميل.",
   permission: "me.dress_code",
   body: () => (

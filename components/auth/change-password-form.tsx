@@ -1,6 +1,7 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,11 +13,19 @@ import {
 
 const initial: AuthActionResult | null = null;
 
-export function ChangePasswordForm() {
+export function ChangePasswordForm({ forced = false }: { forced?: boolean }) {
   const [state, formAction, pending] = useActionState(
     changePasswordAction,
     initial
   );
+  const router = useRouter();
+
+  useEffect(() => {
+    if (state?.ok && forced) {
+      router.replace("/");
+      router.refresh();
+    }
+  }, [state?.ok, forced, router]);
 
   return (
     <form className="max-w-md space-y-4" action={formAction}>

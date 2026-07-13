@@ -1,6 +1,11 @@
 /**
  * Permission maps — what each role can see and do.
  * Isolates finance, ops edit, and crew-only surfaces.
+ *
+ * @deprecated Hardcoded ROLE_PERMISSIONS are a **fallback only**.
+ * Long-term Source of Truth: DB `roles` / `permissions` / `role_permissions`
+ * via `lib/identity/permission-service.ts` (`canAsync`, Founder assign/revoke).
+ * Keep this file until all call sites migrate off sync `can()`.
  */
 
 import type { SodaRole } from "@/lib/identity/roles";
@@ -97,6 +102,7 @@ const ADMIN: Permission[] = ALL.filter(
   (p) => p !== "settings.users" && p !== "orders.finance"
 );
 
+/** @deprecated Prefer DB role_permissions via permission-service. */
 const ROLE_PERMISSIONS: Record<SodaRole, readonly Permission[]> = {
   owner: ALL,
   admin: ADMIN,
@@ -106,10 +112,15 @@ const ROLE_PERMISSIONS: Record<SodaRole, readonly Permission[]> = {
   client: CLIENT,
 };
 
+/** @deprecated Prefer `permissionsForAsync` from permission-service. */
 export function permissionsFor(role: SodaRole): readonly Permission[] {
   return ROLE_PERMISSIONS[role];
 }
 
+/**
+ * Sync permission check (hardcoded fallback).
+ * @deprecated Prefer `canAsync` / `sessionCanAsync` from permission-service on the server.
+ */
 export function can(role: SodaRole, permission: Permission): boolean {
   return ROLE_PERMISSIONS[role].includes(permission);
 }

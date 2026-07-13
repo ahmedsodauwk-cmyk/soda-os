@@ -51,12 +51,12 @@ export function LoginForm() {
 
         <form className="space-y-4" action={formAction}>
           <div className="space-y-2">
-            <Label htmlFor="email">{t("common.email")}</Label>
+            <Label htmlFor="email">Username or email</Label>
             <Input
               id="email"
               name="email"
-              type="email"
-              placeholder="you@soda.studio"
+              type="text"
+              placeholder="you@sodavisuals.com"
               autoComplete="username"
               required
             />

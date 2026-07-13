@@ -21,7 +21,7 @@ export const REPORT_DEFINITIONS: ReportDefinition[] = [
     title: "Revenue by Workspace",
     dimension: "workspace",
     metrics: ["revenue", "orders", "projects"],
-    description: "Studio P&L by production lane",
+    description: "SODA VISUALS P&L by production lane",
   },
   {
     id: "client-outstanding",

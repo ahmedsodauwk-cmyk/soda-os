@@ -16,6 +16,8 @@ import { homePathForRole } from "@/lib/identity/nav";
 export type SodaProfile = {
   id: string;
   email: string;
+  /** Login username (local-part); may match email local-part. */
+  username: string | null;
   /** Display name for greetings — never role. Mirrors full_name. */
   fullName: string;
   /**
@@ -27,6 +29,8 @@ export type SodaProfile = {
   personId: string | null;
   avatarInitials: string;
   isActive: boolean;
+  /** When true, AppShell forces /settings/password until cleared. */
+  mustChangePassword: boolean;
 };
 
 export type SodaSession = {
@@ -53,34 +57,75 @@ type ProfileRow = {
   role: string | null;
   person_id: string | null;
   is_active: boolean | null;
+  username?: string | null;
+  must_change_password?: boolean | null;
 };
+
+const PROFILE_SELECT_FULL =
+  "id, email, full_name, role, person_id, is_active, username, must_change_password";
+const PROFILE_SELECT_LEGACY =
+  "id, email, full_name, role, person_id, is_active";
+
+function mapProfileRow(
+  row: ProfileRow,
+  emailFallback: string,
+  roleFallback: SodaRole = "owner"
+): SodaProfile {
+  const email = row.email ?? emailFallback;
+  const name = row.full_name?.trim() || email.split("@")[0] || "User";
+  const username =
+    row.username?.trim() ||
+    (email.includes("@") ? email.split("@")[0]! : null);
+  return {
+    id: row.id,
+    email,
+    username,
+    fullName: name,
+    displayName: name,
+    role: parseSodaRole(row.role, roleFallback),
+    personId: row.person_id,
+    avatarInitials: initialsFrom(name, email),
+    isActive: row.is_active !== false,
+    mustChangePassword: row.must_change_password === true,
+  };
+}
+
+async function fetchProfileRow(
+  userId: string
+): Promise<ProfileRow | null> {
+  const supabase = await createClient();
+  const full = await supabase
+    .from("profiles")
+    .select(PROFILE_SELECT_FULL)
+    .eq("id", userId)
+    .maybeSingle();
+
+  if (!full.error && full.data) {
+    return full.data as ProfileRow;
+  }
+
+  // Columns may be missing until auth foundation migration is applied.
+  const legacy = await supabase
+    .from("profiles")
+    .select(PROFILE_SELECT_LEGACY)
+    .eq("id", userId)
+    .maybeSingle();
+
+  if (legacy.error || !legacy.data) return null;
+  return legacy.data as ProfileRow;
+}
 
 async function ensureProfile(
   userId: string,
   email: string,
   fullName?: string | null
 ): Promise<SodaProfile | null> {
-  const supabase = await createClient();
-  const { data: existing } = await supabase
-    .from("profiles")
-    .select("id, email, full_name, role, person_id, is_active")
-    .eq("id", userId)
-    .maybeSingle();
-
+  const existing = await fetchProfileRow(userId);
   if (existing) {
-    const row = existing as ProfileRow;
-    const name = row.full_name?.trim() || email.split("@")[0] || "User";
-    return {
-      id: row.id,
-      email: row.email ?? email,
-      fullName: name,
-      displayName: name,
-      role: parseSodaRole(row.role, "owner"),
-      personId: row.person_id,
-      avatarInitials: initialsFrom(name, row.email ?? email),
-      isActive: row.is_active !== false,
-    };
+    return mapProfileRow(existing, email);
   }
+
+  const supabase = await createClient();
 
   // First profile in the system becomes owner; later self-signups default to crew.
   const { count } = await supabase
@@ -90,45 +135,65 @@ async function ensureProfile(
   const role: SodaRole = (count ?? 0) === 0 ? "owner" : "crew_member";
   const name =
     fullName?.trim() || email.split("@")[0] || ROLE_LABELS[role];
+  const username = email.includes("@") ? email.split("@")[0]! : null;
 
-  const { data: inserted, error } = await supabase
-    .from("profiles")
-    .insert({
-      id: userId,
-      email,
-      full_name: name,
-      role,
-      is_active: true,
-    })
-    .select("id, email, full_name, role, person_id, is_active")
-    .maybeSingle();
+  const insertPayload: Record<string, unknown> = {
+    id: userId,
+    email,
+    full_name: name,
+    role,
+    is_active: true,
+  };
+
+  // Prefer new columns when migration applied; ignore failures below.
+  insertPayload.username = username;
+  insertPayload.must_change_password = false;
+
+  let inserted: ProfileRow | null = null;
+  let error: { message: string } | null = null;
+
+  {
+    const result = await supabase
+      .from("profiles")
+      .insert(insertPayload)
+      .select(PROFILE_SELECT_FULL)
+      .maybeSingle();
+    if (!result.error && result.data) {
+      inserted = result.data as ProfileRow;
+    } else {
+      const legacyInsert = await supabase
+        .from("profiles")
+        .insert({
+          id: userId,
+          email,
+          full_name: name,
+          role,
+          is_active: true,
+        })
+        .select(PROFILE_SELECT_LEGACY)
+        .maybeSingle();
+      error = legacyInsert.error;
+      inserted = legacyInsert.data as ProfileRow | null;
+    }
+  }
 
   if (error || !inserted) {
     // Table missing or RLS blocked — soft profile for UI until SQL applied.
     return {
       id: userId,
       email,
+      username,
       fullName: name,
       displayName: name,
       role: "owner",
       personId: null,
       avatarInitials: initialsFrom(name, email),
       isActive: true,
+      mustChangePassword: false,
     };
   }
 
-  const row = inserted as ProfileRow;
-  const resolvedName = row.full_name?.trim() || name;
-  return {
-    id: row.id,
-    email: row.email ?? email,
-    fullName: resolvedName,
-    displayName: resolvedName,
-    role: parseSodaRole(row.role, role),
-    personId: row.person_id,
-    avatarInitials: initialsFrom(row.full_name ?? name, row.email ?? email),
-    isActive: row.is_active !== false,
-  };
+  return mapProfileRow(inserted, email, role);
 }
 
 /** Verified session + profile. Null when signed out. Deduped per request. */
@@ -177,20 +242,22 @@ export function sessionHome(session: SodaSession): string {
   return homePathForRole(session.profile.role);
 }
 
-/** Demo / fallback session when auth is not yet configured (never in production strict). */
+/** Local/dev fallback session when auth is not yet configured (never in production strict). */
 export function fallbackOwnerSession(): SodaSession {
   return {
     userId: "local-owner",
-    email: "owner@soda.studio",
+    email: "owner@sodavisuals.com",
     profile: {
       id: "local-owner",
-      email: "owner@soda.studio",
+      email: "owner@sodavisuals.com",
+      username: "owner",
       fullName: "جونيور صودا",
       displayName: "جونيور صودا",
       role: "owner",
       personId: null,
       avatarInitials: "جص",
       isActive: true,
+      mustChangePassword: false,
     },
   };
 }

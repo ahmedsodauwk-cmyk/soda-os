@@ -9,6 +9,15 @@ import { homePathForRole } from "@/lib/identity/nav";
 import { parseSodaRole, type SodaRole } from "@/lib/identity/roles";
 import { getSodaSession } from "@/lib/identity/session";
 import { can } from "@/lib/identity/permissions";
+import { resolveLoginEmail } from "@/lib/auth/resolve-login";
+import {
+  companyEmailForUsername,
+  getCompanyEmailDomain,
+} from "@/lib/auth/company-email";
+import {
+  buildProvisionUserMetadata,
+  generateTemporaryPassword,
+} from "@/lib/auth/temp-password";
 
 export type AuthActionResult = {
   ok: boolean;
@@ -25,13 +34,20 @@ export async function signInAction(
   _prev: AuthActionResult | null,
   formData: FormData
 ): Promise<AuthActionResult> {
-  const email = formString(formData, "email");
+  // Field may be username OR email (name kept as "email" for form compat / autocomplete).
+  const identifier =
+    formString(formData, "email") || formString(formData, "identifier");
   const password = formString(formData, "password");
-  if (!email || !password) {
-    return { ok: false, error: "Email and password are required." };
+  if (!identifier || !password) {
+    return { ok: false, error: "Username/email and password are required." };
   }
 
   try {
+    const email = await resolveLoginEmail(identifier);
+    if (!email) {
+      return { ok: false, error: "Enter a username or email." };
+    }
+
     const supabase = await createClient();
     const { error } = await supabase.auth.signInWithPassword({
       email,
@@ -49,9 +65,10 @@ export async function signInAction(
     }
 
     const session = await getSodaSession();
-    const dest = session
-      ? homePathForRole(session.profile.role)
-      : "/";
+    if (session?.profile.mustChangePassword) {
+      redirect("/settings/password?forced=1");
+    }
+    const dest = session ? homePathForRole(session.profile.role) : "/";
     redirect(dest);
   } catch (err) {
     if (
@@ -81,10 +98,16 @@ export async function forgotPasswordAction(
   _prev: AuthActionResult | null,
   formData: FormData
 ): Promise<AuthActionResult> {
-  const email = formString(formData, "email");
-  if (!email) return { ok: false, error: "Email is required." };
+  const identifier =
+    formString(formData, "email") || formString(formData, "identifier");
+  if (!identifier) {
+    return { ok: false, error: "Username or email is required." };
+  }
 
   try {
+    const email = await resolveLoginEmail(identifier);
+    if (!email) return { ok: false, error: "Username or email is required." };
+
     const supabase = await createClient();
     const origin =
       process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ||
@@ -100,7 +123,7 @@ export async function forgotPasswordAction(
     }
     return {
       ok: true,
-      message: "If that email exists, a reset link is on the way.",
+      message: "If that account exists, a reset link is on the way.",
     };
   } catch (err) {
     return {
@@ -127,6 +150,23 @@ export async function changePasswordAction(
     const supabase = await createClient();
     const { error } = await supabase.auth.updateUser({ password });
     if (error) return { ok: false, error: error.message };
+
+    // Clear force-change flag (RPC when migration applied; direct update as fallback).
+    const { error: rpcErr } = await supabase.rpc("clear_must_change_password");
+    if (rpcErr) {
+      const session = await getSodaSession();
+      if (session) {
+        await supabase
+          .from("profiles")
+          .update({
+            must_change_password: false,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", session.userId);
+      }
+    }
+
+    revalidatePath("/", "layout");
     return { ok: true, message: "Password updated." };
   } catch (err) {
     return {
@@ -134,6 +174,29 @@ export async function changePasswordAction(
       error: err instanceof Error ? err.message : "Update failed.",
     };
   }
+}
+
+export async function updateCompanyEmailDomainAction(
+  _prev: AuthActionResult | null,
+  formData: FormData
+): Promise<AuthActionResult> {
+  const session = await getSodaSession();
+  if (!session || !can(session.profile.role, "settings.users")) {
+    return {
+      ok: false,
+      error: "Only the Founder / Owner can change the email domain.",
+    };
+  }
+
+  const domain = formString(formData, "domain");
+  const { setCompanyEmailDomain } = await import("@/lib/auth/company-email");
+  const result = await setCompanyEmailDomain(domain);
+  if (!result.ok) return { ok: false, error: result.error };
+  revalidatePath("/settings");
+  return {
+    ok: true,
+    message: `Company email domain set to ${domain.replace(/^@/, "")}.`,
+  };
 }
 
 /**
@@ -201,6 +264,10 @@ export async function bootstrapOwnerAction(
       (u) => u.email?.toLowerCase() === email.toLowerCase()
     );
 
+    const username = email.includes("@")
+      ? email.split("@")[0]!.toLowerCase()
+      : email.toLowerCase();
+
     let userId: string;
     if (existing) {
       const { error: updErr } = await admin.auth.admin.updateUserById(
@@ -208,7 +275,12 @@ export async function bootstrapOwnerAction(
         {
           password,
           email_confirm: true,
-          user_metadata: { full_name: fullName, role: "owner" },
+          user_metadata: {
+            full_name: fullName,
+            role: "owner",
+            username,
+            must_change_password: false,
+          },
         }
       );
       if (updErr) return { ok: false, error: updErr.message };
@@ -218,7 +290,12 @@ export async function bootstrapOwnerAction(
         email,
         password,
         email_confirm: true,
-        user_metadata: { full_name: fullName, role: "owner" },
+        user_metadata: {
+          full_name: fullName,
+          role: "owner",
+          username,
+          must_change_password: false,
+        },
       });
       if (created.error || !created.data.user) {
         return {
@@ -236,6 +313,8 @@ export async function bootstrapOwnerAction(
         full_name: fullName,
         role: "owner" as SodaRole,
         is_active: true,
+        username,
+        must_change_password: false,
         updated_at: new Date().toISOString(),
       },
       { onConflict: "id" }
@@ -277,6 +356,11 @@ export async function bootstrapOwnerAction(
   }
 }
 
+/**
+ * Invite / provision a user (Founder only).
+ * Sets must_change_password when a temporary password is issued.
+ * Do not invent crew — only invite people the Founder names.
+ */
 export async function inviteUserAction(
   _prev: AuthActionResult | null,
   formData: FormData
@@ -286,11 +370,26 @@ export async function inviteUserAction(
     return { ok: false, error: "You cannot invite users." };
   }
 
-  const email = formString(formData, "email");
   const role = parseSodaRole(formString(formData, "role"), "crew_member");
-  const fullName = formString(formData, "fullName") || email.split("@")[0] || "User";
+  const fullName = formString(formData, "fullName");
+  let email = formString(formData, "email");
+  const usernameRaw = formString(formData, "username");
 
-  if (!email) return { ok: false, error: "Email is required." };
+  const domain = await getCompanyEmailDomain();
+  const username = (
+    usernameRaw ||
+    (email.includes("@") ? email.split("@")[0] : "") ||
+    fullName.toLowerCase().replace(/\s+/g, ".")
+  )
+    .trim()
+    .toLowerCase();
+
+  if (!email && username) {
+    email = companyEmailForUsername(username, domain);
+  }
+
+  if (!email) return { ok: false, error: "Email or username is required." };
+  if (!fullName) return { ok: false, error: "Full name is required." };
 
   try {
     const admin = createAdminClient();
@@ -300,9 +399,15 @@ export async function inviteUserAction(
         ? `https://${process.env.VERCEL_URL}`
         : "http://localhost:3000");
 
+    const meta = buildProvisionUserMetadata({
+      full_name: fullName,
+      role,
+      username: username || email.split("@")[0]!,
+    });
+
     const { data, error } = await admin.auth.admin.inviteUserByEmail(email, {
       redirectTo: `${origin}/auth/callback?next=/settings/password`,
-      data: { full_name: fullName, role },
+      data: meta,
     });
 
     if (error) {
@@ -311,12 +416,12 @@ export async function inviteUserAction(
         error.message.toLowerCase().includes("invite") ||
         error.message.toLowerCase().includes("email")
       ) {
-        const temp = `Soda-${Math.random().toString(36).slice(2, 10)}!1`;
+        const temp = generateTemporaryPassword();
         const created = await admin.auth.admin.createUser({
           email,
           password: temp,
           email_confirm: true,
-          user_metadata: { full_name: fullName, role },
+          user_metadata: meta,
         });
         if (created.error || !created.data.user) {
           return {
@@ -332,10 +437,12 @@ export async function inviteUserAction(
           full_name: fullName,
           role: role as SodaRole,
           is_active: true,
+          username: meta.username,
+          must_change_password: true,
         });
         return {
           ok: true,
-          message: `User created. Temporary password: ${temp} — share securely and ask them to change it.`,
+          message: `User created. Temporary password: ${temp} — share securely. They must change it on first login.`,
         };
       }
       return { ok: false, error: error.message };
@@ -348,12 +455,15 @@ export async function inviteUserAction(
         full_name: fullName,
         role: role as SodaRole,
         is_active: true,
+        username: meta.username,
+        must_change_password: true,
       });
     }
 
     return {
       ok: true,
-      message: "Invite sent. They will set a password from the email link.",
+      message:
+        "Invite sent. They will set a password from the email link (forced change on first session).",
     };
   } catch (err) {
     return {

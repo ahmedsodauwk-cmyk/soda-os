@@ -65,7 +65,7 @@ export function WorkspaceCard({ workspace }: WorkspaceCardProps) {
                 <ArrowRight className="size-3.5 shrink-0 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
               </CardTitle>
               <CardDescription className="mt-1 line-clamp-2">
-                {workspace.description ?? "Studio production lane"}
+                {workspace.description ?? "SODA VISUALS production lane"}
               </CardDescription>
             </div>
           </div>

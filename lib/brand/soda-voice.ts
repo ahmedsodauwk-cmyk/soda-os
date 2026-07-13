@@ -1122,7 +1122,8 @@ export const ABOUT_COPY = {
     },
   ],
   teamTitle: "The crew",
-  teamWhisper: "أسماء الستوديو — الأدوار بالإنجليزي، الأسماء بالعربي.",
+  teamWhisper:
+    "أسماء الطاقم الرسمية بتتنتظر من الـ Founder — مفيش أسماء تجريبية.",
   partnersTitle: "Partners",
   partnersWhisper: "مساحة للشركاء قريب — لسه بنجهّز القائمة.",
 } as const;

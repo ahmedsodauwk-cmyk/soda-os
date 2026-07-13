@@ -14,22 +14,38 @@ import { resolveSessionForApp } from "@/lib/identity/session";
 
 export const dynamic = "force-dynamic";
 
-export default async function ChangePasswordPage() {
+export default async function ChangePasswordPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ forced?: string }>;
+}) {
   const session = await resolveSessionForApp();
   if (!session) redirect("/login");
 
+  const params = searchParams ? await searchParams : {};
+  const forced =
+    params.forced === "1" || session.profile.mustChangePassword;
+
   return (
-    <AppShell titleKey="pages.changePassword" layer="settings">
-      <BackLink href="/settings" label="Settings" />
+    <AppShell
+      titleKey="pages.changePassword"
+      layer="settings"
+      session={session}
+    >
+      {!forced ? <BackLink href="/settings" label="Settings" /> : null}
       <Card className="soda-cc-card max-w-lg">
         <CardHeader>
-          <CardTitle>New password</CardTitle>
+          <CardTitle>
+            {forced ? "Set a new password" : "New password"}
+          </CardTitle>
           <CardDescription>
-            Use at least 8 characters. You stay signed in after updating.
+            {forced
+              ? "Your temporary password must be changed before continuing in SODA VISUALS."
+              : "Use at least 8 characters. You stay signed in after updating."}
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <ChangePasswordForm />
+          <ChangePasswordForm forced={forced} />
         </CardContent>
       </Card>
     </AppShell>

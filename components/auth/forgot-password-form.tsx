@@ -41,13 +41,14 @@ export function ForgotPasswordForm() {
 
         <form className="space-y-4" action={formAction}>
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email">Username or email</Label>
             <Input
               id="email"
               name="email"
-              type="email"
+              type="text"
               required
               autoComplete="username"
+              placeholder="you@sodavisuals.com"
             />
           </div>
           {state?.error ? (

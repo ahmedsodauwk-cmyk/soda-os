@@ -59,15 +59,16 @@ OR use Dashboard path (no service role):
   A. SQL Editor → paste/run SODA_IDENTITY_NAV.sql (if not applied)
   B. Authentication → Providers → Email → Enable
   C. Authentication → Users → Add user
-     Email: owner@soda.studio  (or your email)
+     Email: owner@sodavisuals.com  (or your email)
      Password: min 8 chars, include letter + number (e.g. Soda-Owner-ChangeMe1!)
      Auto Confirm User: ON
-     User Metadata (JSON): {"full_name":"SODA Owner","role":"owner"}
+     User Metadata (JSON): {"full_name":"SODA Owner","role":"owner","username":"owner"}
   D. If profile missing, SQL:
-     insert into public.profiles (id, email, full_name, role, is_active)
-     select id, email, coalesce(raw_user_meta_data->>'full_name','Owner'), 'owner', true
+     insert into public.profiles (id, email, full_name, role, is_active, username, must_change_password)
+     select id, email, coalesce(raw_user_meta_data->>'full_name','Owner'), 'owner', true,
+            lower(split_part(email, '@', 1)), false
      from auth.users
-     where email = 'owner@soda.studio'
+     where email = 'owner@sodavisuals.com'
      on conflict (id) do update set role = 'owner', is_active = true;
   E. Login at https://soda-os.vercel.app/login
 `);
@@ -75,7 +76,7 @@ OR use Dashboard path (no service role):
   }
 
   const email =
-    process.env.BOOTSTRAP_OWNER_EMAIL?.trim() || "owner@soda.studio";
+    process.env.BOOTSTRAP_OWNER_EMAIL?.trim() || "owner@sodavisuals.com";
   const password =
     process.env.BOOTSTRAP_OWNER_PASSWORD?.trim() || defaultPassword();
   const fullName =
@@ -125,11 +126,15 @@ Or paste SODA_IDENTITY_NAV.sql in Supabase SQL Editor.
 
   const { data: listed } = await admin.auth.admin.listUsers({
     page: 1,
-    perPage: 1,
+    perPage: 200,
   });
   const existingUser = listed?.users?.find(
     (u) => u.email?.toLowerCase() === email.toLowerCase()
   );
+
+  const username = email.includes("@")
+    ? email.split("@")[0]!.toLowerCase()
+    : email.toLowerCase();
 
   let userId: string;
 
@@ -138,7 +143,12 @@ Or paste SODA_IDENTITY_NAV.sql in Supabase SQL Editor.
     const { error: updErr } = await admin.auth.admin.updateUserById(userId, {
       password,
       email_confirm: true,
-      user_metadata: { full_name: fullName, role: "owner" },
+      user_metadata: {
+        full_name: fullName,
+        role: "owner",
+        username,
+        must_change_password: false,
+      },
     });
     if (updErr) {
       console.error(`Failed to update existing user: ${updErr.message}`);
@@ -150,7 +160,12 @@ Or paste SODA_IDENTITY_NAV.sql in Supabase SQL Editor.
       email,
       password,
       email_confirm: true,
-      user_metadata: { full_name: fullName, role: "owner" },
+      user_metadata: {
+        full_name: fullName,
+        role: "owner",
+        username,
+        must_change_password: false,
+      },
     });
     if (created.error || !created.data.user) {
       console.error(
@@ -169,6 +184,8 @@ Or paste SODA_IDENTITY_NAV.sql in Supabase SQL Editor.
       full_name: fullName,
       role: "owner",
       is_active: true,
+      username,
+      must_change_password: false,
       updated_at: new Date().toISOString(),
     },
     { onConflict: "id" }

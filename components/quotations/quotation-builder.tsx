@@ -923,7 +923,7 @@ export function QuotationBuilder({ quotationId }: QuotationBuilderProps) {
         <CardContent className="space-y-4 text-sm">
           <div className="flex flex-wrap justify-between gap-3 border-b border-border/60 pb-3">
             <div>
-              <p className="font-heading text-lg font-semibold">SODA Visuals</p>
+              <p className="font-heading text-lg font-semibold">SODA VISUALS</p>
               <p className="text-muted-foreground">Quotation {draft.number}</p>
             </div>
             <div className="text-right">

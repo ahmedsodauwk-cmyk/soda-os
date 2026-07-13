@@ -128,7 +128,7 @@ export function CalendarContent({
             <div>
               <CardTitle className="flex items-center gap-2">
                 <CalendarDays className="size-4 text-soda-pink" />
-                Studio calendar
+                Production calendar
               </CardTitle>
               <CardDescription>
                 Company / crew / project · daily / weekly / monthly · as of{" "}

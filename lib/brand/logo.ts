@@ -45,8 +45,10 @@ export const SODA_LOGO = {
   alt: "SODA VISUALS",
   /** Sidebar word line */
   productName: "SODA",
+  /** Second line under productName in sidebar (SODA / VISUALS) */
   studioTagline: "VISUALS",
-  studioName: "SODA Visuals",
+  /** Official company display name */
+  studioName: "SODA VISUALS",
   /** Full product lockup for docs / metadata */
   fullName: "SODA VISUALS",
 } as const;

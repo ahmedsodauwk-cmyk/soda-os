@@ -224,7 +224,7 @@ export function AssignCrewDialog({
                     id="crew-meet"
                     value={meetingPoint}
                     onChange={(e) => setMeetingPoint(e.target.value)}
-                    placeholder="Studio lobby / venue gate"
+                    placeholder="Venue lobby / gate"
                   />
                 </div>
                 <div className="space-y-1.5">
