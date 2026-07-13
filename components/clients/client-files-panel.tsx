@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { RelationshipEmptyState } from "@/components/clients/relationship-empty-state";
 import { Badge } from "@/components/ui/badge";
 import { getClientFilesWorkspace } from "@/lib/clients/aggregators";
 
@@ -13,12 +14,11 @@ export function ClientFilesPanel({ clientId }: ClientFilesPanelProps) {
 
   if (view.files.length === 0) {
     return (
-      <div className="space-y-3 rounded-2xl border border-border/60 px-4 py-6">
-        <h3 className="font-heading text-base font-semibold">Files</h3>
-        <p className="text-sm text-muted-foreground">
-          No files linked to this client yet.
-        </p>
-      </div>
+      <RelationshipEmptyState
+        title="Files"
+        question="Attachments?"
+        detail="No files linked to this relationship yet. Client-scoped and project-linked files will collect here permanently."
+      />
     );
   }
 

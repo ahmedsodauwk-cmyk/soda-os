@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { RelationshipEmptyState } from "@/components/clients/relationship-empty-state";
 import { OrderStatusBadge } from "@/components/orders/order-status-badge";
 import { Badge } from "@/components/ui/badge";
 import { getClientProjectsWorkspace } from "@/lib/clients/aggregators";
@@ -13,25 +14,19 @@ interface ClientProjectsPanelProps {
   clientId: string;
 }
 
-/** This client's projects → each project's orders (includes closed). */
+/** This client's projects → each project's orders (includes closed / inactive). */
 export function ClientProjectsPanel({ clientId }: ClientProjectsPanelProps) {
   const view = getClientProjectsWorkspace(clientId);
 
   if (view.projects.length === 0) {
     return (
-      <div className="space-y-3 rounded-2xl border border-border/60 px-4 py-6">
-        <h3 className="font-heading text-base font-semibold">Projects</h3>
-        <p className="text-sm text-muted-foreground">
-          No projects for this client yet. Named projects and their orders will
-          appear here.
-        </p>
-        <Link
-          href={clientWorkspaceHref(clientId, "daily-work")}
-          className="text-sm text-soda-pink hover:underline"
-        >
-          Check Daily Work →
-        </Link>
-      </div>
+      <RelationshipEmptyState
+        title="Projects"
+        question="Active? Finished?"
+        detail="No named projects yet. When projects open or close, they stay on this relationship forever — history is never dropped."
+        href={clientWorkspaceHref(clientId, "daily-work")}
+        hrefLabel="Check Daily Work →"
+      />
     );
   }
 
@@ -41,7 +36,7 @@ export function ClientProjectsPanel({ clientId }: ClientProjectsPanelProps) {
         <div>
           <h3 className="font-heading text-base font-semibold">Projects</h3>
           <p className="text-sm text-muted-foreground">
-            Client-owned only. Closed projects stay visible for history.
+            Client-owned only. Closed and inactive projects stay visible for history.
           </p>
         </div>
         <Badge variant="outline">
@@ -64,6 +59,7 @@ export function ClientProjectsPanel({ clientId }: ClientProjectsPanelProps) {
               </Link>
               <p className="mt-1 text-xs text-muted-foreground">
                 {project.status}
+                {!project.isActive ? " · inactive" : ""}
                 {project.journeyStage ? ` · ${project.journeyStage}` : ""} ·{" "}
                 {orders.length} orders
               </p>

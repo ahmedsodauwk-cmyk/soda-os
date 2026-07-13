@@ -1,5 +1,6 @@
 /**
  * Client Workspace — architectural Source of Truth (Mission 04.1).
+ * Reference Client Engine pattern (Mission 04.3) — first live reference: RTM.
  *
  * The Client is the central business entity. Home / Finance / Orders / Projects /
  * Reports will eventually read through this tree. This module defines the
@@ -8,12 +9,12 @@
  * Hierarchy:
  * ```
  * Client
- *  ├── Overview
+ *  ├── Overview          — Who is this relationship?
  *  ├── Daily Work → Orders
- *  ├── Projects → Orders
- *  ├── Financial History
- *  ├── Partnership History
- *  ├── Timeline
+ *  ├── Projects → Orders — Active + finished (history never deleted)
+ *  ├── Financial History — Money over time
+ *  ├── Partnership History — Structure ready; empty until role + work exist
+ *  ├── Timeline          — Over time (real events only)
  *  ├── Files
  *  ├── Notes
  *  └── Contacts
@@ -24,6 +25,8 @@
  * - Orders belong either to Daily Work OR to a Project under that Client.
  * - Client types for business role: Client | Partner | Client + Partner
  *   (`ClientBusinessRole` on the Client entity — not separate entities).
+ * - Prefer honest empty states over invented KPIs, timeline events, or contacts.
+ * - Closed / inactive work stays visible in Client history aggregators.
  */
 
 import type { ClientBusinessRole } from "@/lib/clients/types";
@@ -67,63 +70,63 @@ export const CLIENT_WORKSPACE_TREE: readonly ClientWorkspaceSection[] = [
     id: "overview",
     path: "",
     label: "Overview",
-    description: "Client snapshot and operating summary",
-    owns: "profile, stats, related records",
+    description: "Who is this relationship — snapshot without inventing data",
+    owns: "profile, relationship questions, related records",
   },
   {
     id: "daily-work",
     path: "daily-work",
     label: "Daily Work",
-    description: "Ad-hoc / ongoing Orders under this Client (not a named Project)",
+    description: "What work together outside named Projects",
     owns: "orders (daily_work belonging)",
   },
   {
     id: "projects",
     path: "projects",
     label: "Projects",
-    description: "Named Projects that belong to this Client; each Project owns Orders",
+    description: "Named Projects — active and finished; history stays forever",
     owns: "projects → orders (project belonging)",
   },
   {
     id: "financial-history",
     path: "financial-history",
     label: "Financial History",
-    description: "Payments, invoices, balances for this Client",
+    description: "Money with this relationship over time",
     owns: "finance ledger views",
   },
   {
     id: "partnership-history",
     path: "partnership-history",
     label: "Partnership History",
-    description: "Partner-side collaborations when businessRole includes partner",
+    description: "Partnerships when businessRole includes partner — empty until real",
     owns: "partnership records",
   },
   {
     id: "timeline",
     path: "timeline",
     label: "Timeline",
-    description: "Chronological activity across the Client",
+    description: "Over time — real openings, work, and money only",
     owns: "timeline events",
   },
   {
     id: "files",
     path: "files",
     label: "Files",
-    description: "Files attached at Client scope",
+    description: "Attachments and files for this relationship",
     owns: "files",
   },
   {
     id: "notes",
     path: "notes",
     label: "Notes",
-    description: "Internal notes for this Client",
+    description: "Internal notes the Founder records here",
     owns: "notes",
   },
   {
     id: "contacts",
     path: "contacts",
     label: "Contacts",
-    description: "People and contact channels for this Client",
+    description: "People and channels — empty until Founder enters them",
     owns: "contacts",
   },
 ] as const;

@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { RelationshipEmptyState } from "@/components/clients/relationship-empty-state";
 import { Badge } from "@/components/ui/badge";
 import {
   getClientTimeline,
@@ -43,12 +44,11 @@ export function ClientTimelinePanel({ clientId }: ClientTimelinePanelProps) {
 
   if (view.items.length === 0) {
     return (
-      <div className="space-y-3 rounded-2xl border border-border/60 px-4 py-6">
-        <h3 className="font-heading text-base font-semibold">Timeline</h3>
-        <p className="text-sm text-muted-foreground">
-          No relationship events yet for this client.
-        </p>
-      </div>
+      <RelationshipEmptyState
+        title="Timeline"
+        question="Over time?"
+        detail="No relationship events yet. Openings, orders, payments, and projects will appear here when they exist — nothing is invented."
+      />
     );
   }
 

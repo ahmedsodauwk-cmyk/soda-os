@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { RelationshipEmptyState } from "@/components/clients/relationship-empty-state";
 import { OrderStatusBadge } from "@/components/orders/order-status-badge";
 import { Badge } from "@/components/ui/badge";
 import { getClientDailyWork } from "@/lib/clients/aggregators";
@@ -18,10 +19,11 @@ export function ClientDailyWorkPanel({ clientId }: ClientDailyWorkPanelProps) {
 
   if (view.orderCount === 0) {
     return (
-      <div className="space-y-3 rounded-2xl border border-border/60 px-4 py-6">
-        <h3 className="font-heading text-base font-semibold">Daily Work</h3>
-        <p className="text-sm text-muted-foreground">{view.belongingNote}</p>
-      </div>
+      <RelationshipEmptyState
+        title="Daily Work"
+        question="What work together outside named Projects?"
+        detail={view.belongingNote}
+      />
     );
   }
 

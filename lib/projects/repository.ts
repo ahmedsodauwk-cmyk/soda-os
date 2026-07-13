@@ -106,8 +106,15 @@ export function getProjectsByWorkspace(workspaceId: string): Project[] {
   return getProjects().filter((p) => p.workspaceId === workspaceId);
 }
 
+/**
+ * All projects for a Client — including inactive/closed.
+ * Client Workspace history must never drop projects after close.
+ * For active-only lists, filter `isActive` at the call site.
+ */
 export function getProjectsByClient(clientId: string): Project[] {
-  return getProjects().filter((p) => p.clientId === clientId);
+  return projectsCache
+    .filter((p) => p.clientId === clientId)
+    .map(enrichProject);
 }
 
 /** All cached projects including inactive. */

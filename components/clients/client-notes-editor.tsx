@@ -48,7 +48,10 @@ export function ClientNotesEditor({
             {initialNotes}
           </p>
         ) : (
-          <p className="text-sm text-muted-foreground">No internal notes yet.</p>
+          <p className="text-sm text-muted-foreground">
+            No internal notes yet — this relationship has nothing written beyond
+            the name.
+          </p>
         )}
       </div>
     );
@@ -59,7 +62,8 @@ export function ClientNotesEditor({
       <div>
         <h3 className="font-heading text-base font-semibold">Notes</h3>
         <p className="text-sm text-muted-foreground">
-          Internal founder notes — stored on the client record.
+          Internal Founder notes for this relationship — empty until you write
+          them.
         </p>
       </div>
       <Textarea

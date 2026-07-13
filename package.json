@@ -26,6 +26,7 @@
     "db:auth-brand": "npx tsx scripts/apply-auth-brand-foundation-migration.ts",
     "db:order-flow": "npx tsx scripts/apply-order-business-flow-migration.ts",
     "bootstrap:owner": "npx tsx scripts/bootstrap-owner.ts",
+    "founder:create-rtm": "npx tsx scripts/create-founder-rtm-client.ts",
     "verify:business-core": "npx tsx scripts/verify-business-core.ts",
     "smoke:business-rules": "npx tsx scripts/smoke-business-rules.ts",
     "smoke:financial-core": "npx tsx scripts/smoke-financial-core.ts",

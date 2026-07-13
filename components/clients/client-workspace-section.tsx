@@ -45,8 +45,8 @@ function ClientWorkspaceHeader({ client }: { client: Client }) {
         {client.name}
       </h2>
       <p className="text-sm text-muted-foreground">
-        {CLIENT_BUSINESS_ROLE_LABELS[client.businessRole]} · {client.segment} ·{" "}
-        {client.type}
+        Relationship workspace · {CLIENT_BUSINESS_ROLE_LABELS[client.businessRole]}{" "}
+        · {client.segment}
       </p>
     </div>
   );

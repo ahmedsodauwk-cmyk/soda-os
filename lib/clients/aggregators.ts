@@ -368,7 +368,7 @@ export function getClientDailyWork(clientId: string): ClientDailyWorkView {
     orderCount: orders.length,
     belongingNote:
       orders.length === 0
-        ? "No daily-work orders yet. Orders currently linked only through a Project appear under Projects. Belonging persistence is not stored separately."
+        ? "No daily work recorded yet. When the Founder links orders here (outside a named Project), they will appear by year and month. Nothing is invented."
         : "Orders classified as daily work (no project link, or daily-work subcategory).",
   };
 }
@@ -480,7 +480,7 @@ export function getClientPartnershipHistory(
       role: client.businessRole,
       rows: [],
       emptyReason:
-        "This account is not marked as a Partner. Partnership history appears when business role is Partner or Client + Partner.",
+        "Partnership History is ready for this relationship. Mark the business role as Partner or Client + Partner when that is true — no partnership work is invented here.",
     };
   }
 
@@ -519,7 +519,7 @@ export function getClientPartnershipHistory(
     rows,
     emptyReason:
       rows.length === 0
-        ? "Partner role is set, but no projects are linked yet. Share % and settlement status are not recorded in the database yet."
+        ? "Partner role is set, but no shared projects yet. Share % and settlement stay empty until the Founder records them."
         : "Partner projects listed. Share % and settlement status are not recorded in the database yet — never invented.",
   };
 }

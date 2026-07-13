@@ -39,33 +39,48 @@ export function ClientFinancialHistoryPanel({
       <div>
         <h3 className="font-heading text-base font-semibold">Financial History</h3>
         <p className="text-sm text-muted-foreground">
-          Never deleted — closed work still rolls into this trail. Booked{" "}
-          {egp(view.obligated)}.
+          Money with this relationship over time. Never deleted — closed work
+          still rolls into this trail
+          {view.obligated > 0 ? ` · Booked ${egp(view.obligated)}` : ""}.
         </p>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        {kpis.map((kpi) => (
-          <div
-            key={kpi.label}
-            className="soda-cc-card rounded-xl border border-border/60 px-3.5 py-3"
-          >
-            <p className="text-xs font-medium text-muted-foreground">{kpi.label}</p>
-            <p
-              className={`mt-1 font-mono text-lg font-semibold ${
-                "accent" in kpi && kpi.accent ? "text-soda-pink" : ""
-              }`}
+      {view.payments.length === 0 &&
+      view.invoices.length === 0 &&
+      view.collected === 0 &&
+      view.outstanding === 0 ? (
+        <p className="rounded-xl border border-border/60 px-3.5 py-4 text-sm text-muted-foreground">
+          No money recorded yet. Payments, invoices, and balances will appear
+          here when the Founder records them — zeros are not invented activity.
+        </p>
+      ) : (
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {kpis.map((kpi) => (
+            <div
+              key={kpi.label}
+              className="soda-cc-card rounded-xl border border-border/60 px-3.5 py-3"
             >
-              {kpi.value}
-            </p>
-          </div>
-        ))}
-      </div>
+              <p className="text-xs font-medium text-muted-foreground">
+                {kpi.label}
+              </p>
+              <p
+                className={`mt-1 font-mono text-lg font-semibold ${
+                  "accent" in kpi && kpi.accent ? "text-soda-pink" : ""
+                }`}
+              >
+                {kpi.value}
+              </p>
+            </div>
+          ))}
+        </div>
+      )}
 
       <section className="space-y-2">
         <h4 className="font-heading text-sm font-semibold">Payment methods</h4>
         {view.methods.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No payments recorded yet.</p>
+          <p className="text-sm text-muted-foreground">
+            No payment methods on record yet.
+          </p>
         ) : (
           <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
             {view.methods.map((m) => (

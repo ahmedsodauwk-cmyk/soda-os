@@ -9,7 +9,11 @@ import {
   getClientWorkspaceOverview,
   type RelationshipHealth,
 } from "@/lib/clients/aggregators";
-import { clientWorkspaceHref } from "@/lib/clients/workspace";
+import {
+  CLIENT_WORKSPACE_TREE,
+  clientWorkspaceHref,
+  type ClientWorkspaceSectionId,
+} from "@/lib/clients/workspace";
 import { cn } from "@/lib/utils";
 
 function egp(n: number) {
@@ -53,15 +57,87 @@ const HEALTH_STYLES: Record<
   unknown: {
     ring: "border-border/70 bg-muted/30",
     text: "text-muted-foreground",
-    label: "New",
+    label: "Opening",
   },
 };
+
+/** Relationship questions the workspace answers — honest until Founder enters data. */
+const RELATIONSHIP_QUESTIONS: Array<{
+  question: string;
+  section: ClientWorkspaceSectionId;
+  emptyAnswer: string;
+  filled: (overview: NonNullable<ReturnType<typeof getClientWorkspaceOverview>>) => string;
+}> = [
+  {
+    question: "Who is this?",
+    section: "overview",
+    emptyAnswer: "Name on record. Contact and profile details stay empty until entered.",
+    filled: (o) =>
+      [o.client.contactPerson, o.client.phone, o.client.email]
+        .filter((v) => Boolean(v?.trim()))
+        .join(" · ") || "Name on record — channels not entered yet.",
+  },
+  {
+    question: "What work together?",
+    section: "daily-work",
+    emptyAnswer: "No daily work or projects recorded yet.",
+    filled: (o) =>
+      o.orderCount + o.projectCount === 0
+        ? "No daily work or projects recorded yet."
+        : `${o.orderCount} orders · ${o.projectCount} projects`,
+  },
+  {
+    question: "Active?",
+    section: "projects",
+    emptyAnswer: "Nothing active yet.",
+    filled: (o) =>
+      o.openOrders + o.activeProjects === 0
+        ? "Nothing active yet."
+        : `${o.openOrders} open orders · ${o.activeProjects} active projects`,
+  },
+  {
+    question: "Finished?",
+    section: "projects",
+    emptyAnswer: "No finished work on record yet — history will stay here when it exists.",
+    filled: (o) =>
+      o.projectCount === 0 && o.orderCount === 0
+        ? "No finished work on record yet — history will stay here when it exists."
+        : `${o.projectCount} projects on file (closed stay visible)`,
+  },
+  {
+    question: "Money?",
+    section: "financial-history",
+    emptyAnswer: "No money recorded yet.",
+    filled: (o) =>
+      o.collected === 0 && o.outstanding === 0 && o.currentBalance === 0
+        ? "No money recorded yet."
+        : `Collected ${egp(o.collected)} · Outstanding ${egp(o.outstanding)}`,
+  },
+  {
+    question: "Partnerships?",
+    section: "partnership-history",
+    emptyAnswer: "Partnership structure ready — empty until role and work exist.",
+    filled: (o) =>
+      o.client.businessRole === "partner" || o.client.businessRole === "both"
+        ? "Partner role on record — see Partnership History."
+        : "Client role — partnership history stays empty until marked Partner.",
+  },
+  {
+    question: "Over time?",
+    section: "timeline",
+    emptyAnswer: "Timeline opens with the relationship — no invented events.",
+    filled: (o) =>
+      o.lastActivityAt
+        ? `Last activity ${formatWhen(o.lastActivityAt)}`
+        : "Timeline opens with the relationship — no invented events.",
+  },
+];
 
 interface ClientOverviewPanelProps {
   clientId: string;
 }
 
-/** Control-room Overview — who, money, what's open, what's next. */
+/** Relationship workspace Overview — who, work, money, time — never invents data. */
 export async function ClientOverviewPanel({
   clientId,
 }: ClientOverviewPanelProps) {
@@ -72,6 +148,15 @@ export async function ClientOverviewPanel({
   const healthUi = HEALTH_STYLES[health];
   const backHref =
     client.segment === "commercial" ? "/clients/commercial" : "/clients/weddings";
+  const isOpening =
+    overview.orderCount === 0 &&
+    overview.projectCount === 0 &&
+    overview.collected === 0 &&
+    overview.outstanding === 0;
+
+  const identityBits = [client.contactPerson, client.phone, client.email]
+    .filter((v) => Boolean(v?.trim()))
+    .join(" · ");
 
   const kpis = [
     { label: "Current Balance", value: egp(overview.currentBalance) },
@@ -84,30 +169,6 @@ export async function ClientOverviewPanel({
     { label: "Open orders", value: String(overview.openOrders) },
     { label: "Active projects", value: String(overview.activeProjects) },
   ] as const;
-
-  const pulses = [
-    {
-      label: "Last activity",
-      value: formatWhen(overview.lastActivityAt),
-      href: clientWorkspaceHref(clientId, "timeline"),
-    },
-    {
-      label: "Last payment",
-      value: overview.lastPayment
-        ? `${egp(overview.lastPayment.amount)} · ${formatWhen(overview.lastPayment.paidAt)}`
-        : "None yet",
-      href: clientWorkspaceHref(clientId, "financial-history"),
-    },
-    {
-      label: "Last order",
-      value: overview.lastOrder
-        ? `${overview.lastOrder.id} · ${formatWhen(overview.lastOrder.shootDate)}`
-        : "None yet",
-      href: overview.lastOrder
-        ? `/orders/${overview.lastOrder.id}`
-        : clientWorkspaceHref(clientId, "daily-work"),
-    },
-  ];
 
   return (
     <div className="space-y-8">
@@ -149,9 +210,8 @@ export async function ClientOverviewPanel({
               </Badge>
             </div>
             <p className="text-sm text-muted-foreground">
-              {[client.contactPerson, client.phone, client.email]
-                .filter(Boolean)
-                .join(" · ")}
+              {identityBits ||
+                "Who they are beyond the name is not recorded yet — add contacts when ready."}
             </p>
             <div className={cn("flex flex-wrap items-center gap-2 text-sm", healthUi.text)}>
               <span className="font-medium">Relationship · {healthUi.label}</span>
@@ -161,61 +221,112 @@ export async function ClientOverviewPanel({
         </div>
       </section>
 
-      <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-        {kpis.map((kpi) => (
-          <div
-            key={kpi.label}
-            className="soda-cc-card rounded-xl border border-border/60 px-3.5 py-3"
-          >
-            <p className="text-xs font-medium text-muted-foreground">
-              {kpi.label}
-            </p>
-            <p
-              className={cn(
-                "mt-1 font-mono text-lg font-semibold",
-                "accent" in kpi && kpi.accent && "text-soda-pink"
-              )}
-            >
-              {kpi.value}
-            </p>
-          </div>
-        ))}
+      <section className="space-y-3">
+        <div>
+          <h3 className="font-heading text-base font-semibold">
+            Relationship map
+          </h3>
+          <p className="text-sm text-muted-foreground">
+            {isOpening
+              ? "This workspace is ready. Answers stay empty until the Founder records real work — nothing is invented."
+              : "Live answers from stored work, money, and role — never guessed."}
+          </p>
+        </div>
+        <ul className="grid gap-2 sm:grid-cols-2">
+          {RELATIONSHIP_QUESTIONS.map((row) => {
+            const answer = isOpening ? row.emptyAnswer : row.filled(overview);
+            const href =
+              row.section === "overview"
+                ? clientWorkspaceHref(clientId, "contacts")
+                : clientWorkspaceHref(clientId, row.section);
+            const sectionLabel =
+              row.section === "overview"
+                ? "Contacts"
+                : CLIENT_WORKSPACE_TREE.find((s) => s.id === row.section)?.label ??
+                  row.section;
+            return (
+              <li key={row.question}>
+                <Link
+                  href={href}
+                  className="block rounded-xl border border-border/60 px-3.5 py-3 transition-colors hover:border-soda-pink/35"
+                >
+                  <p className="text-xs font-medium text-muted-foreground">
+                    {row.question}
+                  </p>
+                  <p className="mt-1 text-sm font-medium">{answer}</p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    → {sectionLabel}
+                  </p>
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
       </section>
 
-      <section className="grid gap-3 md:grid-cols-3">
-        {pulses.map((pulse) => (
-          <Link
-            key={pulse.label}
-            href={pulse.href}
-            className="rounded-xl border border-border/60 px-3.5 py-3 transition-colors hover:border-soda-pink/35"
-          >
-            <p className="text-xs font-medium text-muted-foreground">
-              {pulse.label}
-            </p>
-            <p className="mt-1 text-sm font-medium">{pulse.value}</p>
-          </Link>
-        ))}
-      </section>
+      {!isOpening ? (
+        <>
+          <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+            {kpis.map((kpi) => (
+              <div
+                key={kpi.label}
+                className="soda-cc-card rounded-xl border border-border/60 px-3.5 py-3"
+              >
+                <p className="text-xs font-medium text-muted-foreground">
+                  {kpi.label}
+                </p>
+                <p
+                  className={cn(
+                    "mt-1 font-mono text-lg font-semibold",
+                    "accent" in kpi && kpi.accent && "text-soda-pink"
+                  )}
+                >
+                  {kpi.value}
+                </p>
+              </div>
+            ))}
+          </section>
 
-      <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        {(
-          [
-            ["Daily Work", "daily-work", `${overview.orderCount} orders total`],
-            ["Projects", "projects", `${overview.projectCount} projects`],
-            ["Financial History", "financial-history", egp(overview.outstanding)],
-            ["Timeline", "timeline", "Relationship history"],
-          ] as const
-        ).map(([label, section, detail]) => (
-          <Link
-            key={section}
-            href={clientWorkspaceHref(clientId, section)}
-            className="rounded-xl border border-border/60 px-3.5 py-3 transition-colors hover:border-soda-pink/35"
-          >
-            <p className="font-heading text-sm font-semibold">{label}</p>
-            <p className="mt-1 text-xs text-muted-foreground">{detail}</p>
-          </Link>
-        ))}
-      </section>
+          <section className="grid gap-3 md:grid-cols-3">
+            {(
+              [
+                {
+                  label: "Last activity",
+                  value: formatWhen(overview.lastActivityAt),
+                  href: clientWorkspaceHref(clientId, "timeline"),
+                },
+                {
+                  label: "Last payment",
+                  value: overview.lastPayment
+                    ? `${egp(overview.lastPayment.amount)} · ${formatWhen(overview.lastPayment.paidAt)}`
+                    : "None yet",
+                  href: clientWorkspaceHref(clientId, "financial-history"),
+                },
+                {
+                  label: "Last order",
+                  value: overview.lastOrder
+                    ? `${overview.lastOrder.id} · ${formatWhen(overview.lastOrder.shootDate)}`
+                    : "None yet",
+                  href: overview.lastOrder
+                    ? `/orders/${overview.lastOrder.id}`
+                    : clientWorkspaceHref(clientId, "daily-work"),
+                },
+              ] as const
+            ).map((pulse) => (
+              <Link
+                key={pulse.label}
+                href={pulse.href}
+                className="rounded-xl border border-border/60 px-3.5 py-3 transition-colors hover:border-soda-pink/35"
+              >
+                <p className="text-xs font-medium text-muted-foreground">
+                  {pulse.label}
+                </p>
+                <p className="mt-1 text-sm font-medium">{pulse.value}</p>
+              </Link>
+            ))}
+          </section>
+        </>
+      ) : null}
 
       {overview.lastOrder ? (
         <section className="space-y-2">

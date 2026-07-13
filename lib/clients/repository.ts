@@ -10,7 +10,7 @@ import {
 import { publishBusinessEvent } from "@/lib/core/publish";
 import { getOrders } from "@/lib/orders/repository";
 import { getPayments } from "@/lib/payments/repository";
-import { getProjects } from "@/lib/projects/repository";
+import { getProjects, getProjectsByClient } from "@/lib/projects/repository";
 import { withRefreshTtl } from "@/lib/supabase/refresh-ttl";
 
 /**
@@ -270,5 +270,5 @@ export function getClientsWithStats(): Array<Client & ClientComputedStats> {
 }
 
 export function getProjectCountByClient(clientId: string): number {
-  return getProjects().filter((p) => p.clientId === clientId).length;
+  return getProjectsByClient(clientId).length;
 }
