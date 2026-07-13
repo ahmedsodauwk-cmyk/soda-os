@@ -388,25 +388,26 @@ const mapDeliveries: TimelineSourceMapper = ({ deliveries }) => {
   return items;
 };
 
-const mapCalendar: TimelineSourceMapper = ({ calendar }) =>
-  calendar
-    .map((ev) => {
-      const iso = dateOnlyToIso(ev.startsAt);
-      if (!iso) return null;
-      return {
-        id: `calendar:${ev.id}`,
-        occurredAt: iso,
-        title: ev.title || `Calendar · ${ev.kind}`,
-        description: ev.location
-          ? `${ev.kind} · ${ev.location}`
-          : `Calendar event · ${ev.kind}`,
-        personLabel: ABSENT,
-        tone: ev.kind === "shoot" ? "brand" : "info",
-        icon: "calendar" as const,
-        source: "calendar.startsAt",
-      } satisfies TimelineItem;
-    })
-    .filter((x): x is TimelineItem => x != null);
+const mapCalendar: TimelineSourceMapper = ({ calendar }) => {
+  const items: TimelineItem[] = [];
+  for (const ev of calendar) {
+    const iso = dateOnlyToIso(ev.startsAt);
+    if (!iso) continue;
+    items.push({
+      id: `calendar:${ev.id}`,
+      occurredAt: iso,
+      title: ev.title || `Calendar · ${ev.kind}`,
+      description: ev.location
+        ? `${ev.kind} · ${ev.location}`
+        : `Calendar event · ${ev.kind}`,
+      personLabel: ABSENT,
+      tone: ev.kind === "shoot" ? "brand" : "info",
+      icon: "calendar",
+      source: "calendar.startsAt",
+    });
+  }
+  return items;
+};
 
 const mapEquipment: TimelineSourceMapper = ({ equipment, peopleById }) => {
   const items: TimelineItem[] = [];
@@ -445,49 +446,45 @@ const mapEquipment: TimelineSourceMapper = ({ equipment, peopleById }) => {
   return items;
 };
 
-const mapFiles: TimelineSourceMapper = ({ files }) =>
-  files
-    .map((f) => {
-      const iso = dateOnlyToIso(f.updatedAt);
-      if (!iso) return null;
-      return {
-        id: `file:${f.id}`,
-        occurredAt: iso,
-        title: "File linked",
-        description: f.name,
-        personLabel: ABSENT,
-        tone: "neutral" as const,
-        icon: "file" as const,
-        source: "file.updatedAt",
-      } satisfies TimelineItem;
-    })
-    .filter((x): x is TimelineItem => x != null);
+const mapFiles: TimelineSourceMapper = ({ files }) => {
+  const items: TimelineItem[] = [];
+  for (const f of files) {
+    const iso = dateOnlyToIso(f.updatedAt);
+    if (!iso) continue;
+    items.push({
+      id: `file:${f.id}`,
+      occurredAt: iso,
+      title: "File linked",
+      description: f.name,
+      personLabel: ABSENT,
+      tone: "neutral",
+      icon: "file",
+      source: "file.updatedAt",
+    });
+  }
+  return items;
+};
 
-const mapExpenses: TimelineSourceMapper = ({ expenses }) =>
-  expenses
-    .filter((e) => e.status !== "voided")
-    .map((e) => {
-      const iso =
-        dateOnlyToIso(e.expenseDate) ?? dateOnlyToIso(e.createdAt);
-      if (!iso) return null;
-      return {
-        id: `expense:${e.id}`,
-        occurredAt: iso,
-        title: "Expense recorded",
-        description: `${e.category} · ${formatPrice(e.amount)}`,
-        personLabel: ABSENT,
-        tone: "warning" as const,
-        icon: "expense" as const,
-        source: "expense.expenseDate",
-      } satisfies TimelineItem;
-    })
-    .filter((x): x is TimelineItem => x != null);
+const mapExpenses: TimelineSourceMapper = ({ expenses }) => {
+  const items: TimelineItem[] = [];
+  for (const e of expenses) {
+    if (e.status === "voided") continue;
+    const iso = dateOnlyToIso(e.expenseDate) ?? dateOnlyToIso(e.createdAt);
+    if (!iso) continue;
+    items.push({
+      id: `expense:${e.id}`,
+      occurredAt: iso,
+      title: "Expense recorded",
+      description: `${e.category} · ${formatPrice(e.amount)}`,
+      personLabel: ABSENT,
+      tone: "warning",
+      icon: "expense",
+      source: "expense.expenseDate",
+    });
+  }
+  return items;
+};
 
-/**
- * Prefer business events when present — they carry real occurredAt.
- * Skip types we already surface from entity rows when the event would duplicate
- * the same entity id (payments/assignments/etc. keep entity mappers as primary).
- */
 const mapBusinessActivity: TimelineSourceMapper = ({
   activity,
   peopleById,
@@ -504,30 +501,30 @@ const mapBusinessActivity: TimelineSourceMapper = ({
     "ExpenseRecorded",
   ]);
 
-  return activity
-    .filter((ev) => !ENTITY_PRIMARY.has(ev.type))
-    .map((ev) => {
-      const iso = dateOnlyToIso(ev.occurredAt);
-      if (!iso) return null;
-      const meta = BUSINESS_EVENT_META[ev.type] ?? {
-        title: ev.type.replace(/([A-Z])/g, " $1").trim(),
-        tone: "neutral" as TimelineTone,
-        icon: "activity" as TimelineIconKey,
-      };
-      const summary = ev.payload.summary?.trim();
-      const who = personLabel(peopleById, ev.payload.personId);
-      return {
-        id: `activity:${ev.id}`,
-        occurredAt: iso,
-        title: meta.title,
-        description: summary || undefined,
-        personLabel: who,
-        tone: meta.tone,
-        icon: meta.icon,
-        source: `business_event.${ev.type}`,
-      } satisfies TimelineItem;
-    })
-    .filter((x): x is TimelineItem => x != null);
+  const items: TimelineItem[] = [];
+  for (const ev of activity) {
+    if (ENTITY_PRIMARY.has(ev.type)) continue;
+    const iso = dateOnlyToIso(ev.occurredAt);
+    if (!iso) continue;
+    const meta = BUSINESS_EVENT_META[ev.type] ?? {
+      title: ev.type.replace(/([A-Z])/g, " $1").trim(),
+      tone: "neutral" as TimelineTone,
+      icon: "activity" as TimelineIconKey,
+    };
+    const summary = ev.payload.summary?.trim();
+    const who = personLabel(peopleById, ev.payload.personId);
+    items.push({
+      id: `activity:${ev.id}`,
+      occurredAt: iso,
+      title: meta.title,
+      description: summary || undefined,
+      personLabel: who,
+      tone: meta.tone,
+      icon: meta.icon,
+      source: `business_event.${ev.type}`,
+    });
+  }
+  return items;
 };
 
 /**
