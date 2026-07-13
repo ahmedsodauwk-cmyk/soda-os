@@ -1,7 +1,6 @@
 import { notFound } from "next/navigation";
 
 import { ClientWorkspaceNav } from "@/components/clients/client-workspace-nav";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { fetchClientById } from "@/lib/clients/repository";
 import {
   CLIENT_BUSINESS_ROLE_LABELS,
@@ -13,13 +12,11 @@ import type { Client } from "@/lib/clients/types";
 interface ClientWorkspaceSectionPageProps {
   clientId: string;
   section: ClientWorkspaceSectionId;
-  /** Optional body for Overview — full profile stays on overview. */
-  children?: React.ReactNode;
+  children: React.ReactNode;
 }
 
 /**
- * Foundation shell: loads a real Client by id (no fake data) and shows
- * workspace nav + a thin placeholder for sections not yet built (04.2+).
+ * Client Workspace chrome: real client header + section nav + body.
  */
 export async function ClientWorkspaceSectionPage({
   clientId,
@@ -36,20 +33,7 @@ export async function ClientWorkspaceSectionPage({
     <div className="space-y-6">
       <ClientWorkspaceHeader client={client} />
       <ClientWorkspaceNav clientId={clientId} active={section} />
-      {children ?? (
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="font-heading text-base">{meta.label}</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2 text-sm text-muted-foreground">
-            <p>{meta.description}</p>
-            <p>
-              Foundation route only — Client Workspace UI lands in later missions.
-              Owns: {meta.owns}.
-            </p>
-          </CardContent>
-        </Card>
-      )}
+      {children}
     </div>
   );
 }

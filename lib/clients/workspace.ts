@@ -153,12 +153,17 @@ export const CLIENT_BUSINESS_ROLE_LABELS: Record<ClientBusinessRole, string> = {
 
 /**
  * Resolve whether an order conceptually sits under Daily Work or a Project.
- * Foundation helper — uses project linkage available today.
- * When `projectId` is absent / empty, treat as daily work; otherwise project.
+ * Uses project linkage + optional taxonomy subcategory available today.
+ * Belonging column is not persisted yet (Mission 04.1 deferral).
  */
 export function resolveOrderClientBelonging(input: {
   projectId?: string | null;
+  subcategoryId?: string | null;
 }): OrderClientBelonging {
+  const sub = input.subcategoryId?.trim().toLowerCase() ?? "";
+  if (sub.includes("daily-work") || sub.includes("daily_work")) {
+    return "daily_work";
+  }
   const id = input.projectId?.trim();
   return id ? "project" : "daily_work";
 }

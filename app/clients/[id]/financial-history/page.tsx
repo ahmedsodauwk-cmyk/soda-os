@@ -1,7 +1,14 @@
 import { AppShell } from "@/components/layout/app-shell";
+import { RoleGate } from "@/components/identity/role-gate";
+import { ClientFinancialHistoryPanel } from "@/components/clients/client-financial-history-panel";
 import { ClientWorkspaceSectionPage } from "@/components/clients/client-workspace-section";
 import { refreshClients } from "@/lib/clients/repository";
+import { refreshExpenses } from "@/lib/finance/expenses";
+import { resolveSessionForApp } from "@/lib/identity/session";
+import { refreshInvoices } from "@/lib/invoices/repository";
+import { refreshOrders } from "@/lib/orders/repository";
 import { refreshPayments } from "@/lib/payments/repository";
+import { refreshProjects } from "@/lib/projects/repository";
 
 export const dynamic = "force-dynamic";
 
@@ -11,10 +18,31 @@ export default async function ClientFinancialHistoryPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  await Promise.all([refreshClients(), refreshPayments()]);
+  const session = await resolveSessionForApp();
+  await Promise.all([
+    refreshClients(),
+    refreshProjects(),
+    refreshOrders(),
+    refreshPayments(),
+    refreshInvoices(),
+    refreshExpenses().catch(() => []),
+  ]);
+
+  const content = (
+    <ClientWorkspaceSectionPage clientId={id} section="financial-history">
+      <ClientFinancialHistoryPanel clientId={id} />
+    </ClientWorkspaceSectionPage>
+  );
+
   return (
-    <AppShell titleKey="pages.client" layer="clients">
-      <ClientWorkspaceSectionPage clientId={id} section="financial-history" />
+    <AppShell titleKey="pages.client" layer="clients" session={session}>
+      {session ? (
+        <RoleGate session={session} anyOf={["clients.view"]}>
+          {content}
+        </RoleGate>
+      ) : (
+        content
+      )}
     </AppShell>
   );
 }
