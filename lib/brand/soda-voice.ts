@@ -376,6 +376,8 @@ export const MODULE_SLOGANS: Record<ModuleSloganKey, string> = {
   login: HUMAN_LAYER.login,
   crew: HUMAN_LAYER.crew,
   crewProfile: HUMAN_LAYER.crewProfile,
+  people: HUMAN_LAYER.people,
+  peopleProfile: HUMAN_LAYER.peopleProfile,
   calendar: HUMAN_LAYER.calendar,
   statistics: HUMAN_LAYER.statistics,
   equipment: HUMAN_LAYER.equipment,

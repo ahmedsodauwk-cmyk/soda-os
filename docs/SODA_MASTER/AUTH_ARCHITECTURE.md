@@ -53,6 +53,18 @@ public.people          ← crew / HR record (wallet, assignments, performance)
 
 ---
 
+## People OS (Mission 04.4)
+
+- Directory: `/people` — personal workspaces, not a flat Users table
+- Profile workspace: `/people/[id]/…` (overview, orders, wallet, …)
+- Legacy `/crew` redirects to `/people`
+- Profile fields on `public.people` (display_name, department, emergency contact)
+- Operational roles additive in `public.roles` (Founder, Project Manager, craft roles, …)
+- RBAC UI: `/settings/permissions` — mutates `role_permissions` only; **no Auth users created**
+- Founder crew list still required before any account provisioning
+
+---
+
 ## Login
 
 - Accept **username** OR **email**

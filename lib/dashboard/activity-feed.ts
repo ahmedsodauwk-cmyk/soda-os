@@ -193,7 +193,7 @@ export function buildActivityFeed(): ActivityFeedEvent[] {
       kind: "assignment",
       category: "Crew assignment",
       description: `${personName(a.personId)} · ${a.role} on ${a.orderId}`,
-      href: `/crew/${a.personId}`,
+      href: `/people/${a.personId}`,
     });
   }
 

@@ -124,6 +124,7 @@ export function resolveSectionPersonality(
     case "crew":
     case "crewProfile":
     case "people":
+    case "peopleProfile":
     case "mySpace":
       return "crew";
     case "settings":

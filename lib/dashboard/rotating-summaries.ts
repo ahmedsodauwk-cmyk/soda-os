@@ -208,11 +208,11 @@ export function buildRotatingSummaries(
       key: "crew",
       title: "Crew Activity",
       description: "Workload from order assignments.",
-      href: "/crew",
+      href: "/people",
       lines: snapshot.team.slice(0, 4).map((m) => ({
         label: m.name,
         value: `${m.currentWorkload} active · ${m.ordersCompleted} done`,
-        href: `/crew/${m.id}`,
+        href: `/people/${m.id}`,
       })),
     });
   }

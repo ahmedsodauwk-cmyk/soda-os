@@ -40,7 +40,7 @@ export default function PeopleOwedCard() {
         {rows.map(({ person, outstanding }) => (
           <Link
             key={person.id}
-            href={`/crew/${person.id}`}
+            href={`/people/${person.id}`}
             className="flex cursor-pointer items-center justify-between gap-3 rounded-xl border border-border/60 px-3 py-2.5 hover:border-soda-pink/35"
           >
             <PersonAvatar

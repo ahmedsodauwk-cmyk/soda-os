@@ -26,6 +26,8 @@ export const PERMISSIONS = [
   "crew.view",
   "crew.edit",
   "crew.stats",
+  "people.view",
+  "people.edit",
   "equipment.view",
   "equipment.edit",
   "calendar.view",
@@ -63,6 +65,7 @@ const TEAM_LEADER: Permission[] = [
   "projects.edit",
   "crew.view",
   "crew.stats",
+  "people.view",
   "calendar.view",
   "calendar.edit",
   "notifications.view",
@@ -97,7 +100,28 @@ const ACCOUNTANT: Permission[] = [
 
 const CLIENT: Permission[] = ["notifications.view"];
 
-/** Admin = Manager: ops edit, no order pricing/finance mutation. */
+const SALES: Permission[] = [
+  "dashboard.company",
+  "orders.view",
+  "projects.view",
+  "clients.view",
+  "clients.edit",
+  "quotations.view",
+  "quotations.edit",
+  "commercial.view",
+  "calendar.view",
+  "notifications.view",
+];
+
+const CUSTOMER_SERVICE: Permission[] = [
+  "orders.view",
+  "clients.view",
+  "projects.view",
+  "calendar.view",
+  "notifications.view",
+];
+
+/** Admin = Manager: ops edit, no order pricing/finance mutation / user invites. */
 const ADMIN: Permission[] = ALL.filter(
   (p) => p !== "settings.users" && p !== "orders.finance"
 );
@@ -105,11 +129,21 @@ const ADMIN: Permission[] = ALL.filter(
 /** @deprecated Prefer DB role_permissions via permission-service. */
 const ROLE_PERMISSIONS: Record<SodaRole, readonly Permission[]> = {
   owner: ALL,
+  founder: ALL,
   admin: ADMIN,
   team_leader: TEAM_LEADER,
+  project_manager: TEAM_LEADER,
   crew_member: CREW,
+  photographer: CREW,
+  videographer: CREW,
+  photo_editor: CREW,
+  video_editor: CREW,
+  freelancer: CREW,
   accountant: ACCOUNTANT,
+  sales: SALES,
+  customer_service: CUSTOMER_SERVICE,
   client: CLIENT,
+  guest: CLIENT,
 };
 
 /** @deprecated Prefer `permissionsForAsync` from permission-service. */
@@ -146,4 +180,9 @@ export function canUpdateOrderStatus(role: SodaRole): boolean {
 
 export function canSeeCompanyFinance(role: SodaRole): boolean {
   return can(role, "finance.view") || can(role, "dashboard.company");
+}
+
+/** People OS directory / profile visibility. */
+export function canViewPeople(role: SodaRole): boolean {
+  return can(role, "people.view") || can(role, "crew.view") || can(role, "crew.stats");
 }

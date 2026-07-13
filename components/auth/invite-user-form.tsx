@@ -9,7 +9,7 @@ import {
   inviteUserAction,
   type AuthActionResult,
 } from "@/lib/auth/actions";
-import { SODA_ROLES, ROLE_LABELS } from "@/lib/identity/roles";
+import { INVITEABLE_ROLES, ROLE_LABELS } from "@/lib/identity/roles";
 import { DEFAULT_COMPANY_EMAIL_DOMAIN } from "@/lib/auth/company-email-shared";
 
 const initial: AuthActionResult | null = null;
@@ -62,7 +62,7 @@ export function InviteUserForm({
           className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm"
           defaultValue="crew_member"
         >
-          {SODA_ROLES.filter((r) => r !== "client").map((role) => (
+          {INVITEABLE_ROLES.map((role) => (
             <option key={role} value={role}>
               {ROLE_LABELS[role]}
             </option>

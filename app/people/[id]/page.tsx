@@ -1,13 +1,43 @@
-import { redirect } from "next/navigation";
+import { AppShell } from "@/components/layout/app-shell";
+import { RoleGate } from "@/components/identity/role-gate";
+import { PersonOverviewPanel } from "@/components/people/person-overview-panel";
+import { PersonWorkspaceShell } from "@/components/people/person-workspace-shell";
+import { resolveSessionForApp } from "@/lib/identity/session";
+import { refreshCrewProfileDomainData } from "@/lib/supabase/refresh-all";
 
-interface PeopleDetailRedirectProps {
-  params: Promise<{ id: string }>;
-}
+export const dynamic = "force-dynamic";
 
-/** Compatibility — /people/:id → /crew/:id */
-export default async function PeopleDetailRedirect({
+export default async function PersonOverviewPage({
   params,
-}: PeopleDetailRedirectProps) {
+}: {
+  params: Promise<{ id: string }>;
+}) {
   const { id } = await params;
-  redirect(`/crew/${id}`);
+  const session = await resolveSessionForApp();
+  await refreshCrewProfileDomainData();
+
+  const content = (
+    <PersonWorkspaceShell personId={id} section="overview">
+      <PersonOverviewPanel personId={id} />
+    </PersonWorkspaceShell>
+  );
+
+  return (
+    <AppShell
+      titleKey="pages.peopleProfile"
+      layer="peopleProfile"
+      session={session}
+    >
+      {session ? (
+        <RoleGate
+          session={session}
+          anyOf={["people.view", "crew.view", "crew.stats"]}
+        >
+          {content}
+        </RoleGate>
+      ) : (
+        content
+      )}
+    </AppShell>
+  );
 }

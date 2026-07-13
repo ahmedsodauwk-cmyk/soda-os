@@ -31,7 +31,7 @@ export function hrefForEntity(entity: NavEntity): string {
       return `/projects/${entity.id}`;
     case "person":
     case "crew":
-      return `/crew/${entity.id}`;
+      return `/people/${entity.id}`;
     case "invoice":
     case "payment":
     case "finance":
@@ -98,7 +98,7 @@ export function hrefForBusinessEvent(event: BusinessEvent): string {
   if (p.orderId) return `/orders/${p.orderId}`;
   if (p.clientId) return `/clients/${p.clientId}`;
   if (p.projectId) return `/projects/${p.projectId}`;
-  if (p.personId) return `/crew/${p.personId}`;
+  if (p.personId) return `/people/${p.personId}`;
   if (p.invoiceId) return "/finance";
   if (p.quotationId) return `/quotations/${p.quotationId}`;
 
@@ -134,7 +134,7 @@ export const DASHBOARD_LINKS = {
   upcomingShoots: "/calendar",
   upcomingDeliveries: "/orders",
   activeClients: "/clients",
-  team: "/crew",
+  team: "/people",
   schedule: "/calendar",
   attention: "/attention",
   wallet: "/me/wallet",
@@ -224,7 +224,7 @@ function labelForSegment(
   if (parent === "clients")
     return { label: "Client", labelKey: "pages.client" };
   if (parent === "crew" || parent === "people")
-    return { label: "Member", labelKey: "pages.crewProfile" };
+    return { label: "Member", labelKey: "pages.peopleProfile" };
   if (parent === "quotations")
     return { label: "Quotation", labelKey: "pages.quotation" };
   return { label: segment };

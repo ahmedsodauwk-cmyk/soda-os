@@ -116,11 +116,32 @@ export default async function SettingsPage() {
           </Card>
         ) : null}
 
+        {canManageUsers ? (
+          <Card className="soda-cc-card">
+            <CardHeader>
+              <CardTitle>Role permissions</CardTitle>
+              <CardDescription>
+                Founder-customizable RBAC — database Source of Truth. Does not
+                create Auth users.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Link
+                href="/settings/permissions"
+                className="text-sm text-soda-pink hover:underline"
+              >
+                Open permissions matrix →
+              </Link>
+            </CardContent>
+          </Card>
+        ) : null}
+
         <RelatedRecords
           items={[
             { label: "Notifications", href: "/notifications" },
             { label: "Finance", href: "/finance" },
-            { label: "Crew", href: "/crew" },
+            { label: "People", href: "/people" },
+            { label: "Permissions", href: "/settings/permissions" },
             { label: "About SODA VISUALS", href: "/about" },
           ]}
         />

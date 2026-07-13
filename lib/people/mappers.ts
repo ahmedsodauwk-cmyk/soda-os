@@ -11,13 +11,17 @@ export type PersonRow = {
   name_ar: string;
   name_en: string;
   nickname: string | null;
+  display_name: string | null;
   job_title: string;
   job_description: string;
+  department: string | null;
   employment_type: string | null;
   responsibilities: unknown;
   not_responsible_for: unknown;
   phone: string;
   email: string;
+  emergency_contact_name: string | null;
+  emergency_contact_phone: string | null;
   join_date: string | null;
   status: string;
   avatar_url: string | null;
@@ -42,8 +46,10 @@ export function rowToPerson(row: PersonRow): Person {
     nameAr: row.name_ar,
     nameEn: row.name_en,
     ...(row.nickname ? { nickname: row.nickname } : {}),
+    ...(row.display_name ? { displayName: row.display_name } : {}),
     jobTitle: row.job_title,
     jobDescription: row.job_description ?? "",
+    ...(row.department ? { department: row.department } : {}),
     ...(row.employment_type
       ? { employmentType: row.employment_type as EmploymentType }
       : {}),
@@ -53,6 +59,12 @@ export function rowToPerson(row: PersonRow): Person {
       : {}),
     phone: row.phone ?? "",
     email: row.email ?? "",
+    ...(row.emergency_contact_name
+      ? { emergencyContactName: row.emergency_contact_name }
+      : {}),
+    ...(row.emergency_contact_phone
+      ? { emergencyContactPhone: row.emergency_contact_phone }
+      : {}),
     joinDate: row.join_date ?? "",
     status: row.status as PersonStatus,
     ...(row.avatar_url ? { avatarUrl: row.avatar_url } : {}),
@@ -69,13 +81,17 @@ export function personToRow(
     name_ar: person.nameAr,
     name_en: person.nameEn,
     nickname: person.nickname ?? null,
+    display_name: person.displayName ?? null,
     job_title: person.jobTitle,
     job_description: person.jobDescription ?? "",
+    department: person.department ?? null,
     employment_type: person.employmentType ?? null,
     responsibilities: person.responsibilities ?? [],
     not_responsible_for: person.notResponsibleFor ?? [],
     phone: person.phone ?? "",
     email: person.email ?? "",
+    emergency_contact_name: person.emergencyContactName ?? null,
+    emergency_contact_phone: person.emergencyContactPhone ?? null,
     join_date: person.joinDate || null,
     status: person.status,
     avatar_url: person.avatarUrl ?? null,

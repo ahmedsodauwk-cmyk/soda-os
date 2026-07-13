@@ -24,6 +24,8 @@ export type HumanLayerKey =
   | "login"
   | "crew"
   | "crewProfile"
+  | "people"
+  | "peopleProfile"
   | "calendar"
   | "statistics"
   | "equipment"
@@ -130,6 +132,8 @@ export const HUMAN_LAYER: Record<HumanLayerKey, string> = {
   login: "ادخل على SODA VISUALS.\nنظام تشغيل الاستوديو للشغل مرتّب.",
   crew: "كل بيانات الفريق في مكان واحد.\nشوف المهام، الأرباح، والأداء.",
   crewProfile: "ملف عضو الفريق.\nالشغل، المستحقات، والأداء.",
+  people: "ناس صودا فيشوالز — مش قائمة يوزرز.\nافتح مساحة كل فرد.",
+  peopleProfile: "مساحة العضو التشغيلية.\nأوردرات، محفظة، أداء، وملفات.",
   calendar: "جدول التصوير والتسليمات.\nمن الأوردرات الحية مباشرة.",
   statistics: "لو عايز تعرف الشركة ماشية إزاي،\nابدأ من هنا.",
   equipment: "الكاميرات والعدسات والعدة.\nمين معاه إيه، وإيه فاضي.",

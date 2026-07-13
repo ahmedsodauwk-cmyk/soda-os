@@ -39,14 +39,19 @@ export type CrewResponsibility = (typeof CREW_RESPONSIBILITIES)[number];
 
 export interface Person {
   id: string;
-  /** Arabic display name */
+  /** Arabic display name / legal Arabic name */
   nameAr: string;
-  /** English legal / payroll name */
+  /** English legal / payroll name (Full Name) */
   nameEn: string;
   /** Studio nickname (e.g. نيمو) */
   nickname?: string;
+  /** Studio-facing display name (may differ from legal name) */
+  displayName?: string;
+  /** Position / job title */
   jobTitle: string;
   jobDescription: string;
+  /** Department / desk */
+  department?: string;
   employmentType?: EmploymentType;
   /** Skills / crafts they ARE responsible for */
   responsibilities?: CrewResponsibility[];
@@ -54,9 +59,12 @@ export interface Person {
   notResponsibleFor?: CrewResponsibility[];
   phone: string;
   email: string;
+  emergencyContactName?: string;
+  emergencyContactPhone?: string;
   joinDate: string;
+  /** Employment status */
   status: PersonStatus;
-  /** Local / mock avatar URL */
+  /** Profile photo URL */
   avatarUrl?: string;
   initials: string;
   createdAt: string;

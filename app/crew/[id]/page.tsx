@@ -1,21 +1,13 @@
-import { AppShell } from "@/components/layout/app-shell";
-import { CrewProfile } from "@/components/crew/crew-profile";
-import { refreshCrewProfileDomainData } from "@/lib/supabase/refresh-all";
+import { redirect } from "next/navigation";
 
-export const dynamic = "force-dynamic";
-
-interface CrewMemberPageProps {
+interface CrewMemberRedirectProps {
   params: Promise<{ id: string }>;
 }
 
-export default async function CrewMemberPage({ params }: CrewMemberPageProps) {
+/** Compatibility — /crew/:id → /people/:id workspace. */
+export default async function CrewMemberRedirect({
+  params,
+}: CrewMemberRedirectProps) {
   const { id } = await params;
-  // Lean refresh — people/orders/assignments/equipment only (not full domain).
-  await refreshCrewProfileDomainData();
-
-  return (
-    <AppShell titleKey="pages.crewProfile" layer="crewProfile">
-      <CrewProfile personId={id} />
-    </AppShell>
-  );
+  redirect(`/people/${id}`);
 }

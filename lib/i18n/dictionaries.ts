@@ -14,6 +14,7 @@ export type Dictionary = {
     weddings: string;
     clients: string;
     crew: string;
+    people: string;
     equipment: string;
     calendar: string;
     finance: string;
@@ -45,6 +46,8 @@ export type Dictionary = {
     quotation: string;
     crew: string;
     crewProfile: string;
+    people: string;
+    peopleProfile: string;
     finance: string;
     calendar: string;
     equipment: string;
@@ -155,6 +158,7 @@ const en: Dictionary = {
     weddings: "Weddings",
     clients: "Clients",
     crew: "Crew",
+    people: "People",
     equipment: "Equipment",
     calendar: "Calendar",
     finance: "Finance",
@@ -186,6 +190,8 @@ const en: Dictionary = {
     quotation: "Quotation",
     crew: "Crew",
     crewProfile: "Crew Profile",
+    people: "People",
+    peopleProfile: "Member Workspace",
     finance: "Finance",
     calendar: "Calendar",
     equipment: "Equipment",
@@ -255,7 +261,7 @@ const en: Dictionary = {
     projects: "Projects",
     clients: "Clients",
     crew: "Crew",
-    people: "Crew",
+    people: "People",
     finance: "Finance",
     calendar: "Calendar",
     commercial: "Commercial",
@@ -296,6 +302,7 @@ const ar: Dictionary = {
     weddings: "الأفراح",
     clients: "العملاء",
     crew: "الفريق",
+    people: "الفريق",
     equipment: "المعدات",
     calendar: "الجدول",
     finance: "المالية",
@@ -327,6 +334,8 @@ const ar: Dictionary = {
     quotation: "عرض سعر",
     crew: "الفريق",
     crewProfile: "ملف الفريق",
+    people: "الفريق",
+    peopleProfile: "مساحة العضو",
     finance: "المالية",
     calendar: "الجدول",
     equipment: "المعدات",

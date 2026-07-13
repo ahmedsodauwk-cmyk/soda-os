@@ -50,7 +50,7 @@ const actions: {
   },
   {
     labelKey: "quickActions.crew",
-    href: "/crew",
+    href: "/people",
     icon: UsersRound,
     enabled: true,
   },

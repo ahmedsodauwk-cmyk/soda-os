@@ -42,7 +42,7 @@ function isNavActive(pathname: string, href: string): boolean {
     pathname === href ||
     pathname.startsWith(`${href}/`) ||
     (href === "/commercial" && pathname.startsWith("/workspaces")) ||
-    (href === "/crew" && pathname.startsWith("/people"))
+    (href === "/people" && pathname.startsWith("/crew"))
   );
 }
 

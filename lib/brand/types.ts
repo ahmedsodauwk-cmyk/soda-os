@@ -34,6 +34,8 @@ export type ModuleSloganKey =
   | "login"
   | "crew"
   | "crewProfile"
+  | "people"
+  | "peopleProfile"
   | "calendar"
   | "statistics"
   | "equipment"

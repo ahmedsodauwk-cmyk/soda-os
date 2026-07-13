@@ -111,10 +111,10 @@ export const NAV_ITEMS: NavItem[] = [
     workspace: "company",
   },
   {
-    titleKey: "nav.crew",
-    href: "/crew",
+    titleKey: "nav.people",
+    href: "/people",
     icon: UsersRound,
-    anyOf: ["crew.view", "crew.stats"],
+    anyOf: ["people.view", "crew.view", "crew.stats"],
     workspace: "company",
   },
   {
@@ -222,7 +222,7 @@ export function navForRole(role: SodaRole): NavItem[] {
     item.anyOf.some((p) => can(role, p))
   );
 
-  if (role === "crew_member") {
+  if (role === "crew_member" || role === "photographer" || role === "videographer" || role === "photo_editor" || role === "video_editor" || role === "freelancer") {
     return items.filter((i) => i.href !== "/");
   }
 
@@ -259,11 +259,20 @@ export function navSectionsForRole(role: SodaRole): NavSection[] {
 export function homePathForRole(role: SodaRole): string {
   switch (role) {
     case "crew_member":
+    case "photographer":
+    case "videographer":
+    case "photo_editor":
+    case "video_editor":
+    case "freelancer":
       return "/me";
     case "accountant":
       return "/finance";
     case "client":
+    case "guest":
       return "/notifications";
+    case "sales":
+    case "customer_service":
+      return "/clients";
     default:
       return "/";
   }

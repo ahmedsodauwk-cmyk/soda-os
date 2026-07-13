@@ -52,7 +52,7 @@ export default function TeamPerformance({
           rows.map((member, index) => (
             <Link
               key={member.id}
-              href={`/crew/${member.id}`}
+              href={`/people/${member.id}`}
               className="flex cursor-pointer items-center justify-between gap-3 rounded-lg p-2.5 transition-colors hover:bg-muted/50"
             >
               <div className="flex min-w-0 items-center gap-3">
