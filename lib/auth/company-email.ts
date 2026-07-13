@@ -4,41 +4,30 @@
  *
  * Architecture: prefer `app_settings.company_email_domain`, then
  * `SODA_COMPANY_EMAIL_DOMAIN` / `NEXT_PUBLIC_SODA_COMPANY_EMAIL_DOMAIN`, then default.
+ *
+ * Client components must import from `@/lib/auth/company-email-shared` only.
  */
 
 import { cache } from "react";
 
 import { createClient } from "@/lib/supabase/server";
+import {
+  COMPANY_DISPLAY_NAME,
+  DEFAULT_COMPANY_EMAIL_DOMAIN,
+  companyEmailForUsername,
+  getCompanyEmailDomainSync,
+} from "@/lib/auth/company-email-shared";
 
-export const DEFAULT_COMPANY_EMAIL_DOMAIN = "sodavisuals.com";
-export const COMPANY_DISPLAY_NAME = "SODA VISUALS";
-
-function envDomain(): string | null {
-  const raw =
-    process.env.SODA_COMPANY_EMAIL_DOMAIN?.trim() ||
-    process.env.NEXT_PUBLIC_SODA_COMPANY_EMAIL_DOMAIN?.trim();
-  if (!raw) return null;
-  return raw.replace(/^@/, "").toLowerCase();
-}
-
-/** Sync fallback (no DB) — use when outside RSC or before settings hydrate. */
-export function getCompanyEmailDomainSync(): string {
-  return envDomain() ?? DEFAULT_COMPANY_EMAIL_DOMAIN;
-}
-
-/** Build company email from username local-part. */
-export function companyEmailForUsername(
-  username: string,
-  domain: string = getCompanyEmailDomainSync()
-): string {
-  const local = username.trim().toLowerCase().replace(/^@/, "");
-  const d = domain.replace(/^@/, "").toLowerCase();
-  return `${local}@${d}`;
-}
+export {
+  COMPANY_DISPLAY_NAME,
+  DEFAULT_COMPANY_EMAIL_DOMAIN,
+  companyEmailForUsername,
+  getCompanyEmailDomainSync,
+};
 
 /**
  * Resolve company email domain: DB setting → env → default.
- * Deduped per request.
+ * Deduped per request. Server-only.
  */
 export const getCompanyEmailDomain = cache(async (): Promise<string> => {
   try {

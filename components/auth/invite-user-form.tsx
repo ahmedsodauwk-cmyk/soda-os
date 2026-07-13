@@ -10,7 +10,7 @@ import {
   type AuthActionResult,
 } from "@/lib/auth/actions";
 import { SODA_ROLES, ROLE_LABELS } from "@/lib/identity/roles";
-import { DEFAULT_COMPANY_EMAIL_DOMAIN } from "@/lib/auth/company-email";
+import { DEFAULT_COMPANY_EMAIL_DOMAIN } from "@/lib/auth/company-email-shared";
 
 const initial: AuthActionResult | null = null;
 
