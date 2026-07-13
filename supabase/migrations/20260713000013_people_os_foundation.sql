@@ -1,5 +1,5 @@
 -- SODA VISUALS — People OS foundation (Mission 04.4)
--- Safe to re-run (IF NOT EXISTS / additive).
+-- Safe to re-run (IF NOT EXISTS / ON CONFLICT / additive).
 --
 -- DOES NOT create Auth users, people/crew rows, or demo accounts.
 -- Founder provides official crew list before any account provisioning.
@@ -7,7 +7,8 @@
 -- Adds:
 --   • people profile fields (display_name, department, emergency contact)
 --   • Operational roles catalog (Founder-facing) — ADDITIVE to legacy roles
---   • people.view / people.edit permissions aligned with crew.*
+--   • Permission catalog rows required by this migration's role_permissions
+--     (people.*, orders.status, orders.finance, plus identity keys assigned below)
 --   • Default role_permissions for new roles (DB remains SoT)
 
 -- ---------------------------------------------------------------------------
@@ -31,11 +32,42 @@ comment on column public.people.emergency_contact_name is 'Emergency contact ful
 comment on column public.people.emergency_contact_phone is 'Emergency contact phone';
 
 -- ---------------------------------------------------------------------------
--- Permission catalog — People OS keys (mirror crew.* for Founder clarity)
+-- Permission catalog — insert FIRST before any role_permissions below.
+-- Self-contained: includes identity_nav keys this migration assigns, plus
+-- People OS keys and orders.status / orders.finance (also in 000010 / 000012).
+-- Production failed with 23503 when orders.status was absent from permissions.
 -- ---------------------------------------------------------------------------
 insert into public.permissions (id, label) values
+  ('dashboard.company', 'Company dashboard'),
+  ('dashboard.team', 'Team dashboard'),
+  ('dashboard.crew', 'Crew dashboard'),
+  ('orders.view', 'View orders'),
+  ('orders.edit', 'Edit orders'),
+  ('orders.status', 'Update order operational status'),
+  ('orders.finance', 'Edit order pricing / finance fields'),
+  ('projects.view', 'View projects'),
+  ('projects.edit', 'Edit projects'),
+  ('clients.view', 'View clients'),
+  ('clients.edit', 'Edit clients'),
+  ('crew.view', 'View crew'),
+  ('crew.edit', 'Edit crew'),
+  ('crew.stats', 'Crew stats'),
   ('people.view', 'View People OS directory and profiles'),
-  ('people.edit', 'Edit People OS profiles')
+  ('people.edit', 'Edit People OS profiles'),
+  ('calendar.view', 'View calendar'),
+  ('calendar.edit', 'Edit calendar'),
+  ('quotations.view', 'View quotations'),
+  ('quotations.edit', 'Edit quotations'),
+  ('commercial.view', 'View commercial'),
+  ('notifications.view', 'View notifications'),
+  ('me.wallet', 'My wallet'),
+  ('me.bonus', 'My bonus'),
+  ('me.target', 'My target'),
+  ('me.penalties', 'My penalties'),
+  ('me.files', 'My files'),
+  ('me.briefs', 'My briefs'),
+  ('me.dress_code', 'Dress code'),
+  ('me.performance', 'My performance')
 on conflict (id) do update set label = excluded.label;
 
 -- Grant people.* to every role that already has matching crew.*
