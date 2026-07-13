@@ -6,6 +6,13 @@
 import { createClient } from "@/lib/supabase/server";
 import { PERMISSIONS, type Permission } from "@/lib/identity/permissions";
 import { SODA_ROLES, ROLE_LABELS, type SodaRole } from "@/lib/identity/roles";
+import {
+  groupPermissionsByGroup as groupByTemplate,
+  PERMISSION_GROUPS,
+  type PermissionGroup,
+} from "@/lib/identity/role-templates";
+
+export { groupPermissionsByGroup } from "@/lib/identity/role-templates";
 
 export type RoleCatalogRow = {
   id: string;
@@ -16,6 +23,7 @@ export type RoleCatalogRow = {
 export type PermissionCatalogRow = {
   id: string;
   label: string;
+  permissionGroup: string | null;
 };
 
 export async function listRolesFromDb(): Promise<RoleCatalogRow[]> {
@@ -52,17 +60,29 @@ export async function listPermissionsFromDb(): Promise<PermissionCatalogRow[]> {
     const supabase = await createClient();
     const { data, error } = await supabase
       .from("permissions")
-      .select("id, label")
+      .select("id, label, permission_group")
       .order("id");
     if (error || !data) {
-      return PERMISSIONS.map((id) => ({ id, label: id }));
+      return PERMISSIONS.map((id) => ({
+        id,
+        label: id,
+        permissionGroup: null,
+      }));
     }
     return data.map((row) => ({
       id: String(row.id),
       label: String(row.label),
+      permissionGroup:
+        typeof row.permission_group === "string"
+          ? row.permission_group
+          : null,
     }));
   } catch {
-    return PERMISSIONS.map((id) => ({ id, label: id }));
+    return PERMISSIONS.map((id) => ({
+      id,
+      label: id,
+      permissionGroup: null,
+    }));
   }
 }
 
@@ -97,4 +117,18 @@ export function isKnownPermission(id: string): id is Permission {
 
 export function isKnownRole(id: string): id is SodaRole {
   return (SODA_ROLES as readonly string[]).includes(id);
+}
+
+export function isPermissionGroup(value: string): value is PermissionGroup {
+  return (PERMISSION_GROUPS as readonly string[]).includes(value);
+}
+
+/** Typed wrapper — same as template helper. */
+export function groupPermissionCatalog(
+  permissions: PermissionCatalogRow[]
+): { group: string; permissions: PermissionCatalogRow[] }[] {
+  return groupByTemplate(permissions) as {
+    group: string;
+    permissions: PermissionCatalogRow[];
+  }[];
 }

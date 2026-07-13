@@ -1,13 +1,13 @@
 /**
  * Temporary password generation for Founder-provisioned accounts.
- * Architecture only — do not call to create users until Founder provides crew list.
  *
- * Flow (future mission):
+ * Flow (Authority Center / Create Account):
  * 1. Founder supplies official crew list
  * 2. Create auth user with generateTemporaryPassword()
  * 3. profiles.must_change_password = true
- * 4. Login → AppShell redirects to /settings/password
- * 5. changePasswordAction clears the flag
+ * 4. Credentials shown once in UI — never stored again
+ * 5. Login → AppShell redirects to /settings/password
+ * 6. changePasswordAction clears the flag
  */
 
 const ALPHA = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";

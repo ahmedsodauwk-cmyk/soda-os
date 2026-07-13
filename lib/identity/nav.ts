@@ -1,5 +1,6 @@
 /**
  * Role-filtered navigation — sidebar / mobile menu.
+ * Filters by permission keys (DB SoT via permission set, or sync can() fallback).
  * Two workspaces: Company + My. Labels from i18n. Lucide icons only.
  */
 
@@ -31,7 +32,11 @@ import {
   UserRound,
 } from "lucide-react";
 
-import { can, type Permission } from "@/lib/identity/permissions";
+import {
+  can,
+  setHasAny,
+  type Permission,
+} from "@/lib/identity/permissions";
 import type { SodaRole } from "@/lib/identity/roles";
 import type { DictKey } from "@/lib/i18n/dictionaries";
 
@@ -142,7 +147,7 @@ export const NAV_ITEMS: NavItem[] = [
     titleKey: "nav.statistics",
     href: "/statistics",
     icon: BarChart3,
-    anyOf: ["statistics.view"],
+    anyOf: ["statistics.view", "reports.view"],
     workspace: "company",
   },
   {
@@ -217,20 +222,58 @@ export const NAV_ITEMS: NavItem[] = [
   },
 ];
 
+function prefersPersonalHome(granted: ReadonlySet<string>): boolean {
+  const hasCompanyDash =
+    granted.has("dashboard.company") ||
+    granted.has("dashboard.team") ||
+    granted.has("dashboard.finance");
+  const hasCrewOnly =
+    granted.has("dashboard.crew") ||
+    granted.has("me.wallet") ||
+    granted.has("me.performance");
+  return hasCrewOnly && !hasCompanyDash;
+}
+
+/**
+ * Filter nav by an explicit permission set (from DB via permissionsForAsync).
+ * Prefer this over role switches when permission keys exist.
+ */
+export function navForPermissions(
+  granted: ReadonlySet<string> | readonly string[]
+): NavItem[] {
+  const set =
+    granted instanceof Set ? granted : new Set(granted as readonly string[]);
+  let items = NAV_ITEMS.filter((item) => setHasAny(set, item.anyOf));
+
+  if (prefersPersonalHome(set)) {
+    items = items.filter((i) => i.href !== "/");
+  }
+
+  return items;
+}
+
+/** @deprecated Prefer navForPermissions with DB permission set. */
 export function navForRole(role: SodaRole): NavItem[] {
   const items = NAV_ITEMS.filter((item) =>
     item.anyOf.some((p) => can(role, p))
   );
 
-  if (role === "crew_member" || role === "photographer" || role === "videographer" || role === "photo_editor" || role === "video_editor" || role === "freelancer") {
+  if (
+    role === "crew_member" ||
+    role === "photographer" ||
+    role === "videographer" ||
+    role === "photo_editor" ||
+    role === "video_editor" ||
+    role === "freelancer" ||
+    role === "social_media_manager"
+  ) {
     return items.filter((i) => i.href !== "/");
   }
 
   return items;
 }
 
-export function navSectionsForRole(role: SodaRole): NavSection[] {
-  const items = navForRole(role);
+export function navSectionsFromItems(items: NavItem[]): NavSection[] {
   const company = items.filter((i) => i.workspace === "company");
   const me = items.filter((i) => i.workspace === "me");
 
@@ -256,6 +299,64 @@ export function navSectionsForRole(role: SodaRole): NavSection[] {
   return sections;
 }
 
+export function navSectionsForPermissions(
+  granted: ReadonlySet<string> | readonly string[]
+): NavSection[] {
+  return navSectionsFromItems(navForPermissions(granted));
+}
+
+/** @deprecated Prefer navSectionsForPermissions. */
+export function navSectionsForRole(role: SodaRole): NavSection[] {
+  return navSectionsFromItems(navForRole(role));
+}
+
+/**
+ * Home path from permission set — adapts OS entry by authority.
+ * Not hardcoded role switches when permission keys exist.
+ */
+export function homePathForPermissions(
+  granted: ReadonlySet<string> | readonly string[]
+): string {
+  const set =
+    granted instanceof Set ? granted : new Set(granted as readonly string[]);
+
+  if (set.has("dashboard.finance") && !set.has("dashboard.company") && !set.has("dashboard.team")) {
+    return "/finance";
+  }
+  if (set.has("finance.view") && !set.has("dashboard.company") && !set.has("orders.edit")) {
+    return "/finance";
+  }
+  if (
+    (set.has("clients.view") || set.has("clients.edit")) &&
+    !set.has("dashboard.company") &&
+    !set.has("dashboard.team") &&
+    !set.has("dashboard.crew")
+  ) {
+    return "/clients";
+  }
+  if (set.has("social.view") && !set.has("dashboard.company") && !set.has("dashboard.team")) {
+    return "/calendar";
+  }
+  if (prefersPersonalHome(set)) {
+    return "/me";
+  }
+  if (
+    set.has("notifications.view") &&
+    !set.has("dashboard.company") &&
+    !set.has("dashboard.team") &&
+    !set.has("dashboard.crew") &&
+    !set.has("dashboard.finance") &&
+    !set.has("orders.view")
+  ) {
+    return "/notifications";
+  }
+  if (set.has("dashboard.company") || set.has("dashboard.team") || set.has("dashboard.finance")) {
+    return "/";
+  }
+  return "/me";
+}
+
+/** @deprecated Prefer homePathForPermissions. */
 export function homePathForRole(role: SodaRole): string {
   switch (role) {
     case "crew_member":
@@ -265,6 +366,8 @@ export function homePathForRole(role: SodaRole): string {
     case "video_editor":
     case "freelancer":
       return "/me";
+    case "social_media_manager":
+      return "/calendar";
     case "accountant":
       return "/finance";
     case "client":
@@ -277,3 +380,9 @@ export function homePathForRole(role: SodaRole): string {
       return "/";
   }
 }
+
+/** Serializable nav item for client (icon resolved by href). */
+export type NavHrefVisibility = {
+  href: string;
+  workspace: "company" | "me";
+};

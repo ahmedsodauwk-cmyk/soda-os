@@ -165,6 +165,7 @@ const SEGMENT_CRUMB_KEY: Record<string, string> = {
   equipment: "crumbs.equipment",
   statistics: "crumbs.statistics",
   settings: "crumbs.settings",
+  authority: "crumbs.settings",
   notifications: "crumbs.notifications",
   attention: "crumbs.attention",
   schedule: "crumbs.schedule",

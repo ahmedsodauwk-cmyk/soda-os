@@ -60,8 +60,9 @@ public.people          ← crew / HR record (wallet, assignments, performance)
 - Legacy `/crew` redirects to `/people`
 - Profile fields on `public.people` (display_name, department, emergency contact)
 - Operational roles additive in `public.roles` (Founder, Project Manager, craft roles, …)
-- RBAC UI: `/settings/permissions` — mutates `role_permissions` only; **no Auth users created**
-- Founder crew list still required before any account provisioning
+- **Authority Center:** `/settings/authority` — Create Account, disable/archive, reset password, change role, customize `role_permissions` by permission group
+- Legacy `/settings/permissions` redirects to Authority Center
+- Accounts created **only** from inside SODA OS (Founder/Admin) — no demo/seed Auth users
 
 ---
 
@@ -81,28 +82,29 @@ public.people          ← crew / HR record (wallet, assignments, performance)
 3. `profiles.must_change_password = true`
 4. `AppShell` redirects to `/settings/password` until cleared
 5. `changePasswordAction` + `clear_must_change_password()` clears the flag
-
-**No accounts are created in this foundation mission.**
+6. Credentials shown **once** in Authority Center after Create / Reset — never stored again
 
 ---
 
 ## Permissions
 
-- **Long-term SoT:** DB `role_permissions` (Founder assigns via Owner tools)
+- **Long-term SoT:** DB `role_permissions` (Founder assigns via Authority Center)
 - **Service:** `lib/identity/permission-service.ts` (`canAsync`, assign/revoke)
+- **Action-based keys:** create/approve/delete order, expenses.create, payments.approve, work.assign, content.publish, *.manage
+- **Groups:** Orders, Finance, Crew, Clients, Projects, Calendar, Reports, Notifications, Commercial, Settings, Social Media
+- **Nav / Home / Quick Actions:** filter via permission set (`navForPermissions`, `homePathForPermissions`)
 - **Deprecated fallback:** hardcoded maps in `lib/identity/permissions.ts` (`can()`)
-- Sync `can()` remains for client / wide call sites until full migration
 
 ---
 
 ## Provisioning policy
 
 1. Founder supplies **official crew list** (names, usernames, roles)
-2. Future mission creates **exactly** those Auth users — no demos, no invented names
+2. Authority Center **Create Account** creates exactly those Auth users — no demos, no invented names
 3. Owner bootstrap (`/bootstrap`) is identity-only and already exists; do not re-seed
 
 ---
 
 ## STOP
 
-Do not invent crew names. Do not create Auth users until the Founder provides the list.
+Do not invent crew names. Do not create Auth users except when the Founder explicitly provisions via Authority Center.

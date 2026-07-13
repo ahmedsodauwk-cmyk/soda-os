@@ -12,6 +12,8 @@ import {
 } from "@/lib/identity/roles";
 import { can, type Permission } from "@/lib/identity/permissions";
 import { homePathForRole } from "@/lib/identity/nav";
+import { permissionsForAsync } from "@/lib/identity/permission-service";
+import { homePathForPermissions } from "@/lib/identity/nav";
 
 export type SodaProfile = {
   id: string;
@@ -239,6 +241,15 @@ export function sessionCan(
 }
 
 export function sessionHome(session: SodaSession): string {
+  return homePathForRole(session.profile.role);
+}
+
+/** Async home — prefers DB permission set. */
+export async function sessionHomeAsync(session: SodaSession): Promise<string> {
+  const { permissions } = await permissionsForAsync(session.profile.role);
+  if (permissions.length > 0) {
+    return homePathForPermissions(permissions);
+  }
   return homePathForRole(session.profile.role);
 }
 

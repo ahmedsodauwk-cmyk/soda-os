@@ -104,14 +104,19 @@ export default async function SettingsPage() {
         {canManageUsers ? (
           <Card className="soda-cc-card">
             <CardHeader>
-              <CardTitle>Invite user</CardTitle>
+              <CardTitle>Authority Center</CardTitle>
               <CardDescription>
-                Founder-only. Invite only people from the official crew list.
-                Temporary passwords force a change on first login.
+                Create accounts, manage roles, customize permissions. Founder /
+                Admin only. No demo users.
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <InviteUserForm emailDomain={emailDomain} />
+              <Link
+                href="/settings/authority"
+                className="text-sm text-soda-pink hover:underline"
+              >
+                Open Authority Center →
+              </Link>
             </CardContent>
           </Card>
         ) : null}
@@ -119,19 +124,14 @@ export default async function SettingsPage() {
         {canManageUsers ? (
           <Card className="soda-cc-card">
             <CardHeader>
-              <CardTitle>Role permissions</CardTitle>
+              <CardTitle>Invite user (email)</CardTitle>
               <CardDescription>
-                Founder-customizable RBAC — database Source of Truth. Does not
-                create Auth users.
+                Optional email invite path. Prefer Create Account in Authority
+                Center for temp-password provisioning.
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Link
-                href="/settings/permissions"
-                className="text-sm text-soda-pink hover:underline"
-              >
-                Open permissions matrix →
-              </Link>
+              <InviteUserForm emailDomain={emailDomain} />
             </CardContent>
           </Card>
         ) : null}
@@ -141,7 +141,7 @@ export default async function SettingsPage() {
             { label: "Notifications", href: "/notifications" },
             { label: "Finance", href: "/finance" },
             { label: "People", href: "/people" },
-            { label: "Permissions", href: "/settings/permissions" },
+            { label: "Authority Center", href: "/settings/authority" },
             { label: "About SODA VISUALS", href: "/about" },
           ]}
         />

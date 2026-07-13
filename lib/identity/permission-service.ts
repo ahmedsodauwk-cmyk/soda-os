@@ -8,7 +8,7 @@
  * - client components need a sync check
  *
  * Prefer `canAsync` / `permissionsForAsync` on the server.
- * Founder assignment path: mutate `role_permissions` (Settings UI — future mission).
+ * Founder assignment path: mutate `role_permissions` (Authority Center).
  */
 
 import { cache } from "react";

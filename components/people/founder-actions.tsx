@@ -134,7 +134,7 @@ export function FounderActions({ person }: FounderActionsProps) {
           size="sm"
           className="gap-1.5"
           nativeButton={false}
-          render={<Link href="/settings/permissions" />}
+          render={<Link href="/settings/authority" />}
         >
           <Shield className="size-3.5" />
           Manage Permissions

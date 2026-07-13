@@ -34,6 +34,7 @@ export async function toggleRolePermissionAction(
 
   if (result.ok) {
     revalidatePath("/settings/permissions");
+    revalidatePath("/settings/authority");
   }
   return result;
 }

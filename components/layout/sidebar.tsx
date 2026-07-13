@@ -19,7 +19,10 @@ import {
 import { LanguageSwitcher } from "@/components/i18n/language-switcher";
 import { SodaLogo } from "@/components/brand/soda-logo";
 import { signOutAction } from "@/lib/auth/actions";
-import { navSectionsForRole } from "@/lib/identity/nav";
+import {
+  navSectionsForPermissions,
+  navSectionsForRole,
+} from "@/lib/identity/nav";
 import { ROLE_LABELS, type SodaRole } from "@/lib/identity/roles";
 import { useI18n } from "@/lib/i18n/provider";
 
@@ -28,6 +31,8 @@ export type SidebarUser = {
   role: SodaRole;
   avatarInitials: string;
   email: string;
+  /** DB-backed permission ids — when set, nav filters by authority not role map. */
+  allowedPermissions?: readonly string[];
 };
 
 interface SidebarContentProps {
@@ -50,7 +55,10 @@ export function SidebarContent({ user }: SidebarContentProps) {
   const pathname = usePathname();
   const { t } = useI18n();
   const role = user?.role ?? "owner";
-  const sections = navSectionsForRole(role);
+  const sections =
+    user?.allowedPermissions && user.allowedPermissions.length > 0
+      ? navSectionsForPermissions(user.allowedPermissions)
+      : navSectionsForRole(role);
 
   return (
     <>

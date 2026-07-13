@@ -10,6 +10,7 @@ import { loadHydratedNotifications } from "@/lib/core/notifications/load";
 import type { HumanLayerKey } from "@/lib/brand/human-layer";
 import { resolveSectionPersonality } from "@/lib/brand/tokens";
 import { getRecentlyViewed } from "@/lib/identity/recent";
+import { permissionsForAsync } from "@/lib/identity/permission-service";
 import {
   isAuthStrict,
   resolveSessionForApp,
@@ -72,12 +73,20 @@ export async function AppShell({
     redirect("/settings/password?forced=1");
   }
 
+  const permissionResult = session
+    ? await permissionsForAsync(session.profile.role)
+    : null;
+  const allowedPermissions = permissionResult
+    ? [...permissionResult.permissions]
+    : undefined;
+
   const user = session
     ? {
         fullName: session.profile.displayName || session.profile.fullName,
         role: session.profile.role,
         avatarInitials: session.profile.avatarInitials,
         email: session.profile.email,
+        allowedPermissions,
       }
     : undefined;
 

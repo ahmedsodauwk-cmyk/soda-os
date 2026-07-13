@@ -7,7 +7,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { homePathForRole } from "@/lib/identity/nav";
 import { parseSodaRole, type SodaRole } from "@/lib/identity/roles";
-import { getSodaSession } from "@/lib/identity/session";
+import { getSodaSession, sessionHomeAsync } from "@/lib/identity/session";
 import { can } from "@/lib/identity/permissions";
 import { resolveLoginEmail } from "@/lib/auth/resolve-login";
 import {
@@ -68,7 +68,7 @@ export async function signInAction(
     if (session?.profile.mustChangePassword) {
       redirect("/settings/password?forced=1");
     }
-    const dest = session ? homePathForRole(session.profile.role) : "/";
+    const dest = session ? await sessionHomeAsync(session) : "/";
     redirect(dest);
   } catch (err) {
     if (

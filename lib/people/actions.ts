@@ -196,6 +196,7 @@ export async function updateLinkedRoleAction(
 
     revalidateCrew(personId);
     revalidatePath("/settings/permissions");
+    revalidatePath("/settings/authority");
     return { ok: true, message: `Role updated to ${role}.` };
   } catch (err) {
     return {

@@ -4,8 +4,8 @@
  * Legacy keys (owner, admin, team_leader, crew_member, accountant, client)
  * remain valid for existing profiles.
  *
- * People OS operational roles are ADDITIVE — Founder-facing labels for
- * future crew provisioning. DB `roles` / `role_permissions` is SoT.
+ * People OS / Operational Authority roles are ADDITIVE — Founder-facing
+ * templates for crew provisioning. DB `roles` / `role_permissions` is SoT.
  */
 
 export const SODA_ROLES = [
@@ -16,13 +16,14 @@ export const SODA_ROLES = [
   "crew_member",
   "accountant",
   "client",
-  /* People OS (Mission 04.4) — additive */
+  /* Operational Authority (Mission 04.4 / 04.4.2) */
   "founder",
   "project_manager",
   "photographer",
   "videographer",
   "photo_editor",
   "video_editor",
+  "social_media_manager",
   "sales",
   "customer_service",
   "freelancer",
@@ -44,19 +45,20 @@ export const ROLE_LABELS: Record<SodaRole, string> = {
   videographer: "Videographer",
   photo_editor: "Photo Editor",
   video_editor: "Video Editor",
+  social_media_manager: "Social Media Manager",
   sales: "Sales",
   customer_service: "Customer Service",
   freelancer: "Freelancer",
   guest: "Guest",
 };
 
-/** Roles safe to offer on invite (exclude portal/guest until Founder enables). */
+/** Roles safe to offer on invite / Create Account (exclude portal/guest). */
 export const INVITEABLE_ROLES: readonly SodaRole[] = SODA_ROLES.filter(
   (r) => r !== "client" && r !== "guest"
 );
 
 /**
- * Conceptual legacy → People OS mapping (documentation + soft normalize).
+ * Conceptual legacy → Operational mapping (documentation + soft normalize).
  * Does not rewrite stored profile.role unless Founder migrates explicitly.
  */
 export const LEGACY_ROLE_EQUIVALENTS: Partial<
@@ -86,4 +88,9 @@ export function parseSodaRole(
   fallback: SodaRole = "crew_member"
 ): SodaRole {
   return isSodaRole(value) ? value : fallback;
+}
+
+/** Founder / Owner / Admin — Authority Center operators. */
+export function isAuthorityOperator(role: SodaRole): boolean {
+  return role === "owner" || role === "founder" || role === "admin";
 }

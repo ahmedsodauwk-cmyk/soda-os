@@ -16,29 +16,47 @@ export const PERMISSIONS = [
   "dashboard.crew",
   "dashboard.finance",
   "orders.view",
+  "orders.create",
   "orders.edit",
+  "orders.approve",
+  "orders.delete",
   "orders.status",
   "orders.finance",
   "projects.view",
   "projects.edit",
   "clients.view",
   "clients.edit",
+  "clients.manage",
   "crew.view",
   "crew.edit",
   "crew.stats",
+  "crew.manage",
   "people.view",
   "people.edit",
+  "work.assign",
   "equipment.view",
   "equipment.edit",
   "calendar.view",
   "calendar.edit",
+  "calendar.manage",
   "finance.view",
   "finance.edit",
   "finance.reports",
+  "payments.view",
+  "payments.edit",
+  "payments.approve",
+  "expenses.view",
+  "expenses.edit",
+  "expenses.create",
   "quotations.view",
   "quotations.edit",
   "commercial.view",
+  "reports.view",
+  "reports.manage",
   "statistics.view",
+  "social.view",
+  "social.edit",
+  "content.publish",
   "settings.view",
   "settings.users",
   "notifications.view",
@@ -59,15 +77,21 @@ const ALL: Permission[] = [...PERMISSIONS];
 const TEAM_LEADER: Permission[] = [
   "dashboard.team",
   "orders.view",
+  "orders.create",
   "orders.edit",
+  "orders.approve",
   "orders.status",
   "projects.view",
   "projects.edit",
   "crew.view",
   "crew.stats",
+  "crew.manage",
   "people.view",
+  "work.assign",
+  "clients.manage",
   "calendar.view",
   "calendar.edit",
+  "calendar.manage",
   "notifications.view",
   "me.performance",
 ];
@@ -91,7 +115,16 @@ const CREW: Permission[] = [
 const ACCOUNTANT: Permission[] = [
   "dashboard.finance",
   "finance.view",
+  "finance.edit",
   "finance.reports",
+  "payments.view",
+  "payments.edit",
+  "payments.approve",
+  "expenses.view",
+  "expenses.edit",
+  "expenses.create",
+  "reports.view",
+  "reports.manage",
   "orders.view",
   "clients.view",
   "notifications.view",
@@ -103,9 +136,11 @@ const CLIENT: Permission[] = ["notifications.view"];
 const SALES: Permission[] = [
   "dashboard.company",
   "orders.view",
+  "orders.create",
   "projects.view",
   "clients.view",
   "clients.edit",
+  "clients.manage",
   "quotations.view",
   "quotations.edit",
   "commercial.view",
@@ -121,10 +156,18 @@ const CUSTOMER_SERVICE: Permission[] = [
   "notifications.view",
 ];
 
-/** Admin = Manager: ops edit, no order pricing/finance mutation / user invites. */
-const ADMIN: Permission[] = ALL.filter(
-  (p) => p !== "settings.users" && p !== "orders.finance"
-);
+const SOCIAL_MEDIA: Permission[] = [
+  "social.view",
+  "social.edit",
+  "content.publish",
+  "calendar.view",
+  "notifications.view",
+  "projects.view",
+  "orders.view",
+];
+
+/** Admin = Manager: ops edit + Authority Center; no order finance unless Founder grants. */
+const ADMIN: Permission[] = ALL.filter((p) => p !== "orders.finance");
 
 /** @deprecated Prefer DB role_permissions via permission-service. */
 const ROLE_PERMISSIONS: Record<SodaRole, readonly Permission[]> = {
@@ -139,6 +182,7 @@ const ROLE_PERMISSIONS: Record<SodaRole, readonly Permission[]> = {
   photo_editor: CREW,
   video_editor: CREW,
   freelancer: CREW,
+  social_media_manager: SOCIAL_MEDIA,
   accountant: ACCOUNTANT,
   sales: SALES,
   customer_service: CUSTOMER_SERVICE,
@@ -161,6 +205,16 @@ export function can(role: SodaRole, permission: Permission): boolean {
 
 export function canAny(role: SodaRole, permissions: Permission[]): boolean {
   return permissions.some((p) => can(role, p));
+}
+
+/** Check against an explicit permission set (DB-backed nav filtering). */
+export function setHasAny(
+  granted: ReadonlySet<string> | readonly string[],
+  permissions: readonly Permission[]
+): boolean {
+  const set =
+    granted instanceof Set ? granted : new Set(granted as readonly string[]);
+  return permissions.some((p) => set.has(p));
 }
 
 /** Operational mutation (create/edit/delete) — accountants and clients blocked. */

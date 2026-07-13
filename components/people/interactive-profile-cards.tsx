@@ -220,7 +220,7 @@ export function InteractiveProfileCards({
               ) : null}
               <DropdownMenuItem
                 nativeButton={false}
-                render={<Link href="/settings/permissions" />}
+                render={<Link href="/settings/authority" />}
               >
                 <Shield className="size-3.5" />
                 Manage Permissions

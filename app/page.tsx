@@ -17,12 +17,15 @@ import { QuotationPipelineCard } from "@/components/quotations/quotation-pipelin
 import { getCompanyPulse } from "@/lib/brand";
 import { buildActivityFeed } from "@/lib/dashboard/activity-feed";
 import { loadDashboardSnapshot } from "@/lib/dashboard";
+import { permissionsForAsync } from "@/lib/identity/permission-service";
 import { resolveSessionForApp } from "@/lib/identity/session";
+import { setHasAny, type Permission } from "@/lib/identity/permissions";
 
 export const dynamic = "force-dynamic";
 
 /**
  * Command Center — compact Human Experience home on Business Core data.
+ * Widgets adapt to operational authority (DB permissions).
  */
 export default async function Home() {
   const [dashboard, session] = await Promise.all([
@@ -38,6 +41,32 @@ export default async function Home() {
     attention: dashboard.attention,
     schedule: dashboard.schedule,
   };
+
+  const permResult = session
+    ? await permissionsForAsync(session.profile.role)
+    : null;
+  const allowed = permResult ? [...permResult.permissions] : undefined;
+
+  const showFinance =
+    !allowed ||
+    setHasAny(allowed, [
+      "finance.view",
+      "dashboard.finance",
+      "dashboard.company",
+    ] as Permission[]);
+  const showOrders =
+    !allowed || setHasAny(allowed, ["orders.view"] as Permission[]);
+  const showSchedule =
+    !allowed ||
+    setHasAny(allowed, ["calendar.view", "orders.view"] as Permission[]);
+  const showQuotations =
+    !allowed || setHasAny(allowed, ["quotations.view"] as Permission[]);
+  const showCompanyPulse =
+    !allowed ||
+    setHasAny(allowed, [
+      "dashboard.company",
+      "dashboard.team",
+    ] as Permission[]);
 
   return (
     <AppShell titleKey="pages.home" layer="dashboard" session={session}>
@@ -58,37 +87,45 @@ export default async function Home() {
             </div>
           </div>
 
-          <QuickActions />
+          <QuickActions allowedPermissions={allowed} />
 
           <div className="grid grid-cols-1 gap-3 lg:gap-4 xl:grid-cols-5">
             <div className="xl:col-span-2">
               <SodaLiveFeed events={liveEvents} className="h-full" />
             </div>
-            <div className="xl:col-span-3">
-              <CompanyPulse insights={pulse} />
-            </div>
+            {showCompanyPulse ? (
+              <div className="xl:col-span-3">
+                <CompanyPulse insights={pulse} />
+              </div>
+            ) : null}
           </div>
 
           <div className="grid grid-cols-1 gap-3 lg:gap-4 xl:grid-cols-5">
             <div id="attention" className="scroll-mt-24 xl:col-span-2">
               <AttentionCenter items={dashboard.attention} />
             </div>
-            <div className="xl:col-span-3">
-              <FinancialOverviewCard
-                financial={dashboard.financial}
-                monthlyRevenue={dashboard.monthlyRevenue}
-              />
-            </div>
+            {showFinance ? (
+              <div className="xl:col-span-3">
+                <FinancialOverviewCard
+                  financial={dashboard.financial}
+                  monthlyRevenue={dashboard.monthlyRevenue}
+                />
+              </div>
+            ) : null}
           </div>
 
           <div className="grid grid-cols-1 gap-3 lg:gap-4 xl:grid-cols-2">
-            <div id="schedule" className="scroll-mt-24">
-              <UpcomingScheduleCard schedule={dashboard.schedule} />
-            </div>
-            <RecentOrders orders={dashboard.recentOrders} />
+            {showSchedule ? (
+              <div id="schedule" className="scroll-mt-24">
+                <UpcomingScheduleCard schedule={dashboard.schedule} />
+              </div>
+            ) : null}
+            {showOrders ? (
+              <RecentOrders orders={dashboard.recentOrders} />
+            ) : null}
           </div>
 
-          <QuotationPipelineCard />
+          {showQuotations ? <QuotationPipelineCard /> : null}
         </div>
       </WelcomeGate>
     </AppShell>
