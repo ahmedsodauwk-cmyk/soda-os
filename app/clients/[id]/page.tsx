@@ -1,5 +1,6 @@
 import { AppShell } from "@/components/layout/app-shell";
 import { ClientProfile } from "@/components/clients/client-profile";
+import { ClientWorkspaceNav } from "@/components/clients/client-workspace-nav";
 import { refreshClients } from "@/lib/clients/repository";
 import { refreshOrders } from "@/lib/orders/repository";
 import { refreshPayments } from "@/lib/payments/repository";
@@ -8,7 +9,7 @@ import { refreshQuotations } from "@/lib/quotations/repository";
 
 export const dynamic = "force-dynamic";
 
-export default async function ClientDetailPage({
+export default async function ClientOverviewPage({
   params,
 }: {
   params: Promise<{ id: string }>;
@@ -23,7 +24,10 @@ export default async function ClientDetailPage({
   ]);
   return (
     <AppShell titleKey="pages.client" layer="clients">
-      <ClientProfile clientId={id} />
+      <div className="space-y-6">
+        <ClientWorkspaceNav clientId={id} active="overview" />
+        <ClientProfile clientId={id} />
+      </div>
     </AppShell>
   );
 }

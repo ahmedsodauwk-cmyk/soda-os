@@ -1,10 +1,18 @@
-import type { Client, ClientSegment, ClientType } from "@/lib/clients/types";
+import {
+  DEFAULT_CLIENT_BUSINESS_ROLE,
+  type Client,
+  type ClientBusinessRole,
+  type ClientSegment,
+  type ClientType,
+} from "@/lib/clients/types";
 
 /** Row shape for `public.clients` (snake_case). */
 export type ClientRow = {
   id: string;
   type: string;
   segment: string;
+  /** Optional until migration applied — defaults to client */
+  business_role?: string | null;
   name: string;
   phone: string;
   whatsapp?: string | null;
@@ -19,6 +27,13 @@ export type ClientRow = {
   created_at: string;
   updated_at?: string;
 };
+
+function asBusinessRole(value: unknown): ClientBusinessRole {
+  if (value === "partner" || value === "both" || value === "client") {
+    return value;
+  }
+  return DEFAULT_CLIENT_BUSINESS_ROLE;
+}
 
 export type ClientContact = {
   name: string;
@@ -50,6 +65,7 @@ export function rowToClient(row: ClientRow): Client {
     id: row.id,
     type: row.type as ClientType,
     segment: row.segment as ClientSegment,
+    businessRole: asBusinessRole(row.business_role),
     name: row.name,
     phone: row.phone ?? "",
     ...(row.whatsapp ? { whatsapp: row.whatsapp } : {}),
@@ -72,6 +88,7 @@ export function clientToRow(
     id: client.id,
     type: client.type,
     segment: client.segment,
+    business_role: client.businessRole ?? DEFAULT_CLIENT_BUSINESS_ROLE,
     name: client.name,
     phone: client.phone ?? "",
     // whatsapp column added in Smart Order V3 migration — include when set

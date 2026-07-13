@@ -1,8 +1,11 @@
 import type { Order, ProjectType } from "@/lib/orders/types";
 
-/** UI tab order for workspace filters (All is handled separately). */
+/**
+ * UI tab order for taxonomy lane filters on Orders (All is handled separately).
+ * RTM is intentionally omitted — it is not an official Client and must not appear
+ * as a temporary Orders filter. Clients appear only after they exist in the DB.
+ */
 export const WORKSPACE_TAB_ORDER = [
-  "rtm",
   "weddings",
   "commercial",
   "fashion",

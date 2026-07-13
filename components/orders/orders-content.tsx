@@ -6,7 +6,6 @@ import { Search } from "lucide-react";
 
 import { EditOrderDialog } from "@/components/orders/edit-order-dialog";
 import { OrdersTable } from "@/components/orders/orders-table";
-import { WorkspaceSidePanel } from "@/components/orders/workspace-side-panel";
 import { WorkspaceTabs } from "@/components/orders/workspace-tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -40,10 +39,7 @@ import {
   filterOrders,
   WORKSPACE_TAB_ORDER,
 } from "@/lib/orders/utils";
-import {
-  getSubcategories,
-  getWorkspaces,
-} from "@/lib/taxonomy/repository";
+import { getWorkspaces } from "@/lib/taxonomy/repository";
 
 export function OrdersContent() {
   const router = useRouter();
@@ -51,9 +47,6 @@ export function OrdersContent() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [workspaceFilter, setWorkspaceFilter] = useState<string>("all");
-  const [subcategoryFilter, setSubcategoryFilter] = useState<string | null>(
-    null
-  );
   const [editing, setEditing] = useState<Order | null>(null);
 
   useEffect(() => {
@@ -79,35 +72,13 @@ export function OrdersContent() {
     );
   }, []);
 
-  const activeWorkspace = useMemo(
-    () => workspaces.find((w) => w.id === workspaceFilter),
-    [workspaces, workspaceFilter]
-  );
-
-  const showSidePanel = Boolean(
-    activeWorkspace?.hasSubcategories && workspaceFilter === "rtm"
-  );
-
-  const rtmSubcategories = useMemo(
-    () => (showSidePanel ? getSubcategories("rtm") : []),
-    [showSidePanel]
-  );
-
   const filteredOrders = useMemo(
-    () =>
-      filterOrders(
-        orders,
-        search,
-        statusFilter,
-        workspaceFilter,
-        subcategoryFilter
-      ),
-    [orders, search, statusFilter, workspaceFilter, subcategoryFilter]
+    () => filterOrders(orders, search, statusFilter, workspaceFilter),
+    [orders, search, statusFilter, workspaceFilter]
   );
 
   function handleWorkspaceSelect(id: string) {
     setWorkspaceFilter(id);
-    setSubcategoryFilter(null);
   }
 
   async function handleSaveOrder(id: string, patch: Partial<SmartOrderInput>) {
@@ -154,66 +125,51 @@ export function OrdersContent() {
         onSelect={handleWorkspaceSelect}
       />
 
-      <div className={showSidePanel ? "flex flex-col gap-4 sm:flex-row" : undefined}>
-        {showSidePanel && (
-          <Card className="h-fit sm:w-52">
-            <CardContent className="p-3">
-              <WorkspaceSidePanel
-                title="RTM"
-                subcategories={rtmSubcategories}
-                activeId={subcategoryFilter}
-                onSelect={setSubcategoryFilter}
-              />
-            </CardContent>
-          </Card>
-        )}
-
-        <div className="min-w-0 flex-1 space-y-4">
-          <Card>
-            <CardContent className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex w-full flex-col gap-2 sm:flex-row sm:items-center">
-                <div className="relative flex-1 sm:max-w-xs">
-                  <Search className="absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
-                  <Input
-                    placeholder="Search orders..."
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    className="h-8 pl-8"
-                  />
-                </div>
-
-                <Select
-                  value={statusFilter}
-                  onValueChange={(value) => {
-                    if (value) setStatusFilter(value);
-                  }}
-                >
-                  <SelectTrigger className="h-8 w-full sm:w-40" size="sm">
-                    <SelectValue placeholder="Status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All statuses</SelectItem>
-                    {ORDER_STATUSES.map((status) => (
-                      <SelectItem key={status} value={status}>
-                        {status}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+      <div className="space-y-4">
+        <Card>
+          <CardContent className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex w-full flex-col gap-2 sm:flex-row sm:items-center">
+              <div className="relative flex-1 sm:max-w-xs">
+                <Search className="absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  placeholder="Search orders..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="h-8 pl-8"
+                />
               </div>
-            </CardContent>
-          </Card>
 
-          <Card>
-            <CardContent className="p-4">
-              <OrdersTable
-                orders={filteredOrders}
-                onEdit={setEditing}
-                onDelete={handleDeleteOrder}
-              />
-            </CardContent>
-          </Card>
-        </div>
+              <Select
+                value={statusFilter}
+                onValueChange={(value) => {
+                  if (value) setStatusFilter(value);
+                }}
+              >
+                <SelectTrigger className="h-8 w-full sm:w-40" size="sm">
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All statuses</SelectItem>
+                  {ORDER_STATUSES.map((status) => (
+                    <SelectItem key={status} value={status}>
+                      {status}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-4">
+            <OrdersTable
+              orders={filteredOrders}
+              onEdit={setEditing}
+              onDelete={handleDeleteOrder}
+            />
+          </CardContent>
+        </Card>
       </div>
 
       <EditOrderDialog

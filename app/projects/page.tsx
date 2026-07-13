@@ -6,6 +6,11 @@ import { refreshProjects } from "@/lib/projects/repository";
 
 export const dynamic = "force-dynamic";
 
+/**
+ * Cross-client Projects index.
+ * Projects always belong to one Client — use Client Workspace → Projects
+ * for the client-owned view (`/clients/[id]/projects`).
+ */
 export default async function ProjectsPage() {
   await Promise.all([
     refreshClients(),

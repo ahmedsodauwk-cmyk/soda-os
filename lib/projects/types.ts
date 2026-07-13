@@ -94,6 +94,10 @@ export interface ProjectOverview {
  * Core project fields persisted in mock seed.
  * Computed exposures (ordersCount, revenue, progress, upcomingShoots, lastActivity)
  * are filled by lib/business via the projects repository — do not treat seed values as source of truth.
+ *
+ * Architecture (Mission 04.1): Projects are not a standalone business module.
+ * Every Project belongs to exactly one Client (`clientId` required). Client Workspace
+ * is the future SoT; `/projects` remains a cross-client list/index into that tree.
  */
 export interface Project {
   id: string;
@@ -101,7 +105,7 @@ export interface Project {
   workspaceId: string;
   subcategoryId?: string;
   clientName: string;
-  /** Required — every Project belongs to exactly one Client */
+  /** Required — every Project belongs to exactly one Client (never orphan). */
   clientId: string;
   status: ProjectStatus;
   /** Journey stage — enriched from lib/journey/seed if omitted on raw seed */

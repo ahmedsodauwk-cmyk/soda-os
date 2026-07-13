@@ -34,6 +34,7 @@ import { UI_ACTIONS } from "@/lib/brand/ui-actions";
 const emptyForm: NewClientInput = {
   type: "individual",
   segment: "wedding",
+  businessRole: "client",
   name: "",
   phone: "",
   email: "",

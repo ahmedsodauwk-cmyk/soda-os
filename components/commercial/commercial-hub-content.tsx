@@ -25,7 +25,7 @@ import type { WorkspaceSummary } from "@/lib/workspaces/types";
 
 type SortKey = "name" | "projects" | "activity" | "progress";
 
-/** Commercial hub — taxonomy business lanes (RTM, Weddings, Fashion, …). */
+/** Commercial hub — taxonomy production lanes (Weddings, Fashion, …). Not Clients. */
 export function CommercialHubContent() {
   const [summaries, setSummaries] = useState<WorkspaceSummary[]>(
     getWorkspaceSummaries

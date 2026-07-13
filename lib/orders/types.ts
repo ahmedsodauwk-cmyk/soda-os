@@ -100,8 +100,18 @@ export interface Order {
   projectType: ProjectType;
   /** Denormalized taxonomy workspace id — Phase 2 filters keep working */
   workspaceId: string;
-  /** Optional taxonomy subcategory id (e.g. rtm-future-city) */
+  /**
+   * Optional taxonomy subcategory id (lane within a workspace).
+   * Not a Client identity — Clients live in `public.clients` only.
+   */
   subcategoryId?: string;
+  /**
+   * Architectural note (Mission 04.1): every Order belongs to one Client.
+   * Belonging is either Daily Work under that Client, or a Project that
+   * itself belongs to that Client. See `OrderClientBelonging` in
+   * `lib/clients/workspace.ts`. Persistence of belonging is deferred —
+   * today orders still link via `projectId` (+ denormalized `clientId`).
+   */
   shootDate: string;
   location: string;
   deliveryDate: string;

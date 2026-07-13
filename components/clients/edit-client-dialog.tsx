@@ -54,6 +54,7 @@ function EditClientForm({
   const [form, setForm] = useState<NewClientInput>({
     type: client.type,
     segment: client.segment,
+    businessRole: client.businessRole,
     name: client.name,
     phone: client.phone,
     email: client.email ?? "",

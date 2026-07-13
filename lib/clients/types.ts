@@ -7,11 +7,28 @@ export const CLIENT_SEGMENTS = ["wedding", "commercial"] as const;
 
 export type ClientSegment = (typeof CLIENT_SEGMENTS)[number];
 
+/**
+ * Business role of a Client entity (not a separate table).
+ * - client: buys work from SODA
+ * - partner: collaborates / refers / co-produces
+ * - both: acts as Client and Partner
+ */
+export const CLIENT_BUSINESS_ROLES = ["client", "partner", "both"] as const;
+
+export type ClientBusinessRole = (typeof CLIENT_BUSINESS_ROLES)[number];
+
+export const DEFAULT_CLIENT_BUSINESS_ROLE: ClientBusinessRole = "client";
+
 export interface Client {
   id: string;
   type: ClientType;
   /** Wedding couples vs commercial companies */
   segment: ClientSegment;
+  /**
+   * Business relationship role. Defaults to `client`.
+   * Partners and Client+Partner share this entity — not separate modules.
+   */
+  businessRole: ClientBusinessRole;
   /** Person name for individuals, company name for companies */
   name: string;
   phone: string;
@@ -32,4 +49,10 @@ export interface Client {
   isActive: boolean;
 }
 
-export type NewClientInput = Omit<Client, "id" | "createdAt" | "isActive">;
+export type NewClientInput = Omit<
+  Client,
+  "id" | "createdAt" | "isActive" | "businessRole"
+> & {
+  /** Optional on create — defaults to `client` */
+  businessRole?: ClientBusinessRole;
+};

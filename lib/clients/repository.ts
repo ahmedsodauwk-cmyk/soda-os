@@ -2,7 +2,11 @@ import { computeClientStats } from "@/lib/business/client-stats";
 import type { ClientComputedStats } from "@/lib/business/types";
 import { createClientsDb } from "@/lib/clients/db";
 import { clientToRow, rowToClient, type ClientRow } from "@/lib/clients/mappers";
-import type { Client, NewClientInput } from "@/lib/clients/types";
+import {
+  DEFAULT_CLIENT_BUSINESS_ROLE,
+  type Client,
+  type NewClientInput,
+} from "@/lib/clients/types";
 import { publishBusinessEvent } from "@/lib/core/publish";
 import { getOrders } from "@/lib/orders/repository";
 import { getPayments } from "@/lib/payments/repository";
@@ -105,26 +109,25 @@ export async function createClient(input: NewClientInput): Promise<Client> {
     createdAt: new Date().toISOString(),
     isActive: true,
     ...input,
+    businessRole: input.businessRole ?? DEFAULT_CLIENT_BUSINESS_ROLE,
   };
 
   const db = createClientsDb();
   let row = clientToRow(client);
   let { data, error } = await db.from("clients").insert(row).select("*").single();
 
-  // Pre-migration compat: whatsapp column may not exist yet
-  if (
-    error &&
-    /whatsapp/i.test(error.message) &&
-    "whatsapp" in row
-  ) {
-    const { whatsapp: _w, ...withoutWhatsapp } = row;
-    void _w;
-    row = withoutWhatsapp;
-    ({ data, error } = await db
-      .from("clients")
-      .insert(row)
-      .select("*")
-      .single());
+  // Pre-migration compat: drop columns that may not exist yet
+  for (const col of ["whatsapp", "business_role"] as const) {
+    if (error && new RegExp(col, "i").test(error.message) && col in row) {
+      const next = { ...row };
+      delete next[col];
+      row = next;
+      ({ data, error } = await db
+        .from("clients")
+        .insert(row)
+        .select("*")
+        .single());
+    }
   }
 
   if (error) {
@@ -132,9 +135,12 @@ export async function createClient(input: NewClientInput): Promise<Client> {
   }
 
   const saved = rowToClient(data as ClientRow);
-  // Preserve whatsapp in cache even if column not yet migrated
+  // Preserve fields in cache even if column not yet migrated
   if (client.whatsapp && !saved.whatsapp) {
     saved.whatsapp = client.whatsapp;
+  }
+  if (client.businessRole && saved.businessRole !== client.businessRole) {
+    saved.businessRole = client.businessRole;
   }
   upsertCache(saved);
   await publishBusinessEvent({
@@ -184,16 +190,18 @@ export async function updateClient(
     .select("*")
     .single();
 
-  if (error && /whatsapp/i.test(error.message) && "whatsapp" in row) {
-    const { whatsapp: _w, ...withoutWhatsapp } = row;
-    void _w;
-    row = withoutWhatsapp;
-    ({ data, error } = await db
-      .from("clients")
-      .update(row)
-      .eq("id", id)
-      .select("*")
-      .single());
+  for (const col of ["whatsapp", "business_role"] as const) {
+    if (error && new RegExp(col, "i").test(error.message) && col in row) {
+      const next = { ...row };
+      delete next[col];
+      row = next;
+      ({ data, error } = await db
+        .from("clients")
+        .update(row)
+        .eq("id", id)
+        .select("*")
+        .single());
+    }
   }
 
   if (error) {
