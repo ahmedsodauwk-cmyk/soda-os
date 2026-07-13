@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 
 import { AppShell } from "@/components/layout/app-shell";
 import { RoleGate } from "@/components/identity/role-gate";
+import { PersonActivityTimeline } from "@/components/people/person-activity-timeline";
 import { PersonSectionEmpty } from "@/components/people/person-section-empty";
 import { PersonOrdersPanel } from "@/components/people/person-orders-panel";
 import {
@@ -9,7 +10,9 @@ import {
   PersonWalletPanel,
 } from "@/components/people/person-ops-panels";
 import { PersonWorkspaceShell } from "@/components/people/person-workspace-shell";
+import { canSeeFounderActions } from "@/lib/people/access";
 import { resolveSessionForApp } from "@/lib/identity/session";
+import { fetchPersonById } from "@/lib/people/repository";
 import type { PeopleWorkspaceSectionId } from "@/lib/people/workspace";
 import { refreshCrewProfileDomainData } from "@/lib/supabase/refresh-all";
 
@@ -26,9 +29,14 @@ async function PeopleSectionPage({
 }) {
   const session = await resolveSessionForApp();
   await refreshCrewProfileDomainData();
+  const showFounderActions = canSeeFounderActions(session?.profile.role);
 
   const content = (
-    <PersonWorkspaceShell personId={personId} section={section}>
+    <PersonWorkspaceShell
+      personId={personId}
+      section={section}
+      showFounderActions={showFounderActions}
+    >
       {children}
     </PersonWorkspaceShell>
   );
@@ -55,7 +63,7 @@ async function PeopleSectionPage({
 
 export function makePeopleSectionPage(
   section: PeopleWorkspaceSectionId,
-  body: (personId: string) => ReactNode
+  body: (personId: string) => ReactNode | Promise<ReactNode>
 ) {
   return async function Page({
     params,
@@ -65,7 +73,7 @@ export function makePeopleSectionPage(
     const { id } = await params;
     return (
       <PeopleSectionPage personId={id} section={section}>
-        {body(id)}
+        {await body(id)}
       </PeopleSectionPage>
     );
   };
@@ -117,6 +125,8 @@ export const FilesPage = makePeopleSectionPage("files", () => (
   <PersonSectionEmpty section="files" />
 ));
 
-export const ActivityPage = makePeopleSectionPage("activity", () => (
-  <PersonSectionEmpty section="activity" />
-));
+export const ActivityPage = makePeopleSectionPage("activity", async (id) => {
+  const person = await fetchPersonById(id);
+  if (!person) return <PersonSectionEmpty section="activity" />;
+  return <PersonActivityTimeline person={person} />;
+});

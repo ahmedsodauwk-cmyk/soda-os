@@ -25,6 +25,7 @@ export type PersonRow = {
   join_date: string | null;
   status: string;
   avatar_url: string | null;
+  notes?: string | null;
   initials: string;
   created_at: string;
   updated_at?: string;
@@ -68,8 +69,12 @@ export function rowToPerson(row: PersonRow): Person {
     joinDate: row.join_date ?? "",
     status: row.status as PersonStatus,
     ...(row.avatar_url ? { avatarUrl: row.avatar_url } : {}),
+    ...(row.notes != null && String(row.notes).trim()
+      ? { notes: String(row.notes) }
+      : {}),
     initials: row.initials ?? "",
     createdAt: row.created_at,
+    ...(row.updated_at ? { updatedAt: row.updated_at } : {}),
   };
 }
 
@@ -95,6 +100,7 @@ export function personToRow(
     join_date: person.joinDate || null,
     status: person.status,
     avatar_url: person.avatarUrl ?? null,
+    notes: person.notes ?? null,
     initials: person.initials,
     ...(person.createdAt ? { created_at: person.createdAt } : {}),
   };

@@ -21,7 +21,7 @@ export function PersonWorkspaceNav({
 }: PersonWorkspaceNavProps) {
   return (
     <nav
-      aria-label="People workspace"
+      aria-label="Crew workspace"
       className="flex flex-wrap gap-1 border-b border-border/60 pb-px"
     >
       {PEOPLE_WORKSPACE_TREE.map((section) => {

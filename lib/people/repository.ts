@@ -176,12 +176,24 @@ export async function updatePerson(
   delete row.id;
   delete row.created_at;
 
-  const { data, error } = await db
+  let { data, error } = await db
     .from("people")
     .update(row)
     .eq("id", id)
     .select("*")
     .single();
+
+  // Additive notes column may not be applied yet — retry without notes.
+  if (error && /notes/i.test(error.message)) {
+    const withoutNotes = { ...row };
+    delete withoutNotes.notes;
+    ({ data, error } = await db
+      .from("people")
+      .update(withoutNotes)
+      .eq("id", id)
+      .select("*")
+      .single());
+  }
 
   if (error) {
     throw new Error(`Failed to update person: ${error.message}`);

@@ -18,7 +18,7 @@ function displayLabel(person: Person): string {
   );
 }
 
-/** Workspace hero for a real person — no invented KPIs. */
+/** Workspace hero for a real crew member — no invented KPIs. */
 export function PersonWorkspaceHeader({ person }: PersonWorkspaceHeaderProps) {
   const title = displayLabel(person);
 
@@ -38,7 +38,7 @@ export function PersonWorkspaceHeader({ person }: PersonWorkspaceHeaderProps) {
         />
         <div className="min-w-0 flex-1 space-y-1.5">
           <p className="text-[11px] font-semibold tracking-[0.14em] text-primary/80 uppercase">
-            SODA VISUALS · People OS
+            SODA VISUALS · Crew
           </p>
           <h2 className="font-heading text-xl font-semibold tracking-tight sm:text-2xl">
             {title}
@@ -67,7 +67,7 @@ export function PersonWorkspaceHeader({ person }: PersonWorkspaceHeaderProps) {
             ) : null}
           </div>
           <p className="text-sm text-muted-foreground">
-            Personal operational workspace — not a generic user record.
+            Crew Workspace — where this member works every day.
           </p>
         </div>
       </div>

@@ -1,13 +1,13 @@
 /**
- * People OS — architectural Source of Truth (Mission 04.4).
+ * Crew Workspace — architectural Source of Truth (Mission 04.4 / 04.4.1).
  *
- * Every person is a real SODA VISUALS member with a personal operational workspace.
- * Not a flat admin Users table.
+ * Every person is a real SODA VISUALS crew member with a personal operational workspace.
+ * Routes stay under `/people` — UI branding is Crew.
  *
  * Hierarchy:
  * ```
- * Person
- *  ├── Overview            — Profile + identity snapshot
+ * Person (Crew Workspace)
+ *  ├── Overview            — Crew dashboard (ops status)
  *  ├── Assigned Orders     — Active / open assignments
  *  ├── Completed Orders    — Delivered history (never invented)
  *  ├── Calendar            — Personal schedule surface
@@ -71,12 +71,12 @@ export const PEOPLE_WORKSPACE_TREE: readonly PeopleWorkspaceSection[] = [
   {
     id: "overview",
     path: "",
-    label: "Overview",
-    description: "Who is this member — profile without inventing data",
-    owns: "profile fields, identity snapshot, related records",
-    emptyTitle: "Profile opening",
+    label: "Dashboard",
+    description: "Operational status — real assignments only, nothing invented",
+    owns: "crew dashboard, profile cards, founder actions",
+    emptyTitle: "Workspace ready",
     emptyDetail:
-      "Identity fields stay empty until the Founder records this person.",
+      "Ops signals stay empty until this crew member has real assigned work.",
   },
   {
     id: "assigned-orders",
@@ -113,7 +113,7 @@ export const PEOPLE_WORKSPACE_TREE: readonly PeopleWorkspaceSection[] = [
     description: "Personal task inbox — shell for future task engine",
     owns: "tasks (future)",
     emptyTitle: "No tasks yet",
-    emptyDetail: "Task assignments will live here without redesigning People OS.",
+    emptyDetail: "Task assignments will live here without redesigning Crew Workspace.",
   },
   {
     id: "wallet",
@@ -205,7 +205,7 @@ export function isPeopleWorkspaceSection(
   return (PEOPLE_WORKSPACE_SECTIONS as readonly string[]).includes(value);
 }
 
-/** Profile fields every People OS member supports (schema + UI). */
+/** Profile fields every Crew Workspace member supports (schema + UI). */
 export const PEOPLE_PROFILE_FIELDS = [
   "avatarUrl",
   "fullName",
@@ -216,6 +216,7 @@ export const PEOPLE_PROFILE_FIELDS = [
   "phone",
   "email",
   "emergencyContact",
+  "notes",
   "joinDate",
 ] as const;
 

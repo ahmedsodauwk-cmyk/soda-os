@@ -66,8 +66,12 @@ export interface Person {
   status: PersonStatus;
   /** Profile photo URL */
   avatarUrl?: string;
+  /** Internal Founder notes — empty until recorded */
+  notes?: string;
   initials: string;
   createdAt: string;
+  /** Last row update when available from DB */
+  updatedAt?: string;
 }
 
 export type NewPersonInput = Omit<Person, "id" | "createdAt" | "initials"> & {

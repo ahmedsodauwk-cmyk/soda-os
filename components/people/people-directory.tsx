@@ -20,7 +20,7 @@ interface PeopleDirectoryProps {
 }
 
 /**
- * People OS directory — opens personal workspaces, not a flat ERP table.
+ * Crew directory — opens Crew Workspaces, not a flat ERP table.
  * Honest empty state when Production has no people rows.
  */
 export function PeopleDirectory({
@@ -58,9 +58,9 @@ export function PeopleDirectory({
           }
         />
         <PeopleEmptyState
-          title="No people in SODA VISUALS yet"
-          detail="People OS stays empty until the Founder records real studio members. No demo users, placeholder names, or invented crew."
-          hint="Auth accounts are separate — they wait for the official crew list. This directory will open each member’s operational workspace when people exist."
+          title="No crew in SODA VISUALS yet"
+          detail="Crew stays empty until the Founder records real studio members. No demo users, placeholder names, or invented crew."
+          hint="Auth accounts are separate — they wait for the official crew list. This directory opens each member’s Crew Workspace when people exist."
         />
       </div>
     );
@@ -84,7 +84,7 @@ export function PeopleDirectory({
           <Input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search People OS…"
+            placeholder="Search Crew…"
             className="pl-9"
           />
         </div>
@@ -154,7 +154,7 @@ export function PeopleDirectory({
       </ul>
 
       {filtered.length === 0 ? (
-        <p className="text-sm text-muted-foreground">No people match.</p>
+        <p className="text-sm text-muted-foreground">No crew match.</p>
       ) : null}
     </div>
   );
@@ -173,12 +173,12 @@ function DirectoryIntro({
         <div className="flex items-center gap-2 text-primary">
           <UsersRound className="size-4" />
           <p className="text-[11px] font-semibold tracking-[0.14em] uppercase">
-            People OS
+            Crew
           </p>
         </div>
         <p className="text-sm text-muted-foreground">
-          Every person opens a personal operational workspace — orders, wallet,
-          attendance, performance, files — not a flat admin table.
+          Every crew member opens a Crew Workspace — orders, wallet, attendance,
+          performance, files — not a flat admin table.
         </p>
       </div>
       {canEdit ? (

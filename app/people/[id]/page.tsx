@@ -2,6 +2,7 @@ import { AppShell } from "@/components/layout/app-shell";
 import { RoleGate } from "@/components/identity/role-gate";
 import { PersonOverviewPanel } from "@/components/people/person-overview-panel";
 import { PersonWorkspaceShell } from "@/components/people/person-workspace-shell";
+import { canSeeFounderActions } from "@/lib/people/access";
 import { resolveSessionForApp } from "@/lib/identity/session";
 import { refreshCrewProfileDomainData } from "@/lib/supabase/refresh-all";
 
@@ -16,9 +17,16 @@ export default async function PersonOverviewPage({
   const session = await resolveSessionForApp();
   await refreshCrewProfileDomainData();
 
+  const showFounderActions = canSeeFounderActions(session?.profile.role);
+  const canEdit = showFounderActions;
+
   const content = (
-    <PersonWorkspaceShell personId={id} section="overview">
-      <PersonOverviewPanel personId={id} />
+    <PersonWorkspaceShell
+      personId={id}
+      section="overview"
+      showFounderActions={showFounderActions}
+    >
+      <PersonOverviewPanel personId={id} canEdit={canEdit} />
     </PersonWorkspaceShell>
   );
 
