@@ -45,7 +45,10 @@ export default async function Home() {
   const permResult = session
     ? await permissionsForAsync(session.profile.accessLevel)
     : null;
-  const allowed = permResult ? [...permResult.permissions] : undefined;
+  const allowed =
+    permResult && Array.isArray(permResult.permissions)
+      ? [...permResult.permissions]
+      : undefined;
 
   // Fail closed: without an explicit grant set, hide company-management widgets.
   const showFinance =

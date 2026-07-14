@@ -7,7 +7,7 @@
  * Unresolved auth MUST deny — never elevate to Founder/owner.
  */
 
-import type { Permission } from "@/lib/identity/permissions";
+import type { Permission } from "@/lib/identity/permission-ids";
 import type { SodaRole } from "@/lib/identity/roles";
 
 export const ACCESS_LEVELS = [
@@ -213,16 +213,17 @@ export function resolveAccessLevel(input: {
 }
 
 export function permissionsForAccessLevel(
-  level: AccessLevel
+  level: AccessLevel | string | null | undefined
 ): readonly Permission[] {
-  return ACCESS_LEVEL_PERMISSIONS[level];
+  const key = parseAccessLevel(level) ?? "team";
+  return ACCESS_LEVEL_PERMISSIONS[key] ?? ACCESS_LEVEL_PERMISSIONS.team;
 }
 
 export function accessLevelCan(
-  level: AccessLevel,
+  level: AccessLevel | string | null | undefined,
   permission: Permission
 ): boolean {
-  return ACCESS_LEVEL_PERMISSIONS[level].includes(permission);
+  return permissionsForAccessLevel(level).includes(permission);
 }
 
 export function isFounderAccess(level: AccessLevel): boolean {

@@ -20,7 +20,7 @@ import {
 } from "@/lib/identity/access-levels";
 import { createClient } from "@/lib/supabase/server";
 import type { SodaRole } from "@/lib/identity/roles";
-import { PERMISSIONS, type Permission } from "@/lib/identity/permissions";
+import { PERMISSIONS, type Permission } from "@/lib/identity/permission-ids";
 
 export type PermissionSource = "database" | "hardcoded-fallback";
 
@@ -38,8 +38,12 @@ const dbCache = new Map<string, Set<string>>();
 export function toAccessLevelKey(
   roleOrLevel: AccessLevel | SodaRole | string
 ): AccessLevel {
-  if (isAccessLevel(roleOrLevel)) return roleOrLevel;
-  return resolveAccessLevel({ role: roleOrLevel });
+  try {
+    if (isAccessLevel(roleOrLevel)) return roleOrLevel;
+    return resolveAccessLevel({ role: roleOrLevel });
+  } catch {
+    return "team";
+  }
 }
 
 async function loadAccessPermissionsFromDb(
@@ -85,33 +89,48 @@ export async function canAsync(
   roleOrLevel: AccessLevel | SodaRole | string,
   permission: Permission
 ): Promise<PermissionCheckResult> {
-  const level = toAccessLevelKey(roleOrLevel);
-  const fromDb = await loadAccessPermissionsFromDb(level);
-  if (fromDb && fromDb.size > 0) {
+  try {
+    const level = toAccessLevelKey(roleOrLevel);
+    const fromDb = await loadAccessPermissionsFromDb(level);
+    if (fromDb && fromDb.size > 0) {
+      return {
+        allowed: fromDb.has(permission),
+        source: "database",
+      };
+    }
     return {
-      allowed: fromDb.has(permission),
-      source: "database",
+      allowed: accessLevelCan(level, permission),
+      source: "hardcoded-fallback",
     };
+  } catch {
+    // Never throw into RSC — deny carefully (no Founder elevation).
+    return { allowed: false, source: "hardcoded-fallback" };
   }
-  return {
-    allowed: accessLevelCan(level, permission),
-    source: "hardcoded-fallback",
-  };
 }
 
 export async function permissionsForAsync(
   roleOrLevel: AccessLevel | SodaRole | string
 ): Promise<{ permissions: readonly Permission[]; source: PermissionSource }> {
-  const level = toAccessLevelKey(roleOrLevel);
-  const fromDb = await loadAccessPermissionsFromDb(level);
-  if (fromDb && fromDb.size > 0) {
-    const list = PERMISSIONS.filter((p) => fromDb.has(p));
-    return { permissions: list, source: "database" };
+  try {
+    const level = toAccessLevelKey(roleOrLevel);
+    const fromDb = await loadAccessPermissionsFromDb(level);
+    if (fromDb && fromDb.size > 0) {
+      const list = PERMISSIONS.filter((p) => fromDb.has(p));
+      // Empty filter (id mismatch) must not crash AppShell spreads — fall back.
+      if (list.length > 0) {
+        return { permissions: list, source: "database" };
+      }
+    }
+    return {
+      permissions: permissionsForAccessLevel(level),
+      source: "hardcoded-fallback",
+    };
+  } catch {
+    return {
+      permissions: permissionsForAccessLevel("team"),
+      source: "hardcoded-fallback",
+    };
   }
-  return {
-    permissions: permissionsForAccessLevel(level),
-    source: "hardcoded-fallback",
-  };
 }
 
 /** Per-request helper for session gates. */

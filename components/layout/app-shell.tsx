@@ -76,9 +76,10 @@ export async function AppShell({
   const permissionResult = session
     ? await permissionsForAsync(session.profile.accessLevel)
     : null;
-  const allowedPermissions = permissionResult
-    ? [...permissionResult.permissions]
-    : undefined;
+  const allowedPermissions =
+    permissionResult && Array.isArray(permissionResult.permissions)
+      ? [...permissionResult.permissions]
+      : undefined;
 
   const user = session
     ? {

@@ -80,9 +80,9 @@ export function SidebarContent({ user }: SidebarContentProps) {
       ? navSectionsForPermissions(user.allowedPermissions)
       : [];
   const accessLabel = user?.accessLevel
-    ? ACCESS_LEVEL_LABELS[user.accessLevel]
+    ? (ACCESS_LEVEL_LABELS[user.accessLevel] ?? null)
     : user?.role
-      ? ROLE_LABELS[user.role]
+      ? (ROLE_LABELS[user.role] ?? null)
       : null;
 
   function handleLogout() {

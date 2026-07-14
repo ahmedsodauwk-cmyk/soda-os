@@ -118,26 +118,30 @@ function mapProfileRow(
 async function fetchProfileRow(
   userId: string
 ): Promise<ProfileRow | null> {
-  const supabase = await createClient();
-  const full = await supabase
-    .from("profiles")
-    .select(PROFILE_SELECT_FULL)
-    .eq("id", userId)
-    .maybeSingle();
+  try {
+    const supabase = await createClient();
+    const full = await supabase
+      .from("profiles")
+      .select(PROFILE_SELECT_FULL)
+      .eq("id", userId)
+      .maybeSingle();
 
-  if (!full.error && full.data) {
-    return full.data as ProfileRow;
+    if (!full.error && full.data) {
+      return full.data as ProfileRow;
+    }
+
+    // Columns may be missing until access-level migration is applied.
+    const legacy = await supabase
+      .from("profiles")
+      .select(PROFILE_SELECT_LEGACY)
+      .eq("id", userId)
+      .maybeSingle();
+
+    if (legacy.error || !legacy.data) return null;
+    return legacy.data as ProfileRow;
+  } catch {
+    return null;
   }
-
-  // Columns may be missing until access-level migration is applied.
-  const legacy = await supabase
-    .from("profiles")
-    .select(PROFILE_SELECT_LEGACY)
-    .eq("id", userId)
-    .maybeSingle();
-
-  if (legacy.error || !legacy.data) return null;
-  return legacy.data as ProfileRow;
 }
 
 async function ensureProfile(
@@ -242,13 +246,15 @@ export const getSodaSession = cache(async (): Promise<SodaSession | null> => {
     );
     if (!profile || !profile.isActive) return null;
 
-    // Guard: access level must resolve; deny rather than elevate.
-    if (!parseAccessLevel(profile.accessLevel)) return null;
+    // Coerce — never null an authenticated profile (middleware↔login redirect loop).
+    const accessLevel =
+      parseAccessLevel(profile.accessLevel) ??
+      resolveAccessLevel({ role: profile.role });
 
     return {
       userId: data.user.id,
       email,
-      profile,
+      profile: { ...profile, accessLevel },
     };
   } catch {
     return null;
