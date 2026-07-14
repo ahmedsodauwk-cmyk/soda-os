@@ -8,14 +8,9 @@
 
 import { revalidatePath } from "next/cache";
 
-import {
-  getCompanyEmailDomain,
-  companyEmailForUsername,
-} from "@/lib/auth/company-email";
-import {
-  buildProvisionUserMetadata,
-  generateTemporaryPassword,
-} from "@/lib/auth/temp-password";
+import { generateTemporaryPassword } from "@/lib/auth/temp-password";
+import { personIdTakenByOtherProfile } from "@/lib/identity/identity-link";
+import { provisionLoginAccountForPerson } from "@/lib/identity/provision-account";
 import { can } from "@/lib/identity/permissions";
 import { isSodaRole, type SodaRole } from "@/lib/identity/roles";
 import { resolveSessionForApp } from "@/lib/identity/session";
@@ -60,6 +55,7 @@ export type AuthorityAccountRow = {
   personId: string | null;
   lastSignInAt: string | null;
   createdAt: string | null;
+  passwordResetAt: string | null;
 };
 
 /** List Auth-linked profiles for Authority Center. No fake rows. */
@@ -72,7 +68,7 @@ export async function listAuthorityAccounts(): Promise<AuthorityAccountRow[]> {
     const { data: profiles, error } = await admin
       .from("profiles")
       .select(
-        "id, email, username, full_name, role, is_active, must_change_password, person_id, created_at"
+        "id, email, username, full_name, role, is_active, must_change_password, person_id, created_at, password_reset_at"
       )
       .order("full_name", { ascending: true });
 
@@ -98,6 +94,10 @@ export async function listAuthorityAccounts(): Promise<AuthorityAccountRow[]> {
       personId: typeof row.person_id === "string" ? row.person_id : null,
       lastSignInAt: lastSignIn.get(String(row.id)) ?? null,
       createdAt: typeof row.created_at === "string" ? row.created_at : null,
+      passwordResetAt:
+        typeof row.password_reset_at === "string"
+          ? row.password_reset_at
+          : null,
     }));
   } catch {
     return [];
@@ -105,9 +105,8 @@ export async function listAuthorityAccounts(): Promise<AuthorityAccountRow[]> {
 }
 
 /**
- * Create Account from inside SODA OS.
- * Generates username email if needed, issues temp password once, forces change.
- * Does not invent names — Founder supplies them.
+ * @deprecated Account creation moved to Crew Workspace (Mission 04.4.3).
+ * Kept for internal compatibility — requires personId; use createCrewLoginAccountAction.
  */
 export async function createAuthorityAccountAction(input: {
   fullName: string;
@@ -119,95 +118,33 @@ export async function createAuthorityAccountAction(input: {
   const session = await requireAuthorityOperator();
   if (!session) return { ok: false, error: "Not authorized." };
 
-  const fullName = input.fullName.trim();
-  const username = input.username.trim().toLowerCase();
-  if (!fullName) return { ok: false, error: "Full name is required." };
-  if (!username) return { ok: false, error: "Username is required." };
-  if (!isSodaRole(input.role)) return { ok: false, error: "Invalid role." };
-
-  const domain = await getCompanyEmailDomain();
-  const email = (
-    input.email?.trim() || companyEmailForUsername(username, domain)
-  ).toLowerCase();
-
-  try {
-    const admin = createAdminClient();
-
-    const { data: existingUser } = await admin
-      .from("profiles")
-      .select("id")
-      .or(`username.eq.${username},email.eq.${email}`)
-      .maybeSingle();
-    if (existingUser?.id) {
-      return {
-        ok: false,
-        error: "Username or email already exists.",
-      };
-    }
-
-    const temp = generateTemporaryPassword();
-    const meta = buildProvisionUserMetadata({
-      full_name: fullName,
-      role: input.role,
-      username,
-    });
-
-    const created = await admin.auth.admin.createUser({
-      email,
-      password: temp,
-      email_confirm: true,
-      user_metadata: meta,
-    });
-
-    if (created.error || !created.data.user) {
-      return {
-        ok: false,
-        error: created.error?.message ?? "Failed to create account.",
-      };
-    }
-
-    const profilePatch: Record<string, unknown> = {
-      id: created.data.user.id,
-      email,
-      full_name: fullName,
-      role: input.role as SodaRole,
-      is_active: true,
-      username,
-      must_change_password: true,
-    };
-    if (input.personId?.trim()) {
-      profilePatch.person_id = input.personId.trim();
-    }
-
-    const { error: profileErr } = await admin
-      .from("profiles")
-      .upsert(profilePatch);
-    if (profileErr) {
-      return { ok: false, error: profileErr.message };
-    }
-
-    revalidateAuthority();
-    return {
-      ok: true,
-      message:
-        "Account created. Copy credentials now — the temporary password will not be shown again.",
-      credentials: {
-        username,
-        email,
-        temporaryPassword: temp,
-      },
-    };
-  } catch (err) {
+  const personId = input.personId?.trim();
+  if (!personId) {
     return {
       ok: false,
       error:
-        err instanceof Error
-          ? err.message.includes("SUPABASE_SERVICE_ROLE_KEY")
-            ? "Server admin key is not configured."
-            : err.message
-          : "Create account failed.",
+        "Account creation belongs in Crew Workspace. Open the crew member and use Create Login Account.",
     };
   }
+
+  const result = await provisionLoginAccountForPerson({
+    personId,
+    fullName: input.fullName,
+    username: input.username,
+    email: input.email,
+    role: input.role,
+  });
+
+  if (!result.ok) return { ok: false, error: result.error };
+
+  revalidateAuthority();
+  revalidatePath(`/people/${personId}`);
+  return {
+    ok: true,
+    message:
+      "Account created. Copy credentials now — the temporary password will not be shown again.",
+    credentials: result.credentials,
+  };
 }
 
 export async function setAccountActiveAction(
@@ -314,9 +251,13 @@ export async function resetAccountPasswordAction(
     );
     if (updErr) return { ok: false, error: updErr.message };
 
+    const resetAt = new Date().toISOString();
     await admin
       .from("profiles")
-      .update({ must_change_password: true })
+      .update({
+        must_change_password: true,
+        password_reset_at: resetAt,
+      })
       .eq("id", profile.id);
 
     revalidateAuthority();
@@ -338,7 +279,7 @@ export async function resetAccountPasswordAction(
   }
 }
 
-/** Link profile ↔ people row (optional). */
+/** Link profile ↔ people row — enforces one-to-one. */
 export async function linkAccountToPersonAction(
   profileId: string,
   personId: string | null
@@ -347,6 +288,17 @@ export async function linkAccountToPersonAction(
   if (!session) return { ok: false, error: "Not authorized." };
 
   try {
+    if (personId) {
+      const taken = await personIdTakenByOtherProfile(personId, profileId);
+      if (taken) {
+        return {
+          ok: false,
+          error:
+            "That crew member already has a linked account. One person ↔ one profile.",
+        };
+      }
+    }
+
     const admin = createAdminClient();
     const { error } = await admin
       .from("profiles")
@@ -364,7 +316,7 @@ export async function linkAccountToPersonAction(
   }
 }
 
-/** People without Auth — for Create Account person picker. */
+/** @deprecated Create Account moved to Crew Workspace — kept for type exports only. */
 export async function listUnlinkedPeople(): Promise<
   { id: string; name: string }[]
 > {

@@ -70,8 +70,8 @@ export function AccountDirectory({ accounts }: AccountDirectoryProps) {
 
       {accounts.length === 0 ? (
         <p className="text-sm text-muted-foreground">
-          No accounts yet. Create accounts from the official crew list only —
-          never invent people.
+          No accounts yet. Create login accounts from each crew member&apos;s
+          workspace — never invent people.
         </p>
       ) : (
         <ul className="space-y-3">
@@ -104,6 +104,12 @@ export function AccountDirectory({ accounts }: AccountDirectoryProps) {
                 </div>
 
                 <dl className="grid gap-1 text-xs text-muted-foreground sm:grid-cols-2">
+                  <div>
+                    <dt className="inline">Last password reset · </dt>
+                    <dd className="inline">
+                      {formatWhen(account.passwordResetAt)}
+                    </dd>
+                  </div>
                   <div>
                     <dt className="inline">Last activity · </dt>
                     <dd className="inline">{formatWhen(account.lastSignInAt)}</dd>

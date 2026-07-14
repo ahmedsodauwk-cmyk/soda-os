@@ -106,8 +106,8 @@ export default async function SettingsPage() {
             <CardHeader>
               <CardTitle>Authority Center</CardTitle>
               <CardDescription>
-                Create accounts, manage roles, customize permissions. Founder /
-                Admin only. No demo users.
+                Manage existing accounts, roles, and permissions. Create login
+                accounts from Crew Workspace.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -126,8 +126,8 @@ export default async function SettingsPage() {
             <CardHeader>
               <CardTitle>Invite user (email)</CardTitle>
               <CardDescription>
-                Optional email invite path. Prefer Create Account in Authority
-                Center for temp-password provisioning.
+                Optional email invite path. Prefer Create Login Account in Crew
+                Workspace for temp-password provisioning.
               </CardDescription>
             </CardHeader>
             <CardContent>

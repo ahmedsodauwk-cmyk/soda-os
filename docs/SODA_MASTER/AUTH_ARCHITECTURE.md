@@ -60,9 +60,10 @@ public.people          ← crew / HR record (wallet, assignments, performance)
 - Legacy `/crew` redirects to `/people`
 - Profile fields on `public.people` (display_name, department, emergency contact)
 - Operational roles additive in `public.roles` (Founder, Project Manager, craft roles, …)
-- **Authority Center:** `/settings/authority` — Create Account, disable/archive, reset password, change role, customize `role_permissions` by permission group
+- **Authority Center:** `/settings/authority` — manage existing accounts, disable/archive, reset password, change role, customize `role_permissions` by permission group
+- **Crew Workspace Account:** `/people/[id]` — Create Login Account (Founder only), identity link status, disable/enable, reset password
 - Legacy `/settings/permissions` redirects to Authority Center
-- Accounts created **only** from inside SODA OS (Founder/Admin) — no demo/seed Auth users
+- Accounts created **only** from Crew Workspace (Founder/Admin) — one per crew member; no demo/seed Auth users
 
 ---
 
@@ -82,7 +83,7 @@ public.people          ← crew / HR record (wallet, assignments, performance)
 3. `profiles.must_change_password = true`
 4. `AppShell` redirects to `/settings/password` until cleared
 5. `changePasswordAction` + `clear_must_change_password()` clears the flag
-6. Credentials shown **once** in Authority Center after Create / Reset — never stored again
+6. Credentials shown **once** in Crew Workspace after Create / Reset — never stored again
 
 ---
 
@@ -100,11 +101,12 @@ public.people          ← crew / HR record (wallet, assignments, performance)
 ## Provisioning policy
 
 1. Founder supplies **official crew list** (names, usernames, roles)
-2. Authority Center **Create Account** creates exactly those Auth users — no demos, no invented names
+2. Crew Workspace **Create Login Account** creates exactly those Auth users — no demos, no invented names
+3. Authority Center manages existing accounts only — not provisioning
 3. Owner bootstrap (`/bootstrap`) is identity-only and already exists; do not re-seed
 
 ---
 
 ## STOP
 
-Do not invent crew names. Do not create Auth users except when the Founder explicitly provisions via Authority Center.
+Do not invent crew names. Do not create Auth users except when the Founder explicitly provisions via Crew Workspace.

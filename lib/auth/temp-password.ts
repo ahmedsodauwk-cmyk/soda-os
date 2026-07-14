@@ -1,7 +1,7 @@
 /**
  * Temporary password generation for Founder-provisioned accounts.
  *
- * Flow (Authority Center / Create Account):
+ * Flow (Crew Workspace / Create Login Account):
  * 1. Founder supplies official crew list
  * 2. Create auth user with generateTemporaryPassword()
  * 3. profiles.must_change_password = true

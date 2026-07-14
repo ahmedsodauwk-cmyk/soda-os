@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 import {
   Archive,
   Camera,
-  KeyRound,
   Pencil,
   Shield,
   UserMinus,
@@ -17,7 +16,6 @@ import { AssignWorkDialog } from "@/components/people/assign-work-dialog";
 import { EditCrewProfileDialog } from "@/components/people/edit-crew-profile-dialog";
 import { Button } from "@/components/ui/button";
 import {
-  resetCrewPasswordAction,
   setCrewStatusAction,
 } from "@/lib/people/actions";
 import type { Person } from "@/lib/people/types";
@@ -37,24 +35,6 @@ export function FounderActions({ person }: FounderActionsProps) {
   const [assignOpen, setAssignOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
-
-  async function handleResetPassword() {
-    setBusy(true);
-    setMessage(null);
-    try {
-      const result = await resetCrewPasswordAction(person.id);
-      if (!result.ok) {
-        setMessage(result.error ?? "Reset failed.");
-        return;
-      }
-      const temp = result.tempPassword
-        ? ` Temp: ${result.tempPassword}`
-        : "";
-      setMessage((result.message ?? "Password reset.") + temp);
-    } finally {
-      setBusy(false);
-    }
-  }
 
   async function handleArchive() {
     if (
@@ -149,17 +129,6 @@ export function FounderActions({ person }: FounderActionsProps) {
         >
           <Camera className="size-3.5" />
           Upload Profile Photo
-        </Button>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          className="gap-1.5"
-          disabled={busy}
-          onClick={() => void handleResetPassword()}
-        >
-          <KeyRound className="size-3.5" />
-          Reset Password
         </Button>
         <Button
           type="button"

@@ -2,7 +2,6 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 
 import { AccountDirectory } from "@/components/authority/account-directory";
-import { CreateAccountForm } from "@/components/authority/create-account-form";
 import { AppShell } from "@/components/layout/app-shell";
 import { RoleGate } from "@/components/identity/role-gate";
 import { RolePermissionsMatrix } from "@/components/people/role-permissions-matrix";
@@ -14,11 +13,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { getCompanyEmailDomain } from "@/lib/auth/company-email";
-import {
-  listAuthorityAccounts,
-  listUnlinkedPeople,
-} from "@/lib/identity/authority-actions";
+import { listAuthorityAccounts } from "@/lib/identity/authority-actions";
 import {
   listPermissionsFromDb,
   listRolesFromDb,
@@ -30,24 +25,15 @@ import { resolveSessionForApp } from "@/lib/identity/session";
 export const dynamic = "force-dynamic";
 
 /**
- * Founder Authority Center — accounts, roles, permissions.
- * Founder/Admin only (`settings.users`). Production-safe; no demo users.
+ * Founder Authority Center — existing accounts, roles, permissions.
+ * Account creation lives in Crew Workspace only (Mission 04.4.3).
  */
 export default async function AuthorityCenterPage() {
   const session = await resolveSessionForApp();
   if (!session) redirect("/login");
 
-  const [
-    emailDomain,
-    accounts,
-    unlinkedPeople,
-    roles,
-    permissions,
-    matrixSets,
-  ] = await Promise.all([
-    getCompanyEmailDomain(),
+  const [accounts, roles, permissions, matrixSets] = await Promise.all([
     listAuthorityAccounts(),
-    listUnlinkedPeople(),
     listRolesFromDb(),
     listPermissionsFromDb(),
     loadRolePermissionMatrix(),
@@ -79,29 +65,27 @@ export default async function AuthorityCenterPage() {
               Operational Authority
             </h1>
             <p className="max-w-2xl text-sm text-muted-foreground">
-              Control what every person can see, do, and manage. Create accounts
-              only for your official crew — credentials appear once.
+              Manage existing accounts, roles, and permissions. Create login
+              accounts from each crew member&apos;s workspace — not here.
             </p>
           </div>
 
-          <div className="grid gap-4 lg:grid-cols-2">
-            <Card className="soda-cc-card">
-              <CardHeader>
-                <CardTitle>Create Account</CardTitle>
-                <CardDescription>
-                  Username → temp password → role → force password change on
-                  first login. Never invent people.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <CreateAccountForm
-                  emailDomain={emailDomain}
-                  unlinkedPeople={unlinkedPeople}
-                />
-              </CardContent>
-            </Card>
+          <Card className="soda-cc-card border-primary/20">
+            <CardHeader>
+              <CardTitle>Create login accounts in Crew</CardTitle>
+              <CardDescription>
+                Open a crew member in{" "}
+                <Link href="/people" className="text-soda-pink hover:underline">
+                  Crew Workspace
+                </Link>
+                , then use <strong>Account → Create login account</strong>.
+                One account per crew member; credentials shown once.
+              </CardDescription>
+            </CardHeader>
+          </Card>
 
-            <Card className="soda-cc-card">
+          <div className="grid gap-4 lg:grid-cols-2">
+            <Card className="soda-cc-card lg:col-span-2">
               <CardHeader>
                 <CardTitle>Role templates</CardTitle>
                 <CardDescription>
@@ -110,9 +94,12 @@ export default async function AuthorityCenterPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <ul className="grid max-h-80 gap-2 overflow-y-auto text-sm">
+                <ul className="grid max-h-80 gap-2 overflow-y-auto text-sm sm:grid-cols-2">
                   {ROLE_TEMPLATES.map((t) => (
-                    <li key={t.id} className="rounded-lg border border-border/40 px-3 py-2">
+                    <li
+                      key={t.id}
+                      className="rounded-lg border border-border/40 px-3 py-2"
+                    >
                       <p className="font-medium">{t.label}</p>
                       <p className="text-xs text-muted-foreground">
                         {t.description}
@@ -128,8 +115,8 @@ export default async function AuthorityCenterPage() {
             <CardHeader>
               <CardTitle>Accounts</CardTitle>
               <CardDescription>
-                Disable, archive, reset password, change role, view login
-                status and last activity.
+                Disable, enable, reset password, change role, view login status
+                and last activity. Provision new accounts from Crew Workspace.
               </CardDescription>
             </CardHeader>
             <CardContent>

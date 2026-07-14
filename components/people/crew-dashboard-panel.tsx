@@ -1,8 +1,13 @@
 import Link from "next/link";
 
+import { CrewAccountSection } from "@/components/people/crew-account-section";
 import { InteractiveProfileCards } from "@/components/people/interactive-profile-cards";
 import { PeopleEmptyState } from "@/components/people/people-empty-state";
 import { Badge } from "@/components/ui/badge";
+import { getCompanyEmailDomain, companyEmailForUsername } from "@/lib/auth/company-email";
+import { fetchLinkedAccountForPerson } from "@/lib/identity/identity-link";
+import { suggestRoleFromPerson } from "@/lib/identity/role-suggest";
+import { suggestUsernameFromPerson } from "@/lib/identity/username-suggest";
 import { getCrewDashboardSnapshot } from "@/lib/people/dashboard";
 import { fetchLinkedRoleForPerson } from "@/lib/people/actions";
 import type { Person } from "@/lib/people/types";
@@ -57,6 +62,13 @@ export async function CrewDashboardPanel({
   const snap = getCrewDashboardSnapshot(person);
   const link = await fetchLinkedRoleForPerson(person.id);
   const perf = snap.performance;
+
+  const accountSection =
+    canEdit ? (
+      <AccountSectionLoader person={person} />
+    ) : (
+      <AccountStatusReadOnly personId={person.id} />
+    );
 
   return (
     <div className="space-y-6">
@@ -152,6 +164,55 @@ export async function CrewDashboardPanel({
           canEdit={canEdit}
         />
       </div>
+
+      {accountSection}
+    </div>
+  );
+}
+
+async function AccountSectionLoader({ person }: { person: import("@/lib/people/types").Person }) {
+  const [account, emailDomain] = await Promise.all([
+    fetchLinkedAccountForPerson(person.id),
+    getCompanyEmailDomain(),
+  ]);
+  const suggestedUsername = suggestUsernameFromPerson(person);
+  const suggestedRole = suggestRoleFromPerson(person.jobTitle);
+  const suggestedEmail =
+    person.email?.trim() ||
+    companyEmailForUsername(suggestedUsername, emailDomain);
+
+  return (
+    <CrewAccountSection
+      person={person}
+      account={account}
+      suggestedUsername={suggestedUsername}
+      suggestedEmail={suggestedEmail}
+      suggestedRole={suggestedRole}
+      emailDomain={emailDomain}
+    />
+  );
+}
+
+async function AccountStatusReadOnly({ personId }: { personId: string }) {
+  const account = await fetchLinkedAccountForPerson(personId);
+  return (
+    <div className="space-y-2 rounded-xl border border-border/50 bg-card/30 px-3.5 py-3">
+      <p className="text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
+        Login account
+      </p>
+      <p className="text-sm">
+        {account.linked ? (
+          <>
+            <span className="font-medium">{account.username ?? account.email}</span>
+            <span className="text-muted-foreground">
+              {" "}
+              · {account.isActive ? "Active" : "Disabled"}
+            </span>
+          </>
+        ) : (
+          <span className="text-muted-foreground">Not linked</span>
+        )}
+      </p>
     </div>
   );
 }
