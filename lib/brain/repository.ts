@@ -200,8 +200,10 @@ function entrySnapshot(entry: BrainEntry): Record<string, unknown> {
   };
 }
 
-function isMissingTableError(message: string): boolean {
-  const m = message.toLowerCase();
+function isMissingTableError(message: string | null | undefined): boolean {
+  // PostgREST sometimes omits message — never throw while classifying errors.
+  const m = (message ?? "").toLowerCase();
+  if (!m) return false;
   return (
     (m.includes("brain_entries") ||
       m.includes("brain_chat_messages") ||
@@ -212,8 +214,9 @@ function isMissingTableError(message: string): boolean {
   );
 }
 
-function isMissingColumnError(message: string): boolean {
-  const m = message.toLowerCase();
+function isMissingColumnError(message: string | null | undefined): boolean {
+  const m = (message ?? "").toLowerCase();
+  if (!m) return false;
   return (
     m.includes("column") &&
     (m.includes("does not exist") || m.includes("schema cache"))
@@ -574,18 +577,28 @@ export async function deleteBrainEntry(
 export async function listBrainChatMessages(
   limit = 80
 ): Promise<BrainChatMessage[]> {
-  const db = createDomainDb();
-  const { data, error } = await db
-    .from("brain_chat_messages")
-    .select("*")
-    .order("created_at", { ascending: true })
-    .limit(limit);
+  try {
+    const db = createDomainDb();
+    const { data, error } = await db
+      .from("brain_chat_messages")
+      .select("*")
+      .order("created_at", { ascending: true })
+      .limit(limit);
 
-  if (error) {
-    if (isMissingTableError(error.message)) return [];
-    throw new Error(`Failed to load Brain chat: ${error.message}`);
+    if (error) {
+      // Table missing OR any load failure → empty chat (never crash /brain/chat).
+      if (isMissingTableError(error.message)) return [];
+      console.error("[brain] chat load failed:", error.message ?? error);
+      return [];
+    }
+    return ((data ?? []) as BrainChatDbRow[]).map(rowToChat);
+  } catch (err) {
+    console.error(
+      "[brain] chat load threw:",
+      err instanceof Error ? err.message : err
+    );
+    return [];
   }
-  return ((data ?? []) as BrainChatDbRow[]).map(rowToChat);
 }
 
 export async function appendBrainChatMessage(input: {

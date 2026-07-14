@@ -266,5 +266,3 @@ export async function loadBrainChatAction(): Promise<BrainActionResult> {
     };
   }
 }
-
-export type { BrainWorkspace };

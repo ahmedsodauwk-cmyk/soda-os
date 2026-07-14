@@ -29,7 +29,9 @@ export function BrainChat({ initialMessages, migrationHint }: Props) {
   const { locale } = useI18n();
   const ar = locale === "ar";
   const labels = ar ? WORKSPACE_LABELS_AR : WORKSPACE_LABELS_EN;
-  const [messages, setMessages] = useState(initialMessages);
+  const [messages, setMessages] = useState(() =>
+    Array.isArray(initialMessages) ? initialMessages : []
+  );
   const [text, setText] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
@@ -41,8 +43,13 @@ export function BrainChat({ initialMessages, migrationHint }: Props) {
 
   useEffect(() => {
     startTransition(async () => {
-      const res = await loadBrainChatAction();
-      if (res.ok && res.messages) setMessages(res.messages);
+      try {
+        const res = await loadBrainChatAction();
+        if (res.ok && res.messages) setMessages(res.messages);
+      } catch (err) {
+        // Uncaught Server Action throws become opaque RSC errors in production.
+        setError(err instanceof Error ? err.message : "Failed to refresh chat.");
+      }
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps -- mount refresh only
   }, []);
@@ -53,16 +60,21 @@ export function BrainChat({ initialMessages, migrationHint }: Props) {
     setError(null);
     setText("");
     startTransition(async () => {
-      const res = await sendBrainChatAction({
-        text: trimmed,
-        locale: ar ? "ar" : "en",
-      });
-      if (!res.ok) {
-        setError(res.error ?? "Failed");
+      try {
+        const res = await sendBrainChatAction({
+          text: trimmed,
+          locale: ar ? "ar" : "en",
+        });
+        if (!res.ok) {
+          setError(res.error ?? "Failed");
+          setText(trimmed);
+          return;
+        }
+        if (res.messages) setMessages(res.messages);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Chat failed.");
         setText(trimmed);
-        return;
       }
-      if (res.messages) setMessages(res.messages);
     });
   }
 
@@ -133,7 +145,9 @@ export function BrainChat({ initialMessages, migrationHint }: Props) {
                   <p className="whitespace-pre-wrap">{m.content}</p>
                   {!mine && m.classifiedWorkspace ? (
                     <p className="mt-1.5 text-[10px] text-violet-300/55">
-                      → {labels[m.classifiedWorkspace]}
+                      →{" "}
+                      {labels[m.classifiedWorkspace] ??
+                        m.classifiedWorkspace}
                     </p>
                   ) : null}
                 </div>

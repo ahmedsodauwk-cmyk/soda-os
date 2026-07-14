@@ -34,24 +34,23 @@ export default async function BrainChatPage() {
   try {
     messages = await listBrainChatMessages();
   } catch (err) {
+    // listBrainChatMessages is now throw-safe; keep belt-and-suspenders.
     const message = err instanceof Error ? err.message : String(err);
-    if (
+    migrationHint =
       message.toLowerCase().includes("brain_chat") ||
       message.toLowerCase().includes("does not exist") ||
       message.toLowerCase().includes("schema cache")
-    ) {
-      migrationHint =
-        "Apply migration 20260714000021_soda_brain_evolution.sql in Supabase SQL Editor, then refresh.";
-      messages = [];
-    } else {
-      migrationHint = message;
-      messages = [];
-    }
+        ? "Apply migration 20260714000021_soda_brain_evolution.sql in Supabase SQL Editor, then refresh."
+        : message;
+    messages = [];
   }
 
   return (
     <AppShell titleKey="pages.brain" layer="brain" session={session}>
-      <BrainChat initialMessages={messages} migrationHint={migrationHint} />
+      <BrainChat
+        initialMessages={Array.isArray(messages) ? messages : []}
+        migrationHint={migrationHint}
+      />
     </AppShell>
   );
 }
