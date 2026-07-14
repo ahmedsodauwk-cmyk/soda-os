@@ -1,5 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" role="img" aria-label="SODA VISUALS">
-  <!-- Fallback app icon  Deep Purple tile (#29194A). Prefer /brand/soda-icon.png raster. -->
-  <rect width="64" height="64" rx="14" fill="#29194A"/>
-  <image href="/brand/soda-mark.png" x="8" y="8" width="48" height="48" preserveAspectRatio="xMidYMid meet"/>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 64 64" role="img" aria-label="SODA">
+  <title>SODA</title>
+  <image width="64" height="64" href="/brand/soda-logo-official.png" xlink:href="/brand/soda-logo-official.png" preserveAspectRatio="xMidYMid meet"/>
 </svg>

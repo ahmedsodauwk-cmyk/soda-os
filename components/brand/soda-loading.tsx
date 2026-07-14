@@ -2,6 +2,7 @@
 
 import { cn } from "@/lib/utils";
 import { SodaLogo } from "@/components/brand/soda-logo";
+import { SodaSplash } from "@/components/brand/soda-splash";
 import { getLoadingMessage, type LoadingKey } from "@/lib/brand/soda-voice";
 
 interface SodaLoadingProps {
@@ -15,6 +16,7 @@ interface SodaLoadingProps {
 
 /**
  * Branded loading — official mark + soft pulse (no spinner).
+ * Full-screen uses the splash shell; inline keeps a quiet mark.
  */
 export function SodaLoading({
   open = true,
@@ -47,23 +49,15 @@ export function SodaLoading({
   }
 
   return (
-    <div
-      className={cn(
-        "soda-splash fixed inset-0 z-50 flex flex-col items-center justify-center gap-5",
-        className
-      )}
-      role="status"
-      aria-live="polite"
-    >
-      <div className="soda-splash-glow pointer-events-none absolute inset-0" aria-hidden />
-      <div className="soda-splash-fade relative flex flex-col items-center gap-4">
-        <div className="soda-mark-pulse">
-          <SodaLogo placement="splash" showWord={false} interactive={false} />
-        </div>
-        <p className="font-ar text-sm tracking-wide text-white/55" dir="rtl">
-          {message}
-        </p>
-      </div>
+    <div className={className}>
+      <SodaSplash showWord label={message} />
+      <p
+        className="pointer-events-none fixed inset-x-0 bottom-[max(2.5rem,env(safe-area-inset-bottom))] z-[101] text-center font-ar text-sm tracking-wide text-white/55"
+        dir="rtl"
+        aria-hidden
+      >
+        {message}
+      </p>
     </div>
   );
 }

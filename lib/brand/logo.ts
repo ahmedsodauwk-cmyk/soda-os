@@ -37,7 +37,7 @@ export const SODA_LOGO = {
   /** Full product lockup for docs / metadata */
   fullName: "SODA VISUALS",
   /** Asset revision — busts browser/PWA icon cache */
-  assetVersion: "06.3",
+  assetVersion: "06.3.1",
 } as const;
 
 /** Recommended display sizes by placement (never upscale past source clarity) */

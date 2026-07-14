@@ -11,6 +11,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { SodaLogo } from "@/components/brand/soda-logo";
 import {
   DASHBOARD_SECTION_COPY,
   getEmptyState,
@@ -63,14 +64,7 @@ export default function RecentOrders({
       <CardContent className="space-y-2">
         {orders.length === 0 ? (
           <div className="flex flex-col items-center gap-3 py-6 text-center">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/brand/soda-logo-official.png?v=06.3.1"
-              alt=""
-              width={28}
-              height={28}
-              className="opacity-55 object-contain"
-            />
+            <SodaLogo placement="empty" showWord={false} />
             <div dir="rtl">
               <p className="font-ar text-sm font-medium">{empty.title}</p>
               <p className="font-ar mt-1 text-xs leading-relaxed text-muted-foreground">
