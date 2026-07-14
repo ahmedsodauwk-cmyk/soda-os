@@ -4,13 +4,15 @@
 
 **`soda-logo-official.png`** — white geometric Kufic SODA on black square.
 
-Never stretch, crop, recolor, filter, redraw, or re-vectorize.
-All other files are resize / compose derivatives of this official mark.
+This file must remain a **byte-identical copy** of the Founder-approved chat attachment.
+Never stretch, crop, recolor, filter, redraw, re-vectorize, or re-encode this file.
+
+All other raster files are resize / compose-only derivatives (same mark, no purple plates).
 
 | File | Role |
 |------|------|
-| `soda-logo-official.png` | Canonical official mark |
-| `soda-mark.png` / `soda-mark-white.png` / `soda-logo.png` | Same mark (aliases) |
+| `soda-logo-official.png` | Canonical official mark (byte-identical attachment) |
+| `soda-mark.png` / `soda-mark-white.png` / `soda-logo.png` | Same mark (aliases / resize outputs) |
 | `soda-mark-tile.png` / `soda-logo-master.png` | Same mark (lockup aliases) |
 | `soda-icon.png` / `pwa-192.png` / `pwa-512.png` | App / PWA icons |
 | `favicon-32.png` / `favicon.ico` | Browser tab |
@@ -27,6 +29,6 @@ All other files are resize / compose derivatives of this official mark.
 | Black | `#000000` | Official mark plate |
 | White | `#FFFFFF` | Official mark geometry |
 
-Regenerate with: `node scripts/mission-06-3-generate-brand-assets.mjs`
-
 Cache bust via `?v=06.3.1` on icon URLs in `app/layout.tsx` and `manifest.webmanifest`.
+
+`scripts/extract-soda-mark.mjs` and `scripts/finalize-brand-assets.mjs` are deprecated stubs and must not be used.
