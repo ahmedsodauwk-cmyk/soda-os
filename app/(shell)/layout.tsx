@@ -76,6 +76,7 @@ export default async function ShellLayout({
 
   const user = session
     ? {
+        userId: session.userId,
         fullName: session.profile.displayName || session.profile.fullName,
         role: session.profile.role,
         accessLevel: session.profile.accessLevel,

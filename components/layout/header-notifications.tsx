@@ -1,9 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
 import { Bell } from "lucide-react";
 
+import { useNotificationLiveOptional } from "@/components/notifications/notification-live-store";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -22,26 +22,23 @@ import {
   notificationPriorityLabel,
 } from "@/lib/core/notifications/engine";
 import type { NotificationRecord } from "@/lib/core/types";
+import { cn } from "@/lib/utils";
 
 interface HeaderNotificationsProps {
   initial: NotificationRecord[];
 }
 
 export function HeaderNotifications({ initial }: HeaderNotificationsProps) {
-  const [readIds, setReadIds] = useState<Set<string>>(() => new Set());
+  const live = useNotificationLiveOptional();
+  const items = live?.items ?? initial;
+  const unread = live?.unreadCount ?? items.filter((n) => n.status === "unread").length;
 
-  const items = initial.map((n) =>
-    readIds.has(n.id) ? { ...n, read: true } : n
-  );
-  const unread = items.filter((n) => !n.read).length;
-
-  function markRead(id: string) {
-    setReadIds((prev) => new Set(prev).add(id));
+  function onOpenItem(item: NotificationRecord) {
+    if (item.status === "unread") {
+      live?.markRead(item.id);
+    }
   }
 
-  // Root cause of Menu Item / Link mismatch: Menu.Item defaults to nativeButton,
-  // but render={<Link />} produces <a>. Must set nativeButton={false}.
-  // (Base UI Error #31 is MenuGroupLabel outside Menu.Group — fixed in dropdown-menu.)
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
@@ -64,7 +61,22 @@ export function HeaderNotifications({ initial }: HeaderNotificationsProps) {
       </DropdownMenuTrigger>
 
       <DropdownMenuContent align="end" className="w-80">
-        <DropdownMenuLabel>التنبيهات</DropdownMenuLabel>
+        <DropdownMenuLabel className="flex items-center justify-between gap-2">
+          <span>التنبيهات</span>
+          {unread > 0 ? (
+            <button
+              type="button"
+              className="font-ar cursor-pointer text-[11px] font-normal text-soda-pink hover:underline"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                live?.markAllRead();
+              }}
+            >
+              اقرأ الكل
+            </button>
+          ) : null}
+        </DropdownMenuLabel>
         <DropdownMenuSeparator />
         {items.length === 0 ? (
           <DropdownMenuItem disabled className="text-muted-foreground">
@@ -74,29 +86,47 @@ export function HeaderNotifications({ initial }: HeaderNotificationsProps) {
           items.slice(0, 8).map((item) => {
             const href = notificationHref(item);
             const priorityLabel = notificationPriorityLabel(item.priority);
+            const unreadItem = item.status === "unread";
             return (
               <DropdownMenuItem
                 key={item.id}
-                className="cursor-pointer items-start whitespace-normal"
-                onClick={() => markRead(item.id)}
+                className={cn(
+                  "cursor-pointer items-start whitespace-normal",
+                  unreadItem && "bg-soda-pink/[0.06]"
+                )}
+                onClick={() => onOpenItem(item)}
                 nativeButton={false}
                 render={<Link href={href} />}
               >
-                <div className="min-w-0 space-y-0.5" dir="rtl">
-                  <p className="font-ar text-sm font-medium">
-                    {notificationDisplayTitle(item)}
-                    {priorityLabel ? (
-                      <span className="ms-2 text-[10px] font-normal text-soda-pink">
-                        {priorityLabel}
-                      </span>
-                    ) : null}
-                  </p>
-                  <p className="font-ar line-clamp-2 text-xs text-muted-foreground">
-                    {notificationDisplayBody(item)}
-                  </p>
-                  <p className="font-ar text-[11px] text-soda-pink">
-                    {notificationActionLabel(item)}
-                  </p>
+                <div className="flex min-w-0 gap-2" dir="rtl">
+                  {unreadItem ? (
+                    <span className="mt-1.5 size-2 shrink-0 rounded-full bg-soda-pink" />
+                  ) : (
+                    <span className="mt-1.5 size-2 shrink-0 rounded-full bg-transparent" />
+                  )}
+                  <div className="min-w-0 space-y-0.5">
+                    <p
+                      className={cn(
+                        "font-ar text-sm",
+                        unreadItem
+                          ? "font-semibold text-foreground"
+                          : "font-medium text-foreground/85"
+                      )}
+                    >
+                      {notificationDisplayTitle(item)}
+                      {priorityLabel ? (
+                        <span className="ms-2 text-[10px] font-normal text-soda-pink">
+                          {priorityLabel}
+                        </span>
+                      ) : null}
+                    </p>
+                    <p className="font-ar line-clamp-2 text-xs text-muted-foreground">
+                      {notificationDisplayBody(item)}
+                    </p>
+                    <p className="font-ar text-[11px] text-soda-pink">
+                      {notificationActionLabel(item)}
+                    </p>
+                  </div>
                 </div>
               </DropdownMenuItem>
             );

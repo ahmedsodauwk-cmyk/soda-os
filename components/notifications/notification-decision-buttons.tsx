@@ -1,85 +1,98 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 
 import { Button } from "@/components/ui/button";
+import { useNotificationLiveOptional } from "@/components/notifications/notification-live-store";
 import {
-  confirmCrewAssignment,
-  declineCrewAssignment,
+  acceptCrewAssignment,
+  rejectCrewAssignment,
 } from "@/lib/core/notifications/actions";
-import type { NotificationAction } from "@/lib/core/types";
+import type { NotificationAction, NotificationRecord } from "@/lib/core/types";
 
 interface NotificationDecisionButtonsProps {
+  notificationId?: string;
   actions?: NotificationAction[];
+  onDecided?: (status: "confirmed" | "cancelled") => void;
 }
 
-/** Confirm / Decline for CrewAssigned — only when actions are enabled. */
+/** Accept / Reject for CrewAssigned — updates lifecycle without full page refresh. */
 export function NotificationDecisionButtons({
+  notificationId,
   actions,
+  onDecided,
 }: NotificationDecisionButtonsProps) {
-  const router = useRouter();
+  const live = useNotificationLiveOptional();
   const [pending, startTransition] = useTransition();
   const [done, setDone] = useState<"confirmed" | "cancelled" | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const confirm = actions?.find(
-    (a) => a.kind === "confirm" && a.enabled && a.assignmentId
-  );
-  const decline = actions?.find(
-    (a) => a.kind === "decline" && a.enabled && a.assignmentId
-  );
+  const accept =
+    actions?.find((a) => a.kind === "accept" && a.enabled && a.assignmentId) ??
+    actions?.find((a) => a.kind === "confirm" && a.enabled && a.assignmentId);
+  const reject =
+    actions?.find((a) => a.kind === "reject" && a.enabled && a.assignmentId) ??
+    actions?.find((a) => a.kind === "decline" && a.enabled && a.assignmentId);
 
-  if (!confirm && !decline) return null;
+  if (!accept && !reject) return null;
   if (done) {
     return (
       <p className="font-ar text-xs text-muted-foreground" dir="rtl">
-        {done === "confirmed" ? "اتأكد التعيين." : "اترفض التعيين."}
+        {done === "confirmed" ? "اتأكد التعيين — شكراً." : "اترفض التعيين."}
       </p>
     );
   }
 
-  function run(
-    kind: "confirm" | "decline",
-    assignmentId: string
-  ) {
+  function run(kind: "accept" | "reject", assignmentId: string) {
     setError(null);
     startTransition(async () => {
       const result =
-        kind === "confirm"
-          ? await confirmCrewAssignment(assignmentId)
-          : await declineCrewAssignment(assignmentId);
+        kind === "accept"
+          ? await acceptCrewAssignment(assignmentId)
+          : await rejectCrewAssignment(assignmentId);
       if (!result.ok) {
         setError(result.error);
         return;
       }
-      setDone(result.status === "confirmed" ? "confirmed" : "cancelled");
-      router.refresh();
+      const status = result.status === "confirmed" ? "confirmed" : "cancelled";
+      setDone(status);
+      if (notificationId && live) {
+        live.setStatusLocal(
+          notificationId,
+          status === "confirmed" ? "acknowledged" : "completed",
+          {
+            acknowledgedAt: new Date().toISOString(),
+            completedAt:
+              status === "cancelled" ? new Date().toISOString() : undefined,
+          }
+        );
+      }
+      onDecided?.(status);
     });
   }
 
   return (
     <div className="mt-2 flex flex-wrap items-center gap-2" dir="rtl">
-      {confirm?.assignmentId ? (
+      {accept?.assignmentId ? (
         <Button
           type="button"
           size="sm"
           variant="default"
-          className="cursor-pointer bg-soda-pink text-soda-action-foreground hover:bg-soda-pink/90"
+          className="min-h-9 cursor-pointer bg-soda-pink px-3 text-soda-action-foreground hover:bg-soda-pink/90"
           disabled={pending}
-          onClick={() => run("confirm", confirm.assignmentId!)}
+          onClick={() => run("accept", accept.assignmentId!)}
         >
-          تأكيد
+          قبول
         </Button>
       ) : null}
-      {decline?.assignmentId ? (
+      {reject?.assignmentId ? (
         <Button
           type="button"
           size="sm"
           variant="outline"
-          className="cursor-pointer"
+          className="min-h-9 cursor-pointer px-3"
           disabled={pending}
-          onClick={() => run("decline", decline.assignmentId!)}
+          onClick={() => run("reject", reject.assignmentId!)}
         >
           رفض
         </Button>
@@ -88,5 +101,20 @@ export function NotificationDecisionButtons({
         <span className="font-ar text-xs text-destructive">{error}</span>
       ) : null}
     </div>
+  );
+}
+
+export function notificationNeedsDecision(n: NotificationRecord): boolean {
+  if (n.status === "acknowledged" || n.status === "completed") return false;
+  return Boolean(
+    n.actions?.some(
+      (a) =>
+        (a.kind === "accept" ||
+          a.kind === "confirm" ||
+          a.kind === "reject" ||
+          a.kind === "decline") &&
+        a.enabled &&
+        a.assignmentId
+    )
   );
 }

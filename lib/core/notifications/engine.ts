@@ -8,8 +8,10 @@ import type {
   BusinessEventType,
   NotificationAction,
   NotificationRecord,
+  NotificationRelatedObject,
 } from "@/lib/core/types";
 import { hrefForBusinessEvent } from "@/lib/identity/navigation";
+import { categoryForEvent } from "@/lib/core/notifications/categories";
 import {
   compareNotificationsByPriority,
   priorityForEvent,
@@ -213,46 +215,200 @@ function actionLabel(kind: ActionKind): string {
   }
 }
 
+function relatedObjectsFor(
+  event: BusinessEvent,
+  href: string
+): NotificationRelatedObject[] {
+  const related: NotificationRelatedObject[] = [];
+  const p = event.payload;
+  if (p.orderId) {
+    related.push({
+      type: "order",
+      id: p.orderId,
+      label: "الأوردر",
+      href: `/orders/${p.orderId}`,
+    });
+  }
+  if (p.clientId) {
+    related.push({
+      type: "client",
+      id: p.clientId,
+      label: "العميل",
+      href: `/clients/${p.clientId}`,
+    });
+  }
+  if (p.projectId) {
+    related.push({
+      type: "project",
+      id: p.projectId,
+      label: "المشروع",
+      href: `/projects/${p.projectId}`,
+    });
+  }
+  if (p.personId) {
+    related.push({
+      type: "person",
+      id: p.personId,
+      label: "فرد الفريق",
+      href: `/people/${p.personId}`,
+    });
+  }
+  if (p.quotationId) {
+    related.push({
+      type: "quotation",
+      id: p.quotationId,
+      label: "عرض السعر",
+      href: `/quotations/${p.quotationId}`,
+    });
+  }
+  if (
+    p.invoiceId ||
+    p.paymentId ||
+    actionKindFor(event, href) === "finance"
+  ) {
+    related.push({
+      type: "finance",
+      id: p.invoiceId ?? p.paymentId,
+      label: "المالية",
+      href: "/finance",
+    });
+  }
+  if (event.type === "OrderRescheduled") {
+    related.push({
+      type: "calendar",
+      label: "التقويم",
+      href: "/calendar",
+    });
+  }
+  // Dedupe by href
+  const seen = new Set<string>();
+  return related.filter((r) => {
+    if (seen.has(r.href)) return false;
+    seen.add(r.href);
+    return true;
+  });
+}
+
 function actionsFor(event: BusinessEvent, href: string): NotificationAction[] {
   const kind = actionKindFor(event, href);
-  const view: NotificationAction = {
-    kind: "view",
+  const open: NotificationAction = {
+    kind: kind === "order" ? "view_order" : "open",
     label: actionLabel(kind),
     href,
     enabled: true,
   };
+  const navigate: NotificationAction = {
+    kind: "navigate",
+    label: "روح للمكان",
+    href,
+    enabled: true,
+  };
+  const dismiss: NotificationAction = {
+    kind: "dismiss",
+    label: "تجاهل",
+    enabled: true,
+  };
 
-  // CrewAssigned ≈ mission "CrewConfirmed" — Confirm/Decline via assignment status.
+  // CrewAssigned — Accept workflow (Confirm/Decline via existing assignment API).
   if (event.type === "CrewAssigned") {
     const assignmentId =
       event.payload.assignmentId ??
       (event.payload.entityType === "assignment"
         ? event.payload.entityId
         : undefined);
-    return [
-      view,
+    const actions: NotificationAction[] = [
+      open,
+      {
+        kind: "accept",
+        label: "قبول",
+        enabled: Boolean(assignmentId),
+        assignmentId,
+        href,
+      },
+      {
+        kind: "reject",
+        label: "رفض",
+        enabled: Boolean(assignmentId),
+        assignmentId,
+        href,
+      },
       {
         kind: "confirm",
         label: "تأكيد",
         enabled: Boolean(assignmentId),
         assignmentId,
-        href: href,
+        href,
       },
       {
         kind: "decline",
-        label: "رفض",
+        label: "رفض التعيين",
         enabled: Boolean(assignmentId),
         assignmentId,
-        href: href,
+        href,
       },
     ];
+    if (event.payload.orderId) {
+      actions.push({
+        kind: "assign_crew",
+        label: "تعيين فريق",
+        href: `/orders/${event.payload.orderId}`,
+        enabled: true,
+      });
+    }
+    actions.push(dismiss);
+    return actions;
   }
 
-  return [
-    view,
-    { kind: "confirm", label: "تأكيد", enabled: false },
-    { kind: "decline", label: "رفض", enabled: false },
-  ];
+  const actions: NotificationAction[] = [open, navigate];
+
+  if (kind === "order" && event.payload.orderId) {
+    actions.push({
+      kind: "view_order",
+      label: "افتح الأوردر",
+      href: `/orders/${event.payload.orderId}`,
+      enabled: true,
+    });
+    actions.push({
+      kind: "assign_crew",
+      label: "تعيين فريق",
+      href: `/orders/${event.payload.orderId}`,
+      enabled: true,
+    });
+  }
+
+  // Navigate-only placeholders — Mark Paid / Delivered need existing order page flows.
+  if (event.type === "PaymentReceived" || event.type === "InvoiceCreated") {
+    actions.push({
+      kind: "mark_paid",
+      label: "شوف التحصيل",
+      href: event.payload.orderId
+        ? `/orders/${event.payload.orderId}`
+        : "/finance",
+      enabled: true,
+    });
+  }
+  if (event.type === "DeliveryCreated" || event.type === "OrderConfirmed") {
+    actions.push({
+      kind: "mark_delivered",
+      label: "تابع التسليم",
+      href: event.payload.orderId
+        ? `/orders/${event.payload.orderId}`
+        : href,
+      enabled: true,
+    });
+  }
+
+  if (event.payload.personId) {
+    actions.push({
+      kind: "call",
+      label: "ملف الفرد",
+      href: `/people/${event.payload.personId}`,
+      enabled: true,
+    });
+  }
+
+  actions.push(dismiss);
+  return actions;
 }
 
 /** Pure map: business event → human notification (no shared cache mutation). */
@@ -260,6 +416,7 @@ export function buildNotificationRecord(
   event: BusinessEvent
 ): NotificationRecord {
   const href = hrefFor(event);
+  const requiresAck = event.type === "CrewAssigned";
   return {
     id: `ntf-${event.id}`,
     eventId: event.id,
@@ -269,9 +426,20 @@ export function buildNotificationRecord(
     body: bodyFor(event),
     href,
     read: false,
+    status: "unread",
+    category: categoryForEvent(event),
     entityType: event.payload.entityType,
     entityId: event.payload.entityId,
     priority: priorityForEvent(event),
+    requiresAck,
+    relatedObjects: relatedObjectsFor(event, href),
+    history: [
+      {
+        at: event.occurredAt,
+        status: "unread",
+        note: "اتعمل التنبيه",
+      },
+    ],
     actions: actionsFor(event, href),
   };
 }
@@ -320,6 +488,7 @@ export function markNotificationRead(id: string): boolean {
   const n = notifications.find((x) => x.id === id);
   if (!n) return false;
   n.read = true;
+  if (n.status === "unread") n.status = "read";
   return true;
 }
 
@@ -364,13 +533,31 @@ export function notificationPriorityLabel(
 ): string {
   switch (priority) {
     case "urgent":
-      return "عاجل";
+      return "حرج";
     case "high":
-      return "مهم";
+      return "عالي";
+    case "normal":
+      return "عادي";
     case "low":
-      return "خفيف";
+      return "معلومة";
     default:
       return "";
+  }
+}
+
+/** Visual tier labels matching Mission priority: Critical / High / Normal / Info */
+export function notificationPriorityTier(
+  priority: NotificationRecord["priority"]
+): "critical" | "high" | "normal" | "info" {
+  switch (priority) {
+    case "urgent":
+      return "critical";
+    case "high":
+      return "high";
+    case "low":
+      return "info";
+    default:
+      return "normal";
   }
 }
 

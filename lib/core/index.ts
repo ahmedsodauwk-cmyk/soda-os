@@ -16,6 +16,8 @@ export type {
   BusinessEventType,
   NotificationAction,
   NotificationActionKind,
+  NotificationCategory,
+  NotificationLifecycleStatus,
   NotificationPriority,
   NotificationRecord,
 } from "@/lib/core/types";
@@ -67,10 +69,29 @@ export {
   notificationDisplayTitle,
   notificationHref,
   notificationPriorityLabel,
+  notificationPriorityTier,
   recordNotificationFromEvent,
 } from "@/lib/core/notifications/engine";
 
 export { loadHydratedNotifications, loadNotificationsForSession } from "@/lib/core/notifications/load";
+
+export {
+  categoryForEvent,
+  categoryLabel,
+  NOTIFICATION_CATEGORY_LABELS,
+} from "@/lib/core/notifications/categories";
+
+export {
+  groupNotificationsByTimeline,
+  timeGroupFor,
+  NOTIFICATION_TIME_GROUP_LABELS,
+} from "@/lib/core/notifications/grouping";
+
+export {
+  applySmartSync,
+  isUnread,
+  lifecycleLabel,
+} from "@/lib/core/notifications/lifecycle";
 
 export {
   compareNotificationsByPriority,

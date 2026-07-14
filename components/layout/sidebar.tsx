@@ -38,6 +38,8 @@ import { ROLE_LABELS, type SodaRole } from "@/lib/identity/roles";
 import { useI18n } from "@/lib/i18n/provider";
 
 export type SidebarUser = {
+  /** Auth user id — notification lifecycle localStorage key. */
+  userId?: string;
   fullName: string;
   role: SodaRole;
   accessLevel?: AccessLevel;

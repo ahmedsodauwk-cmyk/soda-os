@@ -114,6 +114,41 @@ export interface AuditLogEntry {
 /** Human Experience — urgency for the Notification Center (never raw event names). */
 export type NotificationPriority = "urgent" | "high" | "normal" | "low";
 
+/**
+ * Lifecycle (Mission 06.1): Unread → Read → Acknowledged (if required) → Completed.
+ * No forever-stale rows — business completion / dismiss / archive advances state.
+ */
+export type NotificationLifecycleStatus =
+  | "unread"
+  | "read"
+  | "acknowledged"
+  | "completed";
+
+/** Filter categories — presentation only; scope still from Mission 04.5. */
+export type NotificationCategory =
+  | "orders"
+  | "finance"
+  | "crew"
+  | "calendar"
+  | "clients"
+  | "authority"
+  | "brain"
+  | "system"
+  | "personal";
+
+export interface NotificationRelatedObject {
+  type: BusinessEntityType | "finance" | "calendar" | "brain";
+  id?: string;
+  label: string;
+  href: string;
+}
+
+export interface NotificationHistoryEntry {
+  at: string;
+  status: NotificationLifecycleStatus | "archived" | "dismissed";
+  note?: string;
+}
+
 export interface NotificationRecord {
   id: string;
   eventId: string;
@@ -123,20 +158,48 @@ export interface NotificationRecord {
   title: string;
   body: string;
   href?: string;
+  /** Derived: status === "unread". Badge uses this only. */
   read: boolean;
+  /** Durable lifecycle — persisted per user when possible. */
+  status: NotificationLifecycleStatus;
+  category: NotificationCategory;
   entityType: BusinessEntityType;
   entityId: string;
   /** Human priority for sorting / visual weight. */
   priority: NotificationPriority;
+  /** CrewAssigned and similar — Confirm workflow required. */
+  requiresAck?: boolean;
+  acknowledgedAt?: string;
+  completedAt?: string;
+  archivedAt?: string;
+  dismissedAt?: string;
+  relatedObjects?: NotificationRelatedObject[];
+  history?: NotificationHistoryEntry[];
   /**
-   * Confirm / Decline for crew assignment decisions (CrewAssigned).
-   * Other events keep view-only + disabled placeholders.
+   * Action CTAs — Confirm/Decline when server APIs exist; Navigate/Open otherwise.
+   * Never invent ERP writes without existing APIs.
    */
   actions?: NotificationAction[];
 }
 
-/** Notification decision CTA — Confirm/Decline for crew assignments. */
-export type NotificationActionKind = "confirm" | "decline" | "view";
+/**
+ * Notification decision CTAs.
+ * accept/reject alias confirm/decline for Accept workflow copy.
+ */
+export type NotificationActionKind =
+  | "confirm"
+  | "decline"
+  | "accept"
+  | "reject"
+  | "view"
+  | "open"
+  | "navigate"
+  | "call"
+  | "view_order"
+  | "assign_crew"
+  | "mark_paid"
+  | "mark_delivered"
+  | "dismiss";
 
 export interface NotificationAction {
   kind: NotificationActionKind;
@@ -146,4 +209,6 @@ export interface NotificationAction {
   enabled?: boolean;
   /** Assignment id for confirm/decline server actions. */
   assignmentId?: string;
+  /** Optional tel: target when a phone is known on the related person. */
+  phone?: string;
 }
