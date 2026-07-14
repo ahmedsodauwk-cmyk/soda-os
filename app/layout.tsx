@@ -14,6 +14,7 @@ import {
   parseTheme,
   themeBootScript,
 } from "@/lib/theme/config";
+import { SODA_LOGO, sodaBrandUrl } from "@/lib/brand/logo";
 import "./globals.css";
 
 /** Distinctive geometric sans — English UI + headings. */
@@ -49,22 +50,22 @@ export const metadata: Metadata = {
   manifest: "/manifest.webmanifest",
   icons: {
     icon: [
-      { url: "/brand/favicon.ico?v=06.3.1", sizes: "any" },
+      { url: sodaBrandUrl("/brand/favicon.ico"), sizes: "any" },
       {
-        url: "/brand/favicon-32.png?v=06.3.1",
+        url: sodaBrandUrl("/brand/favicon-32.png"),
         type: "image/png",
         sizes: "32x32",
       },
       {
-        url: "/brand/soda-icon.png?v=06.3.1",
+        url: sodaBrandUrl(SODA_LOGO.iconSrc),
         type: "image/png",
         sizes: "512x512",
       },
-      { url: "/brand/soda-logo.svg?v=06.3.1", type: "image/svg+xml" },
+      { url: sodaBrandUrl(SODA_LOGO.svgSrc), type: "image/svg+xml" },
     ],
     apple: [
       {
-        url: "/brand/apple-touch-icon.png?v=06.3.1",
+        url: sodaBrandUrl("/brand/apple-touch-icon.png"),
         type: "image/png",
         sizes: "180x180",
       },
@@ -77,10 +78,10 @@ export const metadata: Metadata = {
     type: "website",
     images: [
       {
-        url: "/brand/og-image.png?v=06.3.1",
+        url: sodaBrandUrl(SODA_LOGO.ogSrc),
         width: 1200,
         height: 630,
-        alt: "SODA",
+        alt: SODA_LOGO.alt,
       },
     ],
   },
@@ -88,7 +89,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "SODA VISUALS",
     description: "نظام تشغيل الاستوديو — شغل مرتّب وطاقة عالية",
-    images: ["/brand/og-image.png?v=06.3.1"],
+    images: [sodaBrandUrl(SODA_LOGO.ogSrc)],
   },
 };
 
