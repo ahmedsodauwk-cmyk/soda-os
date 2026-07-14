@@ -29,6 +29,7 @@ export type Dictionary = {
     briefs: string;
     dressCode: string;
     myPerformance: string;
+    connect: string;
     notifications: string;
     settings: string;
   };
@@ -57,6 +58,7 @@ export type Dictionary = {
     statistics: string;
     settings: string;
     changePassword: string;
+    connect: string;
     notifications: string;
     attention: string;
     mySpace: string;
@@ -130,6 +132,7 @@ export type Dictionary = {
     equipment: string;
     statistics: string;
     settings: string;
+    connect: string;
     notifications: string;
     attention: string;
     schedule: string;
@@ -178,6 +181,7 @@ const en: Dictionary = {
     briefs: "Briefs",
     dressCode: "Dress Code",
     myPerformance: "My Performance",
+    connect: "SODA Connect",
     notifications: "Notifications",
     settings: "Settings",
   },
@@ -206,6 +210,7 @@ const en: Dictionary = {
     statistics: "Statistics",
     settings: "Settings",
     changePassword: "Change Password",
+    connect: "SODA Connect",
     notifications: "Notifications",
     attention: "Need Attention",
     mySpace: "My Space",
@@ -279,6 +284,7 @@ const en: Dictionary = {
     equipment: "Equipment",
     statistics: "Statistics",
     settings: "Settings",
+    connect: "SODA Connect",
     notifications: "Notifications",
     attention: "Need Attention",
     schedule: "Timeline",
@@ -327,6 +333,7 @@ const ar: Dictionary = {
     briefs: "البريفز",
     dressCode: "الدريس كود",
     myPerformance: "أدائي",
+    connect: "SODA Connect",
     notifications: "التنبيهات",
     settings: "الإعدادات",
   },
@@ -355,6 +362,7 @@ const ar: Dictionary = {
     statistics: "الإحصائيات",
     settings: "الإعدادات",
     changePassword: "تغيير كلمة السر",
+    connect: "SODA Connect",
     notifications: "التنبيهات",
     attention: "محتاج انتباه",
     mySpace: "مساحتي",
@@ -428,6 +436,7 @@ const ar: Dictionary = {
     equipment: "المعدات",
     statistics: "الإحصائيات",
     settings: "الإعدادات",
+    connect: "SODA Connect",
     notifications: "التنبيهات",
     attention: "محتاج انتباه",
     schedule: "الجدول الزمني",

@@ -31,6 +31,7 @@ export type HumanLayerKey =
   | "equipment"
   | "settings"
   | "notifications"
+  | "connect"
   | "mySpace"
   | "myWallet"
   | "brain"
@@ -140,6 +141,7 @@ export const HUMAN_LAYER: Record<HumanLayerKey, string> = {
   equipment: "الكاميرات والعدسات والعدة.\nمين معاه إيه، وإيه فاضي.",
   settings: "الحساب، اللغة، وكلمة السر.\nوصلاحيات الفريق لو محتاج.",
   notifications: "تنبيهات الأوردرات والعملاء والمالية.\nاللي محتاج نظرة بسرعة.",
+  connect: "تواصل الفريق الرسمي جوّه صودا.\nمحادثات خاصة + غرفة الفريق — من غير ضجيج برا.",
   mySpace: "مساحتك الشخصية في صودا.\nالشوتات، المحفظة، والتارجيت.",
   myWallet: "مستحقاتك والمدفوع من الشغل.\nمحفظة واضحة من غير لف.",
   brain:

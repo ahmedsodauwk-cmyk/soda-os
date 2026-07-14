@@ -17,6 +17,7 @@ const NAV_HREFS: Record<AccessLevel, ReadonlySet<string> | "all"> = {
     "/clients",
     "/people",
     "/calendar",
+    "/connect",
     "/notifications",
   ]),
   team_leader: new Set([
@@ -24,9 +25,10 @@ const NAV_HREFS: Record<AccessLevel, ReadonlySet<string> | "all"> = {
     "/orders",
     "/people",
     "/calendar",
+    "/connect",
     "/notifications",
   ]),
-  team: new Set(["/", "/orders", "/calendar", "/notifications"]),
+  team: new Set(["/", "/orders", "/calendar", "/connect", "/notifications"]),
 };
 
 /**
@@ -46,6 +48,7 @@ const PATH_PREFIXES: Record<AccessLevel, readonly string[] | "all"> = {
     "/people",
     "/crew",
     "/calendar",
+    "/connect",
     "/notifications",
     "/me",
     "/schedule",
@@ -58,6 +61,7 @@ const PATH_PREFIXES: Record<AccessLevel, readonly string[] | "all"> = {
     "/people",
     "/crew",
     "/calendar",
+    "/connect",
     "/notifications",
     "/me",
     "/schedule",
@@ -67,6 +71,7 @@ const PATH_PREFIXES: Record<AccessLevel, readonly string[] | "all"> = {
     "/",
     "/orders",
     "/calendar",
+    "/connect",
     "/notifications",
     "/me",
     "/settings/password",

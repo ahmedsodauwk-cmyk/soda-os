@@ -62,6 +62,8 @@ export const PERMISSIONS = [
   "me.performance",
   "brain.view",
   "brain.edit",
+  "connect.view",
+  "connect.send",
 ] as const;
 
 export type Permission = (typeof PERMISSIONS)[number];

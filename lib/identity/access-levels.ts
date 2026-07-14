@@ -106,6 +106,8 @@ const ALL: Permission[] = [
   "me.performance",
   "brain.view",
   "brain.edit",
+  "connect.view",
+  "connect.send",
 ];
 
 /** Account Manager — quotes/orders/clients/commercial/calendar/assign; no Authority/Finance/Settings. */
@@ -127,6 +129,8 @@ const ACCOUNT_MANAGER: Permission[] = [
   "quotations.edit",
   "commercial.view",
   "notifications.view",
+  "connect.view",
+  "connect.send",
 ];
 
 /** Team Leader — orders, assign, crew workspace, calendar; no Authority/Finance/user creation. */
@@ -148,6 +152,8 @@ const TEAM_LEADER: Permission[] = [
   "calendar.edit",
   "calendar.manage",
   "notifications.view",
+  "connect.view",
+  "connect.send",
   "me.performance",
 ];
 
@@ -158,6 +164,8 @@ const TEAM: Permission[] = [
   "orders.status",
   "calendar.view",
   "notifications.view",
+  "connect.view",
+  "connect.send",
   "me.wallet",
   "me.bonus",
   "me.target",

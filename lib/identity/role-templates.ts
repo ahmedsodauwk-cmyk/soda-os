@@ -219,6 +219,7 @@ export const PERMISSION_GROUPS = [
   "Calendar",
   "Reports",
   "Notifications",
+  "Connect",
   "Commercial",
   "Settings",
   "Social Media",

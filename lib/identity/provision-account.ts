@@ -166,6 +166,17 @@ export async function provisionLoginAccountForPerson(input: {
       return { ok: false, error: profileErr.message };
     }
 
+    // SODA Connect — private DMs + SODA Team join + presence (no fake users/messages)
+    try {
+      const { provisionConnectForUser } = await import("@/lib/connect/repository");
+      await provisionConnectForUser(created.data.user.id);
+    } catch (err) {
+      console.error(
+        "[connect] provision after login create failed",
+        err instanceof Error ? err.message : err
+      );
+    }
+
     return {
       ok: true,
       profileId: created.data.user.id,

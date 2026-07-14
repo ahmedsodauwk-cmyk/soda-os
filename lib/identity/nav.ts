@@ -31,6 +31,7 @@ import {
   Building2,
   UserRound,
   Brain,
+  MessageCircle,
 } from "lucide-react";
 
 import type { AccessLevel } from "@/lib/identity/access-levels";
@@ -228,6 +229,14 @@ export const NAV_ITEMS: NavItem[] = [
     icon: TrendingUp,
     anyOf: ["me.performance"],
     workspace: "me",
+  },
+  {
+    titleKey: "nav.connect",
+    href: "/connect",
+    icon: MessageCircle,
+    anyOf: ["connect.view"],
+    workspace: "company",
+    emoji: "💬",
   },
   {
     titleKey: "nav.notifications",
