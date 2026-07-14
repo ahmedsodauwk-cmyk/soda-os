@@ -11,7 +11,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { loadHydratedNotifications } from "@/lib/core/notifications/load";
+import { loadNotificationsForSession } from "@/lib/core/notifications/load";
 import {
   notificationActionLabel,
   notificationDisplayBody,
@@ -20,6 +20,7 @@ import {
   notificationPriorityLabel,
 } from "@/lib/core/notifications/engine";
 import type { NotificationRecord } from "@/lib/core/types";
+import type { AccessLevel } from "@/lib/identity/access-levels";
 import { resolveSessionForApp } from "@/lib/identity/session";
 import { cn } from "@/lib/utils";
 
@@ -36,14 +37,27 @@ function priorityClass(priority: NotificationRecord["priority"]): string {
   }
 }
 
+function scopeSubtitle(level: AccessLevel): string {
+  switch (level) {
+    case "team":
+      return "تنبيهاتك بس — تعييناتك وأوردراتك.";
+    case "team_leader":
+      return "تنبيهاتك وتنبيهات فريقك — من غير تنبيهات مالية الشركة.";
+    case "account_manager":
+      return "تنبيهات الكوميرشال والعملاء بتوعك.";
+    default:
+      return "تنبيهات بشرية من حركة الستوديو — من غير أسماء تقنية.";
+  }
+}
+
 export default async function NotificationsPage() {
   const session = await resolveSessionForApp();
   if (!session) redirect("/login");
 
-  // Same hydrate path as AppShell bell — Human Notification Layer only.
+  // Same scoped hydrate path as AppShell bell — never global company stream.
   let notifications: NotificationRecord[] = [];
   try {
-    notifications = await loadHydratedNotifications();
+    notifications = await loadNotificationsForSession(session);
   } catch {
     notifications = [];
   }
@@ -57,15 +71,23 @@ export default async function NotificationsPage() {
       >
         <Card className="soda-cc-card">
           <CardHeader>
-            <CardTitle>مركز التنبيهات</CardTitle>
+            <CardTitle>
+              {session.profile.accessLevel === "founder"
+                ? "مركز التنبيهات"
+                : session.profile.accessLevel === "team_leader"
+                  ? "تنبيهات فريقي"
+                  : session.profile.accessLevel === "account_manager"
+                    ? "تنبيهاتي"
+                    : "تنبيهاتي"}
+            </CardTitle>
             <CardDescription dir="rtl" className="font-ar">
-              تنبيهات بشرية من حركة الستوديو — من غير أسماء تقنية.
+              {scopeSubtitle(session.profile.accessLevel)}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-1">
             {notifications.length === 0 ? (
               <p className="font-ar text-sm text-muted-foreground" dir="rtl">
-                مفيش تنبيهات دلوقتي. حركة الستوديو هتظهر هنا.
+                مفيش تنبيهات في نطاقك دلوقتي.
               </p>
             ) : (
               notifications.map((n) => {

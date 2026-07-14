@@ -6,7 +6,7 @@ import Header from "@/components/layout/header";
 import { PageAtmosphere } from "@/components/brand/page-atmosphere";
 import { Breadcrumbs } from "@/components/navigation/breadcrumbs";
 import { RecentlyViewed } from "@/components/navigation/recently-viewed";
-import { loadHydratedNotifications } from "@/lib/core/notifications/load";
+import { loadNotificationsForSession } from "@/lib/core/notifications/load";
 import type { HumanLayerKey } from "@/lib/brand/human-layer";
 import { resolveSectionPersonality } from "@/lib/brand/tokens";
 import { getRecentlyViewed } from "@/lib/identity/recent";
@@ -52,11 +52,13 @@ export async function AppShell({
     headerList.get("next-url") ||
     "/";
 
-  const [sessionResolved, notifications, recent] = await Promise.all([
+  const sessionResolved =
     sessionProp !== undefined
-      ? Promise.resolve(sessionProp)
-      : resolveSessionForApp(),
-    loadHydratedNotifications(),
+      ? sessionProp
+      : await resolveSessionForApp();
+
+  const [notifications, recent] = await Promise.all([
+    loadNotificationsForSession(sessionResolved),
     getRecentlyViewed(),
   ]);
 

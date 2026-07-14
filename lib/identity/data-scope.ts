@@ -1,20 +1,25 @@
 /**
- * Thin data-scope helpers — filter lists by Access Level (Mission 04.5.0).
+ * Thin data-scope helpers — filter lists by Access Level (Mission 04.5.0 / 04.5).
  * No schema changes. Prefer empty/honest results over inventing ownership.
  */
 
 import {
+  getAssignmentById,
   getAssignments,
   getAssignmentsByOrder,
   getAssignmentsByPerson,
 } from "@/lib/assignments/repository";
 import type { Client } from "@/lib/clients/types";
+import type { BusinessEvent, BusinessEventType } from "@/lib/core/types";
 import type { AccessLevel } from "@/lib/identity/access-levels";
 import type { SodaSession } from "@/lib/identity/session";
 import type { Order } from "@/lib/orders/types";
 import type { Person } from "@/lib/people/types";
 import type { Project } from "@/lib/projects/types";
-import { getQuotations } from "@/lib/quotations/repository";
+import {
+  getQuotationById,
+  getQuotations,
+} from "@/lib/quotations/repository";
 
 export type DataScope = {
   accessLevel: AccessLevel;
@@ -252,4 +257,146 @@ export function scopeEmptyReason(scope: DataScope): string | null {
 export function assignmentsTouchingScope(scope: DataScope) {
   if (!scope.personIds) return getAssignments();
   return getAssignments().filter((a) => scope.personIds!.has(a.personId));
+}
+
+/**
+ * Company financial / vault signals — Founder only.
+ * Never surface as Team / TL / AM notifications (Mission 04.5).
+ */
+export const COMPANY_FINANCE_EVENT_TYPES: ReadonlySet<BusinessEventType> =
+  new Set([
+    "PaymentReceived",
+    "PaymentUpdated",
+    "InvoiceCreated",
+    "InvoicePaid",
+    "InvoiceUpdated",
+    "CrewPaid",
+    "CrewBonusGenerated",
+    "ExpenseRecorded",
+    "TransferCompleted",
+    "FinancialReversed",
+    "FinancialVoided",
+    "FinancialCorrected",
+    "PeriodClosed",
+    "PeriodReopened",
+    "OpeningBalancePosted",
+    "ManualAdjustmentPosted",
+  ]);
+
+function quotationTouchesScope(
+  quotationId: string,
+  scope: DataScope
+): boolean {
+  const q = getQuotationById(quotationId);
+  if (!q) return false;
+  if (q.clientId && scope.clientIds?.has(q.clientId)) return true;
+  if (scope.accessLevel === "account_manager" && scope.displayName) {
+    const name = norm(scope.displayName);
+    if (name && norm(q.assignedSales) === name) return true;
+  }
+  return false;
+}
+
+/**
+ * Whether a business event is visible under this data scope.
+ * Founder → all. Others → never finance alerts; must touch order/client/person/quote scope.
+ */
+export function isBusinessEventInScope(
+  event: BusinessEvent,
+  scope: DataScope
+): boolean {
+  if (scope.accessLevel === "founder") return true;
+
+  // Company financial / vault signals — Founder only (already returned above).
+  if (COMPANY_FINANCE_EVENT_TYPES.has(event.type)) {
+    return false;
+  }
+
+  // Unlinked crew → honest empty (never company-wide).
+  if (
+    (scope.accessLevel === "team" || scope.accessLevel === "team_leader") &&
+    !scope.personId
+  ) {
+    return false;
+  }
+
+  const p = event.payload;
+
+  if (p.orderId && scope.orderIds?.has(p.orderId)) return true;
+  if (p.clientId && scope.clientIds?.has(p.clientId)) return true;
+  if (p.personId && scope.personIds?.has(p.personId)) return true;
+
+  if (p.entityType === "order" && scope.orderIds?.has(p.entityId)) {
+    return true;
+  }
+  if (p.entityType === "client" && scope.clientIds?.has(p.entityId)) {
+    return true;
+  }
+  if (p.entityType === "person" && scope.personIds?.has(p.entityId)) {
+    return true;
+  }
+  if (p.entityType === "project") {
+    // Project visibility follows linked client when present.
+    if (p.clientId && scope.clientIds?.has(p.clientId)) return true;
+    return false;
+  }
+
+  const assignmentId =
+    p.assignmentId ??
+    (p.entityType === "assignment" ? p.entityId : undefined);
+  if (assignmentId) {
+    const a = getAssignmentById(assignmentId);
+    if (a) {
+      if (scope.personIds?.has(a.personId)) return true;
+      if (scope.orderIds?.has(a.orderId)) return true;
+    }
+  }
+
+  const quotationId =
+    p.quotationId ??
+    (p.entityType === "quotation" ? p.entityId : undefined);
+  if (quotationId && quotationTouchesScope(quotationId, scope)) {
+    return true;
+  }
+
+  // Team: only personal / assignment-touching signals (never company orphans).
+  // TL / AM: same — no global fallthrough.
+  return false;
+}
+
+export function scopeBusinessEvents(
+  events: readonly BusinessEvent[],
+  scope: DataScope
+): BusinessEvent[] {
+  if (scope.accessLevel === "founder") return [...events];
+  return events.filter((e) => isBusinessEventInScope(e, scope));
+}
+
+/** Recent Orders section titles by Access Level (Mission 04.5). */
+export function recentOrdersCopy(level: AccessLevel): {
+  title: string;
+  description: string;
+} {
+  switch (level) {
+    case "founder":
+      return {
+        title: "Recent Company Orders",
+        description: "آخر الأوردرات اللي دخلت الشركة.",
+      };
+    case "team_leader":
+      return {
+        title: "Recent Team Orders",
+        description: "أوردرات فريقك الأخيرة.",
+      };
+    case "account_manager":
+      return {
+        title: "Recent Client Orders",
+        description: "أوردرات عملائك الأخيرة.",
+      };
+    default:
+      return {
+        title: "My Recent Orders",
+        description: "الأوردرات المتسجلة عليك.",
+      };
+  }
 }

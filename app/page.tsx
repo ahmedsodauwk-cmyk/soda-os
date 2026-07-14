@@ -21,11 +21,13 @@ import { buildDashboardSnapshot } from "@/lib/dashboard/stats";
 import { loadDashboardSnapshot } from "@/lib/dashboard";
 import {
   buildDataScope,
+  recentOrdersCopy,
   scopeClients,
   scopeEmptyReason,
   scopeOrders,
   scopeProjects,
 } from "@/lib/identity/data-scope";
+import { maySeeCompanyPulse } from "@/lib/identity/module-access";
 import { permissionsForAsync } from "@/lib/identity/permission-service";
 import { resolveSessionForApp } from "@/lib/identity/session";
 import { setHasAny, type Permission } from "@/lib/identity/permissions";
@@ -41,7 +43,7 @@ export const dynamic = "force-dynamic";
 
 /**
  * Command Center — Founder keeps full company Home.
- * Other Access Levels get scoped widgets + scoped data (Mission 04.5.0).
+ * Other Access Levels get scoped widgets + scoped data (Mission 04.5).
  */
 export default async function Home() {
   const session = await resolveSessionForApp();
@@ -68,6 +70,7 @@ export default async function Home() {
       attention: dashboard.attention,
       schedule: dashboard.schedule,
     };
+    const recentCopy = recentOrdersCopy("founder");
 
     const showFinance =
       !!allowed &&
@@ -83,6 +86,7 @@ export default async function Home() {
     const showQuotations =
       !!allowed && setHasAny(allowed, ["quotations.view"] as Permission[]);
     const showCompanyPulse =
+      maySeeCompanyPulse(level ?? "founder") &&
       !!allowed &&
       setHasAny(allowed, [
         "dashboard.company",
@@ -145,7 +149,11 @@ export default async function Home() {
                 </div>
               ) : null}
               {showOrders ? (
-                <RecentOrders orders={dashboard.recentOrders} />
+                <RecentOrders
+                  orders={dashboard.recentOrders}
+                  title={recentCopy.title}
+                  description={recentCopy.description}
+                />
               ) : null}
             </div>
 

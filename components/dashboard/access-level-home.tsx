@@ -29,7 +29,10 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import type { AccessLevel } from "@/lib/identity/access-levels";
-import type { DataScope } from "@/lib/identity/data-scope";
+import {
+  recentOrdersCopy,
+  type DataScope,
+} from "@/lib/identity/data-scope";
 import type { DashboardSnapshot } from "@/lib/dashboard/types";
 import type { Order } from "@/lib/orders/types";
 import type { Quotation } from "@/lib/quotations/types";
@@ -170,6 +173,7 @@ export function AccessLevelHome(props: AccessLevelHomeProps) {
     const nonFinanceAttention = dashboard.attention.filter(
       (a) => a.category !== "unpaid_client" && a.category !== "waiting_payment"
     );
+    const recentCopy = recentOrdersCopy("account_manager");
 
     return (
       <div className="soda-page-enter space-y-3 sm:space-y-4">
@@ -185,7 +189,7 @@ export function AccessLevelHome(props: AccessLevelHomeProps) {
 
         <div className="grid grid-cols-1 gap-3 lg:grid-cols-2 lg:gap-4 xl:grid-cols-3">
           <WidgetCard
-            title="Pending Quotations"
+            title="My Quotations"
             description="عروض أسعار لسه في البايبلاين"
             href="/quotations"
           >
@@ -195,7 +199,7 @@ export function AccessLevelHome(props: AccessLevelHomeProps) {
             />
           </WidgetCard>
           <WidgetCard
-            title="Client Follow-ups"
+            title="My Pipeline"
             description="متابعة ردود العملاء"
             href="/quotations"
           >
@@ -205,7 +209,7 @@ export function AccessLevelHome(props: AccessLevelHomeProps) {
             />
           </WidgetCard>
           <WidgetCard
-            title="Active Commercial Orders"
+            title="My Orders"
             description="أوردرات تجارية شغالة"
             href="/orders"
           >
@@ -215,9 +219,9 @@ export function AccessLevelHome(props: AccessLevelHomeProps) {
             />
           </WidgetCard>
           <WidgetCard
-            title="Orders Waiting Client"
+            title="My Clients"
             description="مستنيين رد العميل"
-            href="/orders"
+            href="/clients"
           >
             <OrderLines
               orders={waitingClientOrders}
@@ -228,6 +232,12 @@ export function AccessLevelHome(props: AccessLevelHomeProps) {
             <UpcomingScheduleCard schedule={dashboard.schedule} />
           </div>
         </div>
+
+        <RecentOrders
+          orders={dashboard.recentOrders}
+          title={recentCopy.title}
+          description={recentCopy.description}
+        />
 
         <div className="grid grid-cols-1 gap-3 lg:grid-cols-2 lg:gap-4">
           <AttentionCenter items={nonFinanceAttention} showViewAll={false} />
@@ -243,6 +253,7 @@ export function AccessLevelHome(props: AccessLevelHomeProps) {
         a.category !== "unpaid_client" &&
         a.category !== "waiting_payment"
     );
+    const recentCopy = recentOrdersCopy("team_leader");
 
     return (
       <div className="soda-page-enter space-y-3 sm:space-y-4">
@@ -257,14 +268,20 @@ export function AccessLevelHome(props: AccessLevelHomeProps) {
         />
 
         <div className="grid grid-cols-1 gap-3 lg:grid-cols-2 lg:gap-4 xl:grid-cols-3">
-          <WidgetCard title="My Team Orders" href="/orders">
+          <WidgetCard title="My Team" href="/orders">
             <OrderLines
               orders={teamOrders}
               empty="No team orders yet — assign crew on real work."
             />
           </WidgetCard>
+          <WidgetCard title="My Orders" href="/orders">
+            <OrderLines
+              orders={teamOrders}
+              empty="No orders in your team scope."
+            />
+          </WidgetCard>
           <UpcomingScheduleCard schedule={dashboard.schedule} />
-          <WidgetCard title="Today's Shoots" href="/calendar">
+          <WidgetCard title="My Team Schedule" href="/calendar">
             {dashboard.schedule.todayShoots.length === 0 ? (
               <EmptyLine text="No shoots scheduled today for your team." />
             ) : (
@@ -288,16 +305,19 @@ export function AccessLevelHome(props: AccessLevelHomeProps) {
               empty="No pending deliveries on team work."
             />
           </WidgetCard>
-          <WidgetCard title="Crew Attendance" href="/people">
-            <EmptyLine text="Attendance stays empty until crew check-in is recorded." />
-          </WidgetCard>
-          <WidgetCard title="Team Notifications" href="/notifications">
+          <WidgetCard title="My Team Notifications" href="/notifications">
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Bell className="size-4" />
               Open notifications for team signals.
             </div>
           </WidgetCard>
         </div>
+
+        <RecentOrders
+          orders={dashboard.recentOrders}
+          title={recentCopy.title}
+          description={recentCopy.description}
+        />
 
         {opsAttention.length > 0 ? (
           <AttentionCenter items={opsAttention} showViewAll={false} />
@@ -307,13 +327,14 @@ export function AccessLevelHome(props: AccessLevelHomeProps) {
   }
 
   // Team — personal mission board only
+  const recentCopy = recentOrdersCopy("team");
   const personalLinks = [
-    { href: "/orders", title: "Assigned Orders", icon: ClipboardList },
+    { href: "/orders", title: "My Orders", icon: ClipboardList },
     { href: "/calendar", title: "My Calendar", icon: CalendarDays },
     { href: "/me/files", title: "My Files", icon: FolderOpen },
-    { href: "/me/performance", title: "Performance", icon: TrendingUp },
+    { href: "/me/performance", title: "My Work", icon: TrendingUp },
     { href: "/me/wallet", title: "Wallet", icon: Wallet },
-    { href: "/notifications", title: "Notifications", icon: Bell },
+    { href: "/notifications", title: "My Notifications", icon: Bell },
   ] as const;
 
   return (
@@ -352,7 +373,7 @@ export function AccessLevelHome(props: AccessLevelHomeProps) {
       </div>
 
       <div className="grid grid-cols-1 gap-3 lg:grid-cols-2 lg:gap-4">
-        <WidgetCard title="Assigned Orders" href="/orders">
+        <WidgetCard title="My Tasks" href="/orders">
           <OrderLines
             orders={scopedOrders}
             empty="No assigned orders yet."
@@ -361,9 +382,11 @@ export function AccessLevelHome(props: AccessLevelHomeProps) {
         <UpcomingScheduleCard schedule={dashboard.schedule} />
       </div>
 
-      {scopedOrders.length > 0 ? (
-        <RecentOrders orders={dashboard.recentOrders} />
-      ) : null}
+      <RecentOrders
+        orders={dashboard.recentOrders}
+        title={recentCopy.title}
+        description={recentCopy.description}
+      />
 
       <div className="flex flex-wrap gap-3 text-sm text-muted-foreground">
         <span className="inline-flex items-center gap-1.5">

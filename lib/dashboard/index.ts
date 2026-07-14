@@ -25,6 +25,10 @@ export {
 } from "@/lib/dashboard/stats";
 export { getDashboardSnapshot, loadDashboardSnapshot } from "@/lib/dashboard/repository";
 export {
+  loadScopedDashboardSnapshot,
+} from "@/lib/dashboard/scoped-snapshot";
+export type { ScopedDashboardResult } from "@/lib/dashboard/scoped-snapshot";
+export {
   buildActivityFeed,
   getActivityFeedRotateMs,
 } from "@/lib/dashboard/activity-feed";

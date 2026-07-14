@@ -64,7 +64,17 @@ function sortNewest(a: ActivityFeedEvent, b: ActivityFeedEvent): number {
 }
 
 /** Build chronological feed from orders, payments, projects, assignments. */
-export function buildActivityFeed(): ActivityFeedEvent[] {
+export function buildActivityFeed(opts?: {
+  /** null = all (Founder). Set = allowlist. */
+  orderIds?: Set<string> | null;
+  personIds?: Set<string> | null;
+  /** Company payment signals — Founder only. */
+  includePayments?: boolean;
+}): ActivityFeedEvent[] {
+  const orderAllow = opts?.orderIds;
+  const personAllow = opts?.personIds;
+  const includePayments = opts?.includePayments !== false;
+
   const events: ActivityFeedEvent[] = [];
   const clients = getClients();
   const clientName = (id: string) =>
@@ -75,7 +85,10 @@ export function buildActivityFeed(): ActivityFeedEvent[] {
     return p?.nameEn ?? p?.nameAr ?? "Crew";
   };
 
-  const orders = getOrders();
+  const orders =
+    orderAllow === undefined || orderAllow === null
+      ? getOrders()
+      : getOrders().filter((o) => orderAllow.has(o.id));
   for (const order of orders) {
     // Status / pipeline presence as operational event
     events.push({
@@ -132,22 +145,39 @@ export function buildActivityFeed(): ActivityFeedEvent[] {
     });
   }
 
-  for (const payment of getPayments()) {
-    if (payment.status !== "paid" || !payment.paidAt) continue;
-    events.push({
-      id: `payment-${payment.id}`,
-      at: payment.paidAt,
-      timeLabel: toTimeLabel(payment.paidAt),
-      kind: "payment",
-      category: "Payment",
-      description: `${clientName(payment.clientId)} · ${payment.label ?? payment.kind} · ${payment.amount.toLocaleString("en-EG")} EGP`,
-      href: payment.orderId
-        ? `/orders/${payment.orderId}`
-        : `/clients/${payment.clientId}`,
-    });
+  if (includePayments) {
+    for (const payment of getPayments()) {
+      if (payment.status !== "paid" || !payment.paidAt) continue;
+      if (
+        orderAllow &&
+        payment.orderId &&
+        !orderAllow.has(payment.orderId)
+      ) {
+        continue;
+      }
+      if (orderAllow && !payment.orderId) continue;
+      events.push({
+        id: `payment-${payment.id}`,
+        at: payment.paidAt,
+        timeLabel: toTimeLabel(payment.paidAt),
+        kind: "payment",
+        category: "Payment",
+        description: `${clientName(payment.clientId)} · ${payment.label ?? payment.kind} · ${payment.amount.toLocaleString("en-EG")} EGP`,
+        href: payment.orderId
+          ? `/orders/${payment.orderId}`
+          : `/clients/${payment.clientId}`,
+      });
+    }
   }
 
   for (const project of getProjects()) {
+    if (
+      personAllow &&
+      !project.team?.some((m) => personAllow.has(m.id))
+    ) {
+      continue;
+    }
+
     if (project.journeyStage) {
       events.push({
         id: `journey-${project.id}-${project.journeyStage}`,
@@ -186,6 +216,8 @@ export function buildActivityFeed(): ActivityFeedEvent[] {
   }
 
   for (const a of getAssignments()) {
+    if (personAllow && !personAllow.has(a.personId)) continue;
+    if (orderAllow && !orderAllow.has(a.orderId)) continue;
     events.push({
       id: `assign-${a.id}`,
       at: a.createdAt,

@@ -59,6 +59,8 @@ export {
   hydrateNotificationsFromEvents,
   listNotifications,
   listUnreadNotifications,
+  mapEventsToNotifications,
+  buildNotificationRecord,
   markNotificationRead,
   notificationActionLabel,
   notificationDisplayBody,
@@ -68,7 +70,7 @@ export {
   recordNotificationFromEvent,
 } from "@/lib/core/notifications/engine";
 
-export { loadHydratedNotifications } from "@/lib/core/notifications/load";
+export { loadHydratedNotifications, loadNotificationsForSession } from "@/lib/core/notifications/load";
 
 export {
   compareNotificationsByPriority,

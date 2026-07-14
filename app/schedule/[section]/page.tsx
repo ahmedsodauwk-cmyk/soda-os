@@ -9,7 +9,7 @@ import {
 } from "@/components/dashboard/schedule-section-list";
 import { AppShell } from "@/components/layout/app-shell";
 import { Button } from "@/components/ui/button";
-import { loadDashboardSnapshot } from "@/lib/dashboard";
+import { loadScopedDashboardSnapshot } from "@/lib/dashboard/scoped-snapshot";
 import type { ScheduleItem, UpcomingSchedule } from "@/lib/dashboard/types";
 import { resolveSessionForApp } from "@/lib/identity/session";
 
@@ -42,7 +42,7 @@ export default async function ScheduleSectionPage({
   const session = await resolveSessionForApp();
   if (!session) redirect("/login");
 
-  const dashboard = await loadDashboardSnapshot();
+  const { dashboard } = await loadScopedDashboardSnapshot(session);
   const items = itemsForSection(dashboard.schedule, raw);
   const meta = SCHEDULE_SECTION_META[raw];
 

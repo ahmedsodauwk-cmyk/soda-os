@@ -255,10 +255,12 @@ function actionsFor(event: BusinessEvent, href: string): NotificationAction[] {
   ];
 }
 
-/** Record a human notification from a business event (subscriber). */
-export function recordNotificationFromEvent(event: BusinessEvent): void {
+/** Pure map: business event → human notification (no shared cache mutation). */
+export function buildNotificationRecord(
+  event: BusinessEvent
+): NotificationRecord {
   const href = hrefFor(event);
-  const record: NotificationRecord = {
+  return {
     id: `ntf-${event.id}`,
     eventId: event.id,
     eventType: event.type,
@@ -272,6 +274,32 @@ export function recordNotificationFromEvent(event: BusinessEvent): void {
     priority: priorityForEvent(event),
     actions: actionsFor(event, href),
   };
+}
+
+/**
+ * Map events → notifications without touching the process-global store.
+ * Use for scoped session loads (avoids cross-user cache bleed on warm serverless).
+ */
+export function mapEventsToNotifications(
+  events: BusinessEvent[],
+  limit = 50
+): NotificationRecord[] {
+  const mapped: NotificationRecord[] = [];
+  for (const event of [...events].reverse()) {
+    try {
+      mapped.unshift(buildNotificationRecord(event));
+    } catch {
+      // Never fail notification mapping — skip bad events
+    }
+  }
+  return mapped
+    .sort(compareNotificationsByPriority)
+    .slice(0, Math.max(0, limit));
+}
+
+/** Record a human notification from a business event (subscriber). */
+export function recordNotificationFromEvent(event: BusinessEvent): void {
+  const record = buildNotificationRecord(event);
   notifications.unshift(record);
   if (notifications.length > MAX_MEMORY) {
     notifications.length = MAX_MEMORY;

@@ -22,20 +22,30 @@ import { cn } from "@/lib/utils";
 
 interface RecentOrdersProps {
   orders: RecentOrderRow[];
+  /** Override Founder/company default title (Mission 04.5 scope copy). */
+  title?: string;
+  description?: string;
 }
 
-export default function RecentOrders({ orders }: RecentOrdersProps) {
+export default function RecentOrders({
+  orders,
+  title,
+  description,
+}: RecentOrdersProps) {
   const empty = getEmptyState("orders");
+  const heading = title ?? DASHBOARD_SECTION_COPY.recentOrders.title;
+  const sub =
+    description ?? DASHBOARD_SECTION_COPY.recentOrders.description;
 
   return (
     <Card className="soda-cc-card">
       <CardHeader>
-        <CardTitle>{DASHBOARD_SECTION_COPY.recentOrders.title}</CardTitle>
+        <CardTitle>{heading}</CardTitle>
         <CardDescription
           className="font-ar text-[0.9375rem] leading-[1.8] text-muted-foreground"
           dir="rtl"
         >
-          {DASHBOARD_SECTION_COPY.recentOrders.description}
+          {sub}
         </CardDescription>
         <CardAction>
           <Button
