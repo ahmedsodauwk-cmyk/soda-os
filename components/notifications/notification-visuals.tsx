@@ -13,7 +13,7 @@ import {
   notificationActionLabel,
   notificationPriorityTier,
 } from "@/lib/core/notifications/engine";
-import { lifecycleLabel } from "@/lib/core/notifications/lifecycle";
+import { lifecycleLabel } from "@/lib/core/notifications/lifecycle-labels";
 import type {
   BusinessEntityType,
   NotificationCategory,

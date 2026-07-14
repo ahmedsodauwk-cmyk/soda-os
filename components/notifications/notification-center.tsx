@@ -59,7 +59,7 @@ import {
   notificationPriorityLabel,
 } from "@/lib/core/notifications/engine";
 import { groupNotificationsByTimeline } from "@/lib/core/notifications/grouping";
-import { lifecycleLabel } from "@/lib/core/notifications/lifecycle";
+import { lifecycleLabel } from "@/lib/core/notifications/lifecycle-labels";
 import type { NotificationRecord } from "@/lib/core/types";
 import { cn } from "@/lib/utils";
 

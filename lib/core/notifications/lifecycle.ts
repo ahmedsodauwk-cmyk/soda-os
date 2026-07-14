@@ -4,12 +4,18 @@
  */
 
 import { getAssignmentById } from "@/lib/assignments/repository";
+import {
+  isUnread,
+  lifecycleLabel,
+} from "@/lib/core/notifications/lifecycle-labels";
 import type {
   BusinessEvent,
   NotificationHistoryEntry,
   NotificationLifecycleStatus,
   NotificationRecord,
 } from "@/lib/core/types";
+
+export { isUnread, lifecycleLabel };
 
 const STATUS_RANK: Record<NotificationLifecycleStatus, number> = {
   unread: 0,
@@ -30,11 +36,6 @@ export function mergeLifecycleStatus(
 ): NotificationLifecycleStatus {
   if (force) return next;
   return statusRank(next) >= statusRank(current) ? next : current;
-}
-
-export function isUnread(n: Pick<NotificationRecord, "status" | "read">): boolean {
-  if (n.status) return n.status === "unread";
-  return !n.read;
 }
 
 export function appendHistory(
@@ -157,15 +158,3 @@ function withStatus(
   };
 }
 
-export function lifecycleLabel(status: NotificationLifecycleStatus): string {
-  switch (status) {
-    case "unread":
-      return "جديد";
-    case "read":
-      return "اتقراء";
-    case "acknowledged":
-      return "اتأكد";
-    case "completed":
-      return "خلص";
-  }
-}

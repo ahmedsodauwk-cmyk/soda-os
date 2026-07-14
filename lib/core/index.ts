@@ -73,7 +73,7 @@ export {
   recordNotificationFromEvent,
 } from "@/lib/core/notifications/engine";
 
-export { loadHydratedNotifications, loadNotificationsForSession } from "@/lib/core/notifications/load";
+/** Server-only loaders — import from `@/lib/core/notifications/load`, never this barrel (client-safe). */
 
 export {
   categoryForEvent,
@@ -89,11 +89,8 @@ export {
   NOTIFICATION_TIME_GROUP_LABELS,
 } from "@/lib/core/notifications/grouping";
 
-export {
-  applySmartSync,
-  isUnread,
-  lifecycleLabel,
-} from "@/lib/core/notifications/lifecycle";
+/** Pure lifecycle labels — safe for client. Smart sync stays in lifecycle.ts (server). */
+export { isUnread, lifecycleLabel } from "@/lib/core/notifications/lifecycle-labels";
 
 export {
   compareNotificationsByPriority,
