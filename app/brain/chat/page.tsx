@@ -1,22 +1,21 @@
 /**
- * SODA Brain — Founder Intelligence Workspace (Mission 05.1).
- * Founder only. Completely isolated from ERP modules.
+ * SODA Brain Chat — Founder only (Mission 05.1).
+ * Heuristic classification into Brain. Never creates ERP entities.
  */
 
 import { redirect } from "next/navigation";
 
-import { BrainWorkspace } from "@/components/brain/brain-workspace";
+import { BrainChat } from "@/components/brain/brain-chat";
 import { AppShell } from "@/components/layout/app-shell";
 import { sessionCanAccessBrain } from "@/lib/brain/access";
-import { loadBrainErpReadonlySummary } from "@/lib/brain/erp-readonly";
-import { listBrainEntries } from "@/lib/brain/repository";
+import { listBrainChatMessages } from "@/lib/brain/repository";
 import { homePathForAccessLevel } from "@/lib/identity/nav";
 import { permissionsForAccessLevel } from "@/lib/identity/access-levels";
 import { resolveSessionForApp } from "@/lib/identity/session";
 
 export const dynamic = "force-dynamic";
 
-export default async function BrainPage() {
+export default async function BrainChatPage() {
   const session = await resolveSessionForApp();
   if (!session) redirect("/login");
 
@@ -29,36 +28,30 @@ export default async function BrainPage() {
     );
   }
 
-  let entries: Awaited<ReturnType<typeof listBrainEntries>> = [];
+  let messages: Awaited<ReturnType<typeof listBrainChatMessages>> = [];
   let migrationHint: string | null = null;
 
   try {
-    entries = await listBrainEntries();
+    messages = await listBrainChatMessages();
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     if (
-      message.toLowerCase().includes("brain_entries") ||
+      message.toLowerCase().includes("brain_chat") ||
       message.toLowerCase().includes("does not exist") ||
       message.toLowerCase().includes("schema cache")
     ) {
       migrationHint =
-        "Apply migrations 20260714000020 + 20260714000021_soda_brain_evolution.sql in Supabase SQL Editor, then refresh.";
-      entries = [];
+        "Apply migration 20260714000021_soda_brain_evolution.sql in Supabase SQL Editor, then refresh.";
+      messages = [];
     } else {
       migrationHint = message;
-      entries = [];
+      messages = [];
     }
   }
 
-  const erpSummary = await loadBrainErpReadonlySummary();
-
   return (
     <AppShell titleKey="pages.brain" layer="brain" session={session}>
-      <BrainWorkspace
-        initialEntries={entries}
-        erpSummary={erpSummary}
-        migrationHint={migrationHint}
-      />
+      <BrainChat initialMessages={messages} migrationHint={migrationHint} />
     </AppShell>
   );
 }
