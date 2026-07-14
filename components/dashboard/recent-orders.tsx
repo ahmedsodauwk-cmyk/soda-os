@@ -65,11 +65,11 @@ export default function RecentOrders({
           <div className="flex flex-col items-center gap-3 py-6 text-center">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src="/brand/soda-mark.png"
+              src="/brand/soda-logo-official.png?v=06.3.1"
               alt=""
               width={28}
               height={28}
-              className="opacity-35"
+              className="opacity-55 object-contain"
             />
             <div dir="rtl">
               <p className="font-ar text-sm font-medium">{empty.title}</p>

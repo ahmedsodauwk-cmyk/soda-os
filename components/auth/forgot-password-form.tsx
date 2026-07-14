@@ -28,20 +28,22 @@ export function ForgotPasswordForm() {
     >
       <PageAtmosphere section="auth" />
 
-      <div className="soda-auth-card relative z-[1] w-full max-w-md space-y-6 rounded-2xl p-8 backdrop-blur-md">
-        <div className="flex flex-col items-center gap-3 text-center">
-          <SodaLogo placement="login" showWord={false} />
-          <h1 className="font-heading text-xl font-semibold text-[#29194A]">
+      <div className="soda-auth-card relative z-[1] w-full max-w-[400px] space-y-6 rounded-2xl p-8 backdrop-blur-md sm:p-10">
+        <div className="soda-login-brand flex flex-col items-center gap-4 text-center">
+          <SodaLogo placement="login" showWord={false} interactive />
+          <h1 className="font-heading text-xl font-semibold tracking-tight text-white">
             Reset password
           </h1>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-white/45">
             We will email you a link to choose a new password.
           </p>
         </div>
 
         <form className="space-y-4" action={formAction}>
           <div className="space-y-2">
-            <Label htmlFor="email">Username or email</Label>
+            <Label htmlFor="email" className="text-white/70">
+              Username or email
+            </Label>
             <Input
               id="email"
               name="email"
@@ -49,6 +51,7 @@ export function ForgotPasswordForm() {
               required
               autoComplete="username"
               placeholder="you@sodavisuals.com"
+              className="soda-auth-input"
             />
           </div>
           {state?.error ? (

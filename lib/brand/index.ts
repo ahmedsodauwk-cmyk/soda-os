@@ -81,6 +81,7 @@ export {
   SODA_LOGO_SIZES,
   SODA_LOGO_PLACEMENTS,
   SODA_PDF_HEADER,
+  sodaBrandUrl,
 } from "@/lib/brand/logo";
 
 export type { SodaLogoPlacement } from "@/lib/brand/logo";

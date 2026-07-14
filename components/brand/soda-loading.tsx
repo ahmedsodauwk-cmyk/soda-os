@@ -14,8 +14,7 @@ interface SodaLoadingProps {
 }
 
 /**
- * Branded loading — subtle mark pulse + Arabic whisper.
- * Usable app-wide as overlay or inline.
+ * Branded loading — official mark + soft pulse (no spinner).
  */
 export function SodaLoading({
   open = true,
@@ -34,8 +33,12 @@ export function SodaLoading({
           "flex flex-col items-center justify-center gap-3 py-10",
           className
         )}
+        role="status"
+        aria-live="polite"
       >
-        <SodaLogo placement="splash" showWord={false} className="soda-mark-pulse" />
+        <div className="soda-mark-pulse">
+          <SodaLogo placement="splash" showWord={false} interactive={false} />
+        </div>
         <p className="font-ar text-sm text-muted-foreground" dir="rtl">
           {message}
         </p>
@@ -46,17 +49,21 @@ export function SodaLoading({
   return (
     <div
       className={cn(
-        "fixed inset-0 z-50 flex flex-col items-center justify-center gap-4",
-        "bg-background/80 backdrop-blur-sm",
+        "soda-splash fixed inset-0 z-50 flex flex-col items-center justify-center gap-5",
         className
       )}
       role="status"
       aria-live="polite"
     >
-      <SodaLogo placement="splash" showWord={false} className="soda-mark-pulse" />
-      <p className="font-ar text-sm tracking-wide text-muted-foreground" dir="rtl">
-        {message}
-      </p>
+      <div className="soda-splash-glow pointer-events-none absolute inset-0" aria-hidden />
+      <div className="soda-splash-fade relative flex flex-col items-center gap-4">
+        <div className="soda-mark-pulse">
+          <SodaLogo placement="splash" showWord={false} interactive={false} />
+        </div>
+        <p className="font-ar text-sm tracking-wide text-white/55" dir="rtl">
+          {message}
+        </p>
+      </div>
     </div>
   );
 }

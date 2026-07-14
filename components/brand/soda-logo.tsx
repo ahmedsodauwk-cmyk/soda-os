@@ -12,24 +12,34 @@ interface SodaLogoProps {
   className?: string;
   /** Override showWord from placement defaults */
   showWord?: boolean;
+  /** Enable subtle hover glow (interactive chrome only) */
+  interactive?: boolean;
 }
 
 /**
- * Official SODA mark — extracted white geometric symbol (never redrawn).
- * next/image; priority only for sidebar + login (Mission 06.0 Phase 11).
+ * Official SODA mark — PNG identity only (never redrawn).
+ * next/image; priority for sidebar + login. Proportions locked via object-contain.
  */
 export function SodaLogo({
   placement = "sidebar",
   className,
   showWord,
+  interactive = placement === "sidebar",
 }: SodaLogoProps) {
   const config = SODA_LOGO_PLACEMENTS[placement];
   const size = config.size;
   const withWord = showWord ?? config.showWord ?? false;
   const priority = placement === "sidebar" || placement === "login";
+  const wordMode = config.wordMode ?? "studio";
 
   return (
-    <div className={cn("flex items-center gap-3", className)}>
+    <div
+      className={cn(
+        "flex items-center gap-2.5",
+        interactive && "soda-logo-interactive group",
+        className
+      )}
+    >
       <Image
         src={config.src}
         alt={SODA_LOGO.alt}
@@ -38,19 +48,33 @@ export function SodaLogo({
         priority={priority}
         className={cn(
           "aspect-square shrink-0 object-contain object-center",
-          !config.onDark && "rounded-[22%]",
-          placement === "empty" && "opacity-40"
+          placement === "empty" && "opacity-40",
+          interactive && "soda-logo-mark transition-[filter] duration-300"
         )}
-        style={{ width: size, height: size }}
+        style={{ width: size, height: size, maxWidth: size, maxHeight: size }}
         draggable={false}
       />
       {withWord ? (
         <div className="min-w-0 leading-tight">
-          <p className="font-heading text-[0.9375rem] font-semibold tracking-tight text-sidebar-foreground">
+          <p
+            className={cn(
+              "font-heading font-semibold tracking-tight text-sidebar-foreground",
+              placement === "sidebar" ? "text-[0.875rem]" : "text-[0.9375rem]"
+            )}
+          >
             {SODA_LOGO.productName}
           </p>
-          <p className="mt-0.5 text-[11px] tracking-[0.12em] text-soda-pink/80 uppercase">
-            {SODA_LOGO.studioTagline}
+          <p
+            className={cn(
+              "mt-0.5 tracking-[0.12em] uppercase",
+              wordMode === "system"
+                ? "text-[10px] text-white/55 normal-case tracking-[0.08em]"
+                : "text-[10px] text-soda-pink/80"
+            )}
+          >
+            {wordMode === "system"
+              ? SODA_LOGO.systemTagline
+              : SODA_LOGO.studioTagline}
           </p>
         </div>
       ) : null}

@@ -13,6 +13,7 @@ import {
   X,
 } from "lucide-react";
 
+import { SodaLogo } from "@/components/brand/soda-logo";
 import {
   NotificationDecisionButtons,
   notificationNeedsDecision,
@@ -402,9 +403,7 @@ function DetailPanel({
         className="flex h-full min-h-[280px] flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-border/70 bg-muted/20 px-6 py-12 text-center"
         dir="rtl"
       >
-        <span className="text-3xl opacity-70" aria-hidden>
-          🔔
-        </span>
+        <SodaLogo placement="empty" showWord={false} />
         <p className="font-ar text-sm text-muted-foreground">{emptyHint}</p>
       </div>
     );
@@ -885,7 +884,8 @@ export function NotificationCenter({ subtitle }: { subtitle: string }) {
         <div className="grid gap-4 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] lg:items-start">
           <div className="min-w-0 space-y-4">
             {filtered.length === 0 ? (
-              <div className="rounded-xl border border-dashed px-4 py-14 text-center">
+              <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed px-4 py-14 text-center">
+                <SodaLogo placement="empty" showWord={false} />
                 <p className="font-ar text-sm text-muted-foreground">
                   {filter === "unread"
                     ? "مفيش حاجة جديدة دلوقتي — كله تمام."

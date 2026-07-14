@@ -9,7 +9,7 @@ import { LanguageSwitcher } from "@/components/i18n/language-switcher";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { getModuleSlogan } from "@/lib/brand";
+import { SODA_LOGO } from "@/lib/brand/logo";
 import {
   signInAction,
   type AuthActionResult,
@@ -29,29 +29,28 @@ export function LoginForm() {
     >
       <PageAtmosphere section="auth" />
 
-      <div className="soda-page-enter soda-auth-card relative z-[1] w-full max-w-md space-y-8 rounded-2xl p-8 backdrop-blur-md">
+      <div className="soda-page-enter soda-auth-card relative z-[1] w-full max-w-[400px] space-y-9 rounded-2xl p-8 backdrop-blur-md sm:p-10">
         <div className="absolute top-4 end-4">
           <LanguageSwitcher variant="button" />
         </div>
 
-        <div className="flex flex-col items-center gap-4 text-center">
-          <SodaLogo placement="login" showWord={false} />
+        <div className="soda-login-brand flex flex-col items-center gap-5 text-center">
+          <SodaLogo placement="login" showWord={false} interactive />
           <div className="space-y-2">
-            <h1 className="font-heading text-2xl font-semibold tracking-tight text-[#29194A]">
-              SODA VISUALS
+            <h1 className="font-heading text-[1.75rem] font-semibold tracking-[0.22em] text-white">
+              {SODA_LOGO.productName}
             </h1>
-            <p
-              className="font-ar text-[0.9375rem] leading-[1.85] text-muted-foreground"
-              dir="rtl"
-            >
-              {getModuleSlogan("login")}
+            <p className="text-[11px] tracking-[0.18em] text-white/45 uppercase">
+              {SODA_LOGO.systemTagline}
             </p>
           </div>
         </div>
 
-        <form className="space-y-4" action={formAction}>
+        <form className="space-y-4" action={formAction} aria-label="Sign in">
           <div className="space-y-2">
-            <Label htmlFor="email">Username or email</Label>
+            <Label htmlFor="email" className="text-white/70">
+              Username or email
+            </Label>
             <Input
               id="email"
               name="email"
@@ -59,10 +58,13 @@ export function LoginForm() {
               placeholder="you@sodavisuals.com"
               autoComplete="username"
               required
+              className="soda-auth-input"
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="password">{t("common.password")}</Label>
+            <Label htmlFor="password" className="text-white/70">
+              {t("common.password")}
+            </Label>
             <Input
               id="password"
               name="password"
@@ -70,16 +72,17 @@ export function LoginForm() {
               placeholder="••••••••"
               autoComplete="current-password"
               required
+              className="soda-auth-input"
             />
           </div>
 
           {state?.error ? (
-            <p className="text-sm text-red-400" role="alert">
+            <p className="text-sm text-red-300" role="alert">
               {state.error}
             </p>
           ) : null}
 
-          <Button type="submit" className="w-full" disabled={pending}>
+          <Button type="submit" className="mt-2 w-full" disabled={pending}>
             {pending ? t("actions.signingIn") : t("actions.signIn")}
           </Button>
         </form>
@@ -87,13 +90,13 @@ export function LoginForm() {
         <div className="flex flex-col gap-2 text-center text-sm">
           <Link
             href="/forgot-password"
-            className="text-muted-foreground underline-offset-4 hover:text-[#D23B68] hover:underline"
+            className="text-white/45 underline-offset-4 hover:text-soda-pink hover:underline"
           >
             {t("common.forgotPassword")}
           </Link>
           <Link
             href="/bootstrap"
-            className="text-muted-foreground underline-offset-4 hover:text-[#D23B68] hover:underline"
+            className="text-white/35 underline-offset-4 hover:text-soda-pink hover:underline"
           >
             {t("common.firstOwnerSetup")}
           </Link>

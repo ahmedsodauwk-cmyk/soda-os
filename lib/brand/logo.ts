@@ -1,71 +1,53 @@
 /**
- * SODA Logo System — official extracted mark (RC2).
+ * SODA Logo System — Official Brand Identity (Mission 06.3).
  *
- * Assets in `/public/brand/` (source of truth = lockup PNG extraction):
- * - `soda-mark-white.png` — white geometric mark only (transparent)
- * - `soda-mark.png` — white mark on Deep Purple tile
- * - `soda-icon.png` — app / favicon tile
- * - `soda-logo-master.png` — official lockup (pink field + purple + white)
+ * Source of truth: `/public/brand/soda-logo-official.png`
+ * White geometric Kufic SODA on black square.
  *
- * NEVER redraw, simplify, or re-vectorize the mark.
- * Colors from lockup (sampled): Deep Purple #29194A · Brand Pink #D23B68 · White
- *
- * ─────────────────────────────────────────────────────────────
- * PLACEMENTS (allowed)
- * ─────────────────────────────────────────────────────────────
- * ✓ Sidebar header (compact mark + “SODA VISUALS” word)
- * ✓ Favicon / app icon (mark only)
- * ✓ Loading overlay (mark, subtle pulse)
- * ✓ Login shell / About hero
- * ✓ Empty states (small mark, muted)
- * ✓ Future PDF letterhead / reports cover
- *
- * ─────────────────────────────────────────────────────────────
- * DO NOT
- * ─────────────────────────────────────────────────────────────
- * ✗ Repeat the logo inside every card / widget
- * ✗ Stretch, recolor arbitrarily, or crop the mark
- * ✗ Place the mark on busy photography without a dark scrim
- * ✗ Use pink as a full-bleed logo background (pink = accent only)
- *
- * Clear space: ≥ 0.25× mark height on all sides.
+ * NEVER stretch, crop, recolor, filter, redraw, or re-vectorize the mark.
+ * Derivatives are resize/compose only from the official file.
  */
 
 export const SODA_LOGO = {
-  /** Primary mark — white on Deep Purple tile */
-  markSrc: "/brand/soda-mark.png",
-  /** White-only mark for dark overlays / splash */
+  /** Official black-square mark (canonical) */
+  officialSrc: "/brand/soda-logo-official.png",
+  /** Alias — same official mark */
   markWhiteSrc: "/brand/soda-mark-white.png",
-  /** Same as mark for wordmark placements (word rendered in component) */
-  wordmarkSrc: "/brand/soda-mark.png",
-  /** Official master lockup PNG */
+  /** UI mark — same official mark (no alternate plate) */
+  markSrc: "/brand/soda-mark.png",
+  /** Wordmark placements use official mark + typed product name */
+  wordmarkSrc: "/brand/soda-logo-official.png",
+  /** Dark plate lockup — same official mark */
   masterSrc: "/brand/soda-logo-master.png",
   /** Favicon / app icon */
   iconSrc: "/brand/soda-icon.png",
-  alt: "SODA VISUALS",
-  /** Sidebar word line */
+  /** SVG wrapper (embeds official PNG — no re-trace) */
+  svgSrc: "/brand/soda-logo.svg",
+  /** Open Graph */
+  ogSrc: "/brand/og-image.png",
+  alt: "SODA",
+  /** Sidebar / product word */
   productName: "SODA",
-  /** Second line under productName in sidebar (SODA / VISUALS) */
+  /** Login / splash product line */
+  systemTagline: "Visual Operating System",
+  /** Sidebar second line (company) */
   studioTagline: "VISUALS",
   /** Official company display name */
   studioName: "SODA VISUALS",
   /** Full product lockup for docs / metadata */
   fullName: "SODA VISUALS",
+  /** Asset revision — busts browser/PWA icon cache */
+  assetVersion: "06.3",
 } as const;
 
-/** Recommended pixel sizes by placement */
+/** Recommended display sizes by placement (never upscale past source clarity) */
 export const SODA_LOGO_SIZES = {
-  /** Sidebar / mobile sheet */
-  sidebar: 40,
-  /** Favicon / PWA */
+  sidebar: 32,
   favicon: 32,
-  /** Loading / login hero */
-  splash: 72,
-  /** PDF / report header */
+  splash: 88,
+  login: 96,
   document: 48,
-  /** About page */
-  about: 80,
-  /** Empty-state watermark */
+  about: 64,
   empty: 28,
 } as const;
 
@@ -82,31 +64,57 @@ export type SodaLogoPlacement =
 /** Which asset + size to use per placement */
 export const SODA_LOGO_PLACEMENTS: Record<
   SodaLogoPlacement,
-  { src: string; size: number; showWord?: boolean; onDark?: boolean }
+  {
+    src: string;
+    size: number;
+    showWord?: boolean;
+    /** Square black mark — preserve hard corners */
+    preserveSquare?: boolean;
+    wordMode?: "studio" | "system";
+  }
 > = {
   sidebar: {
-    src: SODA_LOGO.markSrc,
+    src: SODA_LOGO.officialSrc,
     size: SODA_LOGO_SIZES.sidebar,
     showWord: true,
+    wordMode: "studio",
+    preserveSquare: true,
   },
-  favicon: { src: SODA_LOGO.iconSrc, size: SODA_LOGO_SIZES.favicon },
+  favicon: { src: SODA_LOGO.iconSrc, size: SODA_LOGO_SIZES.favicon, preserveSquare: true },
   splash: {
-    src: SODA_LOGO.markSrc,
+    src: SODA_LOGO.officialSrc,
     size: SODA_LOGO_SIZES.splash,
+    preserveSquare: true,
   },
   login: {
-    src: SODA_LOGO.markSrc,
-    size: SODA_LOGO_SIZES.splash,
-    showWord: true,
+    src: SODA_LOGO.officialSrc,
+    size: SODA_LOGO_SIZES.login,
+    showWord: false,
+    wordMode: "system",
+    preserveSquare: true,
   },
   about: {
-    src: SODA_LOGO.markSrc,
+    src: SODA_LOGO.officialSrc,
     size: SODA_LOGO_SIZES.about,
     showWord: true,
+    wordMode: "studio",
+    preserveSquare: true,
   },
-  reports: { src: SODA_LOGO.markSrc, size: SODA_LOGO_SIZES.document },
-  pdf: { src: SODA_LOGO.markSrc, size: SODA_LOGO_SIZES.document },
-  empty: { src: SODA_LOGO.markSrc, size: SODA_LOGO_SIZES.empty },
+  reports: {
+    src: SODA_LOGO.officialSrc,
+    size: SODA_LOGO_SIZES.document,
+    preserveSquare: true,
+  },
+  pdf: {
+    src: SODA_LOGO.officialSrc,
+    size: SODA_LOGO_SIZES.document,
+    preserveSquare: true,
+  },
+  empty: {
+    src: SODA_LOGO.officialSrc,
+    size: SODA_LOGO_SIZES.empty,
+    preserveSquare: true,
+  },
 };
 
 /**
@@ -120,3 +128,9 @@ export const SODA_PDF_HEADER = {
   productName: SODA_LOGO.fullName,
   tagline: SODA_LOGO.studioTagline,
 } as const;
+
+/** Append cache-bust query for browser / PWA icons */
+export function sodaBrandUrl(path: string): string {
+  const sep = path.includes("?") ? "&" : "?";
+  return `${path}${sep}v=${SODA_LOGO.assetVersion}`;
+}

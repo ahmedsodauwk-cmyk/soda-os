@@ -49,21 +49,46 @@ export const metadata: Metadata = {
   manifest: "/manifest.webmanifest",
   icons: {
     icon: [
-      { url: "/brand/soda-icon.png", type: "image/png", sizes: "512x512" },
-      { url: "/brand/favicon-32.png", type: "image/png", sizes: "32x32" },
+      { url: "/brand/favicon.ico", sizes: "any" },
+      {
+        url: "/brand/favicon-32.png?v=06.3.1",
+        type: "image/png",
+        sizes: "32x32",
+      },
+      {
+        url: "/brand/soda-icon.png?v=06.3.1",
+        type: "image/png",
+        sizes: "512x512",
+      },
+      { url: "/brand/soda-logo.svg?v=06.3.1", type: "image/svg+xml" },
     ],
-    apple: [{ url: "/brand/apple-touch-icon.png", type: "image/png" }],
+    apple: [
+      {
+        url: "/brand/apple-touch-icon.png?v=06.3.1",
+        type: "image/png",
+        sizes: "180x180",
+      },
+    ],
   },
   openGraph: {
     title: "SODA VISUALS",
     description: "نظام تشغيل الاستوديو — شغل مرتّب وطاقة عالية",
     siteName: "SODA VISUALS",
     type: "website",
+    images: [
+      {
+        url: "/brand/og-image.png?v=06.3.1",
+        width: 1200,
+        height: 630,
+        alt: "SODA",
+      },
+    ],
   },
   twitter: {
-    card: "summary",
+    card: "summary_large_image",
     title: "SODA VISUALS",
     description: "نظام تشغيل الاستوديو — شغل مرتّب وطاقة عالية",
+    images: ["/brand/og-image.png?v=06.3.1"],
   },
 };
 

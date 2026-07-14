@@ -1,3 +1,5 @@
+import { SodaLogo } from "@/components/brand/soda-logo";
+
 interface PeopleEmptyStateProps {
   title: string;
   detail: string;
@@ -18,10 +20,8 @@ export function PeopleEmptyState({
         aria-hidden
         className="pointer-events-none absolute -bottom-12 -left-8 size-40 rounded-full bg-primary/8 blur-3xl"
       />
-      <div className="relative max-w-lg space-y-3">
-        <p className="text-[11px] font-semibold tracking-[0.14em] text-primary/80 uppercase">
-          SODA VISUALS
-        </p>
+      <div className="relative flex max-w-lg flex-col gap-3">
+        <SodaLogo placement="empty" showWord={false} />
         <h3 className="font-heading text-lg font-semibold tracking-tight">
           {title}
         </h3>

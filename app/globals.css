@@ -910,67 +910,121 @@
   border-color: color-mix(in srgb, #29194a 30%, transparent);
 }
 
-/* Auth shell */
+/* Auth shell — premium dark luxury */
 .soda-auth-shell {
   background:
     radial-gradient(
-      ellipse 55% 45% at 70% 10%,
-      color-mix(in srgb, #d23b68 28%, transparent) 0%,
-      transparent 60%
+      ellipse 50% 40% at 50% 0%,
+      color-mix(in srgb, #29194a 55%, transparent) 0%,
+      transparent 70%
     ),
     radial-gradient(
-      ellipse 60% 50% at 15% 85%,
-      color-mix(in srgb, #29194a 40%, transparent) 0%,
+      ellipse 40% 35% at 80% 80%,
+      color-mix(in srgb, #d23b68 12%, transparent) 0%,
       transparent 55%
     ),
-    radial-gradient(
-      ellipse 40% 35% at 90% 70%,
-      color-mix(in srgb, #4a3568 25%, transparent) 0%,
-      transparent 50%
-    ),
-    linear-gradient(165deg, #1a1030 0%, #29194a 45%, #120b22 100%);
+    linear-gradient(165deg, #07050f 0%, #120b22 40%, #29194a 100%);
 }
 
 .soda-auth-card {
   background:
     radial-gradient(
-      ellipse 70% 50% at 100% 0%,
-      color-mix(in srgb, #d23b68 14%, transparent) 0%,
-      transparent 55%
+      ellipse 70% 50% at 50% 0%,
+      color-mix(in srgb, #29194a 45%, transparent) 0%,
+      transparent 60%
     ),
-    radial-gradient(
-      ellipse 50% 40% at 0% 100%,
-      color-mix(in srgb, #29194a 10%, transparent) 0%,
-      transparent 50%
-    ),
-    color-mix(in srgb, #ffffff 92%, #f4eef8 8%);
-  border: 1px solid color-mix(in srgb, #d23b68 22%, transparent);
-  box-shadow: var(--soda-shadow-lift), 0 0 60px color-mix(in srgb, #d23b68 15%, transparent);
+    color-mix(in srgb, #0c0914 88%, #29194a 12%);
+  border: 1px solid color-mix(in srgb, #ffffff 8%, transparent);
+  box-shadow:
+    0 24px 80px color-mix(in srgb, #000000 55%, transparent),
+    0 0 80px color-mix(in srgb, #29194a 35%, transparent);
 }
 
+.soda-auth-input {
+  border-color: color-mix(in srgb, #ffffff 12%, transparent) !important;
+  background: color-mix(in srgb, #000000 35%, transparent) !important;
+  color: #ffffff !important;
+}
+
+.soda-auth-input::placeholder {
+  color: color-mix(in srgb, #ffffff 30%, transparent);
+}
+
+.soda-login-brand {
+  animation: soda-brand-fade 0.7s var(--soda-ease) both;
+}
+
+/* Splash / boot */
+.soda-splash {
+  background:
+    radial-gradient(
+      ellipse 45% 40% at 50% 45%,
+      color-mix(in srgb, #29194a 70%, transparent) 0%,
+      transparent 70%
+    ),
+    linear-gradient(180deg, #05040a 0%, #120b22 55%, #1a1030 100%);
+}
+
+.soda-splash-glow {
+  background: radial-gradient(
+    circle at 50% 48%,
+    color-mix(in srgb, #ffffff 10%, transparent) 0%,
+    color-mix(in srgb, #29194a 35%, transparent) 28%,
+    transparent 62%
+  );
+}
+
+.soda-splash-fade {
+  animation: soda-brand-fade 0.85s var(--soda-ease) both;
+}
+
+@keyframes soda-brand-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Subtle boot pulse — opacity only (no rotate / bounce / spin / scale) */
 @keyframes soda-mark-pulse {
   0%,
   100% {
-    opacity: 0.55;
-    transform: scale(0.96);
+    opacity: 0.62;
   }
   50% {
     opacity: 1;
-    transform: scale(1);
   }
 }
 
 .soda-mark-pulse {
-  animation: soda-mark-pulse 1.6s var(--soda-ease) infinite;
+  animation: soda-mark-pulse 2.2s var(--soda-ease) infinite;
+}
+
+/* Tiny logo hover glow — cursor stays native */
+.soda-logo-interactive {
+  cursor: default;
+}
+
+.soda-logo-interactive:hover .soda-logo-mark {
+  filter: drop-shadow(0 0 10px color-mix(in srgb, #ffffff 35%, transparent))
+    drop-shadow(0 0 18px color-mix(in srgb, #29194a 55%, transparent));
 }
 
 @media (prefers-reduced-motion: reduce) {
   .soda-live-fade-enter,
   .soda-page-enter,
   .soda-mark-pulse,
+  .soda-splash-fade,
+  .soda-login-brand,
   .soda-atmosphere::before,
   .soda-atmosphere::after {
     animation: none;
+  }
+
+  .soda-logo-interactive:hover .soda-logo-mark {
+    filter: none;
   }
 }
 

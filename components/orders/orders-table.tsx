@@ -19,6 +19,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { SodaLogo } from "@/components/brand/soda-logo";
 import { OrderStatusBadge } from "@/components/orders/order-status-badge";
 import { getEmptyState } from "@/lib/brand/soda-voice";
 import { UI_ACTIONS } from "@/lib/brand/ui-actions";
@@ -35,12 +36,13 @@ export function OrdersTable({ orders, onEdit, onDelete }: OrdersTableProps) {
   if (orders.length === 0) {
     const empty = getEmptyState("orders");
     return (
-      <div className="flex flex-col items-center justify-center rounded-xl border border-dashed py-16 text-center">
+      <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-dashed py-16 text-center">
+        <SodaLogo placement="empty" showWord={false} />
         <p className="text-sm font-medium" dir="rtl">
           {empty.title}
         </p>
         <p
-          className="mt-1.5 max-w-sm text-xs leading-relaxed text-muted-foreground"
+          className="mt-0 max-w-sm text-xs leading-relaxed text-muted-foreground"
           dir="rtl"
         >
           {empty.description}

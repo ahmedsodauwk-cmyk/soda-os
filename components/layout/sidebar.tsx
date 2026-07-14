@@ -97,8 +97,8 @@ export function SidebarContent({ user }: SidebarContentProps) {
 
   return (
     <>
-      <div className="relative flex shrink-0 items-center gap-2.5 border-b border-sidebar-border px-4 py-5">
-        <SodaLogo placement="sidebar" />
+      <div className="relative flex h-[3.75rem] shrink-0 items-center border-b border-sidebar-border px-3.5">
+        <SodaLogo placement="sidebar" interactive />
       </div>
 
       {/* Native overflow (not ScrollArea) so mobile touch + iOS momentum work. */}
