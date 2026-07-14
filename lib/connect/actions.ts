@@ -46,7 +46,7 @@ async function requireConnect(
   const session = await resolveSessionForApp();
   if (!session) return { ok: false, error: "سجّل دخولك تاني" };
   const view = await canAsync(session.profile.accessLevel, "connect.view");
-  if (!view.allowed) return { ok: false, error: "مفيش صلاحية لـ SODA Connect" };
+  if (!view.allowed) return { ok: false, error: "مفيش صلاحية لـ Team Chat" };
   if (needSend) {
     const send = await canAsync(session.profile.accessLevel, "connect.send");
     if (!send.allowed) return { ok: false, error: "مفيش صلاحية إرسال" };
@@ -295,13 +295,29 @@ export async function openDmAction(input: {
   ok: boolean;
   error?: string;
   conversationId?: string;
+  conversations?: ConnectConversation[];
+  peers?: ConnectPeer[];
+  presence?: ConnectPresence[];
 }> {
   const gate = await requireConnect();
   if (!gate.ok) return gate;
   await ensureConnectForSelf();
   const id = await findDmConversationId(gate.userId, input.peerId);
-  if (!id) return { ok: false, error: "المحادثة مش جاهزة — جرّب تاني" };
-  return { ok: true, conversationId: id };
+  const [conversations, peers, presence] = await Promise.all([
+    listConversationsForUser(gate.userId),
+    listActivePeers(gate.userId),
+    listPresence(),
+  ]);
+  if (!id) {
+    return {
+      ok: false,
+      error: "المحادثة مش جاهزة — جرّب تاني",
+      conversations,
+      peers,
+      presence,
+    };
+  }
+  return { ok: true, conversationId: id, conversations, peers, presence };
 }
 
 export async function getConnectPeerAction(input: {

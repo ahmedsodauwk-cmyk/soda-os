@@ -1,15 +1,15 @@
-/** Egyptian Arabic labels for SODA Connect chrome. */
+/** Egyptian Arabic labels for Team Chat chrome. */
 
 export const CL = {
-  title: "SODA Connect",
-  search: "دور على محادثة، رسالة، أو ملف…",
+  title: "Team Chat",
+  search: "دور في القائمة…",
   searchInChat: "دور جوه الشات…",
-  recent: "آخر المحادثات",
+  recent: "محادثات خاصة",
   online: "أونلاين دلوقتي",
-  groups: "محادثات الفريق",
+  groups: "الفريق",
   teamRoom: "SODA Team",
-  emptyInbox: "اختار محادثة وابدأ تكلم الفريق.",
-  emptyThread: "مفيش رسائل لسه — ابعت أول رسالة.",
+  emptyInbox: "اختار محادثة من القائمة.",
+  emptyThread: "ابدأ المحادثة.",
   typePlaceholder: "اكتب رسالة…",
   reply: "رد",
   forward: "تحويل",

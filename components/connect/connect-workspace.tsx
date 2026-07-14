@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState, startTransition } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Check,
   CheckCheck,
@@ -34,7 +34,6 @@ import {
   openDmAction,
   pinConnectMessageAction,
   reactConnectMessageAction,
-  searchConnectAction,
   sendConnectMessageAction,
   setConnectPresenceAction,
   starConnectMessageAction,
@@ -43,7 +42,6 @@ import { uploadConnectFiles } from "@/lib/connect/upload-client";
 import {
   CONNECT_REACTION_EMOJIS,
   type ConnectConversation,
-  type ConnectGlobalSearchHit,
   type ConnectMessage,
   type ConnectPeer,
   type ConnectPresence,
@@ -51,10 +49,17 @@ import {
   type ConnectSharedMedia,
 } from "@/lib/connect/types";
 
+const LAST_CHAT_KEY = "soda-team-chat:lastConversationId";
+
 type Props = {
   userId: string;
   displayName: string;
 };
+
+type ListRow =
+  | { key: string; kind: "team"; conversation: ConnectConversation }
+  | { key: string; kind: "private"; conversation: ConnectConversation; peer: ConnectPeer }
+  | { key: string; kind: "peer"; peer: ConnectPeer };
 
 function formatTime(iso: string | null | undefined): string {
   if (!iso) return "";
@@ -117,8 +122,8 @@ export function ConnectWorkspace({ userId, displayName }: Props) {
   const [showInfo, setShowInfo] = useState(false);
   const [mobilePane, setMobilePane] = useState<"list" | "chat">("list");
   const [query, setQuery] = useState("");
-  const [hits, setHits] = useState<ConnectGlobalSearchHit[]>([]);
   const [chatQuery, setChatQuery] = useState("");
+  const [openingPeerId, setOpeningPeerId] = useState<string | null>(null);
   const [media, setMedia] = useState<ConnectSharedMedia | null>(null);
   const [uploadPct, setUploadPct] = useState<number | null>(null);
   const [dragOver, setDragOver] = useState(false);
@@ -164,7 +169,57 @@ export function ConnectWorkspace({ userId, displayName }: Props) {
       if (r.peers) setPeers(r.peers);
       if (r.presence) setPresence(r.presence);
     }
+    return r;
   }, []);
+
+  const persistActive = useCallback((conversationId: string) => {
+    try {
+      localStorage.setItem(LAST_CHAT_KEY, conversationId);
+    } catch {
+      /* ignore quota / private mode */
+    }
+  }, []);
+
+  const selectConversation = useCallback(
+    (conversationId: string) => {
+      setActiveId((prev) => {
+        if (prev !== conversationId) {
+          setMessages([]);
+          setMedia(null);
+          setHasMore(true);
+          setChatQuery("");
+          setReplyTo(null);
+          setEditing(null);
+        }
+        return conversationId;
+      });
+      setMobilePane("chat");
+      setShowInfo(false);
+      persistActive(conversationId);
+    },
+    [persistActive]
+  );
+
+  const openPeerDm = useCallback(
+    async (peerId: string) => {
+      setOpeningPeerId(peerId);
+      setError(null);
+      try {
+        const r = await openDmAction({ peerId });
+        if (r.conversations) setConversations(r.conversations);
+        if (r.peers) setPeers(r.peers);
+        if (r.presence) setPresence(r.presence);
+        if (!r.ok || !r.conversationId) {
+          setError(r.error ?? "المحادثة مش جاهزة");
+          return;
+        }
+        selectConversation(r.conversationId);
+      } finally {
+        setOpeningPeerId(null);
+      }
+    },
+    [selectConversation]
+  );
 
   const loadThread = useCallback(
     async (conversationId: string, reset = true) => {
@@ -195,11 +250,25 @@ export function ConnectWorkspace({ userId, displayName }: Props) {
         setBooting(false);
         return;
       }
-      setConversations(r.conversations ?? []);
+      const convos = r.conversations ?? [];
+      setConversations(convos);
       setPeers(r.peers ?? []);
       setPresence(r.presence ?? []);
-      const team = r.conversations?.find((c) => c.kind === "team");
-      if (team) setActiveId(team.id);
+
+      let restored: string | null = null;
+      try {
+        restored = localStorage.getItem(LAST_CHAT_KEY);
+      } catch {
+        restored = null;
+      }
+      const restoredOk =
+        restored && convos.some((c) => c.id === restored) ? restored : null;
+      const team = convos.find((c) => c.kind === "team");
+      const nextId = restoredOk ?? team?.id ?? convos[0]?.id ?? null;
+      if (nextId) {
+        setActiveId(nextId);
+        persistActive(nextId);
+      }
       setBooting(false);
       await setConnectPresenceAction({ status: "online", activity: null });
     })();
@@ -220,18 +289,18 @@ export function ConnectWorkspace({ userId, displayName }: Props) {
       clearInterval(heartbeat);
       void setConnectPresenceAction({ status: "offline", activity: null });
     };
-  }, []);
+  }, [persistActive]);
 
   useEffect(() => {
     if (!activeId) return;
     void loadThread(activeId, true);
   }, [activeId, loadThread]);
 
-  // Realtime
+  // Realtime — messages + memberships so new accounts appear without reload
   useEffect(() => {
     const supabase = createClient();
     const channel = supabase
-      .channel("soda-connect")
+      .channel("soda-team-chat")
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "connect_messages" },
@@ -268,7 +337,21 @@ export function ConnectWorkspace({ userId, displayName }: Props) {
       )
       .on(
         "postgres_changes",
-        { event: "UPDATE", schema: "public", table: "connect_conversations" },
+        { event: "*", schema: "public", table: "connect_conversations" },
+        () => {
+          void refreshConvos();
+        }
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "connect_conversation_members" },
+        () => {
+          void refreshConvos();
+        }
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "profiles" },
         () => {
           void refreshConvos();
         }
@@ -279,19 +362,6 @@ export function ConnectWorkspace({ userId, displayName }: Props) {
       void supabase.removeChannel(channel);
     };
   }, [activeId, loadThread, refreshConvos]);
-
-  useEffect(() => {
-    if (!query.trim()) {
-      setHits([]);
-      return;
-    }
-    const t = setTimeout(() => {
-      void searchConnectAction({ query }).then((r) => {
-        if (r.ok && r.hits) setHits(r.hits);
-      });
-    }, 280);
-    return () => clearTimeout(t);
-  }, [query]);
 
   async function loadOlder() {
     if (!activeId || !messages.length || loadingOlder || !hasMore) return;
@@ -500,12 +570,83 @@ export function ConnectWorkspace({ userId, displayName }: Props) {
     }
   }
 
-  const recent = conversations.filter((c) => c.kind === "private");
-  const groups = conversations.filter((c) => c.kind === "team");
-  const onlinePeers = peers.filter((p) => {
-    const pr = presenceMap.get(p.id);
-    return pr?.status === "online" || pr?.status === "away" || pr?.status === "busy";
-  });
+  const listRows = useMemo((): ListRow[] => {
+    const team = conversations.find((c) => c.kind === "team");
+    const dmByPeer = new Map<string, ConnectConversation>();
+    for (const c of conversations) {
+      if (c.kind !== "private") continue;
+      const peer = c.peers[0];
+      if (peer) dmByPeer.set(peer.id, c);
+    }
+
+    const rows: ListRow[] = [];
+    if (team) {
+      rows.push({ key: `team:${team.id}`, kind: "team", conversation: team });
+    }
+
+    const sortedPeers = [...peers].sort((a, b) =>
+      a.fullName.localeCompare(b.fullName, "ar")
+    );
+    for (const peer of sortedPeers) {
+      const conversation = dmByPeer.get(peer.id);
+      if (conversation) {
+        rows.push({
+          key: `dm:${conversation.id}`,
+          kind: "private",
+          conversation,
+          peer,
+        });
+      } else {
+        rows.push({ key: `peer:${peer.id}`, kind: "peer", peer });
+      }
+    }
+
+    // Orphan private memberships (peer missing from active list) still show
+    for (const c of conversations) {
+      if (c.kind !== "private") continue;
+      const peerId = c.peers[0]?.id;
+      if (peerId && sortedPeers.some((p) => p.id === peerId)) continue;
+      rows.push({
+        key: `dm:${c.id}`,
+        kind: "private",
+        conversation: c,
+        peer: c.peers[0] ?? {
+          id: c.id,
+          fullName: c.displayName,
+          username: null,
+          email: null,
+          accessLevel: null,
+          personId: null,
+          initials: "?",
+          isActive: true,
+        },
+      });
+    }
+
+    return rows;
+  }, [conversations, peers]);
+
+  const filteredRows = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return listRows;
+    return listRows.filter((row) => {
+      if (row.kind === "team") {
+        return (
+          row.conversation.displayName.toLowerCase().includes(q) ||
+          CL.teamRoom.toLowerCase().includes(q)
+        );
+      }
+      const name =
+        row.kind === "private"
+          ? row.conversation.displayName
+          : row.peer.fullName;
+      const username = row.kind === "peer" ? row.peer.username : row.peer.username;
+      return (
+        name.toLowerCase().includes(q) ||
+        (username?.toLowerCase().includes(q) ?? false)
+      );
+    });
+  }, [listRows, query]);
 
   if (booting) {
     return (
@@ -541,14 +682,14 @@ export function ConnectWorkspace({ userId, displayName }: Props) {
         </div>
       )}
 
-      {/* Left */}
+      {/* Left — permanent Messenger-like list (independent scroll) */}
       <aside
         className={cn(
-          "flex w-full flex-col border-white/10 md:w-[300px] md:border-e lg:w-[320px]",
+          "flex h-full w-full shrink-0 flex-col border-white/10 md:w-[300px] md:border-e lg:w-[320px]",
           mobilePane === "chat" ? "hidden md:flex" : "flex"
         )}
       >
-        <div className="space-y-3 border-b border-white/10 p-3">
+        <div className="shrink-0 space-y-3 border-b border-white/10 p-3">
           <div className="flex items-center gap-2">
             <MessageCircle className="size-5 text-[#D23B68]" />
             <div>
@@ -564,118 +705,58 @@ export function ConnectWorkspace({ userId, displayName }: Props) {
               placeholder={CL.search}
               className="h-9 border-white/10 bg-black/30 pe-3 ps-8 text-sm"
             />
+            {query.trim() ? (
+              <button
+                type="button"
+                className="absolute end-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                onClick={() => setQuery("")}
+                aria-label="clear"
+              >
+                <X className="size-3.5" />
+              </button>
+            ) : null}
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto px-2 py-2">
-          {hits.length > 0 && (
-            <section className="mb-3">
-              <p className="px-2 pb-1 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
-                نتائج
-              </p>
-              {hits.map((h, i) => (
-                <button
-                  key={i}
-                  type="button"
-                  className="flex w-full items-start gap-2 rounded-lg px-2 py-2 text-start text-sm hover:bg-white/5"
-                  onClick={() => {
-                    if (h.type === "user") {
-                      void openDmAction({ peerId: h.peer.id }).then((r) => {
-                        if (r.conversationId) {
-                          setActiveId(r.conversationId);
-                          setMobilePane("chat");
-                          setQuery("");
-                        }
-                      });
-                    } else {
-                      setActiveId(h.conversationId);
-                      setMobilePane("chat");
-                      setQuery("");
-                    }
-                  }}
-                >
-                  <span className="text-xs text-[#D23B68]">
-                    {h.type === "user" ? "👤" : h.type === "file" ? "📎" : "💬"}
-                  </span>
-                  <span className="line-clamp-2">
-                    {h.type === "user"
-                      ? h.peer.fullName
-                      : h.type === "file"
-                        ? h.attachment.fileName
-                        : h.message.body}
-                  </span>
-                </button>
-              ))}
-            </section>
+        <div className="min-h-0 flex-1 overflow-y-auto px-2 py-2">
+          {filteredRows.length === 0 ? (
+            <p className="px-2 py-4 text-sm text-muted-foreground">{CL.noResults}</p>
+          ) : (
+            filteredRows.map((row) => {
+              if (row.kind === "team") {
+                return (
+                  <ConvoRow
+                    key={row.key}
+                    c={row.conversation}
+                    active={row.conversation.id === activeId}
+                    presenceLabel={CL.everyone}
+                    pinned
+                    onClick={() => selectConversation(row.conversation.id)}
+                  />
+                );
+              }
+              if (row.kind === "private") {
+                return (
+                  <ConvoRow
+                    key={row.key}
+                    c={row.conversation}
+                    active={row.conversation.id === activeId}
+                    presenceLabel={statusLabel(presenceMap.get(row.peer.id))}
+                    onClick={() => selectConversation(row.conversation.id)}
+                  />
+                );
+              }
+              return (
+                <PeerRow
+                  key={row.key}
+                  peer={row.peer}
+                  presenceLabel={statusLabel(presenceMap.get(row.peer.id))}
+                  busy={openingPeerId === row.peer.id}
+                  onClick={() => void openPeerDm(row.peer.id)}
+                />
+              );
+            })
           )}
-
-          <section className="mb-3">
-            <p className="px-2 pb-1 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
-              {CL.groups}
-            </p>
-            {groups.map((c) => (
-              <ConvoRow
-                key={c.id}
-                c={c}
-                active={c.id === activeId}
-                presenceLabel={CL.everyone}
-                onClick={() => {
-                  setActiveId(c.id);
-                  setMobilePane("chat");
-                  setShowInfo(false);
-                }}
-              />
-            ))}
-          </section>
-
-          <section className="mb-3">
-            <p className="px-2 pb-1 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
-              {CL.online} ({onlinePeers.length})
-            </p>
-            <div className="flex flex-wrap gap-1.5 px-1">
-              {onlinePeers.slice(0, 12).map((p) => (
-                <button
-                  key={p.id}
-                  type="button"
-                  title={p.fullName}
-                  className="relative flex size-9 items-center justify-center rounded-full bg-[#29194A] text-[11px] font-semibold text-white ring-2 ring-[#D23B68]/60"
-                  onClick={() => {
-                    void openDmAction({ peerId: p.id }).then((r) => {
-                      if (r.conversationId) {
-                        setActiveId(r.conversationId);
-                        setMobilePane("chat");
-                      }
-                    });
-                  }}
-                >
-                  {p.initials}
-                  <span className="absolute bottom-0 end-0 size-2.5 rounded-full bg-emerald-400 ring-2 ring-[#0c0a12]" />
-                </button>
-              ))}
-            </div>
-          </section>
-
-          <section>
-            <p className="px-2 pb-1 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
-              {CL.recent}
-            </p>
-            {recent.length === 0 && (
-              <p className="px-2 py-4 text-sm text-muted-foreground">{CL.emptyInbox}</p>
-            )}
-            {recent.map((c) => (
-              <ConvoRow
-                key={c.id}
-                c={c}
-                active={c.id === activeId}
-                presenceLabel={statusLabel(presenceMap.get(c.peers[0]?.id ?? ""))}
-                onClick={() => {
-                  setActiveId(c.id);
-                  setMobilePane("chat");
-                  setShowInfo(false);
-                }}
-              />
-            ))}
-          </section>
         </div>
       </aside>
 
@@ -688,8 +769,14 @@ export function ConnectWorkspace({ userId, displayName }: Props) {
       >
         {!active ? (
           <div className="flex flex-1 flex-col items-center justify-center gap-2 text-muted-foreground">
-            <MessageCircle className="size-10 opacity-40" />
-            <p>{CL.emptyInbox}</p>
+            {activeId ? (
+              <Loader2 className="size-8 animate-spin text-[#D23B68]" />
+            ) : (
+              <>
+                <MessageCircle className="size-10 opacity-40" />
+                <p>{CL.emptyInbox}</p>
+              </>
+            )}
           </div>
         ) : (
           <>
@@ -717,17 +804,7 @@ export function ConnectWorkspace({ userId, displayName }: Props) {
                 <Search className="pointer-events-none absolute start-2 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
                 <Input
                   value={chatQuery}
-                  onChange={(e) => {
-                    const v = e.target.value;
-                    setChatQuery(v);
-                    startTransition(() => {
-                      if (!v.trim() || !activeId) return;
-                      void searchConnectAction({
-                        query: v,
-                        conversationId: activeId,
-                      });
-                    });
-                  }}
+                  onChange={(e) => setChatQuery(e.target.value)}
                   placeholder={CL.searchInChat}
                   className="h-8 w-40 border-white/10 bg-black/20 ps-7 text-xs lg:w-52"
                 />
@@ -1223,11 +1300,13 @@ function ConvoRow({
   c,
   active,
   presenceLabel,
+  pinned,
   onClick,
 }: {
   c: ConnectConversation;
   active: boolean;
   presenceLabel: string;
+  pinned?: boolean;
   onClick: () => void;
 }) {
   return (
@@ -1236,7 +1315,10 @@ function ConvoRow({
       onClick={onClick}
       className={cn(
         "mb-0.5 flex w-full items-center gap-2.5 rounded-xl px-2 py-2 text-start transition-colors",
-        active ? "bg-[#D23B68]/15 ring-1 ring-[#D23B68]/30" : "hover:bg-white/5"
+        active
+          ? "bg-[#D23B68]/20 ring-1 ring-[#D23B68]/45"
+          : "hover:bg-white/5",
+        pinned && !active && "bg-white/[0.03]"
       )}
     >
       <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-[#29194A] text-xs font-semibold text-white">
@@ -1244,7 +1326,14 @@ function ConvoRow({
       </div>
       <div className="min-w-0 flex-1">
         <div className="flex items-center justify-between gap-2">
-          <p className="truncate text-sm font-medium">{c.displayName}</p>
+          <p className="truncate text-sm font-medium">
+            {c.displayName}
+            {pinned ? (
+              <span className="ms-1 text-[10px] font-normal text-[#D23B68]">
+                ثابت
+              </span>
+            ) : null}
+          </p>
           <span className="shrink-0 text-[10px] text-muted-foreground">
             {formatTime(c.lastMessageAt)}
           </span>
@@ -1259,6 +1348,35 @@ function ConvoRow({
             </span>
           )}
         </div>
+      </div>
+    </button>
+  );
+}
+
+function PeerRow({
+  peer,
+  presenceLabel,
+  busy,
+  onClick,
+}: {
+  peer: ConnectPeer;
+  presenceLabel: string;
+  busy: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={busy}
+      className="mb-0.5 flex w-full items-center gap-2.5 rounded-xl px-2 py-2 text-start transition-colors hover:bg-white/5 disabled:opacity-60"
+    >
+      <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-[#29194A] text-xs font-semibold text-white">
+        {busy ? <Loader2 className="size-4 animate-spin" /> : peer.initials}
+      </div>
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-sm font-medium">{peer.fullName}</p>
+        <p className="truncate text-xs text-muted-foreground">{presenceLabel}</p>
       </div>
     </button>
   );
