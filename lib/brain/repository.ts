@@ -3,6 +3,8 @@
  * NEVER writes to clients / orders / projects / finance / crew / calendar.
  */
 
+import { cache } from "react";
+
 import { createDomainDb } from "@/lib/supabase/domain-db";
 import {
   defaultStatusForWorkspace,
@@ -244,21 +246,37 @@ async function appendHistory(input: {
   }
 }
 
-/** List all Brain entries, newest updated first. Empty if table missing. */
-export async function listBrainEntries(opts?: {
-  workspace?: BrainWorkspace;
-}): Promise<BrainEntry[]> {
+/** List all Brain entries, newest updated first. Empty if table missing.
+ * Full list is React-cache'd per request (Ops Desk parse + page share one pull).
+ */
+const listAllBrainEntriesCached = cache(async (): Promise<BrainEntry[]> => {
   const db = createDomainDb();
-  let query = db
+  const { data, error } = await db
     .from("brain_entries")
     .select("*")
     .order("updated_at", { ascending: false });
 
-  if (opts?.workspace) {
-    query = query.eq("workspace", opts.workspace);
+  if (error) {
+    if (isMissingTableError(error.message)) return [];
+    throw new Error(`Failed to load SODA Brain: ${error.message}`);
+  }
+  return ((data ?? []) as BrainEntryRow[]).map(rowToEntry);
+});
+
+export async function listBrainEntries(opts?: {
+  workspace?: BrainWorkspace;
+}): Promise<BrainEntry[]> {
+  if (!opts?.workspace) {
+    return listAllBrainEntriesCached();
   }
 
-  const { data, error } = await query;
+  const db = createDomainDb();
+  const { data, error } = await db
+    .from("brain_entries")
+    .select("*")
+    .eq("workspace", opts.workspace)
+    .order("updated_at", { ascending: false });
+
   if (error) {
     if (isMissingTableError(error.message)) return [];
     throw new Error(`Failed to load SODA Brain: ${error.message}`);

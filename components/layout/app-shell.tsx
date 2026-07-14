@@ -1,24 +1,12 @@
-import { headers } from "next/headers";
-import { redirect } from "next/navigation";
+/**
+ * AppShell — thin page meta + children (Mission 06.0).
+ * Chrome (Sidebar/Header/notifications) lives in app/(shell)/layout and stays mounted.
+ * Passing `session` is accepted for backwards compatibility; layout already resolves it.
+ */
 
-import Sidebar from "@/components/layout/sidebar";
-import Header from "@/components/layout/header";
-import { PageAtmosphere } from "@/components/brand/page-atmosphere";
-import { Breadcrumbs } from "@/components/navigation/breadcrumbs";
-import { RecentlyViewed } from "@/components/navigation/recently-viewed";
-import { loadNotificationsForSession } from "@/lib/core/notifications/load";
+import { ShellPageMeta } from "@/components/layout/shell-page-meta";
 import type { HumanLayerKey } from "@/lib/brand/human-layer";
-import { resolveSectionPersonality } from "@/lib/brand/tokens";
-import { getRecentlyViewed } from "@/lib/identity/recent";
-import { permissionsForAsync } from "@/lib/identity/permission-service";
-import {
-  isAuthStrict,
-  resolveSessionForApp,
-  type SodaSession,
-} from "@/lib/identity/session";
-import { canAccessPath } from "@/lib/identity/module-access";
-import { homePathForAccessLevel } from "@/lib/identity/nav";
-import { permissionsForAccessLevel } from "@/lib/identity/access-levels";
+import type { SodaSession } from "@/lib/identity/session";
 import type { DictKey } from "@/lib/i18n/dictionaries";
 
 interface AppShellProps {
@@ -32,7 +20,7 @@ interface AppShellProps {
   subtitle?: string;
   children: React.ReactNode;
   showBreadcrumbs?: boolean;
-  /** Pass a resolved session to skip a duplicate auth fetch (e.g. Home). */
+  /** @deprecated Layout resolves session — kept for page call-site compatibility. */
   session?: SodaSession | null;
 }
 
@@ -43,106 +31,16 @@ export async function AppShell({
   subtitle,
   children,
   showBreadcrumbs = true,
-  session: sessionProp,
 }: AppShellProps) {
-  const headerList = await headers();
-  const pathname =
-    headerList.get("x-pathname") ||
-    headerList.get("x-invoke-path") ||
-    headerList.get("next-url") ||
-    "/";
-
-  const sessionResolved =
-    sessionProp !== undefined
-      ? sessionProp
-      : await resolveSessionForApp();
-
-  const [notifications, recent] = await Promise.all([
-    loadNotificationsForSession(sessionResolved),
-    getRecentlyViewed(),
-  ]);
-
-  const session = sessionResolved;
-
-  if (!session && isAuthStrict()) {
-    redirect("/login");
-  }
-
-  // Force password change gate (temp-password / invite policy).
-  if (
-    session?.profile.mustChangePassword &&
-    !pathname.startsWith("/settings/password") &&
-    pathname !== "/login" &&
-    pathname !== "/forgot-password"
-  ) {
-    redirect("/settings/password?forced=1");
-  }
-
-  const permissionResult = session
-    ? await permissionsForAsync(session.profile.accessLevel)
-    : null;
-  const allowedPermissions =
-    permissionResult && Array.isArray(permissionResult.permissions)
-      ? [...permissionResult.permissions]
-      : undefined;
-
-  if (
-    session &&
-    pathname &&
-    !canAccessPath(session.profile.accessLevel, pathname)
-  ) {
-    const grants =
-      allowedPermissions && allowedPermissions.length > 0
-        ? allowedPermissions
-        : permissionsForAccessLevel(session.profile.accessLevel);
-    redirect(homePathForAccessLevel(session.profile.accessLevel, grants));
-  }
-
-  const user = session
-    ? {
-        fullName: session.profile.displayName || session.profile.fullName,
-        role: session.profile.role,
-        accessLevel: session.profile.accessLevel,
-        avatarInitials: session.profile.avatarInitials,
-        email: session.profile.email,
-        personId: session.profile.personId,
-        allowedPermissions,
-      }
-    : undefined;
-
-  const section = resolveSectionPersonality(layer);
-
   return (
-    <main
-      data-soda-section={section}
-      className="soda-brand-wash relative flex min-h-screen overflow-hidden bg-transparent"
+    <ShellPageMeta
+      titleKey={titleKey}
+      title={title}
+      layer={layer}
+      subtitle={subtitle}
+      showBreadcrumbs={showBreadcrumbs}
     >
-      <PageAtmosphere section={section} />
-      <Sidebar user={user} />
-
-      <section
-        data-soda-main-scroll
-        className="relative z-[1] flex min-h-0 flex-1 flex-col overflow-y-auto"
-      >
-        <Header
-          titleKey={titleKey}
-          title={title}
-          layer={layer}
-          subtitle={subtitle}
-          notifications={notifications}
-          user={user}
-        />
-
-        <div className="soda-page-enter mx-auto w-full max-w-[1600px] p-4 sm:p-5 lg:p-6">
-          {showBreadcrumbs ? <Breadcrumbs pathname={pathname} /> : null}
-          {recent.length > 0 ? (
-            <div className="mb-3">
-              <RecentlyViewed items={recent} />
-            </div>
-          ) : null}
-          {children}
-        </div>
-      </section>
-    </main>
+      {children}
+    </ShellPageMeta>
   );
 }

@@ -1,8 +1,10 @@
 /**
  * SODA Brain — Founder Intelligence Workspace (Mission 05.1).
  * Founder only. Completely isolated from ERP modules.
+ * Mission 06.0: entries + ERP panel load in parallel (no waterfall).
  */
 
+import { Suspense } from "react";
 import { redirect } from "next/navigation";
 
 import { BrainWorkspace } from "@/components/brain/brain-workspace";
@@ -13,8 +15,47 @@ import { listBrainEntries } from "@/lib/brain/repository";
 import { homePathForAccessLevel } from "@/lib/identity/nav";
 import { permissionsForAccessLevel } from "@/lib/identity/access-levels";
 import { resolveSessionForApp } from "@/lib/identity/session";
+import type { BrainErpReadonlySummary, BrainEntry } from "@/lib/brain/types";
 
 export const dynamic = "force-dynamic";
+
+async function BrainErpDeferred({
+  entries,
+  migrationHint,
+}: {
+  entries: BrainEntry[];
+  migrationHint: string | null;
+}) {
+  const erpSummary = await loadBrainErpReadonlySummary();
+  return (
+    <BrainWorkspace
+      initialEntries={entries}
+      erpSummary={erpSummary}
+      migrationHint={migrationHint}
+    />
+  );
+}
+
+function emptyErpSummary(): BrainErpReadonlySummary {
+  const asOf = new Date().toISOString().slice(0, 10);
+  return {
+    asOf,
+    todayOrders: [],
+    upcomingShoots: [],
+    revenueSummary: {
+      revenueThisMonth: 0,
+      outstanding: 0,
+      collected: 0,
+    },
+    crewWorkingToday: [],
+    calendarSummary: {
+      todayShoots: 0,
+      tomorrowShoots: 0,
+      deliveries: 0,
+      deadlines: 0,
+    },
+  };
+}
 
 export default async function BrainPage() {
   const session = await resolveSessionForApp();
@@ -29,7 +70,7 @@ export default async function BrainPage() {
     );
   }
 
-  let entries: Awaited<ReturnType<typeof listBrainEntries>> = [];
+  let entries: BrainEntry[] = [];
   let migrationHint: string | null = null;
 
   try {
@@ -50,15 +91,19 @@ export default async function BrainPage() {
     }
   }
 
-  const erpSummary = await loadBrainErpReadonlySummary();
-
   return (
     <AppShell titleKey="pages.brain" layer="brain" session={session}>
-      <BrainWorkspace
-        initialEntries={entries}
-        erpSummary={erpSummary}
-        migrationHint={migrationHint}
-      />
+      <Suspense
+        fallback={
+          <BrainWorkspace
+            initialEntries={entries}
+            erpSummary={emptyErpSummary()}
+            migrationHint={migrationHint}
+          />
+        }
+      >
+        <BrainErpDeferred entries={entries} migrationHint={migrationHint} />
+      </Suspense>
     </AppShell>
   );
 }

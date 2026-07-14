@@ -108,30 +108,33 @@ export async function canAsync(
   }
 }
 
-export async function permissionsForAsync(
-  roleOrLevel: AccessLevel | SodaRole | string
-): Promise<{ permissions: readonly Permission[]; source: PermissionSource }> {
-  try {
-    const level = toAccessLevelKey(roleOrLevel);
-    const fromDb = await loadAccessPermissionsFromDb(level);
-    if (fromDb && fromDb.size > 0) {
-      const list = PERMISSIONS.filter((p) => fromDb.has(p));
-      // Empty filter (id mismatch) must not crash AppShell spreads — fall back.
-      if (list.length > 0) {
-        return { permissions: list, source: "database" };
+/** Per-request dedupe — AppShell layout + pages often call twice. */
+export const permissionsForAsync = cache(
+  async (
+    roleOrLevel: AccessLevel | SodaRole | string
+  ): Promise<{ permissions: readonly Permission[]; source: PermissionSource }> => {
+    try {
+      const level = toAccessLevelKey(roleOrLevel);
+      const fromDb = await loadAccessPermissionsFromDb(level);
+      if (fromDb && fromDb.size > 0) {
+        const list = PERMISSIONS.filter((p) => fromDb.has(p));
+        // Empty filter (id mismatch) must not crash AppShell spreads — fall back.
+        if (list.length > 0) {
+          return { permissions: list, source: "database" };
+        }
       }
+      return {
+        permissions: permissionsForAccessLevel(level),
+        source: "hardcoded-fallback",
+      };
+    } catch {
+      return {
+        permissions: permissionsForAccessLevel("team"),
+        source: "hardcoded-fallback",
+      };
     }
-    return {
-      permissions: permissionsForAccessLevel(level),
-      source: "hardcoded-fallback",
-    };
-  } catch {
-    return {
-      permissions: permissionsForAccessLevel("team"),
-      source: "hardcoded-fallback",
-    };
   }
-}
+);
 
 /** Per-request helper for session gates. */
 export const sessionCanAsync = cache(

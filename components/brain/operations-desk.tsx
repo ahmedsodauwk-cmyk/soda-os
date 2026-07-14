@@ -3,14 +3,15 @@
 /**
  * SODA Operations Desk — Founder Digital COO (Human Experience).
  * LEFT history · CENTER conversation (hero) · RIGHT Smart Understanding (closed by default)
- * Parse ONLY on Send / Enter / 1500ms idle — never on every keypress.
+ * Parse ONLY on Send / Enter / 500ms idle — never on every keypress (Mission 06.0 Phase 13).
+ * Idle parse: client heuristic only (0ms input lag) + background server enrich.
  * احفظ في Brain · نفذ في النظام — never silent ERP writes.
- * Voice = mic stub (same ingest path as text / voiceTranscript later).
  */
 
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { useEffect, useRef, useState, useTransition } from "react";
-import { ArrowLeft, Mic, MicOff, Send, Sparkles } from "lucide-react";
+import { ArrowLeft, Sparkles } from "lucide-react";
 
 import {
   answerOpsQuestionAction,
@@ -21,19 +22,39 @@ import {
 } from "@/lib/brain/actions";
 import {
   applyUnderstandingEdits,
-  defaultExecuteTarget,
-  type BrainUnderstanding,
-  type EntityTimeline,
-  type ExecuteTarget,
-  type RelatedMemory,
-  type UnderstandingEdits,
-} from "@/lib/brain/intelligence";
+} from "@/lib/brain/intelligence/pipeline";
+import { parseBrainText } from "@/lib/brain/intelligence/parser";
+import { defaultExecuteTarget } from "@/lib/brain/intelligence/questions";
+import type {
+  BrainUnderstanding,
+  EntityTimeline,
+  ExecuteTarget,
+  RelatedMemory,
+  UnderstandingEdits,
+} from "@/lib/brain/intelligence/types";
 import type { BrainChatMessage } from "@/lib/brain/types";
 import { cn } from "@/lib/utils";
-import { UnderstandingPanel } from "@/components/brain/understanding-panel";
-import { RelatedMemoriesPanel } from "@/components/brain/related-memories-panel";
+import {
+  OpsDeskComposer,
+  type OpsDeskComposerHandle,
+} from "@/components/brain/ops-desk-composer";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
+
+const UnderstandingPanel = dynamic(
+  () =>
+    import("@/components/brain/understanding-panel").then((m) => ({
+      default: m.UnderstandingPanel,
+    })),
+  { ssr: false }
+);
+
+const RelatedMemoriesPanel = dynamic(
+  () =>
+    import("@/components/brain/related-memories-panel").then((m) => ({
+      default: m.RelatedMemoriesPanel,
+    })),
+  { ssr: false }
+);
 
 type Props = {
   initialMessages: BrainChatMessage[];
@@ -87,12 +108,10 @@ function resolveSystemTarget(u: BrainUnderstanding): ExecuteTarget {
 }
 
 export function OperationsDesk({ initialMessages, migrationHint }: Props) {
-  // Operations Desk speaks Egyptian Arabic to Founder (Mission 05.2).
   const ar = true;
   const [messages, setMessages] = useState(() =>
     Array.isArray(initialMessages) ? initialMessages : []
   );
-  const [text, setText] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const [understanding, setUnderstanding] = useState<BrainUnderstanding | null>(
@@ -106,38 +125,36 @@ export function OperationsDesk({ initialMessages, migrationHint }: Props) {
   const [panelOpen, setPanelOpen] = useState(false);
   const [greeted, setGreeted] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLTextAreaElement>(null);
-  const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const composerRef = useRef<OpsDeskComposerHandle>(null);
   const parseGeneration = useRef(0);
   const understandingRef = useRef<BrainUnderstanding | null>(null);
+  const idleEnrichGen = useRef(0);
 
   useEffect(() => {
     understandingRef.current = understanding;
   }, [understanding]);
 
+  // Scroll only on message thread growth — not on understanding idle updates
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages.length, localBubbles.length, understanding]);
+  }, [messages.length, localBubbles.length]);
 
+  // Background chat hydrate AFTER first paint (Phase 14) — do not block typing
   useEffect(() => {
-    startTransition(async () => {
-      try {
-        const res = await loadBrainChatAction();
-        if (res.ok && res.messages) setMessages(res.messages);
-      } catch (err) {
-        setError(
-          err instanceof Error
-            ? err.message
-            : ar
-              ? "مقدرتش أحدّث المكتب."
-              : "Failed to refresh desk."
-        );
-      }
-    });
+    const t = window.setTimeout(() => {
+      startTransition(async () => {
+        try {
+          const res = await loadBrainChatAction();
+          if (res.ok && res.messages) setMessages(res.messages);
+        } catch {
+          /* non-fatal background refresh */
+        }
+      });
+    }, 0);
+    return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- mount refresh only
   }, []);
 
-  // Light initiation — once per open, not spam
   useEffect(() => {
     if (greeted) return;
     setGreeted(true);
@@ -157,13 +174,6 @@ export function OperationsDesk({ initialMessages, migrationHint }: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps -- greet once on open
   }, [greeted]);
 
-  // Keep input focused and instant — refocus after transitions settle
-  useEffect(() => {
-    if (!pending) {
-      inputRef.current?.focus();
-    }
-  }, [pending, understanding?.lifecycle]);
-
   function clearPending() {
     setUnderstanding(null);
     understandingRef.current = null;
@@ -173,7 +183,7 @@ export function OperationsDesk({ initialMessages, migrationHint }: Props) {
     setSuggestions([]);
     setMicArmed(false);
     setPanelOpen(false);
-    queueMicrotask(() => inputRef.current?.focus());
+    queueMicrotask(() => composerRef.current?.focus());
   }
 
   function pushAssistant(content: string) {
@@ -189,30 +199,70 @@ export function OperationsDesk({ initialMessages, migrationHint }: Props) {
   }
 
   function focusInputSoon() {
-    queueMicrotask(() => inputRef.current?.focus());
+    queueMicrotask(() => composerRef.current?.focus());
   }
 
   /**
-   * Single ingest path for typed text OR future voiceTranscript.
-   * NEVER called from onChange character-by-character (only debounce / Send / Enter).
+   * Idle parse (500ms after stop): CLIENT heuristic only for panel.
+   * Does NOT clear input. Does NOT add chat bubbles.
+   * Server enrich runs in background after paint — never blocks typing.
+   */
+  function onIdleParse(raw: string) {
+    const trimmed = raw.trim();
+    if (trimmed.length < 2) return;
+    if (
+      understandingRef.current?.lifecycle === "approved" ||
+      understandingRef.current?.lifecycle === "executed"
+    ) {
+      return;
+    }
+
+    // Instant local parse — 0ms lag on input (composer is isolated)
+    const local = parseBrainText(trimmed);
+    setUnderstanding(local);
+    understandingRef.current = local;
+    setPanelOpen(true);
+
+    const gen = ++idleEnrichGen.current;
+    // Background server enrich (related memories / ERP awareness) — Phase 14
+    queueMicrotask(() => {
+      void (async () => {
+        try {
+          const res = await understandBrainChatAction({ text: trimmed });
+          if (gen !== idleEnrichGen.current) return;
+          if (!res.ok || !res.understanding) return;
+          // Only apply if Founder hasn't submitted a newer draft
+          if (composerRef.current?.getValue().trim() !== trimmed) return;
+          setUnderstanding(res.understanding);
+          understandingRef.current = res.understanding;
+          setRelated(res.related ?? []);
+          setTimelines(res.timelines ?? []);
+          setSuggestions(res.suggestions ?? []);
+        } catch {
+          /* idle enrich is best-effort */
+        }
+      })();
+    });
+  }
+
+  /**
+   * Full ingest on Send / Enter — clears composer (already cleared by child).
    */
   function ingest(raw: string, source: "text" | "voiceTranscript" = "text") {
     const trimmed = raw.trim();
     if (!trimmed) return;
 
     const gen = ++parseGeneration.current;
+    idleEnrichGen.current += 1; // cancel stale idle enrich
     setError(null);
-    setText("");
     focusInputSoon();
 
     if (process.env.NODE_ENV === "development") {
-      // Dev-only — never surface to Founder
       console.debug("[brain-ops]", source, trimmed.slice(0, 80));
     }
 
     const current = understandingRef.current;
 
-    // Follow-up answer while draft waiting on one smart question
     if (
       current &&
       current.lifecycle === "draft" &&
@@ -236,7 +286,7 @@ export function OperationsDesk({ initialMessages, migrationHint }: Props) {
           if (gen !== parseGeneration.current) return;
           if (!res.ok || !res.understanding) {
             setError(res.error ?? (ar ? "مقدرتش أكمّل" : "Follow-up failed"));
-            setText(trimmed);
+            composerRef.current?.setValue(trimmed);
             focusInputSoon();
             return;
           }
@@ -258,7 +308,7 @@ export function OperationsDesk({ initialMessages, migrationHint }: Props) {
                 ? "مقدرتش أكمّل."
                 : "Follow-up failed."
           );
-          setText(trimmed);
+          composerRef.current?.setValue(trimmed);
           focusInputSoon();
         }
       });
@@ -278,18 +328,23 @@ export function OperationsDesk({ initialMessages, migrationHint }: Props) {
       ];
     });
 
+    // Optimistic local understanding while server runs
+    const optimistic = parseBrainText(trimmed);
+    setUnderstanding(optimistic);
+    understandingRef.current = optimistic;
+    setPanelOpen(true);
+
     startTransition(async () => {
       try {
         const res = await understandBrainChatAction({ text: trimmed });
         if (gen !== parseGeneration.current) return;
         if (!res.ok || !res.understanding) {
           setError(res.error ?? (ar ? "مقدرتش أفهم ده" : "Couldn't understand"));
-          setText(trimmed);
+          composerRef.current?.setValue(trimmed);
           setLocalBubbles((prev) => prev.filter((b) => b.id.startsWith("greet-")));
           focusInputSoon();
           return;
         }
-        // Stamp voice stub when ingest came from mic path later
         const u =
           source === "voiceTranscript"
             ? {
@@ -318,47 +373,11 @@ export function OperationsDesk({ initialMessages, migrationHint }: Props) {
               ? "مقدرتش أفهم ده."
               : "Couldn't understand."
         );
-        setText(trimmed);
+        composerRef.current?.setValue(trimmed);
         setLocalBubbles((prev) => prev.filter((b) => b.id.startsWith("greet-")));
         focusInputSoon();
       }
     });
-  }
-
-  function onTextChange(value: string) {
-    setText(value);
-    // CRITICAL: never parse / never server-action on keypress.
-    // Only schedule idle debounce (1500ms after stop typing).
-    if (debounceTimer.current) clearTimeout(debounceTimer.current);
-    const draft = value.trim();
-    if (draft.length < 2) return;
-    // Don't auto-parse while already mid-approved lifecycle
-    if (
-      understandingRef.current?.lifecycle === "approved" ||
-      understandingRef.current?.lifecycle === "executed"
-    ) {
-      return;
-    }
-    debounceTimer.current = setTimeout(() => {
-      // Re-read latest text from DOM-bound state via closure value
-      if (value.trim().length >= 2) {
-        ingest(value, "text");
-      }
-    }, 1500);
-  }
-
-  useEffect(() => {
-    return () => {
-      if (debounceTimer.current) clearTimeout(debounceTimer.current);
-    };
-  }, []);
-
-  function submitNow() {
-    if (debounceTimer.current) {
-      clearTimeout(debounceTimer.current);
-      debounceTimer.current = null;
-    }
-    ingest(text, micArmed ? "voiceTranscript" : "text");
   }
 
   function onEdit(edits: UnderstandingEdits) {
@@ -457,13 +476,11 @@ export function OperationsDesk({ initialMessages, migrationHint }: Props) {
   }
 
   function onCancel() {
-    if (debounceTimer.current) clearTimeout(debounceTimer.current);
     clearPending();
   }
 
   function onMicStub() {
     setMicArmed((v) => !v);
-    // Stub only — same ingest path will accept voiceTranscript later
     setError(
       ar
         ? "الميكروفون جاهز كشكل — الصوت لسه قادم. اكتب عادي دلوقتي."
@@ -482,6 +499,20 @@ export function OperationsDesk({ initialMessages, migrationHint }: Props) {
       understanding.missingFields.length > 0 ||
       related.length > 0);
 
+  const composerPlaceholder =
+    understanding?.lifecycle === "draft" &&
+    understanding.missingFields.length > 0
+      ? ar
+        ? understanding.nextQuestionAr ?? "جاوب على السؤال…"
+        : understanding.nextQuestionEn ?? "Answer the question…"
+      : ar
+        ? "كلّم مكتب العمليات…"
+        : "Brief the Operations Desk…";
+
+  const suppressIdle =
+    understanding?.lifecycle === "approved" ||
+    understanding?.lifecycle === "executed";
+
   return (
     <div className="relative flex min-h-[calc(100vh-8rem)] flex-col overflow-hidden rounded-2xl border border-violet-500/25 bg-[linear-gradient(165deg,rgba(28,16,48,0.92)_0%,rgba(12,8,22,0.98)_42%,rgba(8,6,14,1)_100%)] text-violet-50 lg:flex-row">
       <div
@@ -489,11 +520,11 @@ export function OperationsDesk({ initialMessages, migrationHint }: Props) {
         aria-hidden
       />
 
-      {/* LEFT — conversation history */}
       <aside className="relative z-[1] flex w-full flex-col border-b border-violet-500/15 lg:w-[220px] lg:shrink-0 lg:border-b-0 lg:border-e">
         <header className="flex items-center gap-2 border-b border-violet-500/15 px-3 py-3">
           <Link
             href="/brain"
+            prefetch
             className="rounded-md p-1.5 text-violet-300/70 hover:bg-violet-500/15 hover:text-violet-50"
           >
             <ArrowLeft className="size-4" />
@@ -537,12 +568,9 @@ export function OperationsDesk({ initialMessages, migrationHint }: Props) {
         </div>
       </aside>
 
-      {/* CENTER — conversation HERO */}
       <div className="relative z-[1] flex min-w-0 flex-1 flex-col">
         <header className="border-b border-violet-500/15 px-4 py-3">
-          <p className="text-sm font-medium">
-            {ar ? "SODA Brain · COO" : "SODA Brain · COO"}
-          </p>
+          <p className="text-sm font-medium">SODA Brain · COO</p>
           <p className="text-[11px] text-violet-300/55">
             {ar
               ? "كلّمني عادي — أنا هفهم وأسأل قبل أي خطوة."
@@ -623,61 +651,18 @@ export function OperationsDesk({ initialMessages, migrationHint }: Props) {
           </p>
         ) : null}
 
-        {/* BOTTOM — input always interactive; parse only via Send / Enter / idle debounce */}
         <div className="border-t border-violet-500/15 p-3">
-          <div className="flex items-end gap-2 rounded-2xl border border-violet-500/25 bg-violet-950/50 p-2">
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              onClick={onMicStub}
-              className={cn(
-                "h-10 w-10 shrink-0 rounded-xl",
-                micArmed
-                  ? "bg-violet-500/30 text-violet-100"
-                  : "text-violet-300/60 hover:bg-violet-500/15"
-              )}
-              title={ar ? "ميكروفون (قريباً)" : "Mic (soon)"}
-            >
-              {micArmed ? (
-                <Mic className="size-4" />
-              ) : (
-                <MicOff className="size-4" />
-              )}
-            </Button>
-            <Textarea
-              ref={inputRef}
-              value={text}
-              onChange={(e) => onTextChange(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey) {
-                  e.preventDefault();
-                  if (!pending && text.trim()) submitNow();
-                }
-              }}
-              rows={2}
-              placeholder={
-                understanding?.lifecycle === "draft" &&
-                understanding.missingFields.length > 0
-                  ? ar
-                    ? understanding.nextQuestionAr ?? "جاوب على السؤال…"
-                    : understanding.nextQuestionEn ?? "Answer the question…"
-                  : ar
-                    ? "كلّم مكتب العمليات…"
-                    : "Brief the Operations Desk…"
-              }
-              className="min-h-[52px] flex-1 resize-none border-0 bg-transparent text-sm text-violet-50 shadow-none placeholder:text-violet-400/40 focus-visible:ring-0"
-            />
-            <Button
-              type="button"
-              disabled={pending || !text.trim()}
-              onClick={submitNow}
-              className="h-10 shrink-0 gap-1 rounded-xl bg-violet-500 text-white hover:bg-violet-400"
-            >
-              <Send className="size-3.5" />
-              {ar ? "فهم" : "Send"}
-            </Button>
-          </div>
+          <OpsDeskComposer
+            ref={composerRef}
+            ar={ar}
+            pending={pending}
+            micArmed={micArmed}
+            onMicToggle={onMicStub}
+            onSubmit={ingest}
+            onIdleParse={onIdleParse}
+            placeholder={composerPlaceholder}
+            suppressIdleParse={suppressIdle}
+          />
 
           <div className="mt-2 flex flex-wrap gap-2">
             <Button
@@ -735,7 +720,6 @@ export function OperationsDesk({ initialMessages, migrationHint }: Props) {
         </div>
       </div>
 
-      {/* RIGHT — Smart Understanding CLOSED by default; opens only when useful */}
       {showRightRail ? (
         <aside className="relative z-[1] flex w-full flex-col border-t border-violet-500/15 lg:w-[320px] lg:shrink-0 lg:border-s lg:border-t-0">
           <div className="flex-1 space-y-4 overflow-y-auto p-3">

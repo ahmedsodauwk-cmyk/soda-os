@@ -125,6 +125,7 @@ export function SidebarContent({ user }: SidebarContentProps) {
                       render={
                         <Link
                           href={item.href}
+                          prefetch
                           aria-current={active ? "page" : undefined}
                         />
                       }
