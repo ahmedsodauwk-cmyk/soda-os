@@ -11,6 +11,11 @@
 export const SODA_LOGO = {
   /** Official black-square mark (canonical) */
   officialSrc: "/brand/soda-logo-official.png",
+  /**
+   * Splash / loading only — official mark with near-black plate removed
+   * (white geometry preserved; no recolor). Derived from official PNG.
+   */
+  markTransparentSrc: "/brand/soda-logo-mark-transparent.png",
   /** Alias — same official mark */
   markWhiteSrc: "/brand/soda-mark-white.png",
   /** UI mark — same official mark (no alternate plate) */
@@ -37,7 +42,7 @@ export const SODA_LOGO = {
   /** Full product lockup for docs / metadata */
   fullName: "SODA VISUALS",
   /** Asset revision — busts browser/PWA icon cache */
-  assetVersion: "06.3.1",
+  assetVersion: "06.3.2",
 } as const;
 
 /** Recommended display sizes by placement (never upscale past source clarity) */
@@ -82,7 +87,7 @@ export const SODA_LOGO_PLACEMENTS: Record<
   },
   favicon: { src: SODA_LOGO.iconSrc, size: SODA_LOGO_SIZES.favicon, preserveSquare: true },
   splash: {
-    src: SODA_LOGO.officialSrc,
+    src: SODA_LOGO.markTransparentSrc,
     size: SODA_LOGO_SIZES.splash,
     preserveSquare: true,
   },
