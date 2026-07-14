@@ -13,7 +13,6 @@ import {
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -96,12 +95,16 @@ export function SidebarContent({ user }: SidebarContentProps) {
 
   return (
     <>
-      <div className="relative flex items-center gap-2.5 border-b border-sidebar-border px-4 py-5">
+      <div className="relative flex shrink-0 items-center gap-2.5 border-b border-sidebar-border px-4 py-5">
         <SodaLogo placement="sidebar" />
       </div>
 
-      <ScrollArea className="flex-1 px-2 py-3">
-        <nav className="space-y-5">
+      {/* Native overflow (not ScrollArea) so mobile touch + iOS momentum work. */}
+      <nav
+        className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-2 py-3 [-webkit-overflow-scrolling:touch]"
+        aria-label="Primary"
+      >
+        <div className="space-y-5">
           {sections.map((section) => (
             <div key={section.id} className="space-y-1">
               <p className="flex items-center gap-1.5 px-3 pb-1 text-[10px] font-semibold tracking-[0.08em] text-sidebar-foreground/55 uppercase">
@@ -155,10 +158,10 @@ export function SidebarContent({ user }: SidebarContentProps) {
               </div>
             </div>
           ))}
-        </nav>
-      </ScrollArea>
+        </div>
+      </nav>
 
-      <div className="space-y-4 border-t border-sidebar-border p-4">
+      <div className="shrink-0 space-y-4 border-t border-sidebar-border px-4 pt-4 pb-[calc(1rem+env(safe-area-inset-bottom,0px))]">
         <DropdownMenu>
           <DropdownMenuTrigger
             className="flex w-full cursor-pointer items-center gap-2.5 rounded-lg p-2 text-left outline-none transition-colors hover:bg-sidebar-accent focus-visible:ring-2 focus-visible:ring-sidebar-ring"
@@ -244,7 +247,7 @@ interface SidebarProps {
 
 export default function Sidebar({ user }: SidebarProps) {
   return (
-    <aside className="soda-sidebar-rail hidden h-screen w-60 shrink-0 flex-col border-r border-sidebar-border text-sidebar-foreground lg:flex">
+    <aside className="soda-sidebar-rail hidden h-screen min-h-0 w-60 shrink-0 flex-col border-r border-sidebar-border text-sidebar-foreground lg:flex">
       <SidebarContent user={user} />
     </aside>
   );

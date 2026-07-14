@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { Menu, Settings } from "lucide-react";
 import Link from "next/link";
 
@@ -51,16 +52,34 @@ export default function Header({
   user,
 }: HeaderProps) {
   const { t } = useI18n();
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const displayTitle = titleKey
     ? t(titleKey)
     : (title ?? t("pages.home"));
   const sideLanguage =
     subtitle ?? (layer ? getSideLanguage(layer) : getSideLanguage("dashboard"));
 
+  // App shell scrolls an inner section (not document); lock it while the drawer is open.
+  useEffect(() => {
+    if (!mobileNavOpen) return;
+    const scrollRegion = document.querySelector<HTMLElement>(
+      "[data-soda-main-scroll]"
+    );
+    if (!scrollRegion) return;
+    const prevOverflowY = scrollRegion.style.overflowY;
+    const prevOverscroll = scrollRegion.style.overscrollBehavior;
+    scrollRegion.style.overflowY = "hidden";
+    scrollRegion.style.overscrollBehavior = "none";
+    return () => {
+      scrollRegion.style.overflowY = prevOverflowY;
+      scrollRegion.style.overscrollBehavior = prevOverscroll;
+    };
+  }, [mobileNavOpen]);
+
   return (
     <header className="soda-topbar sticky top-0 z-10 flex min-h-[4.25rem] items-center justify-between gap-4 border-b px-4 py-3.5 backdrop-blur-md sm:px-6">
       <div className="flex min-w-0 items-center gap-3">
-        <Sheet>
+        <Sheet open={mobileNavOpen} onOpenChange={setMobileNavOpen}>
           <SheetTrigger
             render={
               <Button variant="ghost" size="icon-sm" className="lg:hidden" />
@@ -70,9 +89,13 @@ export default function Header({
             <span className="sr-only">{t("actions.openMenu")}</span>
           </SheetTrigger>
 
-          <SheetContent side="left" className="w-60 gap-0 p-0" showCloseButton>
+          <SheetContent
+            side="left"
+            showCloseButton
+            className="soda-mobile-nav-sheet w-60 gap-0 overflow-hidden p-0"
+          >
             <SheetTitle className="sr-only">Navigation</SheetTitle>
-            <div className="flex h-full flex-col bg-sidebar text-sidebar-foreground">
+            <div className="flex h-full min-h-0 flex-col overflow-hidden overscroll-contain bg-sidebar text-sidebar-foreground">
               <SidebarContent user={user} />
             </div>
           </SheetContent>

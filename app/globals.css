@@ -665,6 +665,19 @@
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--ring) 40%, transparent);
 }
 
+/* Mobile nav drawer — pin to visual viewport (override Sheet h-full). */
+.soda-mobile-nav-sheet[data-side="left"] {
+  height: 100dvh;
+  max-height: 100dvh;
+  overflow: hidden;
+}
+@supports (height: 100svh) {
+  .soda-mobile-nav-sheet[data-side="left"] {
+    height: 100svh;
+    max-height: 100svh;
+  }
+}
+
 /* Sidebar — deep purple brand rail */
 .soda-sidebar-rail {
   position: relative;

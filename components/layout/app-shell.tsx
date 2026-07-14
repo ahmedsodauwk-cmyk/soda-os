@@ -120,7 +120,10 @@ export async function AppShell({
       <PageAtmosphere section={section} />
       <Sidebar user={user} />
 
-      <section className="relative z-[1] flex min-h-0 flex-1 flex-col overflow-y-auto">
+      <section
+        data-soda-main-scroll
+        className="relative z-[1] flex min-h-0 flex-1 flex-col overflow-y-auto"
+      >
         <Header
           titleKey={titleKey}
           title={title}
