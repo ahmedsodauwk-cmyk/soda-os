@@ -14,11 +14,17 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   archiveAccountAction,
+  changeAccountAccessLevelAction,
   changeAccountRoleAction,
   resetAccountPasswordAction,
   setAccountActiveAction,
   type AuthorityAccountRow,
 } from "@/lib/identity/authority-actions";
+import {
+  ACCESS_LEVEL_LABELS,
+  ACCESS_LEVELS,
+  type AccessLevel,
+} from "@/lib/identity/access-levels";
 import { INVITEABLE_ROLES, ROLE_LABELS, type SodaRole } from "@/lib/identity/roles";
 
 interface AccountDirectoryProps {
@@ -93,7 +99,10 @@ export function AccountDirectory({ accounts }: AccountDirectoryProps) {
                     </p>
                   </div>
                   <div className="flex flex-wrap gap-1.5">
-                    <Badge variant="outline">{roleLabel}</Badge>
+                    <Badge variant="outline">
+                      {ACCESS_LEVEL_LABELS[account.accessLevel]}
+                    </Badge>
+                    <Badge variant="secondary">{roleLabel}</Badge>
                     <Badge variant={account.isActive ? "default" : "secondary"}>
                       {account.isActive ? "Active" : "Disabled"}
                     </Badge>
@@ -146,6 +155,27 @@ export function AccountDirectory({ accounts }: AccountDirectoryProps) {
                 ) : null}
 
                 <div className="flex flex-wrap items-center gap-2">
+                  <label className="flex items-center gap-2 text-sm">
+                    <span className="text-muted-foreground">Access Level</span>
+                    <select
+                      className="h-8 rounded-md border border-input bg-transparent px-2 text-sm"
+                      disabled={pending}
+                      value={account.accessLevel}
+                      onChange={(e) => {
+                        const next = e.target.value as AccessLevel;
+                        run(() =>
+                          changeAccountAccessLevelAction(account.id, next)
+                        );
+                      }}
+                    >
+                      {ACCESS_LEVELS.map((level) => (
+                        <option key={level} value={level}>
+                          {ACCESS_LEVEL_LABELS[level]}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+
                   <label className="flex items-center gap-2 text-sm">
                     <span className="text-muted-foreground">Role</span>
                     <select

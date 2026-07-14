@@ -1,26 +1,26 @@
 /**
- * Permission service — DB `roles` / `permissions` / `role_permissions` is the
- * long-term Source of Truth for Founder-assignable permissions.
+ * Permission service — Access Level → grants (Mission 04.4.5).
  *
- * Hardcoded maps in `permissions.ts` are DEPRECATED fallbacks when:
- * - migration not applied
- * - RPC / table read fails
- * - client components need a sync check
+ * Lookup key is `profiles.access_level` (founder | account_manager |
+ * team_leader | team), not job title / operational role.
  *
- * Prefer `canAsync` / `permissionsForAsync` on the server.
- * Founder assignment path: mutate `role_permissions` (Authority Center).
+ * DB `role_permissions` rows keyed by access_level id are Source of Truth.
+ * Hardcoded ACCESS_LEVEL_PERMISSIONS is fallback when DB empty/unavailable.
+ * NEVER elevates unresolved lookups to Founder/owner.
  */
 
 import { cache } from "react";
 
+import {
+  accessLevelCan,
+  isAccessLevel,
+  permissionsForAccessLevel,
+  resolveAccessLevel,
+  type AccessLevel,
+} from "@/lib/identity/access-levels";
 import { createClient } from "@/lib/supabase/server";
 import type { SodaRole } from "@/lib/identity/roles";
-import {
-  can as canHardcoded,
-  permissionsFor as permissionsForHardcoded,
-  type Permission,
-  PERMISSIONS,
-} from "@/lib/identity/permissions";
+import { PERMISSIONS, type Permission } from "@/lib/identity/permissions";
 
 export type PermissionSource = "database" | "hardcoded-fallback";
 
@@ -29,12 +29,23 @@ export type PermissionCheckResult = {
   source: PermissionSource;
 };
 
-const dbCache = new Map<SodaRole, Set<string>>();
+const dbCache = new Map<string, Set<string>>();
 
-async function loadRolePermissionsFromDb(
-  role: SodaRole
+/**
+ * Normalize a role-or-access-level argument to Access Level.
+ * Legacy SodaRole strings map via resolveAccessLevel — unknowns → team.
+ */
+export function toAccessLevelKey(
+  roleOrLevel: AccessLevel | SodaRole | string
+): AccessLevel {
+  if (isAccessLevel(roleOrLevel)) return roleOrLevel;
+  return resolveAccessLevel({ role: roleOrLevel });
+}
+
+async function loadAccessPermissionsFromDb(
+  level: AccessLevel
 ): Promise<Set<string> | null> {
-  const cached = dbCache.get(role);
+  const cached = dbCache.get(level);
   if (cached) return cached;
 
   try {
@@ -42,7 +53,7 @@ async function loadRolePermissionsFromDb(
     const { data, error } = await supabase
       .from("role_permissions")
       .select("permission_id")
-      .eq("role_id", role);
+      .eq("role_id", level);
 
     if (error || !data) return null;
 
@@ -53,7 +64,7 @@ async function loadRolePermissionsFromDb(
         )
         .filter((id): id is string => Boolean(id))
     );
-    dbCache.set(role, set);
+    dbCache.set(level, set);
     return set;
   } catch {
     return null;
@@ -61,19 +72,21 @@ async function loadRolePermissionsFromDb(
 }
 
 /** Clear in-memory DB permission cache (after Founder edits role_permissions). */
-export function invalidatePermissionCache(role?: SodaRole): void {
-  if (role) dbCache.delete(role);
+export function invalidatePermissionCache(roleOrLevel?: string): void {
+  if (roleOrLevel) dbCache.delete(roleOrLevel);
   else dbCache.clear();
 }
 
 /**
- * Async permission check — reads DB first, falls back to deprecated hardcoded map.
+ * Async permission check — Access Level → DB first, then hardcoded map.
+ * Unresolved / empty DB uses Team-safe hardcoded set for that level — never Founder.
  */
 export async function canAsync(
-  role: SodaRole,
+  roleOrLevel: AccessLevel | SodaRole | string,
   permission: Permission
 ): Promise<PermissionCheckResult> {
-  const fromDb = await loadRolePermissionsFromDb(role);
+  const level = toAccessLevelKey(roleOrLevel);
+  const fromDb = await loadAccessPermissionsFromDb(level);
   if (fromDb && fromDb.size > 0) {
     return {
       allowed: fromDb.has(permission),
@@ -81,21 +94,22 @@ export async function canAsync(
     };
   }
   return {
-    allowed: canHardcoded(role, permission),
+    allowed: accessLevelCan(level, permission),
     source: "hardcoded-fallback",
   };
 }
 
 export async function permissionsForAsync(
-  role: SodaRole
+  roleOrLevel: AccessLevel | SodaRole | string
 ): Promise<{ permissions: readonly Permission[]; source: PermissionSource }> {
-  const fromDb = await loadRolePermissionsFromDb(role);
+  const level = toAccessLevelKey(roleOrLevel);
+  const fromDb = await loadAccessPermissionsFromDb(level);
   if (fromDb && fromDb.size > 0) {
     const list = PERMISSIONS.filter((p) => fromDb.has(p));
     return { permissions: list, source: "database" };
   }
   return {
-    permissions: permissionsForHardcoded(role),
+    permissions: permissionsForAccessLevel(level),
     source: "hardcoded-fallback",
   };
 }
@@ -103,16 +117,16 @@ export async function permissionsForAsync(
 /** Per-request helper for session gates. */
 export const sessionCanAsync = cache(
   async (
-    role: SodaRole,
+    roleOrLevel: AccessLevel | SodaRole | string,
     permission: Permission
   ): Promise<boolean> => {
-    const result = await canAsync(role, permission);
+    const result = await canAsync(roleOrLevel, permission);
     return result.allowed;
   }
 );
 
 /**
- * Assign a permission to a role (Founder / Owner path).
+ * Assign a permission to an access-level / role template (Founder path).
  * Does not create users — only mutates role_permissions.
  */
 export async function assignRolePermission(
@@ -126,7 +140,7 @@ export async function assignRolePermission(
       { onConflict: "role_id,permission_id" }
     );
     if (error) return { ok: false, error: error.message };
-    invalidatePermissionCache(roleId as SodaRole);
+    invalidatePermissionCache(roleId);
     return { ok: true };
   } catch (err) {
     return {
@@ -148,7 +162,7 @@ export async function revokeRolePermission(
       .eq("role_id", roleId)
       .eq("permission_id", permissionId);
     if (error) return { ok: false, error: error.message };
-    invalidatePermissionCache(roleId as SodaRole);
+    invalidatePermissionCache(roleId);
     return { ok: true };
   } catch (err) {
     return {

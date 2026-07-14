@@ -23,8 +23,8 @@ export default async function ClientNotesPage({
   if (!notes) notFound();
 
   const canEdit = session
-    ? can(session.profile.role, "clients.edit")
-    : true;
+    ? can(session.profile.accessLevel, "clients.edit")
+    : false;
 
   const content = (
     <ClientWorkspaceSectionPage clientId={id} section="notes">

@@ -24,7 +24,7 @@ export async function toggleRolePermissionAction(
   enabled: boolean
 ): Promise<RolePermissionActionResult> {
   const session = await resolveSessionForApp();
-  if (!session || !can(session.profile.role, "settings.users")) {
+  if (!session || !can(session.profile.accessLevel, "settings.users")) {
     return { ok: false, error: "Not authorized" };
   }
 

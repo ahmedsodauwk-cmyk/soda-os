@@ -9,6 +9,12 @@
 import { revalidatePath } from "next/cache";
 
 import { generateTemporaryPassword } from "@/lib/auth/temp-password";
+import {
+  ACCESS_LEVEL_LABELS,
+  isAccessLevel,
+  resolveAccessLevel,
+  type AccessLevel,
+} from "@/lib/identity/access-levels";
 import { personIdTakenByOtherProfile } from "@/lib/identity/identity-link";
 import { provisionLoginAccountForPerson } from "@/lib/identity/provision-account";
 import { can } from "@/lib/identity/permissions";
@@ -31,7 +37,7 @@ export type AuthorityActionResult = {
 
 async function requireAuthorityOperator() {
   const session = await resolveSessionForApp();
-  if (!session || !can(session.profile.role, "settings.users")) {
+  if (!session || !can(session.profile.accessLevel, "settings.users")) {
     return null;
   }
   return session;
@@ -50,6 +56,7 @@ export type AuthorityAccountRow = {
   username: string | null;
   fullName: string | null;
   role: string;
+  accessLevel: AccessLevel;
   isActive: boolean;
   mustChangePassword: boolean;
   personId: string | null;
@@ -68,27 +75,60 @@ export async function listAuthorityAccounts(): Promise<AuthorityAccountRow[]> {
     const { data: profiles, error } = await admin
       .from("profiles")
       .select(
-        "id, email, username, full_name, role, is_active, must_change_password, person_id, created_at, password_reset_at"
+        "id, email, username, full_name, role, access_level, is_active, must_change_password, person_id, created_at, password_reset_at"
       )
       .order("full_name", { ascending: true });
 
-    if (error || !profiles) return [];
-
-    const authUsers = await admin.auth.admin.listUsers({
-      page: 1,
-      perPage: 200,
-    });
-    const lastSignIn = new Map<string, string | null>();
-    for (const u of authUsers.data?.users ?? []) {
-      lastSignIn.set(u.id, u.last_sign_in_at ?? null);
+    if (error || !profiles) {
+      // Migration may not be applied yet — fall back without access_level.
+      const legacy = await admin
+        .from("profiles")
+        .select(
+          "id, email, username, full_name, role, is_active, must_change_password, person_id, created_at, password_reset_at"
+        )
+        .order("full_name", { ascending: true });
+      if (legacy.error || !legacy.data) return [];
+      return mapAuthorityRows(legacy.data, await lastSignInMap(admin));
     }
 
-    return profiles.map((row) => ({
+    return mapAuthorityRows(profiles, await lastSignInMap(admin));
+  } catch {
+    return [];
+  }
+}
+
+async function lastSignInMap(
+  admin: ReturnType<typeof createAdminClient>
+): Promise<Map<string, string | null>> {
+  const authUsers = await admin.auth.admin.listUsers({
+    page: 1,
+    perPage: 200,
+  });
+  const lastSignIn = new Map<string, string | null>();
+  for (const u of authUsers.data?.users ?? []) {
+    lastSignIn.set(u.id, u.last_sign_in_at ?? null);
+  }
+  return lastSignIn;
+}
+
+function mapAuthorityRows(
+  profiles: Record<string, unknown>[],
+  lastSignIn: Map<string, string | null>
+): AuthorityAccountRow[] {
+  return profiles.map((row) => {
+    const role = typeof row.role === "string" ? row.role : "crew_member";
+    const accessLevel = resolveAccessLevel({
+      accessLevel:
+        typeof row.access_level === "string" ? row.access_level : null,
+      role,
+    });
+    return {
       id: String(row.id),
       email: typeof row.email === "string" ? row.email : null,
       username: typeof row.username === "string" ? row.username : null,
       fullName: typeof row.full_name === "string" ? row.full_name : null,
-      role: typeof row.role === "string" ? row.role : "crew_member",
+      role,
+      accessLevel,
       isActive: row.is_active !== false,
       mustChangePassword: row.must_change_password === true,
       personId: typeof row.person_id === "string" ? row.person_id : null,
@@ -98,10 +138,8 @@ export async function listAuthorityAccounts(): Promise<AuthorityAccountRow[]> {
         typeof row.password_reset_at === "string"
           ? row.password_reset_at
           : null,
-    }));
-  } catch {
-    return [];
-  }
+    };
+  });
 }
 
 /**
@@ -133,6 +171,7 @@ export async function createAuthorityAccountAction(input: {
     username: input.username,
     email: input.email,
     role: input.role,
+    accessLevel: "team",
   });
 
   if (!result.ok) return { ok: false, error: result.error };
@@ -224,6 +263,39 @@ export async function changeAccountRoleAction(
     return {
       ok: false,
       error: err instanceof Error ? err.message : "Role change failed.",
+    };
+  }
+}
+
+/** Founder changes Access Level — immediately updates nav/permissions on next request. */
+export async function changeAccountAccessLevelAction(
+  profileId: string,
+  accessLevel: string
+): Promise<AuthorityActionResult> {
+  const session = await requireAuthorityOperator();
+  if (!session) return { ok: false, error: "Not authorized." };
+  if (!isAccessLevel(accessLevel)) {
+    return { ok: false, error: "Invalid access level." };
+  }
+
+  try {
+    const admin = createAdminClient();
+    const { error } = await admin
+      .from("profiles")
+      .update({ access_level: accessLevel })
+      .eq("id", profileId);
+    if (error) return { ok: false, error: error.message };
+    revalidateAuthority();
+    revalidatePath("/", "layout");
+    return {
+      ok: true,
+      message: `Access Level updated to ${ACCESS_LEVEL_LABELS[accessLevel]}.`,
+    };
+  } catch (err) {
+    return {
+      ok: false,
+      error:
+        err instanceof Error ? err.message : "Access Level change failed.",
     };
   }
 }

@@ -29,7 +29,7 @@ async function PeopleSectionPage({
 }) {
   const session = await resolveSessionForApp();
   await refreshCrewProfileDomainData();
-  const showFounderActions = canSeeFounderActions(session?.profile.role);
+  const showFounderActions = canSeeFounderActions(session?.profile.accessLevel);
 
   const content = (
     <PersonWorkspaceShell

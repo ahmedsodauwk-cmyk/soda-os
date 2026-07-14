@@ -85,10 +85,10 @@ export default function QuickActions({
   allowedPermissions,
 }: QuickActionsProps) {
   const { t } = useI18n();
-  const granted = allowedPermissions ?? null;
+  const granted = allowedPermissions ?? [];
 
   const visible = actions.filter((action) =>
-    granted ? setHasAny(granted, action.anyOf) : true
+    setHasAny(granted, action.anyOf)
   );
 
   if (visible.length === 0) return null;

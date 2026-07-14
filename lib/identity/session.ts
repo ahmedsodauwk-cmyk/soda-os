@@ -1,19 +1,28 @@
 /**
  * Session + profile resolution for SODA identity.
+ * Authorization uses Access Level — never role/job-title, never owner fallback.
  */
 
 import { cache } from "react";
 
 import { createClient } from "@/lib/supabase/server";
 import {
+  accessLevelCan,
+  parseAccessLevel,
+  permissionsForAccessLevel,
+  resolveAccessLevel,
+  type AccessLevel,
+} from "@/lib/identity/access-levels";
+import {
   parseSodaRole,
   ROLE_LABELS,
   type SodaRole,
 } from "@/lib/identity/roles";
-import { can, type Permission } from "@/lib/identity/permissions";
-import { homePathForRole } from "@/lib/identity/nav";
+import type { Permission } from "@/lib/identity/permissions";
+import {
+  homePathForPermissions,
+} from "@/lib/identity/nav";
 import { permissionsForAsync } from "@/lib/identity/permission-service";
-import { homePathForPermissions } from "@/lib/identity/nav";
 
 export type SodaProfile = {
   id: string;
@@ -27,7 +36,10 @@ export type SodaProfile = {
    * Human Experience Layer always uses this over role labels.
    */
   displayName: string;
+  /** Legacy / operational role label — NOT used for authorization. */
   role: SodaRole;
+  /** Authorization tier — Source of Truth for nav & gates. */
+  accessLevel: AccessLevel;
   personId: string | null;
   avatarInitials: string;
   isActive: boolean;
@@ -57,6 +69,7 @@ type ProfileRow = {
   email: string | null;
   full_name: string | null;
   role: string | null;
+  access_level?: string | null;
   person_id: string | null;
   is_active: boolean | null;
   username?: string | null;
@@ -64,27 +77,37 @@ type ProfileRow = {
 };
 
 const PROFILE_SELECT_FULL =
-  "id, email, full_name, role, person_id, is_active, username, must_change_password";
+  "id, email, full_name, role, access_level, person_id, is_active, username, must_change_password";
 const PROFILE_SELECT_LEGACY =
   "id, email, full_name, role, person_id, is_active";
 
+/**
+ * Map DB row → profile.
+ * Unresolved role → crew_member (NOT owner). Access Level derived; never founder from null.
+ */
 function mapProfileRow(
   row: ProfileRow,
   emailFallback: string,
-  roleFallback: SodaRole = "owner"
+  roleFallback: SodaRole = "crew_member"
 ): SodaProfile {
   const email = row.email ?? emailFallback;
   const name = row.full_name?.trim() || email.split("@")[0] || "User";
   const username =
     row.username?.trim() ||
     (email.includes("@") ? email.split("@")[0]! : null);
+  const role = parseSodaRole(row.role, roleFallback);
+  const accessLevel = resolveAccessLevel({
+    accessLevel: row.access_level,
+    role: row.role ?? role,
+  });
   return {
     id: row.id,
     email,
     username,
     fullName: name,
     displayName: name,
-    role: parseSodaRole(row.role, roleFallback),
+    role,
+    accessLevel,
     personId: row.person_id,
     avatarInitials: initialsFrom(name, email),
     isActive: row.is_active !== false,
@@ -106,7 +129,7 @@ async function fetchProfileRow(
     return full.data as ProfileRow;
   }
 
-  // Columns may be missing until auth foundation migration is applied.
+  // Columns may be missing until access-level migration is applied.
   const legacy = await supabase
     .from("profiles")
     .select(PROFILE_SELECT_LEGACY)
@@ -129,12 +152,14 @@ async function ensureProfile(
 
   const supabase = await createClient();
 
-  // First profile in the system becomes owner; later self-signups default to crew.
+  // First profile in the system becomes Founder; later self-signups default to Team.
   const { count } = await supabase
     .from("profiles")
     .select("id", { count: "exact", head: true });
 
-  const role: SodaRole = (count ?? 0) === 0 ? "owner" : "crew_member";
+  const isFirst = (count ?? 0) === 0;
+  const role: SodaRole = isFirst ? "founder" : "crew_member";
+  const accessLevel: AccessLevel = isFirst ? "founder" : "team";
   const name =
     fullName?.trim() || email.split("@")[0] || ROLE_LABELS[role];
   const username = email.includes("@") ? email.split("@")[0]! : null;
@@ -144,10 +169,10 @@ async function ensureProfile(
     email,
     full_name: name,
     role,
+    access_level: accessLevel,
     is_active: true,
   };
 
-  // Prefer new columns when migration applied; ignore failures below.
   insertPayload.username = username;
   insertPayload.must_change_password = false;
 
@@ -180,14 +205,17 @@ async function ensureProfile(
   }
 
   if (error || !inserted) {
-    // Table missing or RLS blocked — soft profile for UI until SQL applied.
+    // NEVER invent Founder/owner grants when profile write fails.
+    if (isAuthStrict()) return null;
+    // Local/dev soft profile — Team only (deny company admin).
     return {
       id: userId,
       email,
       username,
       fullName: name,
       displayName: name,
-      role: "owner",
+      role: "crew_member",
+      accessLevel: "team",
       personId: null,
       avatarInitials: initialsFrom(name, email),
       isActive: true,
@@ -214,6 +242,9 @@ export const getSodaSession = cache(async (): Promise<SodaSession | null> => {
     );
     if (!profile || !profile.isActive) return null;
 
+    // Guard: access level must resolve; deny rather than elevate.
+    if (!parseAccessLevel(profile.accessLevel)) return null;
+
     return {
       userId: data.user.id,
       email,
@@ -232,28 +263,38 @@ export async function requireSodaSession(): Promise<SodaSession> {
   return session;
 }
 
+/** Sync permission check — Access Level only. */
 export function sessionCan(
   session: SodaSession | null,
   permission: Permission
 ): boolean {
   if (!session) return false;
-  return can(session.profile.role, permission);
+  return accessLevelCan(session.profile.accessLevel, permission);
 }
 
 export function sessionHome(session: SodaSession): string {
-  return homePathForRole(session.profile.role);
+  return homePathForPermissions(
+    permissionsForAccessLevel(session.profile.accessLevel)
+  );
 }
 
-/** Async home — prefers DB permission set. */
+/** Async home — prefers DB permission set keyed by Access Level. */
 export async function sessionHomeAsync(session: SodaSession): Promise<string> {
-  const { permissions } = await permissionsForAsync(session.profile.role);
+  const { permissions } = await permissionsForAsync(
+    session.profile.accessLevel
+  );
   if (permissions.length > 0) {
     return homePathForPermissions(permissions);
   }
-  return homePathForRole(session.profile.role);
+  return homePathForPermissions(
+    permissionsForAccessLevel(session.profile.accessLevel)
+  );
 }
 
-/** Local/dev fallback session when auth is not yet configured (never in production strict). */
+/**
+ * Local/dev fallback ONLY when auth is not configured.
+ * Strict production never uses this. Kept as Founder for solo local setup.
+ */
 export function fallbackOwnerSession(): SodaSession {
   return {
     userId: "local-owner",
@@ -265,6 +306,7 @@ export function fallbackOwnerSession(): SodaSession {
       fullName: "جونيور صودا",
       displayName: "جونيور صودا",
       role: "owner",
+      accessLevel: "founder",
       personId: null,
       avatarInitials: "جص",
       isActive: true,
@@ -283,7 +325,7 @@ export function isAuthStrict(): boolean {
 /**
  * Resolve session for AppShell / pages.
  * Strict: null when signed out (caller redirects).
- * Non-strict: owner fallback so local/dev keeps working before Auth enable.
+ * Non-strict: local founder fallback so local/dev keeps working before Auth enable.
  * Deduped per request via getSodaSession cache.
  */
 export const resolveSessionForApp = cache(

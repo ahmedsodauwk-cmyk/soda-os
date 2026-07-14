@@ -11,6 +11,11 @@ import {
   buildProvisionUserMetadata,
   generateTemporaryPassword,
 } from "@/lib/auth/temp-password";
+import {
+  INVITEABLE_ACCESS_LEVELS,
+  isAccessLevel,
+  type AccessLevel,
+} from "@/lib/identity/access-levels";
 import { personAlreadyLinked } from "@/lib/identity/identity-link";
 import { isSodaRole, type SodaRole } from "@/lib/identity/roles";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -58,6 +63,8 @@ export async function provisionLoginAccountForPerson(input: {
   username: string;
   email?: string;
   role: string;
+  /** Authorization tier — independent of job title / role. */
+  accessLevel: string;
   /** Optional Founder-chosen temp password; otherwise a secure password is generated. */
   temporaryPassword?: string;
 }): Promise<ProvisionResult> {
@@ -71,6 +78,22 @@ export async function provisionLoginAccountForPerson(input: {
   if (!fullName) return { ok: false, error: "Full name is required." };
   if (!username) return { ok: false, error: "Username is required." };
   if (!isSodaRole(input.role)) return { ok: false, error: "Invalid role." };
+
+  if (!isAccessLevel(input.accessLevel)) {
+    return { ok: false, error: "Invalid access level." };
+  }
+  const accessLevel: AccessLevel = input.accessLevel;
+  // Founder access is Owner/manual only — never via Create Login Account.
+  if (
+    accessLevel === "founder" ||
+    !(INVITEABLE_ACCESS_LEVELS as readonly string[]).includes(accessLevel)
+  ) {
+    return {
+      ok: false,
+      error:
+        "Founder access cannot be assigned via Create Login Account. Choose Team, Team Leader, or Account Manager.",
+    };
+  }
 
   if (await personAlreadyLinked(personId)) {
     return {
@@ -123,11 +146,12 @@ export async function provisionLoginAccountForPerson(input: {
       };
     }
 
-    const profilePatch = {
+    const profilePatch: Record<string, unknown> = {
       id: created.data.user.id,
       email,
       full_name: fullName,
       role: input.role as SodaRole,
+      access_level: accessLevel,
       is_active: true,
       username,
       must_change_password: true,

@@ -29,19 +29,23 @@ import { SodaLogo } from "@/components/brand/soda-logo";
 import { signOutAction } from "@/lib/auth/actions";
 import {
   navSectionsForPermissions,
-  navSectionsForRole,
 } from "@/lib/identity/nav";
+import {
+  ACCESS_LEVEL_LABELS,
+  type AccessLevel,
+} from "@/lib/identity/access-levels";
 import { ROLE_LABELS, type SodaRole } from "@/lib/identity/roles";
 import { useI18n } from "@/lib/i18n/provider";
 
 export type SidebarUser = {
   fullName: string;
   role: SodaRole;
+  accessLevel?: AccessLevel;
   avatarInitials: string;
   email: string;
   /** Linked people.profiles person id — My Profile → /people/[id]. */
   personId?: string | null;
-  /** DB-backed permission ids — when set, nav filters by authority not role map. */
+  /** DB-backed permission ids — when set, nav filters by Access Level grants. */
   allowedPermissions?: readonly string[];
 };
 
@@ -70,11 +74,16 @@ export function SidebarContent({ user }: SidebarContentProps) {
   const pathname = usePathname();
   const { t } = useI18n();
   const [pending, startTransition] = useTransition();
-  const role = user?.role ?? "owner";
+  // Fail closed: no user / no grants → empty nav (never default to Founder).
   const sections =
     user?.allowedPermissions && user.allowedPermissions.length > 0
       ? navSectionsForPermissions(user.allowedPermissions)
-      : navSectionsForRole(role);
+      : [];
+  const accessLabel = user?.accessLevel
+    ? ACCESS_LEVEL_LABELS[user.accessLevel]
+    : user?.role
+      ? ROLE_LABELS[user.role]
+      : null;
 
   function handleLogout() {
     startTransition(() => {
@@ -152,7 +161,7 @@ export function SidebarContent({ user }: SidebarContentProps) {
                 {user?.fullName ?? "SODA"}
               </p>
               <p className="truncate text-xs text-sidebar-foreground/60">
-                {ROLE_LABELS[role]}
+                {accessLabel ?? "—"}
                 {user?.email ? ` · ${user.email}` : null}
               </p>
             </div>

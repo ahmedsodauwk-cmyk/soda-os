@@ -43,26 +43,26 @@ export default async function Home() {
   };
 
   const permResult = session
-    ? await permissionsForAsync(session.profile.role)
+    ? await permissionsForAsync(session.profile.accessLevel)
     : null;
   const allowed = permResult ? [...permResult.permissions] : undefined;
 
+  // Fail closed: without an explicit grant set, hide company-management widgets.
   const showFinance =
-    !allowed ||
+    !!allowed &&
     setHasAny(allowed, [
       "finance.view",
       "dashboard.finance",
-      "dashboard.company",
     ] as Permission[]);
   const showOrders =
-    !allowed || setHasAny(allowed, ["orders.view"] as Permission[]);
+    !!allowed && setHasAny(allowed, ["orders.view"] as Permission[]);
   const showSchedule =
-    !allowed ||
+    !!allowed &&
     setHasAny(allowed, ["calendar.view", "orders.view"] as Permission[]);
   const showQuotations =
-    !allowed || setHasAny(allowed, ["quotations.view"] as Permission[]);
+    !!allowed && setHasAny(allowed, ["quotations.view"] as Permission[]);
   const showCompanyPulse =
-    !allowed ||
+    !!allowed &&
     setHasAny(allowed, [
       "dashboard.company",
       "dashboard.team",

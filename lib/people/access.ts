@@ -1,29 +1,30 @@
 /**
- * Crew Workspace founder / admin capability gates (Mission 04.4.1).
- * Unauthorized users must never see Founder Actions.
+ * Crew Workspace founder capability gates (Mission 04.4.1 / 04.4.5).
+ * Gates on Access Level — never job title. Unauthorized users never see Founder Actions.
  */
 
-import type { SodaRole } from "@/lib/identity/roles";
-import { can } from "@/lib/identity/permissions";
-
-const FOUNDER_ACTION_ROLES = new Set<SodaRole>([
-  "owner",
-  "founder",
-  "admin",
-]);
+import {
+  accessLevelCan,
+  isFounderAccess,
+  type AccessLevel,
+} from "@/lib/identity/access-levels";
 
 /** Session may see Founder Actions in Crew Workspace. */
 export function canSeeFounderActions(
-  role: SodaRole | null | undefined
+  accessLevel: AccessLevel | null | undefined
 ): boolean {
-  if (!role) return false;
-  if (!FOUNDER_ACTION_ROLES.has(role)) return false;
-  return can(role, "people.edit") || can(role, "crew.edit");
+  if (!accessLevel) return false;
+  if (!isFounderAccess(accessLevel)) return false;
+  return (
+    accessLevelCan(accessLevel, "people.edit") ||
+    accessLevelCan(accessLevel, "crew.edit") ||
+    accessLevelCan(accessLevel, "settings.users")
+  );
 }
 
 /** Same gate — edit / assign / archive mutations. */
 export function canMutateCrewProfile(
-  role: SodaRole | null | undefined
+  accessLevel: AccessLevel | null | undefined
 ): boolean {
-  return canSeeFounderActions(role);
+  return canSeeFounderActions(accessLevel);
 }

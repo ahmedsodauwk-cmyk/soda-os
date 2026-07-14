@@ -79,20 +79,28 @@ export default async function OrderWorkspacePage({ params }: OrderPageProps) {
   );
   const orderExpenses = listExpensesByOrder(id);
 
-  const role = session?.profile.role ?? "owner";
-  const seeMoney = canSeeCompanyFinance(role) || canEditOrderFinance(role);
+  // Fail closed: no session / unresolved access → no ops/finance capabilities.
+  const level = session?.profile.accessLevel;
+  const seeMoney = level
+    ? canSeeCompanyFinance(level) || canEditOrderFinance(level)
+    : false;
   const capabilities = {
-    canEdit: canEditOps(role),
-    canEditFinance: canEditOrderFinance(role),
-    canUpdateStatus: canUpdateOrderStatus(role),
-    crewStatusOnly: can(role, "orders.status") && !can(role, "orders.edit"),
-    canCollectPayment:
-      canEditOrderFinance(role) ||
-      can(role, "finance.edit") ||
-      can(role, "finance.view"),
-    canAddExpense: canEditOps(role) || can(role, "finance.view"),
+    canEdit: level ? canEditOps(level) : false,
+    canEditFinance: level ? canEditOrderFinance(level) : false,
+    canUpdateStatus: level ? canUpdateOrderStatus(level) : false,
+    crewStatusOnly: level
+      ? can(level, "orders.status") && !can(level, "orders.edit")
+      : false,
+    canCollectPayment: level
+      ? canEditOrderFinance(level) ||
+        can(level, "finance.edit") ||
+        can(level, "finance.view")
+      : false,
+    canAddExpense: level
+      ? canEditOps(level) || can(level, "finance.view")
+      : false,
     canSeeFullMoney: seeMoney,
-    canAssignCrew: canEditOps(role),
+    canAssignCrew: level ? canEditOps(level) : false,
   };
 
   const content = (

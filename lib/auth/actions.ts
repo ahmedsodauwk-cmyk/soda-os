@@ -5,7 +5,9 @@ import { revalidatePath } from "next/cache";
 
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { homePathForRole } from "@/lib/identity/nav";
+import { homePathForPermissions } from "@/lib/identity/nav";
+import { permissionsForAccessLevel } from "@/lib/identity/access-levels";
+import { accessLevelFromLegacyRole } from "@/lib/identity/access-levels";
 import { parseSodaRole, type SodaRole } from "@/lib/identity/roles";
 import { getSodaSession, sessionHomeAsync } from "@/lib/identity/session";
 import { can } from "@/lib/identity/permissions";
@@ -186,7 +188,7 @@ export async function updateCompanyEmailDomainAction(
   formData: FormData
 ): Promise<AuthActionResult> {
   const session = await getSodaSession();
-  if (!session || !can(session.profile.role, "settings.users")) {
+  if (!session || !can(session.profile.accessLevel, "settings.users")) {
     return {
       ok: false,
       error: "Only the Founder / Owner can change the email domain.",
@@ -317,6 +319,7 @@ export async function bootstrapOwnerAction(
         email,
         full_name: fullName,
         role: "owner" as SodaRole,
+        access_level: "founder",
         is_active: true,
         username,
         must_change_password: false,
@@ -338,7 +341,7 @@ export async function bootstrapOwnerAction(
       };
     }
 
-    redirect(homePathForRole("owner"));
+    redirect(homePathForPermissions(permissionsForAccessLevel("founder")));
   } catch (err) {
     if (
       err &&
@@ -371,11 +374,14 @@ export async function inviteUserAction(
   formData: FormData
 ): Promise<AuthActionResult> {
   const session = await getSodaSession();
-  if (!session || !can(session.profile.role, "settings.users")) {
+  if (!session || !can(session.profile.accessLevel, "settings.users")) {
     return { ok: false, error: "You cannot invite users." };
   }
 
   const role = parseSodaRole(formString(formData, "role"), "crew_member");
+  // Invite must never grant Founder — clamp to Team if role maps to Founder.
+  let accessLevel = accessLevelFromLegacyRole(role);
+  if (accessLevel === "founder") accessLevel = "team";
   const fullName = formString(formData, "fullName");
   let email = formString(formData, "email");
   const usernameRaw = formString(formData, "username");
@@ -441,6 +447,7 @@ export async function inviteUserAction(
           email,
           full_name: fullName,
           role: role as SodaRole,
+          access_level: accessLevel,
           is_active: true,
           username: meta.username,
           must_change_password: true,
@@ -459,6 +466,7 @@ export async function inviteUserAction(
         email,
         full_name: fullName,
         role: role as SodaRole,
+        access_level: accessLevel,
         is_active: true,
         username: meta.username,
         must_change_password: true,

@@ -15,11 +15,17 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+  ACCESS_LEVEL_LABELS,
+  ACCESS_LEVELS,
+  type AccessLevel,
+} from "@/lib/identity/access-levels";
 import { ROLE_LABELS, type SodaRole } from "@/lib/identity/roles";
 import type { LinkedAccountInfo } from "@/lib/identity/identity-link";
 import {
   resetCrewPasswordAction,
   setCrewAccountActiveAction,
+  updateLinkedAccessLevelAction,
 } from "@/lib/people/actions";
 import type { Person } from "@/lib/people/types";
 
@@ -41,7 +47,7 @@ interface CrewAccountSectionProps {
   emailDomain?: string;
 }
 
-/** Founder-only Account section — identity link status + lifecycle. */
+/** Founder-only Account section — identity link status + Access Level lifecycle. */
 export function CrewAccountSection({
   person,
   account,
@@ -88,6 +94,17 @@ export function CrewAccountSection({
     });
   }
 
+  function runAccessLevel(next: AccessLevel) {
+    setMessage(null);
+    startTransition(async () => {
+      const result = await updateLinkedAccessLevelAction(person.id, next);
+      setMessage(
+        result.ok ? result.message ?? "Access Level updated." : result.error ?? "Failed."
+      );
+      if (result.ok) router.refresh();
+    });
+  }
+
   if (credentials) {
     return (
       <Card className="soda-cc-card border-soda-pink/30">
@@ -119,7 +136,8 @@ export function CrewAccountSection({
       <CardHeader>
         <CardTitle>Account</CardTitle>
         <CardDescription>
-          Login identity for this crew member — one account per person.
+          Login identity for this crew member — Access Level controls navigation
+          and permissions; Job Title does not.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -140,12 +158,31 @@ export function CrewAccountSection({
         {account.linked ? (
           <dl className="grid gap-2 text-sm sm:grid-cols-2">
             <div>
-              <dt className="text-muted-foreground">Username</dt>
-              <dd className="font-medium">{account.username ?? "—"}</dd>
+              <dt className="text-muted-foreground">Access Level</dt>
+              <dd className="pt-1">
+                <select
+                  className="h-8 w-full max-w-xs rounded-md border border-input bg-transparent px-2 text-sm"
+                  disabled={pending}
+                  value={account.accessLevel ?? "team"}
+                  onChange={(e) =>
+                    runAccessLevel(e.target.value as AccessLevel)
+                  }
+                >
+                  {ACCESS_LEVELS.map((level) => (
+                    <option key={level} value={level}>
+                      {ACCESS_LEVEL_LABELS[level]}
+                    </option>
+                  ))}
+                </select>
+              </dd>
             </div>
             <div>
-              <dt className="text-muted-foreground">Email</dt>
-              <dd className="font-medium break-all">{account.email ?? "—"}</dd>
+              <dt className="text-muted-foreground">Job Title</dt>
+              <dd className="font-medium">{person.jobTitle || "—"}</dd>
+            </div>
+            <div>
+              <dt className="text-muted-foreground">Username</dt>
+              <dd className="font-medium">{account.username ?? "—"}</dd>
             </div>
             <div>
               <dt className="text-muted-foreground">Role</dt>
@@ -156,6 +193,10 @@ export function CrewAccountSection({
             <div>
               <dt className="text-muted-foreground">Status</dt>
               <dd className="font-medium">{statusLabel}</dd>
+            </div>
+            <div>
+              <dt className="text-muted-foreground">Email</dt>
+              <dd className="font-medium break-all">{account.email ?? "—"}</dd>
             </div>
             <div>
               <dt className="text-muted-foreground">Created at</dt>
@@ -173,7 +214,8 @@ export function CrewAccountSection({
         ) : (
           <p className="text-sm text-muted-foreground">
             No login account yet. Create one from this crew profile — never
-            from a generic form.
+            from a generic form. You will choose Access Level (Team / Team
+            Leader / Account Manager).
           </p>
         )}
 

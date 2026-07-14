@@ -74,7 +74,7 @@ export async function AppShell({
   }
 
   const permissionResult = session
-    ? await permissionsForAsync(session.profile.role)
+    ? await permissionsForAsync(session.profile.accessLevel)
     : null;
   const allowedPermissions = permissionResult
     ? [...permissionResult.permissions]
@@ -84,6 +84,7 @@ export async function AppShell({
     ? {
         fullName: session.profile.displayName || session.profile.fullName,
         role: session.profile.role,
+        accessLevel: session.profile.accessLevel,
         avatarInitials: session.profile.avatarInitials,
         email: session.profile.email,
         personId: session.profile.personId,

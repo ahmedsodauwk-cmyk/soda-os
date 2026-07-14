@@ -15,6 +15,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { can } from "@/lib/identity/permissions";
+import { ACCESS_LEVEL_LABELS } from "@/lib/identity/access-levels";
 import { ROLE_LABELS } from "@/lib/identity/roles";
 import { resolveSessionForApp } from "@/lib/identity/session";
 import { getCompanyEmailDomain } from "@/lib/auth/company-email";
@@ -26,7 +27,7 @@ export default async function SettingsPage() {
   if (!session) redirect("/login");
 
   const emailDomain = await getCompanyEmailDomain();
-  const canManageUsers = can(session.profile.role, "settings.users");
+  const canManageUsers = can(session.profile.accessLevel, "settings.users");
 
   return (
     <AppShell titleKey="pages.settings" layer="settings" session={session}>
@@ -48,6 +49,10 @@ export default async function SettingsPage() {
             <p>
               <span className="text-muted-foreground">Email · </span>
               {session.profile.email}
+            </p>
+            <p>
+              <span className="text-muted-foreground">Access Level · </span>
+              {ACCESS_LEVEL_LABELS[session.profile.accessLevel]}
             </p>
             <p>
               <span className="text-muted-foreground">Role · </span>

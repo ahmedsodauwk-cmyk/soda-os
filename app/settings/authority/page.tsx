@@ -65,8 +65,8 @@ export default async function AuthorityCenterPage() {
               Operational Authority
             </h1>
             <p className="max-w-2xl text-sm text-muted-foreground">
-              Manage existing accounts, roles, and permissions. Create login
-              accounts from each crew member&apos;s workspace — not here.
+              Manage existing accounts, Access Levels, and permissions. Create
+              login accounts from each crew member&apos;s workspace — not here.
             </p>
           </div>
 
@@ -115,8 +115,8 @@ export default async function AuthorityCenterPage() {
             <CardHeader>
               <CardTitle>Accounts</CardTitle>
               <CardDescription>
-                Disable, enable, reset password, change role, view login status
-                and last activity. Provision new accounts from Crew Workspace.
+                Disable, enable, reset password, change Access Level, view login
+                status and last activity. Job title / role is work identity only.
               </CardDescription>
             </CardHeader>
             <CardContent>

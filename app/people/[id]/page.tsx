@@ -17,7 +17,7 @@ export default async function PersonOverviewPage({
   const session = await resolveSessionForApp();
   await refreshCrewProfileDomainData();
 
-  const showFounderActions = canSeeFounderActions(session?.profile.role);
+  const showFounderActions = canSeeFounderActions(session?.profile.accessLevel);
   const canEdit = showFounderActions;
 
   const content = (

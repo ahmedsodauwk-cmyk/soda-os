@@ -19,8 +19,8 @@ export default async function PeoplePage() {
     people.map((m) => [m.id, getPersonPerformance(m.id)])
   );
   const canEdit = session
-    ? can(session.profile.role, "people.edit") ||
-      can(session.profile.role, "crew.edit")
+    ? can(session.profile.accessLevel, "people.edit") ||
+      can(session.profile.accessLevel, "crew.edit")
     : false;
 
   const content = (

@@ -17,6 +17,11 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { DEFAULT_COMPANY_EMAIL_DOMAIN } from "@/lib/auth/company-email-shared";
+import {
+  ACCESS_LEVEL_LABELS,
+  INVITEABLE_ACCESS_LEVELS,
+  type AccessLevel,
+} from "@/lib/identity/access-levels";
 import { ROLE_LABELS, type SodaRole } from "@/lib/identity/roles";
 import {
   isValidUsernameFormat,
@@ -96,6 +101,7 @@ export function CreateLoginAccountForm({
   const [username, setUsername] = useState(suggestedUsername);
   const [passwordMode, setPasswordMode] = useState<PasswordMode>("generate");
   const [manualPassword, setManualPassword] = useState("");
+  const [accessLevel, setAccessLevel] = useState<AccessLevel>("team");
   const [usernameStatus, setUsernameStatus] = useState<UsernameStatus>("idle");
   const [usernameReason, setUsernameReason] = useState<string | null>(null);
   const [credentials, setCredentials] = useState<{
@@ -141,6 +147,7 @@ export function CreateLoginAccountForm({
     setUsername(suggestedUsername);
     setPasswordMode("generate");
     setManualPassword("");
+    setAccessLevel("team");
     setUsernameStatus("idle");
     setUsernameReason(null);
     setCredentials(null);
@@ -234,33 +241,6 @@ export function CreateLoginAccountForm({
     };
   }, [username, open, step]);
 
-  // Temporary gate trace during hotfix.
-  useEffect(() => {
-    if (!open || step !== "form") return;
-    console.log("[create-login] Continue gate", {
-      canContinue,
-      usernameOk,
-      passwordOk,
-      usernameStatus,
-      usernameReason,
-      passwordMode,
-      passwordBlockReason,
-      continueBlockReasons,
-    });
-  }, [
-    open,
-    step,
-    canContinue,
-    usernameOk,
-    passwordOk,
-    usernameStatus,
-    usernameReason,
-    passwordMode,
-    passwordBlockReason,
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- log snapshot only
-    continueBlockReasons.join("|"),
-  ]);
-
   function goConfirm() {
     setError(null);
     if (!canContinue) {
@@ -278,6 +258,7 @@ export function CreateLoginAccountForm({
         passwordMode,
         temporaryPassword:
           passwordMode === "manual" ? manualPassword.trim() : undefined,
+        accessLevel,
       });
       if (!result.ok) {
         setError(result.error ?? "Create failed.");
@@ -336,8 +317,9 @@ export function CreateLoginAccountForm({
             <DialogHeader>
               <DialogTitle>Create login account</DialogTitle>
               <DialogDescription>
-                Give {displayName} a SODA OS login. Username and temporary
-                password only — role and email come from Crew.
+                Give {displayName} a SODA OS login. Access Level controls what
+                they can open — Job Title never changes permissions. Founder
+                access is Owner/manual only.
               </DialogDescription>
             </DialogHeader>
 
@@ -347,7 +329,16 @@ export function CreateLoginAccountForm({
                 <Input value={fullName} readOnly disabled className="bg-muted/40" />
               </div>
               <div className="grid gap-1.5">
-                <Label>Role</Label>
+                <Label>Job title</Label>
+                <Input
+                  value={person.jobTitle || "—"}
+                  readOnly
+                  disabled
+                  className="bg-muted/40"
+                />
+              </div>
+              <div className="grid gap-1.5">
+                <Label>Role (work identity)</Label>
                 <Input
                   value={ROLE_LABELS[suggestedRole]}
                   readOnly
@@ -355,6 +346,44 @@ export function CreateLoginAccountForm({
                   className="bg-muted/40"
                 />
               </div>
+
+              <fieldset className="grid gap-2">
+                <legend className="text-sm font-medium">Access Level</legend>
+                <p className="text-xs text-muted-foreground">
+                  What this account can access. Not selectable: Founder.
+                </p>
+                {INVITEABLE_ACCESS_LEVELS.map((level) => (
+                  <label
+                    key={level}
+                    className={cn(
+                      "flex cursor-pointer items-start gap-3 rounded-lg border p-3 transition-colors",
+                      accessLevel === level
+                        ? "border-primary/50 bg-primary/5"
+                        : "border-border/60"
+                    )}
+                  >
+                    <input
+                      type="radio"
+                      name="access-level"
+                      className="mt-1"
+                      checked={accessLevel === level}
+                      onChange={() => setAccessLevel(level)}
+                    />
+                    <span>
+                      <span className="block text-sm font-medium">
+                        {ACCESS_LEVEL_LABELS[level]}
+                      </span>
+                      <span className="text-xs text-muted-foreground">
+                        {level === "team"
+                          ? "Home, My Orders/Tasks, Wallet, Attendance, Files, Performance, Notifications."
+                          : level === "team_leader"
+                            ? "Orders, Assign Work, Crew Workspace, Calendar — no Authority or Finance."
+                            : "Quotations, Orders, Clients, Commercial, Calendar, Assign Work — no Authority or Finance."}
+                      </span>
+                    </span>
+                  </label>
+                ))}
+              </fieldset>
 
               <div className="grid gap-1.5">
                 <Label htmlFor="crew-login-username">Username</Label>
@@ -520,8 +549,18 @@ export function CreateLoginAccountForm({
                 <dd className="font-medium">{fullName}</dd>
               </div>
               <div>
-                <dt className="text-muted-foreground">Role</dt>
+                <dt className="text-muted-foreground">Access Level</dt>
+                <dd className="font-medium">
+                  {ACCESS_LEVEL_LABELS[accessLevel]}
+                </dd>
+              </div>
+              <div>
+                <dt className="text-muted-foreground">Role (work identity)</dt>
                 <dd className="font-medium">{ROLE_LABELS[suggestedRole]}</dd>
+              </div>
+              <div>
+                <dt className="text-muted-foreground">Job title</dt>
+                <dd className="font-medium">{person.jobTitle || "—"}</dd>
               </div>
               <div>
                 <dt className="text-muted-foreground">Username</dt>

@@ -12,6 +12,12 @@ import {
   getCompanyEmailDomain,
 } from "@/lib/auth/company-email";
 import { generateTemporaryPassword } from "@/lib/auth/temp-password";
+import {
+  INVITEABLE_ACCESS_LEVELS,
+  isAccessLevel,
+  ACCESS_LEVEL_LABELS,
+  type AccessLevel,
+} from "@/lib/identity/access-levels";
 import { personAlreadyLinked } from "@/lib/identity/identity-link";
 import { provisionLoginAccountForPerson } from "@/lib/identity/provision-account";
 import { suggestRoleFromPerson } from "@/lib/identity/role-suggest";
@@ -45,7 +51,7 @@ export type CrewActionResult = {
 
 async function requireFounderSession() {
   const session = await resolveSessionForApp();
-  if (!session || !canMutateCrewProfile(session.profile.role)) {
+  if (!session || !canMutateCrewProfile(session.profile.accessLevel)) {
     return null;
   }
   return session;
@@ -307,15 +313,67 @@ export async function updateLinkedRoleAction(
   }
 }
 
+export async function updateLinkedAccessLevelAction(
+  personId: string,
+  accessLevel: string
+): Promise<CrewActionResult> {
+  const session = await requireFounderSession();
+  if (!session) return { ok: false, error: "Unauthorized." };
+  if (!isAccessLevel(accessLevel)) {
+    return { ok: false, error: "Invalid access level." };
+  }
+
+  try {
+    const admin = createAdminClient();
+    const { data: profile, error } = await admin
+      .from("profiles")
+      .select("id")
+      .eq("person_id", personId)
+      .maybeSingle();
+
+    if (error) return { ok: false, error: error.message };
+    if (!profile?.id) {
+      return {
+        ok: false,
+        error:
+          "No linked Auth profile for this crew member. Access Level applies after Create Login Account.",
+      };
+    }
+
+    const { error: updErr } = await admin
+      .from("profiles")
+      .update({ access_level: accessLevel })
+      .eq("id", profile.id);
+
+    if (updErr) return { ok: false, error: updErr.message };
+
+    revalidateCrew(personId);
+    revalidatePath("/settings/permissions");
+    revalidatePath("/settings/authority");
+    return {
+      ok: true,
+      message: `Access Level updated to ${ACCESS_LEVEL_LABELS[accessLevel]}.`,
+    };
+  } catch (err) {
+    return {
+      ok: false,
+      error:
+        err instanceof Error ? err.message : "Failed to update access level.",
+    };
+  }
+}
+
 export type CreateLoginAccountInput = {
   username: string;
   passwordMode?: "generate" | "manual";
   temporaryPassword?: string;
+  /** Team | Team Leader | Account Manager — never Founder. */
+  accessLevel?: AccessLevel;
 };
 
 /**
  * Create login account from Crew Workspace — crew SoT, username editable.
- * Optional manual temporary password; otherwise generated. Credentials once.
+ * Access Level drives permissions; job title never grants access.
  */
 export async function createCrewLoginAccountAction(
   personId: string,
@@ -340,6 +398,14 @@ export async function createCrewLoginAccountAction(
       };
     }
 
+    const accessLevel: AccessLevel =
+      input.accessLevel &&
+      (INVITEABLE_ACCESS_LEVELS as readonly string[]).includes(
+        input.accessLevel
+      )
+        ? input.accessLevel
+        : "team";
+
     const domain = await getCompanyEmailDomain();
     const normalizedUsername = input.username.trim().toLowerCase();
     const email =
@@ -359,6 +425,7 @@ export async function createCrewLoginAccountAction(
       username: normalizedUsername || suggestUsernameFromPerson(person),
       email,
       role: suggestRoleFromPerson(person.jobTitle),
+      accessLevel,
       temporaryPassword: useManual
         ? input.temporaryPassword?.trim()
         : undefined,

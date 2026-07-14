@@ -4,8 +4,10 @@ import { redirect } from "next/navigation";
 import { AppShell } from "@/components/layout/app-shell";
 import { RoleGate } from "@/components/identity/role-gate";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { permissionsForAccessLevel } from "@/lib/identity/access-levels";
 import { resolveSessionForApp } from "@/lib/identity/session";
-import { navForRole } from "@/lib/identity/nav";
+import { navForPermissions } from "@/lib/identity/nav";
+import { permissionsForAsync } from "@/lib/identity/permission-service";
 import { getDictValue } from "@/lib/i18n/dictionaries";
 import { getRequestDictionary } from "@/lib/i18n/server";
 
@@ -15,12 +17,17 @@ export default async function MeHomePage() {
   const session = await resolveSessionForApp();
   if (!session) redirect("/login");
   const { dict } = await getRequestDictionary();
+  const permResult = await permissionsForAsync(session.profile.accessLevel);
+  const granted =
+    permResult.permissions.length > 0
+      ? permResult.permissions
+      : permissionsForAccessLevel(session.profile.accessLevel);
 
   return (
     <RoleGate session={session} anyOf={["dashboard.crew", "me.performance"]}>
       <AppShell titleKey="pages.mySpace" layer="mySpace">
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {navForRole(session.profile.role)
+          {navForPermissions(granted)
             .filter(
               (i) =>
                 i.href.startsWith("/me/") ||

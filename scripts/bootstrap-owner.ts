@@ -183,6 +183,7 @@ Or paste SODA_IDENTITY_NAV.sql in Supabase SQL Editor.
       email,
       full_name: fullName,
       role: "owner",
+      access_level: "founder",
       is_active: true,
       username,
       must_change_password: false,
