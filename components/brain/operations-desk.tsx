@@ -29,7 +29,6 @@ import {
   type UnderstandingEdits,
 } from "@/lib/brain/intelligence";
 import type { BrainChatMessage } from "@/lib/brain/types";
-import { useI18n } from "@/lib/i18n/provider";
 import { cn } from "@/lib/utils";
 import { UnderstandingPanel } from "@/components/brain/understanding-panel";
 import { RelatedMemoriesPanel } from "@/components/brain/related-memories-panel";
@@ -88,8 +87,8 @@ function resolveSystemTarget(u: BrainUnderstanding): ExecuteTarget {
 }
 
 export function OperationsDesk({ initialMessages, migrationHint }: Props) {
-  const { locale } = useI18n();
-  const ar = locale === "ar";
+  // Operations Desk speaks Egyptian Arabic to Founder (Mission 05.2).
+  const ar = true;
   const [messages, setMessages] = useState(() =>
     Array.isArray(initialMessages) ? initialMessages : []
   );
