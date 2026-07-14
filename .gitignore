@@ -47,3 +47,6 @@ next-env.d.ts
 # Local Order Workspace screenshot artifacts
 .workspace-shots/
 
+# Mission 06.2 Notification Center UX screenshots
+.notification-ux-shots/
+

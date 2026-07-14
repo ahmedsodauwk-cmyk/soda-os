@@ -1,13 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Archive,
+  ArrowUpDown,
   CheckCheck,
-  ChevronLeft,
   Filter,
+  Search,
   Trash2,
+  X,
 } from "lucide-react";
 
 import {
@@ -15,8 +18,26 @@ import {
   notificationNeedsDecision,
 } from "@/components/notifications/notification-decision-buttons";
 import { useNotificationLive } from "@/components/notifications/notification-live-store";
+import {
+  CategoryBadge,
+  NT_MOTION,
+  SMART_FILTERS,
+  SORT_LABELS,
+  type SmartFilterKey,
+  type SortKey,
+  categoryGlyph,
+  entityLine,
+  formatNotificationWhen,
+  matchesSmartFilter,
+  notificationCardClass,
+  priorityVisual,
+  signalGlyph,
+  sortNotifications,
+  statusLine,
+} from "@/components/notifications/notification-visuals";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Sheet,
   SheetContent,
@@ -25,82 +46,22 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import {
-  NOTIFICATION_CATEGORY_LABELS,
-  categoryLabel,
-} from "@/lib/core/notifications/categories";
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import {
   notificationActionLabel,
   notificationDisplayBody,
   notificationDisplayTitle,
   notificationHref,
   notificationPriorityLabel,
-  notificationPriorityTier,
 } from "@/lib/core/notifications/engine";
 import { groupNotificationsByTimeline } from "@/lib/core/notifications/grouping";
 import { lifecycleLabel } from "@/lib/core/notifications/lifecycle";
-import type {
-  NotificationCategory,
-  NotificationRecord,
-} from "@/lib/core/types";
+import type { NotificationRecord } from "@/lib/core/types";
 import { cn } from "@/lib/utils";
-
-const CATEGORY_FILTERS: Array<NotificationCategory | "all"> = [
-  "all",
-  "orders",
-  "finance",
-  "crew",
-  "calendar",
-  "clients",
-  "authority",
-  "brain",
-  "system",
-  "personal",
-];
-
-function priorityVisual(priority: NotificationRecord["priority"]) {
-  const tier = notificationPriorityTier(priority);
-  switch (tier) {
-    case "critical":
-      return {
-        bar: "bg-destructive",
-        chip: "bg-destructive/15 text-destructive",
-        ring: "ring-destructive/30",
-      };
-    case "high":
-      return {
-        bar: "bg-soda-pink",
-        chip: "bg-soda-pink/15 text-soda-pink",
-        ring: "ring-soda-pink/25",
-      };
-    case "info":
-      return {
-        bar: "bg-muted-foreground/40",
-        chip: "bg-muted text-muted-foreground",
-        ring: "ring-transparent",
-      };
-    default:
-      return {
-        bar: "bg-soda-purple/40",
-        chip: "bg-muted text-foreground/80",
-        ring: "ring-transparent",
-      };
-  }
-}
-
-function formatWhen(iso: string): string {
-  try {
-    const d = new Date(iso);
-    if (Number.isNaN(d.getTime())) return iso.slice(0, 16);
-    return d.toLocaleString("ar-EG", {
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  } catch {
-    return iso.slice(0, 16).replace("T", " ");
-  }
-}
 
 function SwipeRow({
   children,
@@ -126,7 +87,6 @@ function SwipeRow({
         if (startX.current == null) return;
         const x = e.touches[0]?.clientX ?? startX.current;
         const dx = x - startX.current;
-        // RTL: swipe left (negative in LTR coords) reveals actions — clamp
         setOffset(Math.max(-108, Math.min(108, dx)));
       }}
       onTouchEnd={() => {
@@ -138,19 +98,21 @@ function SwipeRow({
       }}
     >
       <div
-        className="pointer-events-none absolute inset-y-0 end-0 flex w-[108px] items-center justify-center gap-1 bg-soda-pink/15 px-2"
+        className="pointer-events-none absolute inset-y-0 end-0 flex w-[108px] items-center justify-center bg-soda-pink/20 px-2"
         aria-hidden
       >
-        <span className="font-ar text-[11px] text-soda-pink">اتقراء</span>
+        <span className="font-ar text-[11px] font-medium text-soda-pink">
+          اتقراء
+        </span>
       </div>
       <div
-        className="pointer-events-none absolute inset-y-0 start-0 flex w-[108px] items-center justify-center gap-1 bg-muted px-2"
+        className="pointer-events-none absolute inset-y-0 start-0 flex w-[108px] items-center justify-center bg-muted px-2"
         aria-hidden
       >
         <span className="font-ar text-[11px] text-muted-foreground">أرشيف</span>
       </div>
       <div
-        className="relative transition-transform duration-150 ease-out"
+        className={cn(NT_MOTION, "relative")}
         style={{ transform: `translateX(${offset}px)` }}
       >
         {children}
@@ -159,146 +121,295 @@ function SwipeRow({
   );
 }
 
-function NotificationRow({
+function UnreadDot({ unread }: { unread: boolean }) {
+  return (
+    <span
+      className={cn(
+        NT_MOTION,
+        "mt-1.5 size-2.5 shrink-0 rounded-full",
+        unread
+          ? "scale-100 bg-soda-pink opacity-100 shadow-[0_0_0_4px_var(--soda-pink-soft)]"
+          : "scale-75 bg-transparent opacity-0 shadow-none"
+      )}
+      aria-hidden={!unread}
+      aria-label={unread ? "غير مقروء" : undefined}
+    />
+  );
+}
+
+function QuickActions({
   item,
-  selected,
-  checked,
-  onToggleCheck,
   onOpen,
   onMarkRead,
-  onArchive,
+  onDismiss,
 }: {
+  item: NotificationRecord;
+  onOpen: () => void;
+  onMarkRead: () => void;
+  onDismiss: () => void;
+}) {
+  return (
+    <div
+      className="mt-2 flex flex-wrap items-center gap-1.5"
+      onClick={(e) => e.stopPropagation()}
+      onKeyDown={(e) => e.stopPropagation()}
+    >
+      <Button
+        type="button"
+        size="sm"
+        className="h-8 min-h-8 cursor-pointer bg-soda-pink px-2.5 text-xs text-soda-action-foreground hover:bg-soda-pink/90"
+        onClick={onOpen}
+      >
+        افتح
+      </Button>
+      {item.status === "unread" ? (
+        <Button
+          type="button"
+          size="sm"
+          variant="outline"
+          className="h-8 min-h-8 cursor-pointer px-2.5 text-xs"
+          onClick={onMarkRead}
+        >
+          اتقراء
+        </Button>
+      ) : null}
+      <Button
+        type="button"
+        size="sm"
+        variant="ghost"
+        className="h-8 min-h-8 cursor-pointer px-2.5 text-xs text-muted-foreground"
+        onClick={onDismiss}
+      >
+        تجاهل
+      </Button>
+    </div>
+  );
+}
+
+type RowHandlers = {
   item: NotificationRecord;
   selected: boolean;
   checked: boolean;
   onToggleCheck: () => void;
-  onOpen: () => void;
+  onSelect: () => void;
+  onOpenLink: () => void;
   onMarkRead: () => void;
   onArchive: () => void;
-}) {
+  onDismiss: () => void;
+  onHover?: () => void;
+  onHoverEnd?: () => void;
+};
+
+function NotificationCardSurface({
+  item,
+  selected,
+  checked,
+  onToggleCheck,
+  onSelect,
+  onOpenLink,
+  onMarkRead,
+  onDismiss,
+  onHover,
+  onHoverEnd,
+  dense,
+}: RowHandlers & { dense?: boolean }) {
   const unread = item.status === "unread";
   const visual = priorityVisual(item.priority);
   const priorityLabel = notificationPriorityLabel(item.priority);
+  const signal = signalGlyph(item);
+  const needs = notificationNeedsDecision(item);
 
   return (
-    <SwipeRow
-      onRead={onMarkRead}
-      onArchive={onArchive}
-      onOpen={onOpen}
+    <div
+      role="button"
+      tabIndex={0}
+      onClick={onSelect}
+      onMouseEnter={onHover}
+      onMouseLeave={onHoverEnd}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onSelect();
+        }
+      }}
+      className={cn(
+        notificationCardClass(item, { selected }),
+        "group flex cursor-pointer gap-3",
+        dense ? "min-h-[4.75rem]" : "min-h-[5rem]"
+      )}
     >
-      <div
-        role="button"
-        tabIndex={0}
-        onClick={onOpen}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === " ") {
-            e.preventDefault();
-            onOpen();
-          }
-        }}
+      <span
         className={cn(
-          "group relative flex min-h-[4.5rem] cursor-pointer gap-3 rounded-xl border px-3 py-3 text-start transition-colors",
-          unread
-            ? "border-soda-pink/20 bg-soda-pink/[0.06] ring-1"
-            : "border-border/60 bg-background/40 hover:bg-muted/40",
-          unread ? visual.ring : "",
-          selected && "border-soda-pink/40 bg-soda-pink/10"
+          NT_MOTION,
+          "absolute inset-y-2.5 start-0 w-[3px] rounded-full",
+          selected ? "bg-soda-pink" : visual.bar,
+          !unread && !selected && "opacity-40"
         )}
+        aria-hidden
+      />
+      <label
+        className="mt-1 flex shrink-0 items-start ps-1"
+        onClick={(e) => e.stopPropagation()}
       >
-        <span
-          className={cn("absolute inset-y-3 start-0 w-0.5 rounded-full", visual.bar)}
-          aria-hidden
+        <input
+          type="checkbox"
+          checked={checked}
+          onChange={onToggleCheck}
+          className="size-4 cursor-pointer accent-[var(--soda-pink)]"
+          aria-label="اختيار التنبيه"
         />
-        <label
-          className="mt-1 flex shrink-0 items-start"
-          onClick={(e) => e.stopPropagation()}
-        >
-          <input
-            type="checkbox"
-            checked={checked}
-            onChange={onToggleCheck}
-            className="size-4 cursor-pointer accent-[var(--soda-pink)]"
-            aria-label="اختيار التنبيه"
-          />
-        </label>
-        <div className="min-w-0 flex-1" dir="rtl">
-          <div className="flex items-start gap-2">
-            {unread ? (
-              <span
-                className="mt-1.5 size-2 shrink-0 rounded-full bg-soda-pink shadow-[0_0_0_3px_var(--soda-pink-soft)]"
-                aria-label="غير مقروء"
-              />
-            ) : (
-              <span className="mt-1.5 size-2 shrink-0 rounded-full bg-transparent" />
-            )}
-            <div className="min-w-0 flex-1">
-              <div className="flex flex-wrap items-center gap-1.5">
-                <p
-                  className={cn(
-                    "font-ar text-sm leading-snug",
-                    unread
-                      ? "font-semibold text-foreground"
-                      : "font-medium text-foreground/85"
-                  )}
-                >
-                  {notificationDisplayTitle(item)}
-                </p>
-                {priorityLabel ? (
-                  <span
-                    className={cn(
-                      "rounded-sm px-1.5 py-0.5 text-[10px] font-medium",
-                      visual.chip
-                    )}
-                  >
-                    {priorityLabel}
-                  </span>
-                ) : null}
-                {notificationNeedsDecision(item) ? (
-                  <Badge
-                    variant="secondary"
-                    className="h-5 bg-soda-pink/15 px-1.5 text-[10px] text-soda-pink"
-                  >
-                    محتاج رد
-                  </Badge>
-                ) : null}
-              </div>
+      </label>
+
+      <div
+        className={cn(
+          NT_MOTION,
+          "flex shrink-0 items-center justify-center rounded-xl text-lg",
+          dense ? "size-10" : "size-11 text-xl",
+          unread
+            ? "bg-soda-pink/15 ring-1 ring-soda-pink/25"
+            : "bg-muted/60"
+        )}
+        aria-hidden
+      >
+        <span>{signal ?? categoryGlyph(item.category)}</span>
+      </div>
+
+      <div className="min-w-0 flex-1" dir="rtl">
+        <div className="flex items-start gap-2">
+          <UnreadDot unread={unread} />
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-1.5">
               <p
                 className={cn(
-                  "font-ar mt-0.5 line-clamp-2 text-xs",
-                  unread ? "text-foreground/75" : "text-muted-foreground"
+                  NT_MOTION,
+                  "font-ar text-sm leading-snug",
+                  unread
+                    ? "font-bold text-foreground"
+                    : "font-normal text-foreground/80"
                 )}
               >
-                {notificationDisplayBody(item)}
+                {notificationDisplayTitle(item)}
               </p>
-              <div className="mt-1.5 flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground">
-                <span className="font-ar">{categoryLabel(item.category)}</span>
-                <span aria-hidden>·</span>
-                <span>{formatWhen(item.createdAt)}</span>
-                <span aria-hidden>·</span>
-                <span className="font-ar text-soda-pink">
-                  {notificationActionLabel(item)}
+              {priorityLabel ? (
+                <span
+                  className={cn(
+                    "rounded-sm px-1.5 py-0.5 text-[10px] font-medium",
+                    visual.chip
+                  )}
+                >
+                  {priorityLabel}
                 </span>
-              </div>
+              ) : null}
+              {needs ? (
+                <Badge
+                  variant="secondary"
+                  className="h-5 bg-soda-pink/15 px-1.5 text-[10px] text-soda-pink"
+                >
+                  محتاج رد
+                </Badge>
+              ) : null}
             </div>
+
+            <p className="font-ar mt-0.5 truncate text-xs text-muted-foreground">
+              <span className="text-foreground/70">{entityLine(item)}</span>
+              <span className="mx-1.5 opacity-40" aria-hidden>
+                ·
+              </span>
+              <CategoryBadge category={item.category} />
+            </p>
+
+            <p
+              className={cn(
+                NT_MOTION,
+                "font-ar mt-1 line-clamp-2 text-xs",
+                unread ? "text-foreground/80" : "text-muted-foreground"
+              )}
+            >
+              {notificationDisplayBody(item)}
+            </p>
+
+            <div className="mt-1.5 flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground">
+              <span>{formatNotificationWhen(item.createdAt)}</span>
+              <span aria-hidden>·</span>
+              <span className="font-ar text-soda-pink">{statusLine(item)}</span>
+            </div>
+
+            <QuickActions
+              item={item}
+              onOpen={onOpenLink}
+              onMarkRead={onMarkRead}
+              onDismiss={onDismiss}
+            />
           </div>
         </div>
-        <ChevronLeft className="mt-1 size-4 shrink-0 text-muted-foreground opacity-50 transition group-hover:opacity-100" />
       </div>
+    </div>
+  );
+}
+
+function NotificationRowDesktop(props: RowHandlers) {
+  return (
+    <Tooltip>
+      <TooltipTrigger className="block w-full text-start" render={<div />}>
+        <NotificationCardSurface {...props} dense />
+      </TooltipTrigger>
+      <TooltipContent
+        side="left"
+        align="start"
+        className="max-w-xs flex-col items-start gap-1 border border-soda-pink/25 bg-popover p-3 text-start text-popover-foreground"
+        dir="rtl"
+      >
+        <p className="font-ar text-xs font-semibold">
+          {notificationDisplayTitle(props.item)}
+        </p>
+        <p className="font-ar line-clamp-3 text-[11px] text-muted-foreground">
+          {notificationDisplayBody(props.item)}
+        </p>
+        <p className="font-ar text-[11px] text-soda-pink">
+          {notificationActionLabel(props.item)} · {entityLine(props.item)}
+        </p>
+      </TooltipContent>
+    </Tooltip>
+  );
+}
+
+function NotificationRowMobile(props: RowHandlers) {
+  return (
+    <SwipeRow
+      onRead={props.onMarkRead}
+      onArchive={props.onArchive}
+      onOpen={props.onSelect}
+    >
+      <NotificationCardSurface {...props} />
     </SwipeRow>
   );
 }
 
-function DetailDrawer({
+function DetailPanel({
   item,
-  open,
-  onOpenChange,
+  emptyHint,
+  onCloseMobile,
 }: {
   item: NotificationRecord | null;
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
+  emptyHint: string;
+  onCloseMobile?: () => void;
 }) {
   const live = useNotificationLive();
-  if (!item) return null;
+
+  if (!item) {
+    return (
+      <div
+        className="flex h-full min-h-[280px] flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-border/70 bg-muted/20 px-6 py-12 text-center"
+        dir="rtl"
+      >
+        <span className="text-3xl opacity-70" aria-hidden>
+          🔔
+        </span>
+        <p className="font-ar text-sm text-muted-foreground">{emptyHint}</p>
+      </div>
+    );
+  }
+
   const href = notificationHref(item);
   const visual = priorityVisual(item.priority);
   const navActions =
@@ -317,17 +428,25 @@ function DetailDrawer({
     ) ?? [];
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent
-        side="left"
-        className="w-full gap-0 overflow-y-auto sm:max-w-md"
-        dir="rtl"
-      >
-        <SheetHeader className="border-b pb-4 text-start">
+    <div
+      className={cn(
+        NT_MOTION,
+        "flex h-full flex-col overflow-hidden rounded-xl border border-soda-pink/20 bg-[linear-gradient(160deg,color-mix(in_oklch,var(--soda-pink)_8%,transparent)_0%,var(--card)_40%)]"
+      )}
+      dir="rtl"
+    >
+      <div className="flex items-start justify-between gap-3 border-b border-border/60 px-4 py-4">
+        <div className="min-w-0 space-y-2">
           <div className="flex flex-wrap items-center gap-2">
-            <SheetTitle className="font-ar text-base">
+            <span
+              className="flex size-9 items-center justify-center rounded-lg bg-soda-pink/15 text-lg"
+              aria-hidden
+            >
+              {signalGlyph(item) ?? categoryGlyph(item.category)}
+            </span>
+            <h2 className="font-ar text-base font-semibold leading-snug">
               {notificationDisplayTitle(item)}
-            </SheetTitle>
+            </h2>
             <span
               className={cn(
                 "rounded-sm px-1.5 py-0.5 text-[10px] font-medium",
@@ -337,146 +456,202 @@ function DetailDrawer({
               {notificationPriorityLabel(item.priority)}
             </span>
           </div>
-          <SheetDescription className="font-ar text-sm text-foreground/80">
+          <p className="font-ar text-sm text-foreground/85">
             {notificationDisplayBody(item)}
-          </SheetDescription>
-        </SheetHeader>
+          </p>
+        </div>
+        {onCloseMobile ? (
+          <Button
+            type="button"
+            size="icon-sm"
+            variant="ghost"
+            className="shrink-0 cursor-pointer md:hidden"
+            onClick={onCloseMobile}
+            aria-label="إغلاق"
+          >
+            <X className="size-4" />
+          </Button>
+        ) : null}
+      </div>
 
-        <div className="space-y-5 px-4 py-4">
-          <section className="space-y-1.5">
-            <h3 className="font-ar text-xs font-medium text-muted-foreground">
-              الحالة
-            </h3>
-            <p className="font-ar text-sm">
-              {lifecycleLabel(item.status)}
-              {item.requiresAck ? " · محتاج تأكيد" : ""}
-            </p>
-            <p className="text-xs text-muted-foreground">
-              {formatWhen(item.createdAt)} · {categoryLabel(item.category)}
-            </p>
-          </section>
+      <div className="flex-1 space-y-5 overflow-y-auto px-4 py-4">
+        <section className="space-y-1.5">
+          <h3 className="font-ar text-xs font-medium text-muted-foreground">
+            الحالة
+          </h3>
+          <p className="font-ar text-sm">
+            {lifecycleLabel(item.status)}
+            {item.requiresAck ? " · محتاج تأكيد" : ""}
+          </p>
+          <p className="font-ar text-xs text-muted-foreground">
+            {formatNotificationWhen(item.createdAt)} ·{" "}
+            <CategoryBadge category={item.category} className="inline" />
+          </p>
+          <p className="font-ar text-xs text-foreground/70">
+            مرتبط: {entityLine(item)}
+          </p>
+        </section>
 
-          {item.relatedObjects && item.relatedObjects.length > 0 ? (
-            <section className="space-y-2">
-              <h3 className="font-ar text-xs font-medium text-muted-foreground">
-                مرتبط بـ
-              </h3>
-              <ul className="space-y-1.5">
-                {item.relatedObjects.map((rel) => (
-                  <li key={rel.href}>
-                    <Link
-                      href={rel.href}
-                      className="font-ar inline-flex min-h-9 items-center text-sm text-soda-pink hover:underline"
-                      onClick={() => live.markRead(item.id)}
-                    >
-                      {rel.label}
-                      {rel.id ? (
-                        <span className="ms-1 text-muted-foreground">
-                          ({rel.id.slice(0, 8)})
-                        </span>
-                      ) : null}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </section>
-          ) : null}
-
+        {item.relatedObjects && item.relatedObjects.length > 0 ? (
           <section className="space-y-2">
             <h3 className="font-ar text-xs font-medium text-muted-foreground">
-              إجراءات
+              العميل / الأوردر
             </h3>
-            <div className="flex flex-wrap gap-2">
-              <Button
-                nativeButton={false}
-                render={<Link href={href} onClick={() => live.markRead(item.id)} />}
-                size="sm"
-                className="min-h-9 cursor-pointer bg-soda-pink text-soda-action-foreground hover:bg-soda-pink/90"
-              >
-                افتح
-              </Button>
-              {navActions
-                .filter((a) => a.href !== href)
-                .slice(0, 4)
-                .map((a) => (
-                  <Button
-                    key={`${a.kind}-${a.label}`}
-                    nativeButton={false}
-                    render={
-                      <Link
-                        href={a.href!}
-                        onClick={() => live.markRead(item.id)}
-                      />
-                    }
-                    size="sm"
-                    variant="outline"
-                    className="min-h-9 cursor-pointer"
+            <ul className="space-y-1.5">
+              {item.relatedObjects.map((rel) => (
+                <li key={`${rel.href}-${rel.label}`}>
+                  <Link
+                    href={rel.href}
+                    className="font-ar inline-flex min-h-10 items-center rounded-lg border border-border/60 bg-background/50 px-3 text-sm text-soda-pink transition-colors hover:border-soda-pink/40 hover:bg-soda-pink/5"
+                    onClick={() => live.markRead(item.id)}
                   >
-                    {a.label}
-                  </Button>
-                ))}
-              <Button
-                type="button"
-                size="sm"
-                variant="ghost"
-                className="min-h-9 cursor-pointer"
-                onClick={() => {
-                  live.dismiss(item.id);
-                  onOpenChange(false);
-                }}
-              >
-                تجاهل
-              </Button>
-              <Button
-                type="button"
-                size="sm"
-                variant="ghost"
-                className="min-h-9 cursor-pointer"
-                onClick={() => {
-                  live.archive(item.id);
-                  onOpenChange(false);
-                }}
-              >
-                أرشيف
-              </Button>
-            </div>
-            <NotificationDecisionButtons
-              notificationId={item.id}
-              actions={item.actions}
-            />
+                    {rel.label}
+                    {rel.id ? (
+                      <span className="ms-1 text-muted-foreground">
+                        ({rel.id.slice(0, 8)})
+                      </span>
+                    ) : null}
+                  </Link>
+                </li>
+              ))}
+            </ul>
           </section>
+        ) : null}
 
-          <section className="space-y-2">
-            <h3 className="font-ar text-xs font-medium text-muted-foreground">
-              التايملاين
-            </h3>
-            <ol className="space-y-2 border-s border-border/70 ps-3">
-              {(item.history && item.history.length > 0
-                ? item.history
-                : [
-                    {
-                      at: item.createdAt,
-                      status: item.status,
-                      note: "اتعمل التنبيه",
-                    },
-                  ]
-              ).map((h, idx) => (
-                <li key={`${h.at}-${idx}`} className="relative">
-                  <span className="absolute -start-[17px] top-1.5 size-2 rounded-full bg-soda-pink/80" />
-                  <p className="font-ar text-sm">
-                    {h.note ?? lifecycleLabel(
+        <section className="space-y-2">
+          <h3 className="font-ar text-xs font-medium text-muted-foreground">
+            إجراءات سريعة
+          </h3>
+          <div className="flex flex-wrap gap-2">
+            <Button
+              nativeButton={false}
+              render={
+                <Link href={href} onClick={() => live.markRead(item.id)} />
+              }
+              size="sm"
+              className="min-h-10 cursor-pointer bg-soda-pink text-soda-action-foreground hover:bg-soda-pink/90"
+            >
+              افتح
+            </Button>
+            {item.status === "unread" ? (
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                className="min-h-10 cursor-pointer"
+                onClick={() => live.markRead(item.id)}
+              >
+                اتقراء
+              </Button>
+            ) : null}
+            {navActions
+              .filter((a) => a.href !== href)
+              .slice(0, 4)
+              .map((a) => (
+                <Button
+                  key={`${a.kind}-${a.label}`}
+                  nativeButton={false}
+                  render={
+                    <Link
+                      href={a.href!}
+                      onClick={() => live.markRead(item.id)}
+                    />
+                  }
+                  size="sm"
+                  variant="outline"
+                  className="min-h-10 cursor-pointer"
+                >
+                  {a.label}
+                </Button>
+              ))}
+            <Button
+              type="button"
+              size="sm"
+              variant="ghost"
+              className="min-h-10 cursor-pointer"
+              onClick={() => live.dismiss(item.id)}
+            >
+              تجاهل
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant="ghost"
+              className="min-h-10 cursor-pointer"
+              onClick={() => live.archive(item.id)}
+            >
+              أرشيف
+            </Button>
+          </div>
+          <NotificationDecisionButtons
+            notificationId={item.id}
+            actions={item.actions}
+          />
+        </section>
+
+        <section className="space-y-2">
+          <h3 className="font-ar text-xs font-medium text-muted-foreground">
+            التايملاين
+          </h3>
+          <ol className="space-y-3 border-s border-border/70 ps-3">
+            {(item.history && item.history.length > 0
+              ? item.history
+              : [
+                  {
+                    at: item.createdAt,
+                    status: item.status,
+                    note: "اتعمل التنبيه",
+                  },
+                ]
+            ).map((h, idx) => (
+              <li key={`${h.at}-${idx}`} className="relative">
+                <span className="absolute -start-[17px] top-1.5 size-2 rounded-full bg-soda-pink/80" />
+                <p className="font-ar text-sm">
+                  {h.note ??
+                    lifecycleLabel(
                       h.status === "archived" || h.status === "dismissed"
                         ? "completed"
                         : h.status
                     )}
-                  </p>
-                  <p className="text-[11px] text-muted-foreground">
-                    {formatWhen(h.at)}
-                  </p>
-                </li>
-              ))}
-            </ol>
-          </section>
+                </p>
+                <p className="text-[11px] text-muted-foreground">
+                  {formatNotificationWhen(h.at)}
+                </p>
+              </li>
+            ))}
+          </ol>
+        </section>
+      </div>
+    </div>
+  );
+}
+
+function MobileDetailDrawer({
+  item,
+  open,
+  onOpenChange,
+}: {
+  item: NotificationRecord | null;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}) {
+  return (
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent
+        side="bottom"
+        className="h-[min(100dvh,100%)] max-h-[100dvh] gap-0 overflow-hidden rounded-t-2xl p-0 sm:max-w-none"
+        dir="rtl"
+      >
+        <SheetHeader className="sr-only">
+          <SheetTitle>تفاصيل التنبيه</SheetTitle>
+          <SheetDescription>لوحة تفاصيل التنبيه</SheetDescription>
+        </SheetHeader>
+        <div className="h-full overflow-y-auto p-1 pb-[env(safe-area-inset-bottom)]">
+          <DetailPanel
+            item={item}
+            emptyHint="اختار تنبيه من القائمة."
+            onCloseMobile={() => onOpenChange(false)}
+          />
         </div>
       </SheetContent>
     </Sheet>
@@ -485,34 +660,61 @@ function DetailDrawer({
 
 export function NotificationCenter({ subtitle }: { subtitle: string }) {
   const live = useNotificationLive();
-  const [category, setCategory] = useState<NotificationCategory | "all">("all");
-  const [unreadOnly, setUnreadOnly] = useState(false);
+  const router = useRouter();
+  const [filter, setFilter] = useState<SmartFilterKey>("unread");
+  const [sort, setSort] = useState<SortKey>("newest");
+  const [query, setQuery] = useState("");
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [previewId, setPreviewId] = useState<string | null>(null);
   const [checked, setChecked] = useState<Set<string>>(() => new Set());
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [filtersOpen, setFiltersOpen] = useState(true);
 
   const filtered = useMemo(() => {
-    return live.items.filter((n) => {
-      if (category !== "all" && n.category !== category) return false;
-      if (unreadOnly && n.status !== "unread") return false;
-      return true;
+    const q = query.trim().toLowerCase();
+    const base = live.items.filter((n) => {
+      const needs = notificationNeedsDecision(n);
+      if (!matchesSmartFilter(n, filter, needs)) return false;
+      if (!q) return true;
+      const hay = [
+        notificationDisplayTitle(n),
+        notificationDisplayBody(n),
+        entityLine(n),
+        n.category,
+      ]
+        .join(" ")
+        .toLowerCase();
+      return hay.includes(q);
     });
-  }, [live.items, category, unreadOnly]);
+    return sortNotifications(base, sort);
+  }, [live.items, filter, query, sort]);
 
   const groups = useMemo(
     () => groupNotificationsByTimeline(filtered),
     [filtered]
   );
 
-  const selected = useMemo(
-    () => live.items.find((n) => n.id === selectedId) ?? null,
-    [live.items, selectedId]
+  const detailId = selectedId ?? previewId;
+  const detailItem = useMemo(
+    () => live.items.find((n) => n.id === detailId) ?? null,
+    [live.items, detailId]
   );
 
-  function openItem(item: NotificationRecord) {
+  useEffect(() => {
+    if (selectedId && !live.items.some((n) => n.id === selectedId)) {
+      setSelectedId(null);
+    }
+  }, [live.items, selectedId]);
+
+  function selectItem(item: NotificationRecord, opts?: { mobile?: boolean }) {
     setSelectedId(item.id);
-    setDrawerOpen(true);
+    if (opts?.mobile) setDrawerOpen(true);
     if (item.status === "unread") live.markRead(item.id);
+  }
+
+  function openLink(item: NotificationRecord) {
+    if (item.status === "unread") live.markRead(item.id);
+    router.push(notificationHref(item));
   }
 
   function toggleCheck(id: string) {
@@ -524,149 +726,231 @@ export function NotificationCenter({ subtitle }: { subtitle: string }) {
     });
   }
 
+  const readIds = useMemo(
+    () => live.items.filter((n) => n.status === "read").map((n) => n.id),
+    [live.items]
+  );
+  const completedIds = useMemo(
+    () => live.items.filter((n) => n.status === "completed").map((n) => n.id),
+    [live.items]
+  );
+
+  const emptyHint =
+    filter === "unread"
+      ? "مفيش تنبيهات جديدة — كله اتقرا ✓"
+      : "اختار تنبيه من على الشمال عشان تشوف التفاصيل.";
+
   return (
-    <div className="space-y-4" dir="rtl">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <h1 className="font-ar text-xl font-semibold tracking-tight">
-            مركز التنبيهات
-          </h1>
-          <p className="font-ar mt-1 text-sm text-muted-foreground">{subtitle}</p>
+    <TooltipProvider delay={300}>
+      <div className="space-y-4" dir="rtl">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+          <div>
+            <h1 className="font-ar text-xl font-semibold tracking-tight">
+              مركز التنبيهات
+            </h1>
+            <p className="font-ar mt-1 text-sm text-muted-foreground">
+              {subtitle}
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge
+              variant="secondary"
+              className={cn(
+                NT_MOTION,
+                "h-7 bg-soda-pink/15 px-2.5 font-ar text-soda-pink",
+                live.unreadCount > 0 &&
+                  "shadow-[0_0_12px_color-mix(in_srgb,var(--soda-pink)_35%,transparent)]"
+              )}
+            >
+              {live.unreadCount} جديد
+            </Badge>
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              className="min-h-9 cursor-pointer gap-1.5"
+              disabled={live.unreadCount === 0}
+              onClick={() => live.markAllRead()}
+            >
+              <CheckCheck className="size-3.5" />
+              اقرأ الكل
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              className="min-h-9 cursor-pointer gap-1.5"
+              disabled={readIds.length === 0}
+              onClick={() => {
+                for (const id of readIds) live.archive(id);
+              }}
+            >
+              <Archive className="size-3.5" />
+              أرشف المقروء
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant="ghost"
+              className="min-h-9 cursor-pointer gap-1.5"
+              disabled={completedIds.length === 0}
+              onClick={() => {
+                for (const id of completedIds) live.dismiss(id);
+              }}
+            >
+              <Trash2 className="size-3.5" />
+              امسح المكتمل
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant="ghost"
+              className="min-h-9 cursor-pointer gap-1.5"
+              disabled={checked.size === 0}
+              onClick={() => {
+                live.markRead([...checked]);
+                setChecked(new Set());
+              }}
+            >
+              اقرأ المحدد
+            </Button>
+          </div>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <Badge
-            variant="secondary"
-            className="h-7 bg-soda-pink/15 px-2.5 font-ar text-soda-pink"
-          >
-            {live.unreadCount} جديد
-          </Badge>
-          <Button
-            type="button"
-            size="sm"
-            variant="outline"
-            className="min-h-9 cursor-pointer gap-1.5"
-            disabled={live.unreadCount === 0}
-            onClick={() => live.markAllRead()}
-          >
-            <CheckCheck className="size-3.5" />
-            اقرأ الكل
-          </Button>
-          <Button
-            type="button"
-            size="sm"
-            variant="outline"
-            className="min-h-9 cursor-pointer gap-1.5"
-            disabled={checked.size === 0}
-            onClick={() => {
-              live.markRead([...checked]);
-              setChecked(new Set());
-            }}
-          >
-            اقرأ المحدد
-          </Button>
-          <Button
-            type="button"
-            size="sm"
-            variant="ghost"
-            className="min-h-9 cursor-pointer gap-1.5"
-            disabled={checked.size === 0}
-            onClick={() => {
-              for (const id of checked) live.archive(id);
-              setChecked(new Set());
-            }}
-          >
-            <Archive className="size-3.5" />
-            أرشيف
-          </Button>
-          <Button
-            type="button"
-            size="sm"
-            variant="ghost"
-            className="min-h-9 cursor-pointer gap-1.5"
-            disabled={checked.size === 0}
-            onClick={() => {
-              for (const id of checked) live.dismiss(id);
-              setChecked(new Set());
-            }}
-          >
-            <Trash2 className="size-3.5" />
-            تجاهل
-          </Button>
-        </div>
-      </div>
 
-      <div className="flex flex-wrap items-center gap-2">
-        <Filter className="size-3.5 text-muted-foreground" />
-        <button
-          type="button"
-          onClick={() => setUnreadOnly((v) => !v)}
-          className={cn(
-            "font-ar min-h-8 cursor-pointer rounded-md px-2.5 text-xs transition-colors",
-            unreadOnly
-              ? "bg-soda-pink text-soda-action-foreground"
-              : "bg-muted text-muted-foreground hover:text-foreground"
-          )}
-        >
-          غير مقروء
-        </button>
-        {CATEGORY_FILTERS.map((key) => (
-          <button
-            key={key}
-            type="button"
-            onClick={() => setCategory(key)}
-            className={cn(
-              "font-ar min-h-8 cursor-pointer rounded-md px-2.5 text-xs transition-colors",
-              category === key
-                ? "bg-foreground text-background"
-                : "bg-muted/70 text-muted-foreground hover:text-foreground"
-            )}
-          >
-            {key === "all" ? "الكل" : NOTIFICATION_CATEGORY_LABELS[key]}
-          </button>
-        ))}
-      </div>
-
-      {filtered.length === 0 ? (
-        <div className="rounded-xl border border-dashed px-4 py-12 text-center">
-          <p className="font-ar text-sm text-muted-foreground">
-            مفيش تنبيهات في الفلتر ده دلوقتي.
-          </p>
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+          <div className="relative min-w-0 flex-1">
+            <Search className="pointer-events-none absolute start-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="دوّر في التنبيهات…"
+              className="font-ar h-9 ps-8"
+              aria-label="بحث"
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              className="min-h-9 cursor-pointer gap-1.5"
+              onClick={() => setFiltersOpen((v) => !v)}
+            >
+              <Filter className="size-3.5" />
+              فلتر
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              className="min-h-9 cursor-pointer gap-1.5"
+              onClick={() =>
+                setSort((s) =>
+                  s === "newest"
+                    ? "oldest"
+                    : s === "oldest"
+                      ? "priority"
+                      : "newest"
+                )
+              }
+            >
+              <ArrowUpDown className="size-3.5" />
+              {SORT_LABELS[sort]}
+            </Button>
+          </div>
         </div>
-      ) : (
-        <div className="space-y-6">
-          {groups.map((group) => (
-            <section key={group.key} className="space-y-2">
-              <h2 className="font-ar sticky top-0 z-[1] bg-background/80 py-1 text-xs font-medium text-muted-foreground backdrop-blur-sm">
-                {group.label}
-              </h2>
-              <div className="space-y-2">
-                {group.items.map((item) => (
-                  <NotificationRow
-                    key={item.id}
-                    item={item}
-                    selected={selectedId === item.id}
-                    checked={checked.has(item.id)}
-                    onToggleCheck={() => toggleCheck(item.id)}
-                    onOpen={() => openItem(item)}
-                    onMarkRead={() => live.markRead(item.id)}
-                    onArchive={() => live.archive(item.id)}
-                  />
-                ))}
+
+        {filtersOpen ? (
+          <div className="flex flex-wrap items-center gap-1.5">
+            {SMART_FILTERS.map((f) => (
+              <button
+                key={f.key}
+                type="button"
+                onClick={() => setFilter(f.key)}
+                className={cn(
+                  NT_MOTION,
+                  "font-ar inline-flex min-h-8 cursor-pointer items-center gap-1 rounded-lg px-2.5 text-xs",
+                  filter === f.key
+                    ? "bg-soda-pink text-soda-action-foreground shadow-sm"
+                    : "bg-muted/70 text-muted-foreground hover:bg-muted hover:text-foreground"
+                )}
+              >
+                {f.icon ? <span aria-hidden>{f.icon}</span> : null}
+                {f.label}
+              </button>
+            ))}
+          </div>
+        ) : null}
+
+        <div className="grid gap-4 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] lg:items-start">
+          <div className="min-w-0 space-y-4">
+            {filtered.length === 0 ? (
+              <div className="rounded-xl border border-dashed px-4 py-14 text-center">
+                <p className="font-ar text-sm text-muted-foreground">
+                  {filter === "unread"
+                    ? "مفيش حاجة جديدة دلوقتي — كله تمام."
+                    : "مفيش تنبيهات في الفلتر ده دلوقتي."}
+                </p>
               </div>
-            </section>
-          ))}
+            ) : (
+              groups.map((group) => (
+                <section key={group.key} className="space-y-2">
+                  <h2 className="font-ar sticky top-0 z-[1] bg-background/85 py-1 text-xs font-medium tracking-wide text-muted-foreground backdrop-blur-sm">
+                    {group.label}
+                  </h2>
+                  <div className="space-y-2">
+                    {group.items.map((item) => {
+                      const props: RowHandlers = {
+                        item,
+                        selected: selectedId === item.id,
+                        checked: checked.has(item.id),
+                        onToggleCheck: () => toggleCheck(item.id),
+                        onSelect: () => {
+                          const mobile =
+                            typeof window !== "undefined" &&
+                            window.matchMedia("(max-width: 1023px)").matches;
+                          selectItem(item, { mobile });
+                        },
+                        onOpenLink: () => openLink(item),
+                        onMarkRead: () => live.markRead(item.id),
+                        onArchive: () => live.archive(item.id),
+                        onDismiss: () => live.dismiss(item.id),
+                        onHover: () => setPreviewId(item.id),
+                        onHoverEnd: () =>
+                          setPreviewId((id) => (id === item.id ? null : id)),
+                      };
+                      return (
+                        <div key={item.id}>
+                          <div className="hidden lg:block">
+                            <NotificationRowDesktop {...props} />
+                          </div>
+                          <div className="lg:hidden">
+                            <NotificationRowMobile {...props} />
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </section>
+              ))
+            )}
+
+            <p className="font-ar text-[11px] text-muted-foreground lg:hidden">
+              اسحب يمين = اتقراء · شمال = أرشيف · اضغط = التفاصيل كاملة
+            </p>
+          </div>
+
+          <aside className="sticky top-3 hidden min-h-[420px] lg:block">
+            <DetailPanel item={detailItem} emptyHint={emptyHint} />
+          </aside>
         </div>
-      )}
 
-      <p className="font-ar text-[11px] text-muted-foreground md:hidden">
-        اسحب يمين = اتقراء · شمال = أرشيف · اضغط = افتح التفاصيل
-      </p>
-
-      <DetailDrawer
-        item={selected}
-        open={drawerOpen}
-        onOpenChange={setDrawerOpen}
-      />
-    </div>
+        <MobileDetailDrawer
+          item={detailItem}
+          open={drawerOpen}
+          onOpenChange={setDrawerOpen}
+        />
+      </div>
+    </TooltipProvider>
   );
 }

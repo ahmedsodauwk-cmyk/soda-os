@@ -61,6 +61,24 @@ export const NOTIFICATION_CATEGORY_LABELS: Record<
   personal: "شخصي",
 };
 
+/** Category emoji — presentation only (Mission 06.2). */
+export const NOTIFICATION_CATEGORY_ICONS: Record<NotificationCategory, string> =
+  {
+    orders: "📦",
+    finance: "💰",
+    crew: "👤",
+    calendar: "📅",
+    clients: "🏢",
+    authority: "⚙️",
+    brain: "🧠",
+    system: "⚙️",
+    personal: "👤",
+  };
+
+export function categoryIcon(category: NotificationCategory): string {
+  return NOTIFICATION_CATEGORY_ICONS[category] ?? "⚙️";
+}
+
 export function categoryForEvent(event: BusinessEvent): NotificationCategory {
   return TYPE_CATEGORY[event.type] ?? "system";
 }

@@ -78,7 +78,9 @@ export { loadHydratedNotifications, loadNotificationsForSession } from "@/lib/co
 export {
   categoryForEvent,
   categoryLabel,
+  categoryIcon,
   NOTIFICATION_CATEGORY_LABELS,
+  NOTIFICATION_CATEGORY_ICONS,
 } from "@/lib/core/notifications/categories";
 
 export {
