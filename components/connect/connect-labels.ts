@@ -10,6 +10,8 @@ export const CL = {
   teamRoom: "SODA Team",
   emptyInbox: "اختار محادثة من القائمة.",
   emptyThread: "ابدأ المحادثة.",
+  /** List preview when no messages yet — no period. */
+  startChat: "ابدأ المحادثة",
   typePlaceholder: "اكتب رسالة…",
   reply: "رد",
   forward: "تحويل",

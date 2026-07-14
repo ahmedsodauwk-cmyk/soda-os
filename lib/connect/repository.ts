@@ -5,6 +5,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { accessLevelCan } from "@/lib/identity/access-levels";
 import { attachmentKindFromMime } from "@/lib/connect/mime";
 import type {
   ConnectAttachment,
@@ -21,6 +22,11 @@ import type {
   ConnectReceiptStatus,
   ConnectSharedMedia,
 } from "@/lib/connect/types";
+
+/** Deterministic DM pair key — mirrors public.connect_dm_key. */
+export function connectDmKey(a: string, b: string): string {
+  return a < b ? `${a}:${b}` : `${b}:${a}`;
+}
 
 function initialsFrom(name: string, email: string | null): string {
   const parts = name.trim().split(/\s+/).filter(Boolean);
@@ -104,11 +110,18 @@ function mapAttachment(row: {
 /** Called after Founder provisions a login — admin client, no fake users. */
 export async function provisionConnectForUser(userId: string): Promise<void> {
   const admin = createAdminClient();
+  // Presence + SODA Team + DM with every active peer (security definer).
   const { error } = await admin.rpc("connect_ensure_user", {
     p_user_id: userId,
   });
   if (error) {
     console.error("[connect] provisionConnectForUser", error.message);
+    return;
+  }
+  // Heal any other active users who were missing this peer pair.
+  const { error: bootErr } = await admin.rpc("connect_bootstrap_all_active");
+  if (bootErr) {
+    console.error("[connect] provision bootstrap_all", bootErr.message);
   }
 }
 
@@ -117,6 +130,49 @@ export async function ensureConnectForSelf(): Promise<{ ok: boolean; error?: str
   const { error } = await supabase.rpc("connect_ensure_self");
   if (error) return { ok: false, error: error.message };
   return { ok: true };
+}
+
+/**
+ * Service-role heal: ensure the viewer (and optionally full roster) has
+ * Team room + private DMs. No schema changes; uses existing RPCs only.
+ */
+export async function adminEnsureConnectUser(
+  userId: string
+): Promise<{ ok: boolean; error?: string }> {
+  try {
+    const admin = createAdminClient();
+    const { error } = await admin.rpc("connect_ensure_user", {
+      p_user_id: userId,
+    });
+    if (error) return { ok: false, error: error.message };
+    return { ok: true };
+  } catch (err) {
+    return {
+      ok: false,
+      error: err instanceof Error ? err.message : "connect ensure failed",
+    };
+  }
+}
+
+export async function adminBootstrapAllActive(): Promise<{
+  ok: boolean;
+  error?: string;
+}> {
+  try {
+    const admin = createAdminClient();
+    const { error } = await admin.rpc("connect_bootstrap_all_active");
+    if (error) return { ok: false, error: error.message };
+    return { ok: true };
+  } catch (err) {
+    return {
+      ok: false,
+      error: err instanceof Error ? err.message : "connect bootstrap failed",
+    };
+  }
+}
+
+function peerHasConnectAccess(peer: ConnectPeer): boolean {
+  return accessLevelCan(peer.accessLevel, "connect.view");
 }
 
 export async function listActivePeers(
@@ -130,7 +186,87 @@ export async function listActivePeers(
     .neq("id", excludeUserId)
     .order("full_name", { ascending: true });
   if (error || !data) return [];
-  return data.map(mapPeer);
+  return data.map(mapPeer).filter(peerHasConnectAccess);
+}
+
+/**
+ * Silent Team Chat bootstrap: ensure self, then heal any missing peer DMs /
+ * Team room via service RPCs before the UI list is returned.
+ */
+export async function bootstrapTeamChatRoster(userId: string): Promise<{
+  ok: boolean;
+  error?: string;
+  conversations: ConnectConversation[];
+  peers: ConnectPeer[];
+  presence: ConnectPresence[];
+}> {
+  const self = await ensureConnectForSelf();
+  if (!self.ok) {
+    // Fall through to admin heal if RLS/session RPC failed.
+    const healed = await adminEnsureConnectUser(userId);
+    if (!healed.ok) {
+      return {
+        ok: false,
+        error: self.error ?? healed.error ?? "فشل تجهيز Team Chat",
+        conversations: [],
+        peers: [],
+        presence: [],
+      };
+    }
+  }
+
+  const load = async () => {
+    const [conversations, peers, presence] = await Promise.all([
+      listConversationsForUser(userId),
+      listActivePeers(userId),
+      listPresence(),
+    ]);
+    return { conversations, peers, presence };
+  };
+
+  let { conversations, peers, presence } = await load();
+
+  const missingPeerDms = (convos: ConnectConversation[], roster: ConnectPeer[]) => {
+    const dmPeers = new Set(
+      convos
+        .filter((c) => c.kind === "private")
+        .map((c) => c.peers[0]?.id)
+        .filter(Boolean) as string[]
+    );
+    return roster.filter((p) => !dmPeers.has(p.id));
+  };
+
+  const needsHeal = (convos: ConnectConversation[], roster: ConnectPeer[]) => {
+    const hasTeam = convos.some((c) => c.kind === "team");
+    if (!hasTeam) return true;
+    if (roster.length > 0 && convos.filter((c) => c.kind === "private").length === 0) {
+      return true;
+    }
+    return missingPeerDms(convos, roster).length > 0;
+  };
+
+  if (needsHeal(conversations, peers)) {
+    await adminEnsureConnectUser(userId);
+    ({ conversations, peers, presence } = await load());
+  }
+
+  if (needsHeal(conversations, peers)) {
+    await adminBootstrapAllActive();
+    await adminEnsureConnectUser(userId);
+    ({ conversations, peers, presence } = await load());
+  }
+
+  // Still missing specific pairs — ensure each missing peer once (max modest N).
+  const stillMissing = missingPeerDms(conversations, peers).slice(0, 40);
+  if (stillMissing.length) {
+    await Promise.all(
+      stillMissing.map((p) => adminEnsureConnectUser(p.id))
+    );
+    await adminEnsureConnectUser(userId);
+    ({ conversations, peers, presence } = await load());
+  }
+
+  return { ok: true, conversations, peers, presence };
 }
 
 export async function getPeer(userId: string): Promise<ConnectPeer | null> {
@@ -868,9 +1004,41 @@ export async function findDmConversationId(
   userId: string,
   peerId: string
 ): Promise<string | null> {
+  const supabase = await createClient();
+  const key = connectDmKey(userId, peerId);
+  const { data } = await supabase
+    .from("connect_conversations")
+    .select("id")
+    .eq("kind", "private")
+    .eq("dm_key", key)
+    .maybeSingle();
+  if (data?.id) return data.id as string;
+
   const convos = await listConversationsForUser(userId);
   const hit = convos.find(
     (c) => c.kind === "private" && c.peers.some((p) => p.id === peerId)
   );
   return hit?.id ?? null;
+}
+
+/** Ensure DM exists (self RPC → admin heal), then return conversation id. */
+export async function openOrCreateDm(
+  userId: string,
+  peerId: string
+): Promise<{ ok: true; conversationId: string } | { ok: false; error: string }> {
+  await ensureConnectForSelf();
+  let id = await findDmConversationId(userId, peerId);
+  if (id) return { ok: true, conversationId: id };
+
+  await adminEnsureConnectUser(userId);
+  await adminEnsureConnectUser(peerId);
+  id = await findDmConversationId(userId, peerId);
+  if (id) return { ok: true, conversationId: id };
+
+  await adminBootstrapAllActive();
+  await adminEnsureConnectUser(userId);
+  id = await findDmConversationId(userId, peerId);
+  if (id) return { ok: true, conversationId: id };
+
+  return { ok: false, error: "المحادثة مش جاهزة — جرّب تاني" };
 }

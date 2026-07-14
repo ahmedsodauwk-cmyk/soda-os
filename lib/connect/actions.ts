@@ -6,17 +6,17 @@ import { canAsync } from "@/lib/identity/permission-service";
 import { resolveSessionForApp } from "@/lib/identity/session";
 import {
   attachFilesToMessage,
+  bootstrapTeamChatRoster,
   deleteMessageForEveryone,
   deleteMessageForMe,
   editMessage,
-  ensureConnectForSelf,
-  findDmConversationId,
   globalSearch,
   listConversationsForUser,
   listMessages,
   listPresence,
   listSharedMedia,
   markConversationRead,
+  openOrCreateDm,
   pinMessage,
   searchInConversation,
   sendMessage,
@@ -71,15 +71,18 @@ export async function bootstrapConnectAction(): Promise<{
 }> {
   const gate = await requireConnect();
   if (!gate.ok) return gate;
-  const ensured = await ensureConnectForSelf();
-  if (!ensured.ok) return { ok: false, error: ensured.error };
+  // Silent: ensure Team room + private DM with every active Connect peer,
+  // heal via service RPCs when memberships are missing, then return roster.
+  const roster = await bootstrapTeamChatRoster(gate.userId);
+  if (!roster.ok) return { ok: false, error: roster.error };
   await upsertPresence({ userId: gate.userId, status: "online", activity: null });
-  const [conversations, peers, presence] = await Promise.all([
-    listConversationsForUser(gate.userId),
-    listActivePeers(gate.userId),
-    listPresence(),
-  ]);
-  return { ok: true, conversations, peers, presence };
+  const presence = (await listPresence()) ?? roster.presence;
+  return {
+    ok: true,
+    conversations: roster.conversations,
+    peers: roster.peers,
+    presence,
+  };
 }
 
 export async function loadConversationsAction(): Promise<{
@@ -301,23 +304,28 @@ export async function openDmAction(input: {
 }> {
   const gate = await requireConnect();
   if (!gate.ok) return gate;
-  await ensureConnectForSelf();
-  const id = await findDmConversationId(gate.userId, input.peerId);
+  const opened = await openOrCreateDm(gate.userId, input.peerId);
   const [conversations, peers, presence] = await Promise.all([
     listConversationsForUser(gate.userId),
     listActivePeers(gate.userId),
     listPresence(),
   ]);
-  if (!id) {
+  if (!opened.ok) {
     return {
       ok: false,
-      error: "المحادثة مش جاهزة — جرّب تاني",
+      error: opened.error,
       conversations,
       peers,
       presence,
     };
   }
-  return { ok: true, conversationId: id, conversations, peers, presence };
+  return {
+    ok: true,
+    conversationId: opened.conversationId,
+    conversations,
+    peers,
+    presence,
+  };
 }
 
 export async function getConnectPeerAction(input: {

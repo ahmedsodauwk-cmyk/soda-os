@@ -96,6 +96,18 @@ function statusLabel(p?: ConnectPresence | null): string {
   return `${CL.lastSeen}: ${formatLastSeen(p.lastSeenAt)}`;
 }
 
+/** Sidebar online/offline chip (Messenger-simple). */
+function onlineLabel(p?: ConnectPresence | null): string {
+  if (!p) return CL.offline;
+  if (p.status === "online" || p.activity) return CL.onlineStatus;
+  return CL.offline;
+}
+
+function isOnline(p?: ConnectPresence | null): boolean {
+  if (!p) return false;
+  return p.status === "online" || !!p.activity;
+}
+
 function ReceiptIcon({ status }: { status: ConnectMessage["receipt"] }) {
   if (status === "read") {
     return <CheckCheck className="size-3.5 text-sky-400" aria-label="read" />;
@@ -720,7 +732,9 @@ export function ConnectWorkspace({ userId, displayName }: Props) {
 
         <div className="min-h-0 flex-1 overflow-y-auto px-2 py-2">
           {filteredRows.length === 0 ? (
-            <p className="px-2 py-4 text-sm text-muted-foreground">{CL.noResults}</p>
+            <p className="px-2 py-4 text-sm text-muted-foreground">
+              {query.trim() ? CL.noResults : CL.emptyInbox}
+            </p>
           ) : (
             filteredRows.map((row) => {
               if (row.kind === "team") {
@@ -730,19 +744,31 @@ export function ConnectWorkspace({ userId, displayName }: Props) {
                     c={row.conversation}
                     active={row.conversation.id === activeId}
                     presenceLabel={CL.everyone}
+                    online={false}
+                    showOnlineDot={false}
                     pinned
                     onClick={() => selectConversation(row.conversation.id)}
                   />
                 );
               }
               if (row.kind === "private") {
+                const p = presenceMap.get(row.peer.id);
                 return (
                   <ConvoRow
                     key={row.key}
                     c={row.conversation}
                     active={row.conversation.id === activeId}
-                    presenceLabel={statusLabel(presenceMap.get(row.peer.id))}
-                    onClick={() => selectConversation(row.conversation.id)}
+                    presenceLabel={onlineLabel(p)}
+                    online={isOnline(p)}
+                    showOnlineDot
+                    onClick={() => {
+                      // Prefer direct open; heal via openDm if id somehow stale.
+                      if (row.conversation.id) {
+                        selectConversation(row.conversation.id);
+                      } else {
+                        void openPeerDm(row.peer.id);
+                      }
+                    }}
                   />
                 );
               }
@@ -750,7 +776,8 @@ export function ConnectWorkspace({ userId, displayName }: Props) {
                 <PeerRow
                   key={row.key}
                   peer={row.peer}
-                  presenceLabel={statusLabel(presenceMap.get(row.peer.id))}
+                  presenceLabel={onlineLabel(presenceMap.get(row.peer.id))}
+                  online={isOnline(presenceMap.get(row.peer.id))}
                   busy={openingPeerId === row.peer.id}
                   onClick={() => void openPeerDm(row.peer.id)}
                 />
@@ -1300,15 +1327,21 @@ function ConvoRow({
   c,
   active,
   presenceLabel,
+  online,
+  showOnlineDot,
   pinned,
   onClick,
 }: {
   c: ConnectConversation;
   active: boolean;
   presenceLabel: string;
+  online: boolean;
+  showOnlineDot: boolean;
   pinned?: boolean;
   onClick: () => void;
 }) {
+  const preview = c.lastMessagePreview?.trim() || CL.startChat;
+  const activityAt = c.lastMessageAt ?? c.updatedAt ?? c.createdAt;
   return (
     <button
       type="button"
@@ -1321,8 +1354,17 @@ function ConvoRow({
         pinned && !active && "bg-white/[0.03]"
       )}
     >
-      <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-[#29194A] text-xs font-semibold text-white">
+      <div className="relative flex size-10 shrink-0 items-center justify-center rounded-full bg-[#29194A] text-xs font-semibold text-white">
         {c.kind === "team" ? "ST" : c.peers[0]?.initials ?? "?"}
+        {showOnlineDot ? (
+          <span
+            className={cn(
+              "absolute bottom-0 end-0 size-2.5 rounded-full ring-2 ring-[#0c0a12]",
+              online ? "bg-emerald-400" : "bg-zinc-500"
+            )}
+            aria-hidden
+          />
+        ) : null}
       </div>
       <div className="min-w-0 flex-1">
         <div className="flex items-center justify-between gap-2">
@@ -1335,13 +1377,14 @@ function ConvoRow({
             ) : null}
           </p>
           <span className="shrink-0 text-[10px] text-muted-foreground">
-            {formatTime(c.lastMessageAt)}
+            {formatTime(activityAt)}
           </span>
         </div>
+        <p className="truncate text-[11px] text-muted-foreground/90">
+          {presenceLabel}
+        </p>
         <div className="flex items-center justify-between gap-2">
-          <p className="truncate text-xs text-muted-foreground">
-            {c.lastMessagePreview || presenceLabel}
-          </p>
+          <p className="truncate text-xs text-muted-foreground">{preview}</p>
           {c.unreadCount > 0 && (
             <span className="rounded-full bg-[#D23B68] px-1.5 text-[10px] font-semibold text-white">
               {c.unreadCount}
@@ -1356,11 +1399,13 @@ function ConvoRow({
 function PeerRow({
   peer,
   presenceLabel,
+  online,
   busy,
   onClick,
 }: {
   peer: ConnectPeer;
   presenceLabel: string;
+  online: boolean;
   busy: boolean;
   onClick: () => void;
 }) {
@@ -1371,12 +1416,22 @@ function PeerRow({
       disabled={busy}
       className="mb-0.5 flex w-full items-center gap-2.5 rounded-xl px-2 py-2 text-start transition-colors hover:bg-white/5 disabled:opacity-60"
     >
-      <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-[#29194A] text-xs font-semibold text-white">
+      <div className="relative flex size-10 shrink-0 items-center justify-center rounded-full bg-[#29194A] text-xs font-semibold text-white">
         {busy ? <Loader2 className="size-4 animate-spin" /> : peer.initials}
+        <span
+          className={cn(
+            "absolute bottom-0 end-0 size-2.5 rounded-full ring-2 ring-[#0c0a12]",
+            online ? "bg-emerald-400" : "bg-zinc-500"
+          )}
+          aria-hidden
+        />
       </div>
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm font-medium">{peer.fullName}</p>
-        <p className="truncate text-xs text-muted-foreground">{presenceLabel}</p>
+        <p className="truncate text-[11px] text-muted-foreground/90">
+          {presenceLabel}
+        </p>
+        <p className="truncate text-xs text-muted-foreground">{CL.startChat}</p>
       </div>
     </button>
   );
