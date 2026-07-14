@@ -127,17 +127,27 @@ export function SidebarContent({ user }: SidebarContentProps) {
                       }
                       className={cn(
                         "h-9 w-full cursor-pointer justify-start gap-2.5 rounded-md px-3 font-normal transition-all",
-                        active
-                          ? "soda-nav-active soda-selected border-l-[3px] border-soda-pink bg-sidebar-accent text-sidebar-accent-foreground shadow-[0_0_20px_color-mix(in_srgb,var(--soda-pink)_35%,transparent)]"
-                          : "border-l-[3px] border-transparent text-sidebar-foreground/70 hover:border-soda-pink/50 hover:bg-sidebar-accent/70 hover:text-sidebar-foreground"
+                        item.accent === "brain"
+                          ? active
+                            ? "border-l-[3px] border-violet-400 bg-violet-500/15 text-violet-100 shadow-[0_0_24px_color-mix(in_srgb,#8b5cf6_28%,transparent)]"
+                            : "border-l-[3px] border-transparent text-violet-200/80 hover:border-violet-400/60 hover:bg-violet-500/10 hover:text-violet-100"
+                          : active
+                            ? "soda-nav-active soda-selected border-l-[3px] border-soda-pink bg-sidebar-accent text-sidebar-accent-foreground shadow-[0_0_20px_color-mix(in_srgb,var(--soda-pink)_35%,transparent)]"
+                            : "border-l-[3px] border-transparent text-sidebar-foreground/70 hover:border-soda-pink/50 hover:bg-sidebar-accent/70 hover:text-sidebar-foreground"
                       )}
                     >
-                      <Icon
-                        className={cn(
-                          "size-4",
-                          active ? "text-soda-pink" : "opacity-85"
-                        )}
-                      />
+                      {item.emoji ? (
+                        <span className="text-sm leading-none" aria-hidden>
+                          {item.emoji}
+                        </span>
+                      ) : (
+                        <Icon
+                          className={cn(
+                            "size-4",
+                            active ? "text-soda-pink" : "opacity-85"
+                          )}
+                        />
+                      )}
                       <span>{title}</span>
                     </Button>
                   );

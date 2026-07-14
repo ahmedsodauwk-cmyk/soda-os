@@ -60,6 +60,8 @@ export const PERMISSIONS = [
   "me.briefs",
   "me.dress_code",
   "me.performance",
+  "brain.view",
+  "brain.edit",
 ] as const;
 
 export type Permission = (typeof PERMISSIONS)[number];

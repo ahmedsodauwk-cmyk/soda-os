@@ -104,6 +104,8 @@ const ALL: Permission[] = [
   "me.briefs",
   "me.dress_code",
   "me.performance",
+  "brain.view",
+  "brain.edit",
 ];
 
 /** Account Manager — quotes/orders/clients/commercial/calendar/assign; no Authority/Finance/Settings. */

@@ -33,6 +33,7 @@ export type HumanLayerKey =
   | "notifications"
   | "mySpace"
   | "myWallet"
+  | "brain"
   /* Dashboard sections */
   | "companyPulse"
   | "sodaLive"
@@ -141,6 +142,8 @@ export const HUMAN_LAYER: Record<HumanLayerKey, string> = {
   notifications: "تنبيهات الأوردرات والعملاء والمالية.\nاللي محتاج نظرة بسرعة.",
   mySpace: "مساحتك الشخصية في صودا.\nالشوتات، المحفظة، والتارجيت.",
   myWallet: "مستحقاتك والمدفوع من الشغل.\nمحفظة واضحة من غير لف.",
+  brain:
+    "دماغك الخاصة — مش ERP.\nاكتب بحرية. محدش بيشوف غيرك.",
 
   /* Dashboard */
   companyPulse: "أهم الحاجات اللي محتاجة انتباه دلوقتي.",

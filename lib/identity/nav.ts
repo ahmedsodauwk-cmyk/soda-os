@@ -30,6 +30,7 @@ import {
   Bell,
   Building2,
   UserRound,
+  Brain,
 } from "lucide-react";
 
 import type { AccessLevel } from "@/lib/identity/access-levels";
@@ -50,6 +51,10 @@ export type NavItem = {
   /** All required; item shown if role has any listed permission */
   anyOf: Permission[];
   workspace: "company" | "me";
+  /** Optional emoji prefix (e.g. SODA Brain 🧠) */
+  emoji?: string;
+  /** Distinct chrome — e.g. Founder Brain layer above Home */
+  accent?: "brain";
 };
 
 export type NavSection = {
@@ -63,6 +68,15 @@ export type NavSection = {
 };
 
 export const NAV_ITEMS: NavItem[] = [
+  {
+    titleKey: "nav.brain",
+    href: "/brain",
+    icon: Brain,
+    anyOf: ["brain.view"],
+    workspace: "company",
+    emoji: "🧠",
+    accent: "brain",
+  },
   {
     titleKey: "nav.home",
     href: "/",
@@ -276,6 +290,10 @@ export function navForAccessLevel(
     granted instanceof Set ? granted : new Set(granted as readonly string[]);
 
   let items = NAV_ITEMS.filter((item) => {
+    // SODA Brain — Founder only (permission seed optional until migration applied)
+    if (item.accent === "brain" || item.href === "/brain") {
+      return level === "founder";
+    }
     if (level === "team") {
       if (item.titleKey === "nav.orders") return false;
       if (item.titleKey === "nav.myOrders") {

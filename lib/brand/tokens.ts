@@ -129,6 +129,8 @@ export function resolveSectionPersonality(
       return "crew";
     case "settings":
       return "settings";
+    case "brain":
+      return "default";
     case "notifications":
       return "notifications";
     case "login":

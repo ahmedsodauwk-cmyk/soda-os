@@ -158,6 +158,7 @@ const SEGMENT_CRUMB_KEY: Record<string, string> = {
   clients: "crumbs.clients",
   crew: "crumbs.crew",
   people: "crumbs.people",
+  brain: "crumbs.brain",
   finance: "crumbs.finance",
   calendar: "crumbs.calendar",
   commercial: "crumbs.commercial",

@@ -4,6 +4,7 @@ import type { Locale } from "@/lib/i18n/config";
 export type Dictionary = {
   nav: {
     home: string;
+    brain: string;
     mySpace: string;
     companyWorkspace: string;
     myWorkspace: string;
@@ -33,6 +34,7 @@ export type Dictionary = {
   };
   pages: {
     home: string;
+    brain: string;
     clients: string;
     weddingClients: string;
     commercialClients: string;
@@ -115,6 +117,7 @@ export type Dictionary = {
   };
   crumbs: {
     home: string;
+    brain: string;
     orders: string;
     projects: string;
     clients: string;
@@ -150,6 +153,7 @@ export type Dictionary = {
 const en: Dictionary = {
   nav: {
     home: "Home Screen",
+    brain: "SODA Brain",
     mySpace: "My Space",
     companyWorkspace: "Company Workspace",
     myWorkspace: "My Workspace",
@@ -179,6 +183,7 @@ const en: Dictionary = {
   },
   pages: {
     home: "Home Screen",
+    brain: "SODA Brain",
     clients: "Clients",
     weddingClients: "Wedding Clients",
     commercialClients: "Commercial Clients",
@@ -261,6 +266,7 @@ const en: Dictionary = {
   },
   crumbs: {
     home: "Home Screen",
+    brain: "SODA Brain",
     orders: "Orders",
     projects: "Projects",
     clients: "Clients",
@@ -296,6 +302,7 @@ const en: Dictionary = {
 const ar: Dictionary = {
   nav: {
     home: "الشاشة الرئيسية",
+    brain: "SODA Brain",
     mySpace: "مساحتي",
     companyWorkspace: "مساحة الشركة",
     myWorkspace: "مساحتي",
@@ -325,6 +332,7 @@ const ar: Dictionary = {
   },
   pages: {
     home: "الشاشة الرئيسية",
+    brain: "SODA Brain",
     clients: "العملاء",
     weddingClients: "عملاء الأفراح",
     commercialClients: "العملاء التجاريون",
@@ -407,6 +415,7 @@ const ar: Dictionary = {
   },
   crumbs: {
     home: "الشاشة الرئيسية",
+    brain: "SODA Brain",
     orders: "الأوردرات",
     projects: "المشاريع",
     clients: "العملاء",
