@@ -247,12 +247,20 @@ export async function understandBrainChatAction(input: {
 }
 
 /**
- * Live Related Memories while typing (Context Engine).
- * No writes.
+ * Soft related-memories lookup — NOT for keypress streaming.
+ * Prefer understandBrainChatAction after Send / Enter / idle debounce.
+ * Kept for compatibility; no ERP writes.
  */
 export async function brainContextAction(input: {
   text: string;
 }): Promise<BrainActionResult> {
+  const session = await requireBrainFounder();
+  if (!session) return { ok: false, error: "Founder only." };
+  const text = input.text.trim();
+  if (text.length < 8) {
+    return { ok: true, related: [], timelines: [], suggestions: [] };
+  }
+  // Full pipeline only when caller opts in with a settled phrase — never per keystroke from UI.
   return understandBrainChatAction(input);
 }
 

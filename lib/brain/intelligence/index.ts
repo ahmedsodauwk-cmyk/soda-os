@@ -31,6 +31,7 @@ export {
 
 export {
   buildFounderSummary,
+  buildUnderstandingBullets,
   refreshUnderstandingSummaries,
 } from "@/lib/brain/intelligence/summary";
 

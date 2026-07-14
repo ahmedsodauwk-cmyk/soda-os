@@ -167,8 +167,8 @@ export function buildPotentialActions(
   const actions: BrainUnderstanding["potentialActions"] = [
     {
       id: "brain_save",
-      labelAr: "احفظ في الدماغ بس",
-      labelEn: "Save to Brain only",
+      labelAr: "احفظ في Brain",
+      labelEn: "Save to Brain",
       recommended: executeTarget === "brain_save",
     },
   ];
@@ -180,8 +180,8 @@ export function buildPotentialActions(
   ) {
     actions.push({
       id: "erp_create_client",
-      labelAr: "بعد الموافقة: أنشئ عميل في ERP",
-      labelEn: "After approve: create ERP client",
+      labelAr: "نفذ في النظام · عميل",
+      labelEn: "Run in system · client",
       recommended: executeTarget === "erp_create_client",
     });
   }
@@ -189,8 +189,8 @@ export function buildPotentialActions(
   if (intent === "create_order" || intent === "potential_order") {
     actions.push({
       id: "erp_create_order",
-      labelAr: "بعد الموافقة: أنشئ أوردر في ERP",
-      labelEn: "After approve: create ERP order",
+      labelAr: "نفذ في النظام · أوردر",
+      labelEn: "Run in system · order",
       recommended: executeTarget === "erp_create_order",
     });
   }

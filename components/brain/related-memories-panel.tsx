@@ -42,8 +42,8 @@ export function RelatedMemoriesPanel({
         {empty ? (
           <p className="text-[11px] leading-relaxed text-violet-400/45">
             {ar
-              ? "لما تكتب أو تُحلَّل الملاحظة، الدارات زي RTM أو الأسماء هتظهر هنا."
-              : "While you type or after parse, matching entities appear here."}
+              ? "لما نفهم حاجة، الذكريات المرتبطة هتظهر هنا."
+              : "Related memories show up here once there's something useful."}
           </p>
         ) : null}
         <ul className="space-y-2">

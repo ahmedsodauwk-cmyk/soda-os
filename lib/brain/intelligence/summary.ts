@@ -1,6 +1,6 @@
 /**
  * Founder Summary — short Egyptian Arabic COO voice (AR-first).
- * Local Intelligence Layer only (no ChatGPT / external API).
+ * Human confirmation style — never exposes Intent / Confidence / Parser.
  */
 
 import {
@@ -37,130 +37,138 @@ function whoOf(u: BrainUnderstanding): string | null {
   return u.companyLabel ?? u.personLabel ?? u.clientLabel ?? null;
 }
 
-function appendErpHint(u: BrainUnderstanding, ar: string, en: string): {
-  ar: string;
-  en: string;
+/** Soft human bullets for chat + Smart Understanding panel. */
+export function buildUnderstandingBullets(u: BrainUnderstanding): {
+  ar: string[];
+  en: string[];
 } {
-  const hit = u.erpAwareness[0];
-  if (!hit) return { ar, en };
-  return {
-    ar: `${ar} · ${hit.noteAr}`,
-    en: `${en} · ${hit.noteEn}`,
-  };
-}
+  const ar: string[] = [];
+  const en: string[] = [];
+  const who = whoOf(u);
+  const amountAr = fmtAmount(u.amount, u.currency, "ar");
+  const amountEn = fmtAmount(u.amount, u.currency, "en");
 
-function appendQuestion(u: BrainUnderstanding, ar: string, en: string): {
-  ar: string;
-  en: string;
-} {
-  if (u.canApprove || !u.nextQuestionAr) return { ar, en };
-  return {
-    ar: `${ar} ${u.nextQuestionAr}`,
-    en: `${en} ${u.nextQuestionEn ?? ""}`.trim(),
-  };
+  if (u.intent === "create_client") {
+    ar.push(who ? `عميل جديد: ${who}` : "عميل جديد");
+    en.push(who ? `New client: ${who}` : "New client");
+    if (u.phone) {
+      ar.push(`موبايل: ${u.phone}`);
+      en.push(`Phone: ${u.phone}`);
+    }
+  } else if (u.intent === "create_order") {
+    ar.push(who ? `أوردر لـ ${who}` : "أوردر جديد");
+    en.push(who ? `Order for ${who}` : "New order");
+    if (u.projectType) {
+      ar.push(`نوع الشغل: ${u.projectType}`);
+      en.push(`Type: ${u.projectType}`);
+    }
+    if (u.shootDate) {
+      ar.push(`التصور: ${u.shootDate}`);
+      en.push(`Shoot: ${u.shootDate}`);
+    }
+    if (u.phone) {
+      ar.push(`موبايل: ${u.phone}`);
+      en.push(`Phone: ${u.phone}`);
+    }
+  } else if (u.workspace === "money_memory" && u.moneyKind === "to_collect") {
+    ar.push(who ? `لينا عند ${who}` : "فلوس مستحقة");
+    en.push(who ? `${who} owes us` : "Money to collect");
+    if (amountAr) ar.push(amountAr);
+    if (amountEn) en.push(amountEn);
+  } else if (u.workspace === "money_memory" && u.moneyKind === "crew_advance") {
+    ar.push(who ? `${who} خد سلفة` : "سلفة طاقم");
+    en.push(who ? `${who} took an advance` : "Crew advance");
+    if (amountAr) ar.push(amountAr);
+    if (amountEn) en.push(amountEn);
+  } else if (u.workspace === "money_memory" && u.moneyKind === "lent") {
+    ar.push(who ? `سلّفت ${who}` : "سلفة مدفوعة");
+    en.push(who ? `Lent to ${who}` : "Loan given");
+    if (amountAr) ar.push(amountAr);
+    if (amountEn) en.push(amountEn);
+  } else if (u.workspace === "money_memory" && u.moneyKind === "debt") {
+    ar.push(who ? `علينا لـ ${who}` : "دين علينا");
+    en.push(who ? `We owe ${who}` : "Debt");
+    if (amountAr) ar.push(amountAr);
+    if (amountEn) en.push(amountEn);
+  } else if (u.workspace === "money_memory") {
+    const kindAr = u.moneyKind ? MONEY_KIND_AR[u.moneyKind] : "ملاحظة مالية";
+    ar.push(kindAr);
+    en.push(
+      u.moneyKind ? MONEY_KIND_LABELS_EN[u.moneyKind] : "Money note"
+    );
+    if (who) {
+      ar.push(who);
+      en.push(who);
+    }
+    if (amountAr) ar.push(amountAr);
+    if (amountEn) en.push(amountEn);
+  } else if (u.workspace === "reminders") {
+    ar.push(u.title ? `تذكير: ${u.title}` : "تذكير");
+    en.push(u.title ? `Reminder: ${u.title}` : "Reminder");
+  } else if (u.workspace === "potential_orders") {
+    ar.push(who ? `أوردر محتمل من ${who}` : "أوردر محتمل");
+    en.push(who ? `Potential order from ${who}` : "Potential order");
+    if (amountAr) ar.push(`تقريباً ${amountAr}`);
+    if (amountEn) en.push(`~${amountEn}`);
+  } else if (u.workspace === "client_notebook") {
+    ar.push(who ? `ملاحظة عن ${who}` : "ملاحظة عميل");
+    en.push(who ? `Note about ${who}` : "Client note");
+  } else if (u.workspace === "meeting_notes") {
+    ar.push(who ? `نوتس اجتماع مع ${who}` : "نوتس اجتماع");
+    en.push(who ? `Meeting notes with ${who}` : "Meeting notes");
+  } else if (u.workspace === "ideas") {
+    ar.push(u.title ? `فكرة: ${u.title}` : "فكرة");
+    en.push(u.title ? `Idea: ${u.title}` : "Idea");
+  } else if (u.workspace === "personal_decisions") {
+    ar.push("قرار مفتوح");
+    en.push("Open decision");
+  } else if (u.workspace === "future_plans") {
+    ar.push("خطة جاية");
+    en.push("Future plan");
+  } else {
+    const wsAr = WORKSPACE_LABELS_AR[u.workspace];
+    ar.push(who ? `ملاحظة عن ${who}` : `ملاحظة في ${wsAr}`);
+    en.push(
+      who
+        ? `Note about ${who}`
+        : `Note · ${WORKSPACE_LABELS_EN[u.workspace]}`
+    );
+  }
+
+  for (const hit of u.erpAwareness.slice(0, 1)) {
+    ar.push(hit.noteAr);
+    en.push(hit.noteEn);
+  }
+
+  return { ar, en };
 }
 
 export function buildFounderSummary(u: BrainUnderstanding): {
   ar: string;
   en: string;
 } {
-  const amountAr = fmtAmount(u.amount, u.currency, "ar");
-  const amountEn = fmtAmount(u.amount, u.currency, "en");
-  const who = whoOf(u);
+  const { ar: bulletsAr, en: bulletsEn } = buildUnderstandingBullets(u);
 
-  let ar: string;
-  let en: string;
+  let ar = `أنا فهمت إن:\n${bulletsAr.map((b) => `✓ ${b}`).join("\n")}`;
+  let en = `Here's what I got:\n${bulletsEn.map((b) => `✓ ${b}`).join("\n")}`;
 
-  if (u.intent === "create_client") {
-    ar = who
-      ? `تمام — عميل جديد: ${who}${u.phone ? ` · ${u.phone}` : ""}. مسودة لسه، مش هيتسجل في ERP غير لما توافق وتنفّذ.`
-      : `تمام — نضيف عميل جديد. مسودة.`;
-    en = who
-      ? `Got it — new client: ${who}${u.phone ? ` · ${u.phone}` : ""}. Draft only until you Approve + Execute.`
-      : `Got it — new client draft.`;
-  } else if (u.intent === "create_order") {
-    ar = who
-      ? `أوردر لـ ${who}${u.projectType ? ` · ${u.projectType}` : ""}${u.shootDate ? ` · ${u.shootDate}` : ""}. مسودة ERP — مفيش تسجيل غير بعد الموافقة والتنفيذ.`
-      : `أوردر جديد كمسودة. محتاج تفاصيل قبل التنفيذ.`;
-    en = who
-      ? `Order for ${who}${u.projectType ? ` · ${u.projectType}` : ""}${u.shootDate ? ` · ${u.shootDate}` : ""}. ERP draft — no write until Approve + Execute.`
-      : `New order draft. Need a few details before execute.`;
-  } else if (u.workspace === "money_memory" && u.moneyKind === "to_collect") {
-    ar = who
-      ? `فاهم — لينا عند ${who}${amountAr ? ` ${amountAr}` : ""}. هحطها مسودة في ذاكرة المال.`
-      : `فاهم — فلوس مستحقة${amountAr ? ` ${amountAr}` : ""}. مسودة.`;
-    en = who
-      ? `Got it — ${who} owes us${amountEn ? ` ${amountEn}` : ""}. Money Memory draft.`
-      : `Got it — money waiting${amountEn ? ` ${amountEn}` : ""}. Draft.`;
-  } else if (u.workspace === "money_memory" && u.moneyKind === "crew_advance") {
-    ar = who
-      ? `فاهم — ${who} خد سلفة${amountAr ? ` ${amountAr}` : ""}. مسودة سلفة طاقم.`
-      : `فاهم — سلفة طاقم${amountAr ? ` ${amountAr}` : ""}. مسودة.`;
-    en = who
-      ? `Got it — ${who} took an advance${amountEn ? ` ${amountEn}` : ""}. Crew advance draft.`
-      : `Got it — crew advance${amountEn ? ` ${amountEn}` : ""}. Draft.`;
-  } else if (u.workspace === "money_memory" && u.moneyKind === "lent") {
-    ar = who
-      ? `فاهم — سلفت ${who}${amountAr ? ` ${amountAr}` : ""}. مسودة.`
-      : `فاهم — سلفة مدفوعة${amountAr ? ` ${amountAr}` : ""}. مسودة.`;
-    en = who
-      ? `Got it — lent ${who}${amountEn ? ` ${amountEn}` : ""}. Draft.`
-      : `Got it — loan given${amountEn ? ` ${amountEn}` : ""}. Draft.`;
-  } else if (u.workspace === "money_memory" && u.moneyKind === "debt") {
-    ar = `فاهم — علينا${who ? ` لـ ${who}` : ""}${amountAr ? ` ${amountAr}` : ""}. مسودة دين.`;
-    en = `Got it — we owe${who ? ` ${who}` : ""}${amountEn ? ` ${amountEn}` : ""}. Debt draft.`;
-  } else if (u.workspace === "money_memory") {
-    const kindAr = u.moneyKind ? MONEY_KIND_AR[u.moneyKind] : "ملاحظة مالية";
-    ar = `فاهم — ${kindAr}${who ? ` · ${who}` : ""}${amountAr ? ` · ${amountAr}` : ""}. مسودة في ذاكرة المال.`;
-    en = `Got it — ${u.moneyKind ? MONEY_KIND_LABELS_EN[u.moneyKind] : "money note"}${who ? ` · ${who}` : ""}${amountEn ? ` · ${amountEn}` : ""}. Money Memory draft.`;
-  } else if (u.workspace === "reminders") {
-    ar = `فاهم — تذكير${u.title ? ` «${u.title}»` : ""}. مسودة.`;
-    en = `Got it — reminder${u.title ? ` “${u.title}”` : ""}. Draft.`;
-  } else if (u.workspace === "potential_orders") {
-    ar = who
-      ? `فاهم — أوردر محتمل من ${who}${amountAr ? ` · ميزانية تقريباً ${amountAr}` : ""}. مسودة في الدماغ، مش ERP.`
-      : `فاهم — أوردر محتمل${amountAr ? ` · ${amountAr}` : ""}. مسودة.`;
-    en = who
-      ? `Got it — potential order from ${who}${amountEn ? ` · ~${amountEn}` : ""}. Brain draft, not ERP.`
-      : `Got it — potential order${amountEn ? ` · ${amountEn}` : ""}. Draft.`;
-  } else if (u.workspace === "client_notebook") {
-    ar = who
-      ? `فاهم — ملاحظة عن ${who}. مسودة دفتر عملاء.`
-      : `فاهم — ملاحظة عميل. مسودة.`;
-    en = who
-      ? `Got it — note about ${who}. Client notebook draft.`
-      : `Got it — client note. Draft.`;
-  } else if (u.workspace === "meeting_notes") {
-    ar = `فاهم — نوتس اجتماع${who ? ` مع ${who}` : ""}. مسودة.`;
-    en = `Got it — meeting notes${who ? ` with ${who}` : ""}. Draft.`;
-  } else if (u.workspace === "ideas") {
-    ar = `فاهم — فكرة${u.title ? ` «${u.title}»` : ""}. مسودة.`;
-    en = `Got it — idea${u.title ? ` “${u.title}”` : ""}. Draft.`;
-  } else if (u.workspace === "personal_decisions") {
-    ar = `فاهم — قرار مفتوح. مسودة.`;
-    en = `Got it — open decision. Draft.`;
-  } else if (u.workspace === "future_plans") {
-    ar = `فاهم — خطة جاية. مسودة.`;
-    en = `Got it — future plan. Draft.`;
+  if (u.canApprove) {
+    ar = `${ar}\n\nهل فهمي صح؟`;
+    en = `${en}\n\nDid I get that right?`;
+  } else if (u.nextQuestionAr) {
+    ar = `${ar}\n\n${u.nextQuestionAr}`;
+    en = `${en}\n\n${u.nextQuestionEn ?? ""}`.trim();
   } else {
-    const wsAr = WORKSPACE_LABELS_AR[u.workspace];
-    const wsEn = WORKSPACE_LABELS_EN[u.workspace];
-    ar = `فاهم — ملاحظة${who ? ` عن ${who}` : ""} في «${wsAr}». مسودة.`;
-    en = `Got it — note${who ? ` about ${who}` : ""} under “${wsEn}”. Draft.`;
+    ar = `${ar}\n\nكمّل لو ناقص حاجة.`;
+    en = `${en}\n\nFill in anything missing.`;
   }
 
-  ({ ar, en } = appendErpHint(u, ar, en));
-  ({ ar, en } = appendQuestion(u, ar, en));
-
   if (u.lifecycle === "approved") {
-    ar = `${ar} · موافق — جاهز للتنفيذ.`;
-    en = `${en} · Approved — ready to execute.`;
+    ar = `${ar}\n\nجاهز — اختر احفظ في Brain أو نفذ في النظام.`;
+    en = `${en}\n\nReady — save to Brain or run in the system.`;
   } else if (u.lifecycle === "executed") {
-    ar = `${ar} · اتنفّذ.`;
-    en = `${en} · Executed.`;
-  } else {
-    ar = `${ar} · مفيش تنفيذ غير لما توافق.`;
-    en = `${en} · Nothing runs until you Approve.`;
+    ar = `${ar}\n\nخلاص اتعمل.`;
+    en = `${en}\n\nDone.`;
   }
 
   return { ar, en };

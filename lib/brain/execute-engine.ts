@@ -176,8 +176,8 @@ async function executeBrainSave(
     mode: "brain",
     entry,
     messages,
-    messageAr: `اتحفظ في الدماغ · ${u.workspace} · مفيش ERP.`,
-    messageEn: `Saved to Brain · ${u.workspace} · no ERP.`,
+    messageAr: `اتحفظ في Brain. مفيش حاجة اتعملت في النظام.`,
+    messageEn: `Saved to Brain. Nothing changed in the system.`,
   };
 }
 
@@ -232,8 +232,8 @@ async function executeErpClient(
     entry,
     client,
     messages,
-    messageAr: `اتعمل عميل في ERP: ${client.name}. واتحفظت المسودة في الدماغ كمان.`,
-    messageEn: `ERP client created: ${client.name}. Draft also saved in Brain.`,
+    messageAr: `اتعمل عميل في النظام: ${client.name}. واتحفظت كمان في Brain.`,
+    messageEn: `Client created in the system: ${client.name}. Also saved in Brain.`,
   };
 }
 
@@ -310,8 +310,8 @@ async function executeErpOrder(
     order: result.order,
     client: undefined,
     messages,
-    messageAr: `اتعمل أوردر في ERP: ${result.order.clientName} · ${result.order.id}. المسودة اتحفظت في الدماغ.`,
-    messageEn: `ERP order created: ${result.order.clientName} · ${result.order.id}. Draft saved in Brain.`,
+    messageAr: `اتعمل أوردر في النظام لـ ${result.order.clientName}. المسودة اتحفظت في Brain.`,
+    messageEn: `Order created in the system for ${result.order.clientName}. Draft saved in Brain.`,
   };
 }
 

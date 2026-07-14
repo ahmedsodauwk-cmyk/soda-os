@@ -1,10 +1,11 @@
 "use client";
 
 /**
- * SODA Operations Desk — Founder Digital COO (Mission 05.3).
- * LEFT history · CENTER conversation · RIGHT understanding · BOTTOM controls
- * Phase A: Understand / Ask / Prepare · Phase B: Approve → Execute
- * Heuristic Intelligence Layer only. Voice = mic stub.
+ * SODA Operations Desk — Founder Digital COO (Human Experience).
+ * LEFT history · CENTER conversation (hero) · RIGHT Smart Understanding (closed by default)
+ * Parse ONLY on Send / Enter / 1500ms idle — never on every keypress.
+ * احفظ في Brain · نفذ في النظام — never silent ERP writes.
+ * Voice = mic stub (same ingest path as text / voiceTranscript later).
  */
 
 import Link from "next/link";
@@ -14,20 +15,20 @@ import { ArrowLeft, Mic, MicOff, Send, Sparkles } from "lucide-react";
 import {
   answerOpsQuestionAction,
   approveOpsDraftAction,
-  brainContextAction,
   executeOpsDraftAction,
   loadBrainChatAction,
   understandBrainChatAction,
 } from "@/lib/brain/actions";
 import {
   applyUnderstandingEdits,
+  defaultExecuteTarget,
   type BrainUnderstanding,
   type EntityTimeline,
+  type ExecuteTarget,
   type RelatedMemory,
   type UnderstandingEdits,
 } from "@/lib/brain/intelligence";
 import type { BrainChatMessage } from "@/lib/brain/types";
-import { WORKSPACE_LABELS_AR, WORKSPACE_LABELS_EN } from "@/lib/brain/types";
 import { useI18n } from "@/lib/i18n/provider";
 import { cn } from "@/lib/utils";
 import { UnderstandingPanel } from "@/components/brain/understanding-panel";
@@ -47,10 +48,48 @@ type LocalBubble = {
   ephemeral?: boolean;
 };
 
+function greetingForHour(hour: number, ar: boolean): string {
+  if (hour >= 5 && hour < 12) {
+    return ar
+      ? "صباح الخير. أنا معاك — قولّي اللي على بالك، وأنا أرتّبه."
+      : "Good morning. I'm with you — tell me what's on your mind.";
+  }
+  if (hour >= 12 && hour < 17) {
+    return ar
+      ? "أهلاً. عايز نرتّب إيه النهاردة؟"
+      : "Hey. What should we sort today?";
+  }
+  if (hour >= 17 && hour < 22) {
+    return ar
+      ? "مساء الخير. في حاجة مفتوحة محتاجة قرار، ولا نبدأ من جديد؟"
+      : "Good evening. Open item needing a decision, or shall we start fresh?";
+  }
+  return ar
+    ? "لسه صاحي؟ قولّي اللي محتاج تفضيه من دماغك."
+    : "Still up? Tell me what you need off your mind.";
+}
+
+function canRunInSystem(u: BrainUnderstanding): boolean {
+  if (u.executeTarget.startsWith("erp_")) return true;
+  return (
+    u.intent === "create_client" ||
+    u.intent === "create_order" ||
+    u.intent === "potential_order"
+  );
+}
+
+function resolveSystemTarget(u: BrainUnderstanding): ExecuteTarget {
+  if (u.executeTarget.startsWith("erp_")) return u.executeTarget;
+  if (u.intent === "create_order" || u.intent === "potential_order") {
+    return "erp_create_order";
+  }
+  if (u.intent === "create_client") return "erp_create_client";
+  return defaultExecuteTarget(u.intent);
+}
+
 export function OperationsDesk({ initialMessages, migrationHint }: Props) {
   const { locale } = useI18n();
   const ar = locale === "ar";
-  const labels = ar ? WORKSPACE_LABELS_AR : WORKSPACE_LABELS_EN;
   const [messages, setMessages] = useState(() =>
     Array.isArray(initialMessages) ? initialMessages : []
   );
@@ -65,8 +104,17 @@ export function OperationsDesk({ initialMessages, migrationHint }: Props) {
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [localBubbles, setLocalBubbles] = useState<LocalBubble[]>([]);
   const [micArmed, setMicArmed] = useState(false);
+  const [panelOpen, setPanelOpen] = useState(false);
+  const [greeted, setGreeted] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
-  const contextTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+  const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const parseGeneration = useRef(0);
+  const understandingRef = useRef<BrainUnderstanding | null>(null);
+
+  useEffect(() => {
+    understandingRef.current = understanding;
+  }, [understanding]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -79,44 +127,54 @@ export function OperationsDesk({ initialMessages, migrationHint }: Props) {
         if (res.ok && res.messages) setMessages(res.messages);
       } catch (err) {
         setError(
-          err instanceof Error ? err.message : "Failed to refresh desk."
+          err instanceof Error
+            ? err.message
+            : ar
+              ? "مقدرتش أحدّث المكتب."
+              : "Failed to refresh desk."
         );
       }
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps -- mount refresh only
   }, []);
 
+  // Light initiation — once per open, not spam
   useEffect(() => {
-    if (contextTimer.current) clearTimeout(contextTimer.current);
-    const draft = text.trim();
-    if (draft.length < 3 || understanding) return;
+    if (greeted) return;
+    setGreeted(true);
+    const hasHistory =
+      (Array.isArray(initialMessages) && initialMessages.length > 0) ||
+      messages.length > 0;
+    if (hasHistory) return;
+    const hour = new Date().getHours();
+    setLocalBubbles([
+      {
+        id: `greet-${Date.now()}`,
+        role: "assistant",
+        content: greetingForHour(hour, ar),
+        ephemeral: true,
+      },
+    ]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- greet once on open
+  }, [greeted]);
 
-    contextTimer.current = setTimeout(() => {
-      startTransition(async () => {
-        try {
-          const res = await brainContextAction({ text: draft });
-          if (!res.ok) return;
-          if (res.related) setRelated(res.related);
-          if (res.timelines) setTimelines(res.timelines);
-          if (res.suggestions) setSuggestions(res.suggestions);
-        } catch {
-          /* live context is best-effort */
-        }
-      });
-    }, 450);
-
-    return () => {
-      if (contextTimer.current) clearTimeout(contextTimer.current);
-    };
-  }, [text, understanding]);
+  // Keep input focused and instant — refocus after transitions settle
+  useEffect(() => {
+    if (!pending) {
+      inputRef.current?.focus();
+    }
+  }, [pending, understanding?.lifecycle]);
 
   function clearPending() {
     setUnderstanding(null);
+    understandingRef.current = null;
     setLocalBubbles([]);
     setRelated([]);
     setTimelines([]);
     setSuggestions([]);
     setMicArmed(false);
+    setPanelOpen(false);
+    queueMicrotask(() => inputRef.current?.focus());
   }
 
   function pushAssistant(content: string) {
@@ -131,17 +189,35 @@ export function OperationsDesk({ initialMessages, migrationHint }: Props) {
     ]);
   }
 
-  function parse() {
-    const trimmed = text.trim();
+  function focusInputSoon() {
+    queueMicrotask(() => inputRef.current?.focus());
+  }
+
+  /**
+   * Single ingest path for typed text OR future voiceTranscript.
+   * NEVER called from onChange character-by-character (only debounce / Send / Enter).
+   */
+  function ingest(raw: string, source: "text" | "voiceTranscript" = "text") {
+    const trimmed = raw.trim();
     if (!trimmed) return;
+
+    const gen = ++parseGeneration.current;
     setError(null);
     setText("");
+    focusInputSoon();
 
-    // If draft open and waiting on a question — treat as follow-up answer
+    if (process.env.NODE_ENV === "development") {
+      // Dev-only — never surface to Founder
+      console.debug("[brain-ops]", source, trimmed.slice(0, 80));
+    }
+
+    const current = understandingRef.current;
+
+    // Follow-up answer while draft waiting on one smart question
     if (
-      understanding &&
-      understanding.lifecycle === "draft" &&
-      understanding.missingFields.length > 0
+      current &&
+      current.lifecycle === "draft" &&
+      current.missingFields.length > 0
     ) {
       setLocalBubbles((prev) => [
         ...prev,
@@ -155,136 +231,257 @@ export function OperationsDesk({ initialMessages, migrationHint }: Props) {
       startTransition(async () => {
         try {
           const res = await answerOpsQuestionAction({
-            understanding,
+            understanding: current,
             answer: trimmed,
           });
+          if (gen !== parseGeneration.current) return;
           if (!res.ok || !res.understanding) {
-            setError(res.error ?? "Follow-up failed");
+            setError(res.error ?? (ar ? "مقدرتش أكمّل" : "Follow-up failed"));
+            setText(trimmed);
+            focusInputSoon();
             return;
           }
           setUnderstanding(res.understanding);
+          understandingRef.current = res.understanding;
+          setPanelOpen(true);
           pushAssistant(
             ar
               ? res.understanding.founderSummaryAr
               : res.understanding.founderSummaryEn
           );
+          focusInputSoon();
         } catch (err) {
-          setError(err instanceof Error ? err.message : "Follow-up failed.");
+          if (gen !== parseGeneration.current) return;
+          setError(
+            err instanceof Error
+              ? err.message
+              : ar
+                ? "مقدرتش أكمّل."
+                : "Follow-up failed."
+          );
+          setText(trimmed);
+          focusInputSoon();
         }
       });
       return;
     }
 
-    setLocalBubbles([
-      {
-        id: `local-u-${Date.now()}`,
-        role: "user",
-        content: trimmed,
-        ephemeral: true,
-      },
-    ]);
+    setLocalBubbles((prev) => {
+      const keepGreet = prev.filter((b) => b.id.startsWith("greet-"));
+      return [
+        ...keepGreet,
+        {
+          id: `local-u-${Date.now()}`,
+          role: "user",
+          content: trimmed,
+          ephemeral: true,
+        },
+      ];
+    });
 
     startTransition(async () => {
       try {
         const res = await understandBrainChatAction({ text: trimmed });
+        if (gen !== parseGeneration.current) return;
         if (!res.ok || !res.understanding) {
-          setError(res.error ?? "Parse failed");
+          setError(res.error ?? (ar ? "مقدرتش أفهم ده" : "Couldn't understand"));
           setText(trimmed);
-          setLocalBubbles([]);
+          setLocalBubbles((prev) => prev.filter((b) => b.id.startsWith("greet-")));
+          focusInputSoon();
           return;
         }
-        setUnderstanding(res.understanding);
+        // Stamp voice stub when ingest came from mic path later
+        const u =
+          source === "voiceTranscript"
+            ? {
+                ...res.understanding,
+                voice: {
+                  enabled: false as const,
+                  mode: "stub" as const,
+                  transcript: trimmed,
+                },
+              }
+            : res.understanding;
+        setUnderstanding(u);
+        understandingRef.current = u;
         setRelated(res.related ?? []);
         setTimelines(res.timelines ?? []);
         setSuggestions(res.suggestions ?? []);
-        pushAssistant(
-          ar
-            ? res.understanding.founderSummaryAr
-            : res.understanding.founderSummaryEn
-        );
+        setPanelOpen(true);
+        pushAssistant(ar ? u.founderSummaryAr : u.founderSummaryEn);
+        focusInputSoon();
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Parse failed.");
+        if (gen !== parseGeneration.current) return;
+        setError(
+          err instanceof Error
+            ? err.message
+            : ar
+              ? "مقدرتش أفهم ده."
+              : "Couldn't understand."
+        );
         setText(trimmed);
-        setLocalBubbles([]);
+        setLocalBubbles((prev) => prev.filter((b) => b.id.startsWith("greet-")));
+        focusInputSoon();
       }
     });
+  }
+
+  function onTextChange(value: string) {
+    setText(value);
+    // CRITICAL: never parse / never server-action on keypress.
+    // Only schedule idle debounce (1500ms after stop typing).
+    if (debounceTimer.current) clearTimeout(debounceTimer.current);
+    const draft = value.trim();
+    if (draft.length < 2) return;
+    // Don't auto-parse while already mid-approved lifecycle
+    if (
+      understandingRef.current?.lifecycle === "approved" ||
+      understandingRef.current?.lifecycle === "executed"
+    ) {
+      return;
+    }
+    debounceTimer.current = setTimeout(() => {
+      // Re-read latest text from DOM-bound state via closure value
+      if (value.trim().length >= 2) {
+        ingest(value, "text");
+      }
+    }, 1500);
+  }
+
+  useEffect(() => {
+    return () => {
+      if (debounceTimer.current) clearTimeout(debounceTimer.current);
+    };
+  }, []);
+
+  function submitNow() {
+    if (debounceTimer.current) {
+      clearTimeout(debounceTimer.current);
+      debounceTimer.current = null;
+    }
+    ingest(text, micArmed ? "voiceTranscript" : "text");
   }
 
   function onEdit(edits: UnderstandingEdits) {
-    setUnderstanding((prev) =>
-      prev ? applyUnderstandingEdits(prev, edits) : prev
-    );
+    setUnderstanding((prev) => {
+      const next = prev ? applyUnderstandingEdits(prev, edits) : prev;
+      understandingRef.current = next;
+      return next;
+    });
   }
 
-  function onApprove() {
+  async function approveThenExecute(
+    base: BrainUnderstanding,
+    target: ExecuteTarget
+  ) {
+    const withTarget =
+      base.executeTarget === target
+        ? base
+        : applyUnderstandingEdits(base, { executeTarget: target });
+
+    const approved = await approveOpsDraftAction({
+      understanding: withTarget,
+    });
+    if (!approved.ok || !approved.understanding) {
+      setError(
+        approved.error ??
+          (ar ? "لسه ناقص حاجة قبل الحفظ" : "Still missing something")
+      );
+      return;
+    }
+    setUnderstanding(approved.understanding);
+    understandingRef.current = approved.understanding;
+
+    const res = await executeOpsDraftAction({
+      understanding: approved.understanding,
+      locale: ar ? "ar" : "en",
+    });
+    if (!res.ok) {
+      setError(res.error ?? (ar ? "مقدرتش أنفّذ" : "Couldn't run"));
+      return;
+    }
+    if (res.messages) setMessages(res.messages);
+    pushAssistant(
+      ar ? (res.messageAr ?? "خلاص اتعمل.") : (res.messageEn ?? "Done.")
+    );
+    setUnderstanding(
+      res.understanding
+        ? { ...res.understanding, lifecycle: "executed" }
+        : null
+    );
+    setTimeout(() => clearPending(), 700);
+  }
+
+  function onBrainSave() {
     if (!understanding) return;
     setError(null);
     startTransition(async () => {
       try {
-        const res = await approveOpsDraftAction({ understanding });
-        if (!res.ok || !res.understanding) {
-          setError(res.error ?? "Approve failed");
-          return;
-        }
-        setUnderstanding(res.understanding);
-        pushAssistant(
-          ar
-            ? "موافق. اضغط تنفيذ لما تكون جاهز — مفيش حاجة هتتنفّذ لوحدها."
-            : "Approved. Press Execute when ready — nothing runs on its own."
-        );
+        await approveThenExecute(understanding, "brain_save");
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Approve failed.");
+        setError(
+          err instanceof Error
+            ? err.message
+            : ar
+              ? "مقدرتش أحفظ."
+              : "Couldn't save."
+        );
       }
     });
   }
 
-  function onExecute() {
+  function onSystemExecute() {
     if (!understanding) return;
+    if (!canRunInSystem(understanding)) {
+      setError(
+        ar
+          ? "دي مش خطوة نظام — احفظها في Brain أحسن."
+          : "This isn't a system write — save it to Brain instead."
+      );
+      return;
+    }
     setError(null);
+    const target = resolveSystemTarget(understanding);
     startTransition(async () => {
       try {
-        const res = await executeOpsDraftAction({
-          understanding,
-          locale: ar ? "ar" : "en",
-        });
-        if (!res.ok) {
-          setError(res.error ?? "Execute failed");
-          return;
-        }
-        if (res.messages) setMessages(res.messages);
-        pushAssistant(
-          ar
-            ? res.messageAr ?? "اتنفّذ."
-            : res.messageEn ?? "Executed."
-        );
-        setUnderstanding(
-          res.understanding
-            ? { ...res.understanding, lifecycle: "executed" }
-            : null
-        );
-        // Clear draft after short beat so Founder sees confirmation
-        setTimeout(() => clearPending(), 600);
+        await approveThenExecute(understanding, target);
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Execute failed.");
+        setError(
+          err instanceof Error
+            ? err.message
+            : ar
+              ? "مقدرتش أنفّذ في النظام."
+              : "Couldn't run in system."
+        );
       }
     });
   }
 
   function onCancel() {
+    if (debounceTimer.current) clearTimeout(debounceTimer.current);
     clearPending();
   }
 
   function onMicStub() {
     setMicArmed((v) => !v);
+    // Stub only — same ingest path will accept voiceTranscript later
     setError(
       ar
-        ? "الميكروفون جاهز كـ stub — مفيش Speech API لسه."
-        : "Mic stub armed — no Speech API yet."
+        ? "الميكروفون جاهز كشكل — الصوت لسه قادم. اكتب عادي دلوقتي."
+        : "Mic is a stub for now — type normally; voice uses the same path later."
     );
+    focusInputSoon();
   }
 
   const showThread = messages.length > 0 || localBubbles.length > 0;
   const draftOpen = Boolean(understanding);
+  const systemOk = understanding ? canRunInSystem(understanding) : false;
+  const showRightRail =
+    panelOpen &&
+    understanding &&
+    (understanding.canApprove ||
+      understanding.missingFields.length > 0 ||
+      related.length > 0);
 
   return (
     <div className="relative flex min-h-[calc(100vh-8rem)] flex-col overflow-hidden rounded-2xl border border-violet-500/25 bg-[linear-gradient(165deg,rgba(28,16,48,0.92)_0%,rgba(12,8,22,0.98)_42%,rgba(8,6,14,1)_100%)] text-violet-50 lg:flex-row">
@@ -294,7 +491,7 @@ export function OperationsDesk({ initialMessages, migrationHint }: Props) {
       />
 
       {/* LEFT — conversation history */}
-      <aside className="relative z-[1] flex w-full flex-col border-b border-violet-500/15 lg:w-[240px] lg:shrink-0 lg:border-b-0 lg:border-e">
+      <aside className="relative z-[1] flex w-full flex-col border-b border-violet-500/15 lg:w-[220px] lg:shrink-0 lg:border-b-0 lg:border-e">
         <header className="flex items-center gap-2 border-b border-violet-500/15 px-3 py-3">
           <Link
             href="/brain"
@@ -307,13 +504,13 @@ export function OperationsDesk({ initialMessages, migrationHint }: Props) {
               {ar ? "مكتب العمليات" : "Operations Desk"}
             </p>
             <p className="truncate text-[10px] text-violet-300/55">
-              {ar ? "COO رقمي · للمؤسس فقط" : "Digital COO · Founder only"}
+              {ar ? "COO · للمؤسس" : "COO · Founder"}
             </p>
           </div>
           <Sparkles className="size-4 text-violet-400/50" aria-hidden />
         </header>
         <div className="flex-1 space-y-1 overflow-y-auto p-2">
-          <p className="px-2 py-1 text-[10px] uppercase tracking-[0.12em] text-violet-400/45">
+          <p className="px-2 py-1 text-[10px] tracking-[0.12em] text-violet-400/45">
             {ar ? "السجل" : "History"}
           </p>
           {messages.length === 0 && localBubbles.length === 0 ? (
@@ -335,27 +532,22 @@ export function OperationsDesk({ initialMessages, migrationHint }: Props) {
                   }
                 >
                   <span className="line-clamp-2">{m.content}</span>
-                  {m.classifiedWorkspace ? (
-                    <span className="mt-0.5 block text-[9px] text-violet-400/45">
-                      {labels[m.classifiedWorkspace] ?? m.classifiedWorkspace}
-                    </span>
-                  ) : null}
                 </button>
               ))
           )}
         </div>
       </aside>
 
-      {/* CENTER — conversation */}
+      {/* CENTER — conversation HERO */}
       <div className="relative z-[1] flex min-w-0 flex-1 flex-col">
         <header className="border-b border-violet-500/15 px-4 py-3">
           <p className="text-sm font-medium">
-            {ar ? "مكتب العمليات · Brain COO" : "Operations Desk · Brain COO"}
+            {ar ? "SODA Brain · COO" : "SODA Brain · COO"}
           </p>
           <p className="text-[11px] text-violet-300/55">
             {ar
-              ? "فهم → سؤال → مسودة → موافقة → تنفيذ · مفيش ERP صامت"
-              : "Understand → ask → draft → approve → execute · no silent ERP"}
+              ? "كلّمني عادي — أنا هفهم وأسأل قبل أي خطوة."
+              : "Talk normally — I'll understand and ask before any step."}
           </p>
         </header>
 
@@ -370,8 +562,8 @@ export function OperationsDesk({ initialMessages, migrationHint }: Props) {
             <div className="mx-auto max-w-md py-14 text-center">
               <p className="text-sm text-violet-200/80">
                 {ar
-                  ? "كلّمني زي ما بتكلم مدير عمليات. هفهم وأسأل وأجهّز مسودة — التنفيذ بإيدك."
-                  : "Brief me like your ops lead. I’ll understand, ask, and draft — you execute."}
+                  ? "كلّمني زي ما بتكلم مدير عمليات. هفهم وأسأل — التنفيذ بإيدك."
+                  : "Brief me like your ops lead. I'll understand and ask — you decide."}
               </p>
               <p className="mt-3 text-[11px] leading-relaxed text-violet-400/50">
                 {ar
@@ -417,13 +609,6 @@ export function OperationsDesk({ initialMessages, migrationHint }: Props) {
                       )}
                     >
                       <p className="whitespace-pre-wrap">{m.content}</p>
-                      {!mine && understanding?.lifecycle === "draft" ? (
-                        <p className="mt-1.5 text-[10px] text-amber-200/60">
-                          {ar
-                            ? "مسودة — موافقة ثم تنفيذ من اللوحة / الشريط تحت"
-                            : "Draft — Approve then Execute from panel / bottom bar"}
-                        </p>
-                      ) : null}
                     </div>
                   </div>
                 );
@@ -439,7 +624,7 @@ export function OperationsDesk({ initialMessages, migrationHint }: Props) {
           </p>
         ) : null}
 
-        {/* BOTTOM — input + Mic stub + Parse + Approve + Execute + Cancel */}
+        {/* BOTTOM — input always interactive; parse only via Send / Enter / idle debounce */}
         <div className="border-t border-violet-500/15 p-3">
           <div className="flex items-end gap-2 rounded-2xl border border-violet-500/25 bg-violet-950/50 p-2">
             <Button
@@ -453,7 +638,7 @@ export function OperationsDesk({ initialMessages, migrationHint }: Props) {
                   ? "bg-violet-500/30 text-violet-100"
                   : "text-violet-300/60 hover:bg-violet-500/15"
               )}
-              title={ar ? "ميكروفون (قريباً)" : "Mic (stub)"}
+              title={ar ? "ميكروفون (قريباً)" : "Mic (soon)"}
             >
               {micArmed ? (
                 <Mic className="size-4" />
@@ -462,19 +647,15 @@ export function OperationsDesk({ initialMessages, migrationHint }: Props) {
               )}
             </Button>
             <Textarea
+              ref={inputRef}
               value={text}
-              onChange={(e) => setText(e.target.value)}
+              onChange={(e) => onTextChange(e.target.value)}
               onKeyDown={(e) => {
                 if (e.key === "Enter" && !e.shiftKey) {
                   e.preventDefault();
-                  parse();
+                  if (!pending && text.trim()) submitNow();
                 }
               }}
-              disabled={
-                pending ||
-                understanding?.lifecycle === "approved" ||
-                understanding?.lifecycle === "executed"
-              }
               rows={2}
               placeholder={
                 understanding?.lifecycle === "draft" &&
@@ -490,17 +671,12 @@ export function OperationsDesk({ initialMessages, migrationHint }: Props) {
             />
             <Button
               type="button"
-              disabled={
-                pending ||
-                !text.trim() ||
-                understanding?.lifecycle === "approved" ||
-                understanding?.lifecycle === "executed"
-              }
-              onClick={parse}
+              disabled={pending || !text.trim()}
+              onClick={submitNow}
               className="h-10 shrink-0 gap-1 rounded-xl bg-violet-500 text-white hover:bg-violet-400"
             >
               <Send className="size-3.5" />
-              {ar ? "فهم" : "Parse"}
+              {ar ? "فهم" : "Send"}
             </Button>
           </div>
 
@@ -511,24 +687,26 @@ export function OperationsDesk({ initialMessages, migrationHint }: Props) {
                 pending ||
                 !draftOpen ||
                 !understanding?.canApprove ||
-                understanding.lifecycle !== "draft"
+                understanding.lifecycle === "executed"
               }
-              onClick={onApprove}
+              onClick={onBrainSave}
               className="rounded-xl bg-violet-600/90 text-white hover:bg-violet-500 disabled:opacity-40"
             >
-              {ar ? "موافقة" : "Approve"}
+              {ar ? "احفظ في Brain" : "Save to Brain"}
             </Button>
             <Button
               type="button"
               disabled={
                 pending ||
                 !draftOpen ||
-                understanding?.lifecycle !== "approved"
+                !understanding?.canApprove ||
+                !systemOk ||
+                understanding.lifecycle === "executed"
               }
-              onClick={onExecute}
+              onClick={onSystemExecute}
               className="rounded-xl bg-emerald-600/90 text-white hover:bg-emerald-500 disabled:opacity-40"
             >
-              {ar ? "تنفيذ" : "Execute"}
+              {ar ? "نفذ في النظام" : "Run in system"}
             </Button>
             <Button
               type="button"
@@ -539,49 +717,56 @@ export function OperationsDesk({ initialMessages, migrationHint }: Props) {
             >
               {ar ? "إلغاء" : "Cancel"}
             </Button>
+            {understanding && !panelOpen ? (
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => setPanelOpen(true)}
+                className="rounded-xl text-violet-300/70 hover:bg-violet-500/15"
+              >
+                {ar ? "افتح الفهم" : "Open understanding"}
+              </Button>
+            ) : null}
           </div>
           <p className="mt-1.5 px-1 text-[10px] text-violet-400/40">
             {ar
-              ? "Mic = stub · Heuristic فقط · ERP بعد موافقة + تنفيذ فقط"
-              : "Mic = stub · Heuristic only · ERP only after Approve + Execute"}
+              ? "مفيش تسجيل في النظام غير لما تختار نفذ في النظام."
+              : "Nothing hits the system until you choose Run in system."}
           </p>
         </div>
       </div>
 
-      {/* RIGHT — Understanding Panel */}
-      <aside className="relative z-[1] flex w-full flex-col border-t border-violet-500/15 lg:w-[340px] lg:shrink-0 lg:border-s lg:border-t-0">
-        <div className="flex-1 space-y-4 overflow-y-auto p-3">
-          {understanding ? (
-            <UnderstandingPanel
-              understanding={understanding}
-              ar={ar}
-              pending={pending}
-              onChange={onEdit}
-              onApprove={onApprove}
-              onExecute={onExecute}
-              onCancel={onCancel}
-            />
-          ) : (
-            <div className="rounded-xl border border-dashed border-violet-500/20 bg-violet-950/25 px-3 py-4">
-              <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-violet-300/60">
-                {ar ? "لوحة الفهم" : "Understanding Panel"}
-              </p>
-              <p className="mt-2 text-[11px] leading-relaxed text-violet-400/50">
-                {ar
-                  ? "بعد الفهم هتشوف النية والثقة والكيانات والأسئلة هنا. كل حاجة مسودة لحد ما توافق وتنفّذ."
-                  : "After parse, intent, confidence, entities, and questions land here. Everything stays draft until Approve → Execute."}
-              </p>
-            </div>
-          )}
+      {/* RIGHT — Smart Understanding CLOSED by default; opens only when useful */}
+      {showRightRail ? (
+        <aside className="relative z-[1] flex w-full flex-col border-t border-violet-500/15 lg:w-[320px] lg:shrink-0 lg:border-s lg:border-t-0">
+          <div className="flex-1 space-y-4 overflow-y-auto p-3">
+            {understanding ? (
+              <UnderstandingPanel
+                understanding={understanding}
+                ar={ar}
+                pending={pending}
+                onChange={onEdit}
+                onBrainSave={onBrainSave}
+                onSystemExecute={onSystemExecute}
+                onCancel={onCancel}
+                onClose={() => setPanelOpen(false)}
+                canSystemExecute={systemOk}
+              />
+            ) : null}
 
-          <RelatedMemoriesPanel
-            related={related}
-            timelines={timelines}
-            suggestions={suggestions}
-            ar={ar}
-          />
-        </div>
-      </aside>
+            {related.length > 0 ||
+            timelines.length > 0 ||
+            suggestions.length > 0 ? (
+              <RelatedMemoriesPanel
+                related={related}
+                timelines={timelines}
+                suggestions={suggestions}
+                ar={ar}
+              />
+            ) : null}
+          </div>
+        </aside>
+      ) : null}
     </div>
   );
 }
