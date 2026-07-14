@@ -316,7 +316,7 @@ revoke all on function public.connect_ensure_team_room() from public;
 revoke all on function public.connect_ensure_user(uuid) from public;
 revoke all on function public.connect_bootstrap_all_active() from public;
 grant execute on function public.connect_ensure_team_room() to service_role;
-grant execute on function public.connect_ensure_user(uuid) to service_role, authenticated;
+grant execute on function public.connect_ensure_user(uuid) to service_role;
 grant execute on function public.connect_bootstrap_all_active() to service_role;
 
 -- Authenticated may call ensure for self only
