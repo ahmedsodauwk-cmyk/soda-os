@@ -32,6 +32,8 @@ import {
   UserRound,
 } from "lucide-react";
 
+import type { AccessLevel } from "@/lib/identity/access-levels";
+import { isNavHrefAllowed } from "@/lib/identity/module-access";
 import {
   can,
   setHasAny,
@@ -82,6 +84,13 @@ export const NAV_ITEMS: NavItem[] = [
   },
   {
     titleKey: "nav.orders",
+    href: "/orders",
+    icon: ShoppingCart,
+    anyOf: ["orders.view"],
+    workspace: "company",
+  },
+  {
+    titleKey: "nav.myOrders",
     href: "/orders",
     icon: ShoppingCart,
     anyOf: ["orders.view"],
@@ -243,11 +252,56 @@ export function navForPermissions(
 ): NavItem[] {
   const set =
     granted instanceof Set ? granted : new Set(granted as readonly string[]);
-  let items = NAV_ITEMS.filter((item) => setHasAny(set, item.anyOf));
+  // Drop My Orders duplicate unless Access Level overlay selects it.
+  let items = NAV_ITEMS.filter(
+    (item) => item.titleKey !== "nav.myOrders" && setHasAny(set, item.anyOf)
+  );
 
   if (prefersPersonalHome(set)) {
     items = items.filter((i) => i.href !== "/");
   }
+
+  return items;
+}
+
+/**
+ * Permission filter + Access Level module matrix (Mission 04.5.0).
+ * Does not change Access Level permission templates — only consumes level.
+ */
+export function navForAccessLevel(
+  level: AccessLevel,
+  granted: ReadonlySet<string> | readonly string[]
+): NavItem[] {
+  const set =
+    granted instanceof Set ? granted : new Set(granted as readonly string[]);
+
+  let items = NAV_ITEMS.filter((item) => {
+    if (level === "team") {
+      if (item.titleKey === "nav.orders") return false;
+      if (item.titleKey === "nav.myOrders") {
+        return setHasAny(set, item.anyOf) && isNavHrefAllowed(level, item.href);
+      }
+    } else if (item.titleKey === "nav.myOrders") {
+      return false;
+    }
+    if (!setHasAny(set, item.anyOf)) return false;
+    return isNavHrefAllowed(level, item.href);
+  });
+
+  // Access Level matrix: Home stays visible for Team / AM / TL.
+  if (level !== "founder" && prefersPersonalHome(set) && level === "team") {
+    // Keep Home for Team (matrix). Other personal-only legacy paths may still drop it.
+  } else if (prefersPersonalHome(set) && level !== "team") {
+    items = items.filter((i) => i.href !== "/");
+  }
+
+  // Dedupe by href (first wins — My Orders already replaced Orders for Team).
+  const seen = new Set<string>();
+  items = items.filter((i) => {
+    if (seen.has(i.href)) return false;
+    seen.add(i.href);
+    return true;
+  });
 
   return items;
 }
@@ -305,6 +359,13 @@ export function navSectionsForPermissions(
   return navSectionsFromItems(navForPermissions(granted));
 }
 
+export function navSectionsForAccessLevel(
+  level: AccessLevel,
+  granted: ReadonlySet<string> | readonly string[]
+): NavSection[] {
+  return navSectionsFromItems(navForAccessLevel(level, granted));
+}
+
 /** @deprecated Prefer navSectionsForPermissions. */
 export function navSectionsForRole(role: SodaRole): NavSection[] {
   return navSectionsFromItems(navForRole(role));
@@ -354,6 +415,22 @@ export function homePathForPermissions(
     return "/";
   }
   return "/me";
+}
+
+/** Home path from Access Level matrix — Team/AM/TL land on Home. */
+export function homePathForAccessLevel(
+  level: AccessLevel,
+  granted: ReadonlySet<string> | readonly string[]
+): string {
+  if (
+    level === "founder" ||
+    level === "account_manager" ||
+    level === "team_leader" ||
+    level === "team"
+  ) {
+    return "/";
+  }
+  return homePathForPermissions(granted);
 }
 
 /** @deprecated Prefer homePathForPermissions. */

@@ -5,6 +5,7 @@ import { ClientEntryActions } from "@/components/clients/client-entry-actions";
 import { ClientsContent } from "@/components/clients/clients-content";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { HUMAN_LAYER } from "@/lib/brand";
+import type { Client } from "@/lib/clients/types";
 
 const lanes = [
   {
@@ -21,12 +22,18 @@ const lanes = [
   },
 ] as const;
 
-export function ClientsHub() {
+export function ClientsHub({
+  clients,
+  allowedClientIds = null,
+}: {
+  clients?: Client[];
+  allowedClientIds?: string[] | null;
+}) {
   return (
     <div className="space-y-8">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm text-muted-foreground">
-          Choose a segment or manage all clients below.
+          Choose a segment or manage related clients below.
         </p>
         <ClientEntryActions />
       </div>
@@ -59,8 +66,11 @@ export function ClientsHub() {
       </div>
 
       <section className="space-y-3">
-        <h2 className="font-heading text-base font-semibold">All clients</h2>
-        <ClientsContent />
+        <h2 className="font-heading text-base font-semibold">Clients</h2>
+        <ClientsContent
+          initialClients={clients}
+          allowedClientIds={allowedClientIds}
+        />
       </section>
     </div>
   );

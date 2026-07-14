@@ -9,6 +9,7 @@ export type Dictionary = {
     myWorkspace: string;
     quotations: string;
     orders: string;
+    myOrders: string;
     projects: string;
     commercial: string;
     weddings: string;
@@ -154,6 +155,7 @@ const en: Dictionary = {
     myWorkspace: "My Workspace",
     quotations: "Quotations",
     orders: "Orders",
+    myOrders: "My Orders",
     projects: "Projects (by Client)",
     commercial: "Commercial",
     weddings: "Weddings",
@@ -299,6 +301,7 @@ const ar: Dictionary = {
     myWorkspace: "مساحتي",
     quotations: "عروض الأسعار",
     orders: "الأوردرات",
+    myOrders: "أوردراتي",
     projects: "المشاريع (حسب العميل)",
     commercial: "التجاري",
     weddings: "الأفراح",

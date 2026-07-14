@@ -5,6 +5,7 @@ import { OrderEntryActions } from "@/components/orders/order-entry-actions";
 import { OrdersContent } from "@/components/orders/orders-content";
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { HUMAN_LAYER } from "@/lib/brand";
+import type { Order } from "@/lib/orders/types";
 
 const lanes = [
   {
@@ -21,43 +22,61 @@ const lanes = [
   },
 ] as const;
 
-export function OrdersHub() {
+export function OrdersHub({
+  orders,
+  allowedOrderIds = null,
+  showLanes = true,
+}: {
+  orders?: Order[];
+  allowedOrderIds?: string[] | null;
+  /** Team / TL may hide commercial/wedding lane cards. */
+  showLanes?: boolean;
+}) {
   return (
     <div className="space-y-8">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm text-muted-foreground">
-          Choose a segment or manage all orders below.
+          {showLanes
+            ? "Choose a segment or manage all orders below."
+            : "Orders in your scope only."}
         </p>
         <OrderEntryActions />
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        {lanes.map((lane) => {
-          const Icon = lane.icon;
-          return (
-            <Link key={lane.href} href={lane.href} className="group block">
-              <Card className="soda-cc-card h-full transition-colors group-hover:border-soda-pink/35">
-                <CardHeader>
-                  <div className="soda-kpi-icon-pink mb-2 flex size-10 items-center justify-center rounded-xl">
-                    <Icon className="size-4" />
-                  </div>
-                  <CardTitle>{lane.title}</CardTitle>
-                  <CardDescription
-                    className="font-ar text-[0.9375rem] leading-[1.8] text-muted-foreground"
-                    dir="rtl"
-                  >
-                    {lane.layer}
-                  </CardDescription>
-                </CardHeader>
-              </Card>
-            </Link>
-          );
-        })}
-      </div>
+      {showLanes ? (
+        <div className="grid gap-4 sm:grid-cols-2">
+          {lanes.map((lane) => {
+            const Icon = lane.icon;
+            return (
+              <Link key={lane.href} href={lane.href} className="group block">
+                <Card className="soda-cc-card h-full transition-colors group-hover:border-soda-pink/35">
+                  <CardHeader>
+                    <div className="soda-kpi-icon-pink mb-2 flex size-10 items-center justify-center rounded-xl">
+                      <Icon className="size-4" />
+                    </div>
+                    <CardTitle>{lane.title}</CardTitle>
+                    <CardDescription
+                      className="font-ar text-[0.9375rem] leading-[1.8] text-muted-foreground"
+                      dir="rtl"
+                    >
+                      {lane.layer}
+                    </CardDescription>
+                  </CardHeader>
+                </Card>
+              </Link>
+            );
+          })}
+        </div>
+      ) : null}
 
       <section className="space-y-3">
-        <h2 className="font-heading text-base font-semibold">All orders</h2>
-        <OrdersContent />
+        <h2 className="font-heading text-base font-semibold">
+          {showLanes ? "All orders" : "My orders"}
+        </h2>
+        <OrdersContent
+          initialOrders={orders}
+          allowedOrderIds={allowedOrderIds}
+        />
       </section>
     </div>
   );

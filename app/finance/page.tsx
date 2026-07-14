@@ -1,4 +1,5 @@
 import { AppShell } from "@/components/layout/app-shell";
+import { RoleGate } from "@/components/identity/role-gate";
 import { FinancialOpsPanel } from "@/components/finance/financial-ops-panel";
 import { PaymentsEntryContent } from "@/components/finance/payments-entry-content";
 import { Badge } from "@/components/ui/badge";
@@ -18,6 +19,7 @@ import {
   refreshPeriodClosings,
   refreshTransfers,
 } from "@/lib/finance";
+import { resolveSessionForApp } from "@/lib/identity/session";
 import { refreshOrders } from "@/lib/orders/repository";
 import { refreshPayments } from "@/lib/payments/repository";
 import {
@@ -35,6 +37,7 @@ function egp(n: number) {
 }
 
 export default async function FinancePage() {
+  const session = await resolveSessionForApp();
   bootstrapBusinessCore();
   await Promise.all([
     refreshFinance(),
@@ -59,8 +62,7 @@ export default async function FinancePage() {
   const transfers = listTransfers().slice(0, 10);
   const closings = listPeriodClosings().slice(0, 5);
 
-  return (
-    <AppShell titleKey="pages.finance" layer="finance">
+  const body = (
       <div className="space-y-6">
         <div className="rounded-xl border border-border/60 bg-muted/10 px-6 py-8">
           <p className="font-heading text-base font-semibold tracking-tight">
@@ -298,6 +300,25 @@ export default async function FinancePage() {
           )}
         </section>
       </div>
+  );
+
+  if (!session) {
+    return (
+      <AppShell titleKey="pages.finance" layer="finance" session={null}>
+        {body}
+      </AppShell>
+    );
+  }
+
+  return (
+    <AppShell titleKey="pages.finance" layer="finance" session={session}>
+      <RoleGate
+        session={session}
+        anyOf={["finance.view", "dashboard.finance"]}
+        path="/finance"
+      >
+        {body}
+      </RoleGate>
     </AppShell>
   );
 }

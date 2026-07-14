@@ -22,6 +22,7 @@ import {
 import { DASHBOARD_SECTION_COPY } from "@/lib/brand/soda-voice";
 import { useI18n } from "@/lib/i18n/provider";
 import type { DictKey } from "@/lib/i18n/dictionaries";
+import type { AccessLevel } from "@/lib/identity/access-levels";
 import type { Permission } from "@/lib/identity/permissions";
 import { setHasAny } from "@/lib/identity/permissions";
 import { cn } from "@/lib/utils";
@@ -31,65 +32,92 @@ const actions: {
   href: string;
   icon: typeof FileText;
   anyOf: Permission[];
+  /** When set, only these Access Levels see the action (after permission check). */
+  levels?: readonly AccessLevel[];
 }[] = [
   {
     labelKey: "quickActions.newQuotation",
     href: "/quotations/new",
     icon: FileText,
     anyOf: ["quotations.edit", "quotations.view"],
+    levels: ["founder", "account_manager"],
   },
   {
     labelKey: "quickActions.createOrder",
     href: "/orders",
     icon: ClipboardList,
     anyOf: ["orders.create", "orders.edit"],
+    levels: ["founder", "account_manager", "team_leader"],
   },
   {
     labelKey: "quickActions.createClient",
     href: "/clients",
     icon: Contact,
     anyOf: ["clients.manage", "clients.edit"],
+    levels: ["founder", "account_manager"],
   },
   {
     labelKey: "quickActions.crew",
     href: "/people",
     icon: UsersRound,
     anyOf: ["people.view", "crew.view", "crew.manage"],
+    levels: ["founder", "account_manager", "team_leader"],
   },
   {
     labelKey: "quickActions.commercial",
     href: "/commercial",
     icon: Briefcase,
     anyOf: ["commercial.view"],
+    levels: ["founder", "account_manager"],
   },
   {
     labelKey: "quickActions.calendar",
     href: "/calendar",
     icon: CalendarDays,
     anyOf: ["calendar.view", "calendar.manage"],
+    levels: ["founder", "account_manager", "team_leader", "team"],
   },
   {
     labelKey: "quickActions.reports",
     href: "/statistics",
     icon: BarChart3,
     anyOf: ["statistics.view", "reports.view", "reports.manage"],
+    levels: ["founder"],
   },
 ];
 
 interface QuickActionsProps {
   /** DB permission ids for the signed-in role. */
   allowedPermissions?: readonly string[];
+  accessLevel?: AccessLevel;
 }
 
 export default function QuickActions({
   allowedPermissions,
+  accessLevel,
 }: QuickActionsProps) {
   const { t } = useI18n();
   const granted = allowedPermissions ?? [];
 
-  const visible = actions.filter((action) =>
-    setHasAny(granted, action.anyOf)
-  );
+  const visible = actions.filter((action) => {
+    if (!setHasAny(granted, action.anyOf)) return false;
+    if (
+      accessLevel &&
+      action.levels &&
+      !action.levels.includes(accessLevel)
+    ) {
+      return false;
+    }
+    // Team Leader matrix: New Order, Crew, Calendar only.
+    if (accessLevel === "team_leader") {
+      return (
+        action.href === "/orders" ||
+        action.href === "/people" ||
+        action.href === "/calendar"
+      );
+    }
+    return true;
+  });
 
   if (visible.length === 0) return null;
 

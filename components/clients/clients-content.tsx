@@ -27,10 +27,21 @@ import {
   type NewClientInput,
 } from "@/lib/clients/types";
 import { filterClients, formatClientType } from "@/lib/clients/utils";
+import { filterClientsByScopeIds } from "@/lib/identity/data-scope";
 
-export function ClientsContent() {
+export function ClientsContent({
+  initialClients,
+  allowedClientIds = null,
+}: {
+  initialClients?: Client[];
+  allowedClientIds?: string[] | null;
+}) {
   const router = useRouter();
-  const [clients, setClients] = useState(getAllClients);
+  const [clients, setClients] = useState(
+    () =>
+      initialClients ??
+      filterClientsByScopeIds(getAllClients(), allowedClientIds)
+  );
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState<string>("all");
   const [editing, setEditing] = useState<Client | null>(null);
@@ -39,7 +50,11 @@ export function ClientsContent() {
     let cancelled = false;
     void refreshClients()
       .then(() => {
-        if (!cancelled) setClients(getAllClients());
+        if (!cancelled) {
+          setClients(
+            filterClientsByScopeIds(getAllClients(), allowedClientIds)
+          );
+        }
       })
       .catch((err) => {
         console.error(err);
@@ -47,7 +62,7 @@ export function ClientsContent() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [allowedClientIds]);
 
   const filteredClients = useMemo(
     () => filterClients(clients, search, typeFilter),
@@ -59,7 +74,7 @@ export function ClientsContent() {
     patch: Partial<NewClientInput> & { isActive?: boolean }
   ) {
     await updateClient(id, patch);
-    setClients(getAllClients());
+    setClients(filterClientsByScopeIds(getAllClients(), allowedClientIds));
     router.refresh();
   }
 
@@ -72,7 +87,7 @@ export function ClientsContent() {
       return;
     }
     await deleteClient(client.id);
-    setClients(getAllClients());
+    setClients(filterClientsByScopeIds(getAllClients(), allowedClientIds));
     router.refresh();
   }
 

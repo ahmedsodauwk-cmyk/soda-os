@@ -1,6 +1,8 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 
 import { AppShell } from "@/components/layout/app-shell";
+import { RoleGate } from "@/components/identity/role-gate";
 import {
   Card,
   CardContent,
@@ -10,6 +12,7 @@ import {
 } from "@/components/ui/card";
 import { getBusinessToday } from "@/lib/business/types";
 import { bootstrapBusinessCore } from "@/lib/core";
+import { resolveSessionForApp } from "@/lib/identity/session";
 import { getOperationsStatistics } from "@/lib/ops/stats";
 import { formatPrice } from "@/lib/orders/utils";
 import { refreshAllDomainData } from "@/lib/supabase/refresh-all";
@@ -17,6 +20,9 @@ import { refreshAllDomainData } from "@/lib/supabase/refresh-all";
 export const dynamic = "force-dynamic";
 
 export default async function StatisticsPage() {
+  const session = await resolveSessionForApp();
+  if (!session) redirect("/login");
+
   bootstrapBusinessCore();
   await refreshAllDomainData().catch(() => undefined);
 
@@ -24,25 +30,31 @@ export default async function StatisticsPage() {
   const stats = getOperationsStatistics(asOf);
 
   return (
-    <AppShell titleKey="pages.statistics" layer="statistics">
-      <div className="space-y-6">
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          <StatCard label="Monthly revenue" value={formatPrice(stats.monthlyRevenue)} />
-          <StatCard label="Yearly revenue" value={formatPrice(stats.yearlyRevenue)} />
-          <StatCard label="Collected" value={formatPrice(stats.collected)} />
-          <StatCard
-            label="Completion rate"
-            value={`${Math.round(stats.completionRate * 100)}%`}
-            hint={`${stats.completedOrders}/${stats.totalOrders} orders`}
-          />
-        </div>
+    <AppShell titleKey="pages.statistics" layer="statistics" session={session}>
+      <RoleGate
+        session={session}
+        anyOf={["statistics.view", "reports.view"]}
+        path="/statistics"
+      >
+        <div className="space-y-6">
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <StatCard label="Monthly revenue" value={formatPrice(stats.monthlyRevenue)} />
+            <StatCard label="Yearly revenue" value={formatPrice(stats.yearlyRevenue)} />
+            <StatCard label="Collected" value={formatPrice(stats.collected)} />
+            <StatCard
+              label="Completion rate"
+              value={`${Math.round(stats.completionRate * 100)}%`}
+              hint={`${stats.completedOrders}/${stats.totalOrders} orders`}
+            />
+          </div>
 
-        <div className="grid gap-4 lg:grid-cols-3">
-          <RankCard title="Top clients" rows={stats.topClients} />
-          <RankCard title="Top projects" rows={stats.topProjects} />
-          <RankCard title="Top crew" rows={stats.topCrew} valueSuffix=" jobs" />
+          <div className="grid gap-4 lg:grid-cols-3">
+            <RankCard title="Top clients" rows={stats.topClients} />
+            <RankCard title="Top projects" rows={stats.topProjects} />
+            <RankCard title="Top crew" rows={stats.topCrew} valueSuffix=" jobs" />
+          </div>
         </div>
-      </div>
+      </RoleGate>
     </AppShell>
   );
 }

@@ -36,14 +36,27 @@ import {
   type SmartOrderInput,
 } from "@/lib/orders/types";
 import {
+  filterOrdersByScopeIds,
+} from "@/lib/identity/data-scope";
+import {
   filterOrders,
   WORKSPACE_TAB_ORDER,
 } from "@/lib/orders/utils";
 import { getWorkspaces } from "@/lib/taxonomy/repository";
 
-export function OrdersContent() {
+export function OrdersContent({
+  initialOrders,
+  allowedOrderIds = null,
+}: {
+  /** Server-scoped list — Founder omits / passes full list. */
+  initialOrders?: Order[];
+  /** null = company-wide (Founder). Otherwise re-apply after refresh. */
+  allowedOrderIds?: string[] | null;
+}) {
   const router = useRouter();
-  const [orders, setOrders] = useState(getOrders);
+  const [orders, setOrders] = useState(
+    () => initialOrders ?? filterOrdersByScopeIds(getOrders(), allowedOrderIds)
+  );
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [workspaceFilter, setWorkspaceFilter] = useState<string>("all");
@@ -58,12 +71,14 @@ export function OrdersContent() {
       await refreshOrders();
       await refreshAssignments();
       await refreshFinance();
-      if (!cancelled) setOrders(getOrders());
+      if (!cancelled) {
+        setOrders(filterOrdersByScopeIds(getOrders(), allowedOrderIds));
+      }
     })().catch(console.error);
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [allowedOrderIds]);
 
   const workspaces = useMemo(() => {
     const byId = new Map(getWorkspaces().map((w) => [w.id, w]));
@@ -100,7 +115,7 @@ export function OrdersContent() {
     } else {
       await updateSmartOrder(id, patch);
     }
-    setOrders(getOrders());
+    setOrders(filterOrdersByScopeIds(getOrders(), allowedOrderIds));
     router.refresh();
   }
 
@@ -113,7 +128,7 @@ export function OrdersContent() {
       return;
     }
     await deleteOrder(order.id);
-    setOrders(getOrders());
+    setOrders(filterOrdersByScopeIds(getOrders(), allowedOrderIds));
     router.refresh();
   }
 

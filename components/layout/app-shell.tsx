@@ -16,6 +16,9 @@ import {
   resolveSessionForApp,
   type SodaSession,
 } from "@/lib/identity/session";
+import { canAccessPath } from "@/lib/identity/module-access";
+import { homePathForAccessLevel } from "@/lib/identity/nav";
+import { permissionsForAccessLevel } from "@/lib/identity/access-levels";
 import type { DictKey } from "@/lib/i18n/dictionaries";
 
 interface AppShellProps {
@@ -80,6 +83,18 @@ export async function AppShell({
     permissionResult && Array.isArray(permissionResult.permissions)
       ? [...permissionResult.permissions]
       : undefined;
+
+  if (
+    session &&
+    pathname &&
+    !canAccessPath(session.profile.accessLevel, pathname)
+  ) {
+    const grants =
+      allowedPermissions && allowedPermissions.length > 0
+        ? allowedPermissions
+        : permissionsForAccessLevel(session.profile.accessLevel);
+    redirect(homePathForAccessLevel(session.profile.accessLevel, grants));
+  }
 
   const user = session
     ? {

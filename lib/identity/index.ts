@@ -11,3 +11,5 @@ export * from "@/lib/identity/nav";
 export * from "@/lib/identity/navigation";
 export * from "@/lib/identity/session";
 export * from "@/lib/identity/recent";
+export * from "@/lib/identity/module-access";
+export * from "@/lib/identity/data-scope";

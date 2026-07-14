@@ -28,6 +28,7 @@ import { LanguageSwitcher } from "@/components/i18n/language-switcher";
 import { SodaLogo } from "@/components/brand/soda-logo";
 import { signOutAction } from "@/lib/auth/actions";
 import {
+  navSectionsForAccessLevel,
   navSectionsForPermissions,
 } from "@/lib/identity/nav";
 import {
@@ -77,7 +78,9 @@ export function SidebarContent({ user }: SidebarContentProps) {
   // Fail closed: no user / no grants → empty nav (never default to Founder).
   const sections =
     user?.allowedPermissions && user.allowedPermissions.length > 0
-      ? navSectionsForPermissions(user.allowedPermissions)
+      ? user.accessLevel
+        ? navSectionsForAccessLevel(user.accessLevel, user.allowedPermissions)
+        : navSectionsForPermissions(user.allowedPermissions)
       : [];
   const accessLabel = user?.accessLevel
     ? (ACCESS_LEVEL_LABELS[user.accessLevel] ?? null)
