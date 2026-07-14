@@ -15,7 +15,11 @@ import { generateTemporaryPassword } from "@/lib/auth/temp-password";
 import { personAlreadyLinked } from "@/lib/identity/identity-link";
 import { provisionLoginAccountForPerson } from "@/lib/identity/provision-account";
 import { suggestRoleFromPerson } from "@/lib/identity/role-suggest";
-import { suggestUsernameFromPerson } from "@/lib/identity/username-suggest";
+import {
+  isValidUsernameFormat,
+  normalizeUsername,
+  suggestUsernameFromPerson,
+} from "@/lib/identity/username-suggest";
 import { canMutateCrewProfile } from "@/lib/people/access";
 import { resolveSessionForApp } from "@/lib/identity/session";
 import { isSodaRole, type SodaRole } from "@/lib/identity/roles";
@@ -191,31 +195,67 @@ export async function resetCrewPasswordAction(
 /** Debounced Founder check — profiles.username uniqueness (case-insensitive). */
 export async function checkUsernameAvailableAction(
   username: string
-): Promise<{ ok: boolean; available?: boolean; error?: string }> {
+): Promise<{
+  ok: boolean;
+  available?: boolean;
+  error?: string;
+  /** Why unavailable / failed — for field-level UI copy. */
+  code?: "short" | "format" | "auth" | "taken" | "server";
+}> {
   const session = await requireFounderSession();
-  if (!session) return { ok: false, error: "Unauthorized." };
-
-  const normalized = username.trim().toLowerCase().replace(/^@/, "");
-  if (normalized.length < 3) {
-    return { ok: false, error: "Username is too short." };
+  if (!session) {
+    return { ok: false, code: "auth", error: "Unauthorized." };
   }
-  if (!/^[a-z0-9]([a-z0-9._-]{1,30}[a-z0-9])?$/.test(normalized)) {
-    return { ok: false, error: "Invalid username format." };
+
+  const normalized = normalizeUsername(username);
+  if (normalized.length < 3) {
+    return {
+      ok: false,
+      code: "short",
+      error: "Username must be at least 3 characters.",
+    };
+  }
+  if (!isValidUsernameFormat(normalized)) {
+    return {
+      ok: false,
+      code: "format",
+      error:
+        "Use 3–32 characters: letters, numbers, dots, hyphens, underscores. Must start and end with a letter or number.",
+    };
   }
 
   try {
-    const supabase = await createClient();
+    // Prefer service role so RLS cannot hide other profiles (false “available”)
+    // or surface as a misleading format error.
+    let supabase;
+    try {
+      supabase = createAdminClient();
+    } catch {
+      supabase = await createClient();
+    }
+
     const { data, error } = await supabase
       .from("profiles")
       .select("id")
       .eq("username", normalized)
       .maybeSingle();
 
-    if (error) return { ok: false, error: error.message };
-    return { ok: true, available: !data?.id };
+    if (error) {
+      return { ok: false, code: "server", error: error.message };
+    }
+    if (data?.id) {
+      return {
+        ok: true,
+        available: false,
+        code: "taken",
+        error: "Username is already taken.",
+      };
+    }
+    return { ok: true, available: true };
   } catch (err) {
     return {
       ok: false,
+      code: "server",
       error: err instanceof Error ? err.message : "Username check failed.",
     };
   }

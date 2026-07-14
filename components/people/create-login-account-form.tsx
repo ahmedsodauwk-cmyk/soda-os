@@ -19,6 +19,10 @@ import { Label } from "@/components/ui/label";
 import { DEFAULT_COMPANY_EMAIL_DOMAIN } from "@/lib/auth/company-email-shared";
 import { ROLE_LABELS, type SodaRole } from "@/lib/identity/roles";
 import {
+  isValidUsernameFormat,
+  normalizeUsername,
+} from "@/lib/identity/username-suggest";
+import {
   checkUsernameAvailableAction,
   createCrewLoginAccountAction,
 } from "@/lib/people/actions";
@@ -27,9 +31,15 @@ import { cn } from "@/lib/utils";
 
 type Step = "form" | "confirm" | "done";
 type PasswordMode = "generate" | "manual";
-type UsernameStatus = "idle" | "checking" | "available" | "taken" | "invalid";
+/** Async + format gate for username — Continue requires `available`. */
+type UsernameStatus =
+  | "idle"
+  | "checking"
+  | "available"
+  | "taken"
+  | "invalid"
+  | "error";
 
-const USERNAME_RE = /^[a-z0-9]([a-z0-9._-]{1,30}[a-z0-9])?$/;
 const MIN_PASSWORD_LEN = 10;
 
 interface CreateLoginAccountFormProps {
@@ -42,14 +52,29 @@ interface CreateLoginAccountFormProps {
   onOpenChange: (open: boolean) => void;
 }
 
-function normalizeUsername(raw: string): string {
-  return raw.trim().toLowerCase().replace(/^@/, "");
-}
-
-function emailForUsername(username: string, domain: string, personEmail?: string): string {
+function emailForUsername(
+  username: string,
+  domain: string,
+  personEmail?: string
+): string {
   if (personEmail?.trim()) return personEmail.trim().toLowerCase();
   const local = normalizeUsername(username);
   return local ? `${local}@${domain}` : "";
+}
+
+function manualPasswordReason(password: string): string | null {
+  const trimmed = password.trim();
+  if (!trimmed) return `Enter a temporary password (min ${MIN_PASSWORD_LEN}).`;
+  if (trimmed.length < MIN_PASSWORD_LEN) {
+    return `Password must be at least ${MIN_PASSWORD_LEN} characters.`;
+  }
+  if (!/[A-Za-z]/.test(trimmed)) {
+    return "Password must include at least one letter.";
+  }
+  if (!/[0-9]/.test(trimmed)) {
+    return "Password must include at least one number.";
+  }
+  return null;
 }
 
 /**
@@ -72,6 +97,7 @@ export function CreateLoginAccountForm({
   const [passwordMode, setPasswordMode] = useState<PasswordMode>("generate");
   const [manualPassword, setManualPassword] = useState("");
   const [usernameStatus, setUsernameStatus] = useState<UsernameStatus>("idle");
+  const [usernameReason, setUsernameReason] = useState<string | null>(null);
   const [credentials, setCredentials] = useState<{
     username: string;
     email: string;
@@ -87,6 +113,28 @@ export function CreateLoginAccountForm({
     suggestedEmail ||
     emailForUsername(username, emailDomain, person.email ?? undefined);
 
+  const usernameOk = usernameStatus === "available";
+  const passwordBlockReason =
+    passwordMode === "manual" ? manualPasswordReason(manualPassword) : null;
+  const passwordOk = passwordBlockReason === null;
+  const canContinue = usernameOk && passwordOk;
+
+  const continueBlockReasons: string[] = [];
+  if (!usernameOk) {
+    if (usernameStatus === "checking") {
+      continueBlockReasons.push("Waiting for username availability check.");
+    } else if (usernameStatus === "idle") {
+      continueBlockReasons.push("Enter a username.");
+    } else if (usernameReason) {
+      continueBlockReasons.push(usernameReason);
+    } else {
+      continueBlockReasons.push("Username is not ready.");
+    }
+  }
+  if (!passwordOk && passwordBlockReason) {
+    continueBlockReasons.push(passwordBlockReason);
+  }
+
   function resetDialog() {
     setStep("form");
     setError(null);
@@ -94,6 +142,7 @@ export function CreateLoginAccountForm({
     setPasswordMode("generate");
     setManualPassword("");
     setUsernameStatus("idle");
+    setUsernameReason(null);
     setCredentials(null);
   }
 
@@ -111,6 +160,8 @@ export function CreateLoginAccountForm({
   useEffect(() => {
     if (!open) return;
     setUsername(suggestedUsername);
+    setUsernameStatus("idle");
+    setUsernameReason(null);
   }, [open, suggestedUsername]);
 
   useEffect(() => {
@@ -118,52 +169,102 @@ export function CreateLoginAccountForm({
 
     const normalized = normalizeUsername(username);
     if (!normalized) {
+      // Invalidate any in-flight availability response for the prior username.
+      checkGenRef.current += 1;
       setUsernameStatus("idle");
+      setUsernameReason("Enter a username.");
       return;
     }
-    if (normalized.length < 3 || !USERNAME_RE.test(normalized)) {
+    if (!isValidUsernameFormat(normalized)) {
+      checkGenRef.current += 1;
       setUsernameStatus("invalid");
+      setUsernameReason(
+        normalized.length < 3
+          ? "Username must be at least 3 characters."
+          : "Use 3–32 characters: letters, numbers, dots, hyphens, underscores. Must start and end with a letter or number."
+      );
       return;
     }
 
     setUsernameStatus("checking");
+    setUsernameReason("Checking availability…");
     if (debounceRef.current) clearTimeout(debounceRef.current);
     const gen = ++checkGenRef.current;
 
     debounceRef.current = setTimeout(() => {
       void (async () => {
-        const result = await checkUsernameAvailableAction(normalized);
-        if (gen !== checkGenRef.current) return;
-        if (!result.ok) {
-          setUsernameStatus("invalid");
-          return;
+        try {
+          const result = await checkUsernameAvailableAction(normalized);
+          if (gen !== checkGenRef.current) return;
+          if (!result.ok) {
+            // Never map server/auth failures to format-invalid (that locked Continue
+            // with a misleading red "format" message).
+            setUsernameStatus("error");
+            setUsernameReason(
+              result.error ?? "Could not verify username. Try again."
+            );
+            return;
+          }
+          if (result.available) {
+            setUsernameStatus("available");
+            setUsernameReason(null);
+          } else {
+            setUsernameStatus("taken");
+            setUsernameReason("Username is already taken.");
+          }
+        } catch (err) {
+          if (gen !== checkGenRef.current) return;
+          setUsernameStatus("error");
+          setUsernameReason(
+            err instanceof Error
+              ? err.message
+              : "Could not verify username. Try again."
+          );
         }
-        setUsernameStatus(result.available ? "available" : "taken");
       })();
     }, 350);
 
     return () => {
-      if (debounceRef.current) clearTimeout(debounceRef.current);
+      // Drop pending debounce only. In-flight requests are ignored via gen
+      // mismatch when the next effect bumps checkGenRef.
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current);
+        debounceRef.current = null;
+      }
     };
   }, [username, open, step]);
 
-  const usernameOk = usernameStatus === "available";
-  const passwordOk =
-    passwordMode === "generate" ||
-    (manualPassword.length >= MIN_PASSWORD_LEN &&
-      /[A-Za-z]/.test(manualPassword) &&
-      /[0-9]/.test(manualPassword));
+  // Temporary gate trace during hotfix.
+  useEffect(() => {
+    if (!open || step !== "form") return;
+    console.log("[create-login] Continue gate", {
+      canContinue,
+      usernameOk,
+      passwordOk,
+      usernameStatus,
+      usernameReason,
+      passwordMode,
+      passwordBlockReason,
+      continueBlockReasons,
+    });
+  }, [
+    open,
+    step,
+    canContinue,
+    usernameOk,
+    passwordOk,
+    usernameStatus,
+    usernameReason,
+    passwordMode,
+    passwordBlockReason,
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- log snapshot only
+    continueBlockReasons.join("|"),
+  ]);
 
   function goConfirm() {
     setError(null);
-    if (!usernameOk) {
-      setError("Choose an available username.");
-      return;
-    }
-    if (!passwordOk) {
-      setError(
-        `Manual password must be at least ${MIN_PASSWORD_LEN} characters and include letters and numbers.`
-      );
+    if (!canContinue) {
+      setError(continueBlockReasons.join(" ") || "Fix the fields above to continue.");
       return;
     }
     setStep("confirm");
@@ -176,7 +277,7 @@ export function CreateLoginAccountForm({
         username: normalizeUsername(username),
         passwordMode,
         temporaryPassword:
-          passwordMode === "manual" ? manualPassword : undefined,
+          passwordMode === "manual" ? manualPassword.trim() : undefined,
       });
       if (!result.ok) {
         setError(result.error ?? "Create failed.");
@@ -190,6 +291,20 @@ export function CreateLoginAccountForm({
       router.refresh();
     });
   }
+
+  const usernameHelp =
+    usernameStatus === "available"
+      ? "Username is available."
+      : usernameStatus === "checking"
+        ? "Checking availability…"
+        : usernameReason
+          ? usernameReason
+          : `Suggested from Crew name → maps to @${emailDomain}`;
+
+  const usernameInvalid =
+    usernameStatus === "taken" ||
+    usernameStatus === "invalid" ||
+    usernameStatus === "error";
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -247,38 +362,33 @@ export function CreateLoginAccountForm({
                   <Input
                     id="crew-login-username"
                     name="username"
-                    required
                     autoComplete="off"
                     autoFocus
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
                     placeholder={`e.g. ${suggestedUsername}`}
                     className="pr-9"
-                    aria-invalid={
-                      usernameStatus === "taken" || usernameStatus === "invalid"
-                    }
+                    aria-invalid={usernameInvalid}
                   />
                   <span className="pointer-events-none absolute top-1/2 right-2.5 -translate-y-1/2">
                     {usernameStatus === "checking" ? (
                       <Loader2 className="size-4 animate-spin text-muted-foreground" />
                     ) : usernameStatus === "available" ? (
                       <Check className="size-4 text-emerald-500" />
-                    ) : usernameStatus === "taken" ||
-                      usernameStatus === "invalid" ? (
+                    ) : usernameInvalid ? (
                       <X className="size-4 text-red-400" />
                     ) : null}
                   </span>
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  {usernameStatus === "available"
-                    ? "Username is available."
-                    : usernameStatus === "taken"
-                      ? "Username is already taken."
-                      : usernameStatus === "invalid"
-                        ? "Use 3–32 characters: letters, numbers, dots, hyphens."
-                        : usernameStatus === "checking"
-                          ? "Checking availability…"
-                          : `Suggested from Crew name → maps to @${emailDomain}`}
+                <p
+                  className={cn(
+                    "text-xs",
+                    usernameInvalid
+                      ? "text-red-400"
+                      : "text-muted-foreground"
+                  )}
+                >
+                  {usernameHelp}
                 </p>
               </div>
 
@@ -338,13 +448,25 @@ export function CreateLoginAccountForm({
                       Create password manually
                     </span>
                     {passwordMode === "manual" ? (
-                      <Input
-                        type="text"
-                        autoComplete="new-password"
-                        value={manualPassword}
-                        onChange={(e) => setManualPassword(e.target.value)}
-                        placeholder={`Temporary password (min ${MIN_PASSWORD_LEN})`}
-                      />
+                      <>
+                        <Input
+                          type="text"
+                          autoComplete="new-password"
+                          value={manualPassword}
+                          onChange={(e) => setManualPassword(e.target.value)}
+                          placeholder={`Temporary password (min ${MIN_PASSWORD_LEN})`}
+                          aria-invalid={Boolean(passwordBlockReason)}
+                        />
+                        {passwordBlockReason ? (
+                          <span className="block text-xs text-red-400">
+                            {passwordBlockReason}
+                          </span>
+                        ) : (
+                          <span className="block text-xs text-muted-foreground">
+                            Meets length and letter + number requirements.
+                          </span>
+                        )}
+                      </>
                     ) : (
                       <span className="text-xs text-muted-foreground">
                         You type a temporary password the crew member must
@@ -359,6 +481,11 @@ export function CreateLoginAccountForm({
             </div>
 
             <DialogFooter>
+              {!canContinue ? (
+                <p className="w-full text-xs text-red-400 sm:mr-auto sm:text-left">
+                  Continue disabled: {continueBlockReasons.join(" ")}
+                </p>
+              ) : null}
               <Button
                 type="button"
                 variant="outline"
@@ -368,7 +495,7 @@ export function CreateLoginAccountForm({
               </Button>
               <Button
                 type="button"
-                disabled={!usernameOk || !passwordOk}
+                disabled={!canContinue}
                 onClick={goConfirm}
               >
                 Continue
