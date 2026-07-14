@@ -39,8 +39,9 @@ export function HeaderNotifications({ initial }: HeaderNotificationsProps) {
     setReadIds((prev) => new Set(prev).add(id));
   }
 
-  // Root cause of Base UI Error #31: Menu.Item defaults to nativeButton,
+  // Root cause of Menu Item / Link mismatch: Menu.Item defaults to nativeButton,
   // but render={<Link />} produces <a>. Must set nativeButton={false}.
+  // (Base UI Error #31 is MenuGroupLabel outside Menu.Group — fixed in dropdown-menu.)
   return (
     <DropdownMenu>
       <DropdownMenuTrigger

@@ -89,7 +89,12 @@ export async function signInAction(
 
 export async function signOutAction(): Promise<void> {
   const supabase = await createClient();
-  await supabase.auth.signOut();
+  const { error } = await supabase.auth.signOut();
+  if (error) {
+    // Still leave the app so Founder can switch accounts even if remote
+    // revoke fails — local cookies are cleared by the client cookie writes.
+    console.error("[auth] signOut:", error.message);
+  }
   revalidatePath("/", "layout");
   redirect("/login");
 }

@@ -8,13 +8,15 @@ const PUBLIC_PREFIXES = [
   "/bootstrap",
   "/auth",
   "/about",
+  "/logout",
 ];
 
 function isPublicPath(pathname: string): boolean {
   if (
     pathname === "/login" ||
     pathname === "/forgot-password" ||
-    pathname === "/bootstrap"
+    pathname === "/bootstrap" ||
+    pathname === "/logout"
   ) {
     return true;
   }

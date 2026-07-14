@@ -86,6 +86,7 @@ export async function AppShell({
         role: session.profile.role,
         avatarInitials: session.profile.avatarInitials,
         email: session.profile.email,
+        personId: session.profile.personId,
         allowedPermissions,
       }
     : undefined;

@@ -91,6 +91,7 @@ export type Dictionary = {
     english: string;
     arabic: string;
     myAccount: string;
+    myProfile: string;
     profile: string;
     settings: string;
     changePassword: string;
@@ -235,6 +236,7 @@ const en: Dictionary = {
     english: "English",
     arabic: "العربية",
     myAccount: "My Account",
+    myProfile: "My Profile",
     profile: "Profile",
     settings: "Settings",
     changePassword: "Change password",
@@ -379,6 +381,7 @@ const ar: Dictionary = {
     english: "English",
     arabic: "العربية",
     myAccount: "حسابي",
+    myProfile: "ملفي الشخصي",
     profile: "الملف الشخصي",
     settings: "الإعدادات",
     changePassword: "تغيير كلمة السر",

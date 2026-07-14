@@ -2,7 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LogOut, Info, Settings } from "lucide-react";
+import { useTransition } from "react";
+import {
+  KeyRound,
+  LogOut,
+  Info,
+  Settings,
+  UserRound,
+} from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -11,6 +18,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
@@ -31,6 +39,8 @@ export type SidebarUser = {
   role: SodaRole;
   avatarInitials: string;
   email: string;
+  /** Linked people.profiles person id — My Profile → /people/[id]. */
+  personId?: string | null;
   /** DB-backed permission ids — when set, nav filters by authority not role map. */
   allowedPermissions?: readonly string[];
 };
@@ -51,14 +61,26 @@ function isNavActive(pathname: string, href: string): boolean {
   );
 }
 
+function profileHref(user?: SidebarUser): string {
+  if (user?.personId) return `/people/${user.personId}`;
+  return "/me";
+}
+
 export function SidebarContent({ user }: SidebarContentProps) {
   const pathname = usePathname();
   const { t } = useI18n();
+  const [pending, startTransition] = useTransition();
   const role = user?.role ?? "owner";
   const sections =
     user?.allowedPermissions && user.allowedPermissions.length > 0
       ? navSectionsForPermissions(user.allowedPermissions)
       : navSectionsForRole(role);
+
+  function handleLogout() {
+    startTransition(() => {
+      void signOutAction();
+    });
+  }
 
   return (
     <>
@@ -137,24 +159,35 @@ export function SidebarContent({ user }: SidebarContentProps) {
           </DropdownMenuTrigger>
 
           <DropdownMenuContent align="start" className="w-56">
-            <DropdownMenuLabel>{t("common.myAccount")}</DropdownMenuLabel>
+            <DropdownMenuLabel>{user?.fullName ?? t("common.myAccount")}</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem
-              className="cursor-pointer"
-              nativeButton={false}
-              render={<Link href="/settings" />}
-            >
-              <Settings />
-              {t("common.settings")}
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              className="cursor-pointer"
-              nativeButton={false}
-              render={<Link href="/settings/password" />}
-            >
-              <Settings />
-              {t("common.changePassword")}
-            </DropdownMenuItem>
+            <DropdownMenuGroup>
+              <DropdownMenuItem
+                className="cursor-pointer"
+                nativeButton={false}
+                render={<Link href={profileHref(user)} />}
+              >
+                <UserRound />
+                {t("common.myProfile")}
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                className="cursor-pointer"
+                nativeButton={false}
+                render={<Link href="/settings" />}
+              >
+                <Settings />
+                {t("common.myAccount")}
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                className="cursor-pointer"
+                nativeButton={false}
+                render={<Link href="/settings/password" />}
+              >
+                <KeyRound />
+                {t("common.changePassword")}
+              </DropdownMenuItem>
+            </DropdownMenuGroup>
+            <DropdownMenuSeparator />
             <div className="px-2 py-1.5">
               <LanguageSwitcher variant="inline" />
             </div>
@@ -167,16 +200,15 @@ export function SidebarContent({ user }: SidebarContentProps) {
               {t("common.aboutSoda")}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <form action={signOutAction}>
-              <DropdownMenuItem
-                variant="destructive"
-                nativeButton={false}
-                render={<button type="submit" className="w-full cursor-pointer" />}
-              >
-                <LogOut />
-                {t("actions.logOut")}
-              </DropdownMenuItem>
-            </form>
+            <DropdownMenuItem
+              variant="destructive"
+              className="cursor-pointer"
+              disabled={pending}
+              onClick={handleLogout}
+            >
+              <LogOut />
+              {t("actions.logOut")}
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
