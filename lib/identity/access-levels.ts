@@ -33,6 +33,19 @@ export const INVITEABLE_ACCESS_LEVELS: readonly AccessLevel[] = [
   "account_manager",
 ];
 
+/**
+ * Levels a Founder may assign via Create Login / Access Level editor.
+ * Founder itself is never assignable (Owner/manual only).
+ */
+export function isAssignableAccessLevel(
+  level: AccessLevel | string | null | undefined
+): boolean {
+  return (
+    !!level &&
+    (INVITEABLE_ACCESS_LEVELS as readonly string[]).includes(level)
+  );
+}
+
 const ALL: Permission[] = [
   "dashboard.company",
   "dashboard.team",

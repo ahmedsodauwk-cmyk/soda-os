@@ -15,6 +15,7 @@ import { generateTemporaryPassword } from "@/lib/auth/temp-password";
 import {
   INVITEABLE_ACCESS_LEVELS,
   isAccessLevel,
+  isAssignableAccessLevel,
   ACCESS_LEVEL_LABELS,
   type AccessLevel,
 } from "@/lib/identity/access-levels";
@@ -321,6 +322,13 @@ export async function updateLinkedAccessLevelAction(
   if (!session) return { ok: false, error: "Unauthorized." };
   if (!isAccessLevel(accessLevel)) {
     return { ok: false, error: "Invalid access level." };
+  }
+  if (!isAssignableAccessLevel(accessLevel)) {
+    return {
+      ok: false,
+      error:
+        "Founder access cannot be assigned. Choose Team, Team Leader, or Account Manager.",
+    };
   }
 
   try {

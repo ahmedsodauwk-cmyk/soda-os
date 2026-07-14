@@ -23,6 +23,7 @@ import {
 import {
   ACCESS_LEVEL_LABELS,
   ACCESS_LEVELS,
+  isAssignableAccessLevel,
   type AccessLevel,
 } from "@/lib/identity/access-levels";
 import { INVITEABLE_ROLES, ROLE_LABELS, type SodaRole } from "@/lib/identity/roles";
@@ -169,7 +170,11 @@ export function AccountDirectory({ accounts }: AccountDirectoryProps) {
                       }}
                     >
                       {ACCESS_LEVELS.map((level) => (
-                        <option key={level} value={level}>
+                        <option
+                          key={level}
+                          value={level}
+                          disabled={!isAssignableAccessLevel(level)}
+                        >
                           {ACCESS_LEVEL_LABELS[level]}
                         </option>
                       ))}
