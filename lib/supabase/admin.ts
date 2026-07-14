@@ -14,7 +14,7 @@ export function createAdminClient() {
   const serviceKey = getSupabaseServiceRoleKey();
   if (!serviceKey) {
     throw new Error(
-      "SUPABASE_SERVICE_ROLE_KEY is not set. Add it to .env.local for admin/migration scripts only."
+      "SUPABASE_SERVICE_ROLE_KEY is not set. Add it in Vercel → Settings → Environment Variables (Production) and redeploy, or set it in .env.local for local admin scripts."
     );
   }
   return createClient(url, serviceKey, {

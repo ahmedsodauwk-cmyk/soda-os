@@ -25,12 +25,41 @@ export type ProvisionResult =
   | { ok: true; credentials: ProvisionCredentials; profileId: string }
   | { ok: false; error: string };
 
+const SERVICE_ROLE_MISSING_MSG =
+  "Server admin key is not configured. In Vercel → Project → Settings → Environment Variables, add SUPABASE_SERVICE_ROLE_KEY for Production, then Redeploy. Without this key, Create Login Account cannot run.";
+
+const MIN_TEMP_PASSWORD_LEN = 10;
+
+function resolveTemporaryPassword(
+  manual?: string
+): { ok: true; password: string } | { ok: false; error: string } {
+  const trimmed = manual?.trim();
+  if (!trimmed) {
+    return { ok: true, password: generateTemporaryPassword() };
+  }
+  if (trimmed.length < MIN_TEMP_PASSWORD_LEN) {
+    return {
+      ok: false,
+      error: `Temporary password must be at least ${MIN_TEMP_PASSWORD_LEN} characters.`,
+    };
+  }
+  if (!/[A-Za-z]/.test(trimmed) || !/[0-9]/.test(trimmed)) {
+    return {
+      ok: false,
+      error: "Temporary password must include letters and numbers.",
+    };
+  }
+  return { ok: true, password: trimmed };
+}
+
 export async function provisionLoginAccountForPerson(input: {
   personId: string;
   fullName: string;
   username: string;
   email?: string;
   role: string;
+  /** Optional Founder-chosen temp password; otherwise a secure password is generated. */
+  temporaryPassword?: string;
 }): Promise<ProvisionResult> {
   const personId = input.personId.trim();
   const fullName = input.fullName.trim();
@@ -49,6 +78,10 @@ export async function provisionLoginAccountForPerson(input: {
       error: "This crew member already has a linked login account.",
     };
   }
+
+  const passwordResult = resolveTemporaryPassword(input.temporaryPassword);
+  if (!passwordResult.ok) return passwordResult;
+  const temp = passwordResult.password;
 
   const domain = await getCompanyEmailDomain();
   const email = (
@@ -70,7 +103,6 @@ export async function provisionLoginAccountForPerson(input: {
       };
     }
 
-    const temp = generateTemporaryPassword();
     const meta = buildProvisionUserMetadata({
       full_name: fullName,
       role: input.role,
@@ -121,7 +153,7 @@ export async function provisionLoginAccountForPerson(input: {
       error:
         err instanceof Error
           ? err.message.includes("SUPABASE_SERVICE_ROLE_KEY")
-            ? "Server admin key is not configured."
+            ? SERVICE_ROLE_MISSING_MSG
             : err.message
           : "Create account failed.",
     };

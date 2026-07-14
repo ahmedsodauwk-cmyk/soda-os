@@ -117,6 +117,9 @@ export async function setCrewStatusAction(
   }
 }
 
+const SERVICE_ROLE_MISSING_MSG =
+  "Server admin key is not configured. In Vercel → Project → Settings → Environment Variables, add SUPABASE_SERVICE_ROLE_KEY for Production, then Redeploy.";
+
 export async function resetCrewPasswordAction(
   personId: string
 ): Promise<CrewActionResult> {
@@ -178,9 +181,42 @@ export async function resetCrewPasswordAction(
       error:
         err instanceof Error
           ? err.message.includes("SUPABASE_SERVICE_ROLE_KEY")
-            ? "Server admin key is not configured — cannot reset password here."
+            ? `${SERVICE_ROLE_MISSING_MSG} Cannot reset password until then.`
             : err.message
           : "Reset password failed.",
+    };
+  }
+}
+
+/** Debounced Founder check — profiles.username uniqueness (case-insensitive). */
+export async function checkUsernameAvailableAction(
+  username: string
+): Promise<{ ok: boolean; available?: boolean; error?: string }> {
+  const session = await requireFounderSession();
+  if (!session) return { ok: false, error: "Unauthorized." };
+
+  const normalized = username.trim().toLowerCase().replace(/^@/, "");
+  if (normalized.length < 3) {
+    return { ok: false, error: "Username is too short." };
+  }
+  if (!/^[a-z0-9]([a-z0-9._-]{1,30}[a-z0-9])?$/.test(normalized)) {
+    return { ok: false, error: "Invalid username format." };
+  }
+
+  try {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("id")
+      .eq("username", normalized)
+      .maybeSingle();
+
+    if (error) return { ok: false, error: error.message };
+    return { ok: true, available: !data?.id };
+  } catch (err) {
+    return {
+      ok: false,
+      error: err instanceof Error ? err.message : "Username check failed.",
     };
   }
 }
@@ -231,16 +267,27 @@ export async function updateLinkedRoleAction(
   }
 }
 
+export type CreateLoginAccountInput = {
+  username: string;
+  passwordMode?: "generate" | "manual";
+  temporaryPassword?: string;
+};
+
 /**
- * Create login account from Crew Workspace — crew SoT, username only editable.
- * Credentials returned once; never stored.
+ * Create login account from Crew Workspace — crew SoT, username editable.
+ * Optional manual temporary password; otherwise generated. Credentials once.
  */
 export async function createCrewLoginAccountAction(
   personId: string,
-  username: string
+  usernameOrInput: string | CreateLoginAccountInput
 ): Promise<CrewActionResult> {
   const session = await requireFounderSession();
   if (!session) return { ok: false, error: "Unauthorized." };
+
+  const input: CreateLoginAccountInput =
+    typeof usernameOrInput === "string"
+      ? { username: usernameOrInput, passwordMode: "generate" }
+      : usernameOrInput;
 
   try {
     const person = await fetchPersonById(personId);
@@ -254,7 +301,7 @@ export async function createCrewLoginAccountAction(
     }
 
     const domain = await getCompanyEmailDomain();
-    const normalizedUsername = username.trim().toLowerCase();
+    const normalizedUsername = input.username.trim().toLowerCase();
     const email =
       person.email?.trim() ||
       companyEmailForUsername(
@@ -262,12 +309,19 @@ export async function createCrewLoginAccountAction(
         domain
       );
 
+    const useManual =
+      input.passwordMode === "manual" &&
+      Boolean(input.temporaryPassword?.trim());
+
     const result = await provisionLoginAccountForPerson({
       personId,
       fullName: person.nameEn.trim(),
       username: normalizedUsername || suggestUsernameFromPerson(person),
       email,
       role: suggestRoleFromPerson(person.jobTitle),
+      temporaryPassword: useManual
+        ? input.temporaryPassword?.trim()
+        : undefined,
     });
 
     if (!result.ok) return { ok: false, error: result.error };
@@ -282,7 +336,12 @@ export async function createCrewLoginAccountAction(
   } catch (err) {
     return {
       ok: false,
-      error: err instanceof Error ? err.message : "Create account failed.",
+      error:
+        err instanceof Error
+          ? err.message.includes("SUPABASE_SERVICE_ROLE_KEY")
+            ? SERVICE_ROLE_MISSING_MSG
+            : err.message
+          : "Create account failed.",
     };
   }
 }

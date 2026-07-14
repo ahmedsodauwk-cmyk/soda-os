@@ -2,10 +2,12 @@ import type { Person } from "@/lib/people/types";
 
 /** Suggest a login username from crew profile — Founder may edit before save. */
 export function suggestUsernameFromPerson(person: Person): string {
+  // Prefer English legal name (Ali Hesham → ali.hesham); fall back to display/nickname.
   const raw =
+    person.nameEn.trim() ||
     person.displayName?.trim() ||
     person.nickname?.trim() ||
-    person.nameEn.trim();
+    "";
   const slug = raw
     .toLowerCase()
     .normalize("NFKD")
@@ -14,7 +16,7 @@ export function suggestUsernameFromPerson(person: Person): string {
     .replace(/^\.+|\.+$/g, "")
     .replace(/\.{2,}/g, ".");
   if (slug.length >= 3) return slug.slice(0, 32);
-  const fallback = person.nameEn
+  const fallback = (person.displayName || person.nickname || person.nameEn)
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, ".")
     .replace(/^\.+|\.+$/g, "");

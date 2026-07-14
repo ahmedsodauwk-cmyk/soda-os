@@ -108,6 +108,12 @@ export function CrewAccountSection({
     );
   }
 
+  const statusLabel = !account.linked
+    ? "Not linked"
+    : account.isActive
+      ? "Active"
+      : "Disabled";
+
   return (
     <Card className="soda-cc-card">
       <CardHeader>
@@ -123,7 +129,7 @@ export function CrewAccountSection({
           </Badge>
           {account.linked ? (
             <Badge variant={account.isActive ? "outline" : "secondary"}>
-              {account.isActive ? "Active" : "Disabled"}
+              {statusLabel}
             </Badge>
           ) : null}
           {account.mustChangePassword ? (
@@ -142,28 +148,26 @@ export function CrewAccountSection({
               <dd className="font-medium break-all">{account.email ?? "—"}</dd>
             </div>
             <div>
-              <dt className="text-muted-foreground">Last login</dt>
-              <dd>{formatWhen(account.lastSignInAt)}</dd>
-            </div>
-            <div>
-              <dt className="text-muted-foreground">Last password reset</dt>
-              <dd>{formatWhen(account.passwordResetAt)}</dd>
-            </div>
-            <div>
               <dt className="text-muted-foreground">Role</dt>
               <dd>
                 {account.role ? ROLE_LABELS[account.role] : "—"}
               </dd>
             </div>
             <div>
-              <dt className="text-muted-foreground">Account status</dt>
-              <dd>
-                {account.isActive
-                  ? account.lastSignInAt
-                    ? "Active — has signed in"
-                    : "Active — never signed in"
-                  : "Disabled"}
-              </dd>
+              <dt className="text-muted-foreground">Status</dt>
+              <dd className="font-medium">{statusLabel}</dd>
+            </div>
+            <div>
+              <dt className="text-muted-foreground">Created at</dt>
+              <dd>{formatWhen(account.createdAt)}</dd>
+            </div>
+            <div>
+              <dt className="text-muted-foreground">Last login</dt>
+              <dd>{formatWhen(account.lastSignInAt)}</dd>
+            </div>
+            <div>
+              <dt className="text-muted-foreground">Last password reset</dt>
+              <dd>{formatWhen(account.passwordResetAt)}</dd>
             </div>
           </dl>
         ) : (
@@ -219,7 +223,7 @@ export function CrewAccountSection({
                 </Button>
               )}
             </>
-          ) : showCreate ? null : (
+          ) : (
             <Button
               type="button"
               size="sm"
@@ -232,16 +236,16 @@ export function CrewAccountSection({
           )}
         </div>
 
-        {showCreate && !account.linked ? (
-          <div className="rounded-xl border border-border/50 bg-card/20 p-4">
-            <CreateLoginAccountForm
-              person={person}
-              suggestedUsername={suggestedUsername}
-              suggestedEmail={suggestedEmail}
-              suggestedRole={suggestedRole}
-              emailDomain={emailDomain}
-            />
-          </div>
+        {!account.linked ? (
+          <CreateLoginAccountForm
+            person={person}
+            suggestedUsername={suggestedUsername}
+            suggestedEmail={suggestedEmail}
+            suggestedRole={suggestedRole}
+            emailDomain={emailDomain}
+            open={showCreate}
+            onOpenChange={setShowCreate}
+          />
         ) : null}
       </CardContent>
     </Card>
