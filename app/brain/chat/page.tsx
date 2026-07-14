@@ -1,6 +1,6 @@
 /**
- * SODA Brain Chat — Founder only (Mission 05.1).
- * Heuristic classification into Brain. Never creates ERP entities.
+ * SODA Brain Chat — Founder only (Mission 05.2 Intelligence Layer).
+ * Local parse → Understanding Panel → Founder Save. Never creates ERP entities.
  */
 
 import { redirect } from "next/navigation";
@@ -34,7 +34,6 @@ export default async function BrainChatPage() {
   try {
     messages = await listBrainChatMessages();
   } catch (err) {
-    // listBrainChatMessages is now throw-safe; keep belt-and-suspenders.
     const message = err instanceof Error ? err.message : String(err);
     migrationHint =
       message.toLowerCase().includes("brain_chat") ||

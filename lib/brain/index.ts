@@ -1,5 +1,5 @@
 /**
- * SODA Brain — Founder Intelligence Workspace (Mission 05.1).
+ * SODA Brain — Founder Intelligence Workspace (Mission 05.1 + 05.2).
  * Isolated from ERP. Do not import ops write repositories here.
  */
 
@@ -8,6 +8,7 @@ export * from "@/lib/brain/access";
 export * from "@/lib/brain/classify";
 export * from "@/lib/brain/money-dashboard";
 export * from "@/lib/brain/suggestions";
+export * from "@/lib/brain/intelligence";
 export {
   listBrainEntries,
   getBrainEntryById,
