@@ -1,7 +1,8 @@
 /**
- * SODA Brain server actions — Founder only (Mission 05.2).
- * NEVER creates Client / Order / Project / Finance / Crew / Calendar records.
- * Chat: parse → Understanding Panel → Founder Save (structured). Nothing silent.
+ * SODA Brain server actions — Founder only (Operations Desk 05.3).
+ * Phase A: parse / ask / prepare — never writes ERP.
+ * Phase B: Execute Engine after Approve — may call existing ERP creates.
+ * Chatbot Save path kept as brain-only alias for older clients.
  */
 
 "use server";
@@ -9,7 +10,11 @@
 import { revalidatePath } from "next/cache";
 
 import {
+  applyFollowUpAnswer,
   applyUnderstandingEdits,
+  approveUnderstanding,
+  loadErpAwarenessForLabels,
+  refreshUnderstandingSummaries,
   runIntelligencePipeline,
   type BrainUnderstanding,
   type EntityTimeline,
@@ -17,6 +22,7 @@ import {
   type RelatedMemory,
   type UnderstandingEdits,
 } from "@/lib/brain/intelligence";
+import { runExecuteEngine } from "@/lib/brain/execute-engine";
 import { isFounderAccess } from "@/lib/identity/access-levels";
 import { resolveSessionForApp } from "@/lib/identity/session";
 import {
@@ -52,6 +58,9 @@ export type BrainActionResult = {
   related?: RelatedMemory[];
   timelines?: EntityTimeline[];
   suggestions?: string[];
+  executeMode?: string;
+  messageAr?: string;
+  messageEn?: string;
 };
 
 async function requireBrainFounder() {
@@ -65,6 +74,7 @@ async function requireBrainFounder() {
 function revalidateBrain() {
   revalidatePath("/brain");
   revalidatePath("/brain/chat");
+  revalidatePath("/brain/operations-desk");
 }
 
 export async function createBrainEntryAction(
@@ -178,9 +188,23 @@ export async function quickCaptureBrainAction(
   return createBrainEntryAction(input);
 }
 
+async function awarenessLabelsFromUnderstanding(
+  u: BrainUnderstanding
+): Promise<BrainUnderstanding> {
+  const labels = [
+    u.companyLabel,
+    u.clientLabel,
+    u.personLabel,
+  ].filter((x): x is string => Boolean(x?.trim()));
+  if (labels.length === 0) return u;
+  const erpAwareness = await loadErpAwarenessForLabels(labels);
+  if (erpAwareness.length === 0) return u;
+  return { ...u, erpAwareness };
+}
+
 /**
- * Parse Founder text → Understanding + Related Memories.
- * Does NOT create brain_entries. Founder must Save explicitly.
+ * Parse Founder text → Understanding + Related Memories + ERP awareness (READ).
+ * Does NOT create brain_entries or ERP rows.
  */
 export async function understandBrainChatAction(input: {
   text: string;
@@ -197,15 +221,22 @@ export async function understandBrainChatAction(input: {
       text,
       entries
     );
+    const withErp = await awarenessLabelsFromUnderstanding(
+      result.understanding
+    );
+    const understanding = refreshUnderstandingSummaries(withErp);
+
     return {
       ok: true,
-      understanding: result.understanding,
+      understanding,
       related: result.related,
       timelines: result.timelines,
-      suggestions: result.suggestions,
+      suggestions: [
+        ...result.suggestions,
+        ...understanding.erpAwareness.map((h) => h.noteAr),
+      ].slice(0, 6),
       assistantText:
-        result.understanding.founderSummaryAr ||
-        result.understanding.founderSummaryEn,
+        understanding.founderSummaryAr || understanding.founderSummaryEn,
     };
   } catch (err) {
     return {
@@ -226,9 +257,111 @@ export async function brainContextAction(input: {
 }
 
 /**
- * Founder-approved structured save after Understanding Panel.
+ * Follow-up answer to the current ONE smart question.
+ * Merges into draft — still no ERP write.
+ */
+export async function answerOpsQuestionAction(input: {
+  understanding: BrainUnderstanding;
+  answer: string;
+}): Promise<BrainActionResult> {
+  const session = await requireBrainFounder();
+  if (!session) return { ok: false, error: "Founder only." };
+
+  const answer = input.answer.trim();
+  if (!answer) return { ok: false, error: "Empty answer." };
+  if (!input.understanding) return { ok: false, error: "No draft." };
+
+  try {
+    let next = applyFollowUpAnswer(input.understanding, answer);
+    next = await awarenessLabelsFromUnderstanding(next);
+    next = refreshUnderstandingSummaries(next);
+    return {
+      ok: true,
+      understanding: next,
+      assistantText: next.founderSummaryAr,
+    };
+  } catch (err) {
+    return {
+      ok: false,
+      error: err instanceof Error ? err.message : "Follow-up failed.",
+    };
+  }
+}
+
+/**
+ * Founder Approve — marks draft approved. Still no ERP / Brain write.
+ */
+export async function approveOpsDraftAction(input: {
+  understanding: BrainUnderstanding;
+}): Promise<BrainActionResult> {
+  const session = await requireBrainFounder();
+  if (!session) return { ok: false, error: "Founder only." };
+  if (!input.understanding) return { ok: false, error: "No draft." };
+
+  if (!input.understanding.canApprove) {
+    return {
+      ok: false,
+      error: input.understanding.nextQuestionAr ?? "لسه ناقص بيانات.",
+      understanding: input.understanding,
+    };
+  }
+
+  const understanding = approveUnderstanding(input.understanding);
+  return {
+    ok: true,
+    understanding,
+    assistantText: understanding.founderSummaryAr,
+  };
+}
+
+/**
+ * Founder Execute — Phase B. Calls Execute Engine.
+ * Brain-only → Brain tables. ERP targets → existing createClient / createSmartOrder.
+ */
+export async function executeOpsDraftAction(input: {
+  understanding: BrainUnderstanding;
+  locale?: "en" | "ar";
+}): Promise<BrainActionResult> {
+  const session = await requireBrainFounder();
+  if (!session) return { ok: false, error: "Founder only." };
+  if (!input.understanding) return { ok: false, error: "No draft." };
+
+  const locale = input.locale === "en" ? "en" : "ar";
+  const result = await runExecuteEngine(
+    input.understanding,
+    session.userId,
+    locale
+  );
+
+  if (!result.ok) {
+    return { ok: false, error: result.error, understanding: input.understanding };
+  }
+
+  revalidateBrain();
+  if (result.mode === "erp_client" || result.mode === "erp_order") {
+    revalidatePath("/clients");
+    revalidatePath("/orders");
+  }
+
+  return {
+    ok: true,
+    entry: result.entry,
+    messages: result.messages,
+    executeMode: result.mode,
+    messageAr: result.messageAr,
+    messageEn: result.messageEn,
+    assistantText: result.messageAr ?? result.messageEn,
+    understanding: {
+      ...input.understanding,
+      lifecycle: "executed",
+    },
+  };
+}
+
+/**
+ * Founder-approved structured save after Understanding Panel (legacy 05.2 path).
  * Stores raw_text + structured JSON + workspace + history timeline.
- * Never ERP.
+ * Never ERP — prefer executeOpsDraftAction with brain_save for Ops Desk.
  */
 export async function confirmBrainUnderstandingAction(input: {
   understanding: BrainUnderstanding;
@@ -256,6 +389,7 @@ export async function confirmBrainUnderstandingAction(input: {
       layer: "05.2",
       heuristic: true,
       reasons: u.reasons,
+      intent: u.intent,
       understanding: {
         workspace: u.workspace,
         moneyKind: u.moneyKind,
@@ -342,8 +476,7 @@ export async function confirmBrainUnderstandingAction(input: {
 }
 
 /**
- * @deprecated Prefer understand → confirm. Kept as alias that only parses (no save).
- * Older clients calling send no longer auto-persist structured entries.
+ * @deprecated Prefer understand → approve → execute.
  */
 export async function sendBrainChatAction(input: {
   text: string;

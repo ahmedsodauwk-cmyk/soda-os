@@ -2,6 +2,7 @@
  * Smart Parser — local heuristics (AR/EN).
  * Extracts workspace, money, people/companies, confidence.
  * NOT an AI API. Never writes ERP or Brain — parse only.
+ * Operations Desk enrichment (intent / questions) happens in ops-enrich.
  */
 
 import {
@@ -11,6 +12,7 @@ import {
   type MoneyDirection,
   type MoneyKind,
 } from "@/lib/brain/types";
+import { enrichOperationsUnderstanding } from "@/lib/brain/intelligence/ops-enrich";
 import { buildFounderSummary } from "@/lib/brain/intelligence/summary";
 import type { BrainUnderstanding } from "@/lib/brain/intelligence/types";
 
@@ -123,8 +125,36 @@ const RULES: Array<{
       "ممكن اوردر",
       "هيتصوروا",
       "budget تقريبا",
+      "عاملين عرض",
+      "احتمال ياخدوا",
     ],
     weight: 2.5,
+  },
+  {
+    workspace: "client_notebook",
+    keywords: [
+      "ضيف عميل",
+      "عميل جديد",
+      "انشئ عميل",
+      "أنشئ عميل",
+      "create client",
+      "new client",
+      "add client",
+    ],
+    weight: 3.5,
+  },
+  {
+    workspace: "potential_orders",
+    keywords: [
+      "اعمل اوردر",
+      "اعمل أوردر",
+      "اوردر جديد",
+      "أوردر جديد",
+      "create order",
+      "new order",
+      "book order",
+    ],
+    weight: 3.5,
   },
   {
     workspace: "client_notebook",
@@ -587,7 +617,7 @@ export function parseBrainText(raw: string): BrainUnderstanding {
         ? companyLabel
         : null;
 
-  const understanding: BrainUnderstanding = {
+  const base = {
     rawText: text,
     workspace,
     confidence,
@@ -613,6 +643,7 @@ export function parseBrainText(raw: string): BrainUnderstanding {
     founderSummaryEn: "",
   };
 
+  const understanding = enrichOperationsUnderstanding(base);
   const summaries = buildFounderSummary(understanding);
   understanding.founderSummaryAr = summaries.ar;
   understanding.founderSummaryEn = summaries.en;

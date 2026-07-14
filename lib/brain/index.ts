@@ -1,6 +1,8 @@
 /**
- * SODA Brain — Founder Intelligence Workspace (Mission 05.1 + 05.2).
- * Isolated from ERP. Do not import ops write repositories here.
+ * SODA Brain — Founder Intelligence Workspace (Mission 05.1–05.3).
+ * Think/parse paths stay isolated from ERP.
+ * Founder-gated ERP writes live only in `execute-engine.ts` via Ops Desk actions.
+ * Do not import ops write repositories into this barrel.
  */
 
 export * from "@/lib/brain/types";

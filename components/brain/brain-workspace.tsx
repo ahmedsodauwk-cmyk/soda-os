@@ -368,16 +368,16 @@ export function BrainWorkspace({
 
           <div className="mt-auto space-y-1 border-t border-violet-500/15 px-2 py-3">
             <Link
-              href="/brain/chat"
+              href="/brain/operations-desk"
               className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-violet-200/75 hover:bg-violet-500/15 hover:text-violet-50"
             >
               <MessageSquare className="size-3.5" />
-              {locale === "ar" ? "محادثة الدماغ" : "Brain Chat"}
+              {locale === "ar" ? "مكتب العمليات" : "Operations Desk"}
             </Link>
             <p className="hidden px-3 pt-1 text-[10px] leading-relaxed text-violet-400/50 lg:block">
               {locale === "ar"
-                ? "مابيتلمسش الأوردرات ولا المالية ولا العملاء لوحده."
-                : "Never touches Orders, Finance, or Clients on its own."}
+                ? "مسودة → موافقة → تنفيذ. مفيش ERP لوحده."
+                : "Draft → Approve → Execute. Never silent ERP."}
             </p>
           </div>
         </aside>
@@ -700,11 +700,11 @@ export function BrainWorkspace({
                   {locale === "ar" ? "اكتب" : "Write"}
                 </Button>
                 <Link
-                  href="/brain/chat"
+                  href="/brain/operations-desk"
                   className="inline-flex h-9 items-center gap-1.5 rounded-md px-3 text-sm text-violet-200/70 hover:bg-violet-500/15 hover:text-violet-50"
                 >
                   <MessageSquare className="size-3.5" />
-                  Chat
+                  {locale === "ar" ? "مكتب العمليات" : "Ops Desk"}
                 </Link>
               </div>
             </div>
