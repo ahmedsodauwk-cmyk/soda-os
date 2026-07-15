@@ -1,4 +1,4 @@
-import { NextResponse, NextRequest } from "next/server";
+﻿import { NextResponse, NextRequest } from "next/server";
 
 import { updateSession } from "@/lib/supabase/middleware";
 
@@ -9,8 +9,6 @@ const PUBLIC_PREFIXES = [
   "/auth",
   "/about",
   "/logout",
-  // TEMP: allow header-auth diagnostic route (remove after verification)
-  "/api/soda-diag",
 ];
 
 function isPublicPath(pathname: string): boolean {
@@ -59,7 +57,7 @@ export async function middleware(request: NextRequest) {
   const publicPath = isPublicPath(pathname);
   const hasAuth = hasSupabaseAuthCookie(request);
 
-  // Fast path: no session cookie — skip Supabase round-trip when possible.
+  // Fast path: no session cookie ΓÇö skip Supabase round-trip when possible.
   if (!hasAuth) {
     const passthrough = NextResponse.next({
       request: { headers: requestHeaders },
