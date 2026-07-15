@@ -37,6 +37,8 @@
     "soda:source-snapshot": "npx tsx scripts/create-source-snapshot.ts",
     "backup:database": "npx tsx scripts/create-database-snapshot.ts",
     "soda:database-snapshot": "npx tsx scripts/create-database-snapshot.ts",
+    "backup:database:secure": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/run-database-backup-secure.ps1",
+    "soda:database-backup-secure": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/run-database-backup-secure.ps1",
     "backup:storage": "npx tsx scripts/create-storage-snapshot.ts",
     "soda:storage-snapshot": "npx tsx scripts/create-storage-snapshot.ts",
     "founder:local-dirs": "npx tsx scripts/ensure-founder-local-structure.ts"

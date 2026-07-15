@@ -206,12 +206,58 @@ function collectMigrationEntries(): {
   return { files, entries };
 }
 
-function findPgDump(): boolean {
-  const r = spawnSync("pg_dump", ["--version"], {
+const KNOWN_PG_DUMP_PATHS = [
+  "C:\\Program Files\\PostgreSQL\\18\\bin\\pg_dump.exe",
+  "C:\\Program Files\\PostgreSQL\\17\\bin\\pg_dump.exe",
+  "C:\\Program Files\\PostgreSQL\\16\\bin\\pg_dump.exe",
+];
+
+/** Resolve pg_dump binary: PATH first, then known PostgreSQL install paths. */
+function resolvePgDumpBinary(): string | null {
+  const fromPath = spawnSync("pg_dump", ["--version"], {
     encoding: "utf8",
     windowsHide: true,
   });
-  return r.status === 0;
+  if (fromPath.status === 0) return "pg_dump";
+
+  for (const candidate of KNOWN_PG_DUMP_PATHS) {
+    if (!existsSync(candidate)) continue;
+    const r = spawnSync(candidate, ["--version"], {
+      encoding: "utf8",
+      windowsHide: true,
+    });
+    if (r.status === 0) return candidate;
+  }
+  return null;
+}
+
+/** Prefer a unique ZIP name — never silently overwrite an earlier same-date archive. */
+function resolveZipPath(outDir: string, stamp: string): {
+  fileName: string;
+  zipPath: string;
+} {
+  const base = `SODA_Database_${stamp}.zip`;
+  const basePath = path.join(outDir, base);
+  if (!existsSync(basePath)) {
+    return { fileName: base, zipPath: basePath };
+  }
+  const now = new Date();
+  const hh = String(now.getHours()).padStart(2, "0");
+  const mm = String(now.getMinutes()).padStart(2, "0");
+  const ss = String(now.getSeconds()).padStart(2, "0");
+  const stamped = `SODA_Database_${stamp}_${hh}${mm}${ss}.zip`;
+  const stampedPath = path.join(outDir, stamped);
+  if (!existsSync(stampedPath)) {
+    console.log(
+      `  note: ${base} exists — writing ${stamped} instead (no overwrite)`
+    );
+    return { fileName: stamped, zipPath: stampedPath };
+  }
+  const uniq = `SODA_Database_${stamp}_${hh}${mm}${ss}_${Date.now()}.zip`;
+  console.log(
+    `  note: prior archives exist — writing ${uniq} instead (no overwrite)`
+  );
+  return { fileName: uniq, zipPath: path.join(outDir, uniq) };
 }
 
 function countSqlObjects(sql: string): Counts {
@@ -228,10 +274,21 @@ function countSqlObjects(sql: string): Counts {
 async function dumpWithPgDump(
   connectionString: string
 ): Promise<{ sql: Buffer; counts: Counts; databaseVersion: string } | null> {
-  if (!findPgDump()) return null;
+  const pgDumpBin = resolvePgDumpBinary();
+  if (!pgDumpBin) return null;
+
+  // Ensure known PostgreSQL 18 bin is on PATH for any nested tooling
+  const pg18Bin = "C:\\Program Files\\PostgreSQL\\18\\bin";
+  if (existsSync(pg18Bin)) {
+    const sep = path.delimiter;
+    const parts = (process.env.PATH || "").split(sep);
+    if (!parts.some((p) => p.toLowerCase() === pg18Bin.toLowerCase())) {
+      process.env.PATH = `${pg18Bin}${sep}${process.env.PATH || ""}`;
+    }
+  }
 
   const r = spawnSync(
-    "pg_dump",
+    pgDumpBin,
     [
       "--no-owner",
       "--no-acl",
@@ -244,6 +301,7 @@ async function dumpWithPgDump(
       encoding: "buffer",
       windowsHide: true,
       maxBuffer: 512 * 1024 * 1024,
+      env: process.env,
     }
   );
 
@@ -830,8 +888,7 @@ async function main() {
   const applicationVersion = readPackageVersion();
   const gitCommit = getGitCommit();
   const outDir = resolveOutDir(cliOut);
-  const fileName = `SODA_Database_${stamp}.zip`;
-  const zipPath = path.join(outDir, fileName);
+  const { fileName, zipPath } = resolveZipPath(outDir, stamp);
 
   console.log(`${PRODUCT} — Enterprise Database Snapshot`);
   console.log(`  applicationVersion: ${applicationVersion}`);
@@ -841,12 +898,10 @@ async function main() {
     `  SUPABASE_SERVICE_ROLE_KEY: ${maskSecret(process.env.SUPABASE_SERVICE_ROLE_KEY)}`
   );
   console.log(`  mode intent: ${dryValidate ? "dry_validate" : "live"}`);
+  console.log(
+    `  pg_dump: ${resolvePgDumpBinary() ?? "not found (will try pg client / fallbacks)"}`
+  );
   console.log(`  out: ${zipPath}`);
-
-  if (existsSync(zipPath)) {
-    console.error(`Refusing to overwrite existing backup:\n  ${zipPath}`);
-    process.exit(1);
-  }
 
   const limitations: string[] = [];
   const contentEntries: ArchiveEntry[] = [];
@@ -1065,7 +1120,10 @@ async function main() {
   }
 
   const finalBuf = readFileSync(zipPath);
-  const sibling = path.join(outDir, `SODA_Database_${stamp}.manifest.json`);
+  const sibling = path.join(
+    outDir,
+    `${fileName.replace(/\.zip$/i, "")}.manifest.json`
+  );
   const finalMan = parseZipEntries(finalBuf).find(
     (z) => z.name === "manifest.json"
   );
