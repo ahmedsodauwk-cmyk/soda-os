@@ -2,6 +2,7 @@
  * TEMPORARY runtime diagnostic — remove after Production verification.
  * Auth: x-soda-diag header OR ?t=DIAG_TOKEN OR founder/owner session.
  * One-time header token (this run only): 251096cf7069917c9e476d3ab586b318
+ * URL: GET /api/soda-diag/service-role
  */
 import { NextResponse } from "next/server";
 

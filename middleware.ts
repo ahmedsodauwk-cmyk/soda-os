@@ -10,7 +10,7 @@ const PUBLIC_PREFIXES = [
   "/about",
   "/logout",
   // TEMP: allow header-auth diagnostic route (remove after verification)
-  "/api/_diag",
+  "/api/soda-diag",
 ];
 
 function isPublicPath(pathname: string): boolean {
