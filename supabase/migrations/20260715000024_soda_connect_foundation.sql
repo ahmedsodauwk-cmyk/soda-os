@@ -542,16 +542,33 @@ create policy connect_presence_upsert on public.connect_presence
   using (user_id = auth.uid())
   with check (user_id = auth.uid());
 
--- Active peers for Connect directory (membership-safe; no Founder leak of messages)
+-- Active peers for Connect directory (membership-safe; no Founder leak of messages).
+-- NEVER SELECT profiles inside a profiles policy — that causes 42P17 RLS recursion
+-- and a full-app /login ↔ / redirect loop. Helper uses row_security = off.
+create or replace function public.connect_viewer_is_active()
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+set row_security = off
+as $$
+  select exists (
+    select 1 from public.profiles
+    where id = auth.uid()
+      and coalesce(is_active, false) = true
+  );
+$$;
+
+revoke all on function public.connect_viewer_is_active() from public;
+grant execute on function public.connect_viewer_is_active() to authenticated;
+
 drop policy if exists profiles_select_connect_peers on public.profiles;
 create policy profiles_select_connect_peers on public.profiles
   for select to authenticated
   using (
     coalesce(is_active, false) = true
-    and exists (
-      select 1 from public.profiles me
-      where me.id = auth.uid() and coalesce(me.is_active, false) = true
-    )
+    and public.connect_viewer_is_active()
   );
 
 -- ---------------------------------------------------------------------------

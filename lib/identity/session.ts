@@ -117,7 +117,7 @@ function mapProfileRow(
 
 async function fetchProfileRow(
   userId: string
-): Promise<ProfileRow | null> {
+): Promise<{ row: ProfileRow | null; recursion: boolean }> {
   try {
     const supabase = await createClient();
     const full = await supabase
@@ -127,8 +127,12 @@ async function fetchProfileRow(
       .maybeSingle();
 
     if (!full.error && full.data) {
-      return full.data as ProfileRow;
+      return { row: full.data as ProfileRow, recursion: false };
     }
+
+    const recursion =
+      !!full.error &&
+      /42P17|infinite recursion|recursion detected/i.test(full.error.message);
 
     // Columns may be missing until access-level migration is applied.
     const legacy = await supabase
@@ -137,10 +141,17 @@ async function fetchProfileRow(
       .eq("id", userId)
       .maybeSingle();
 
-    if (legacy.error || !legacy.data) return null;
-    return legacy.data as ProfileRow;
+    if (!legacy.error && legacy.data) {
+      return { row: legacy.data as ProfileRow, recursion: false };
+    }
+
+    const legacyRecursion =
+      !!legacy.error &&
+      /42P17|infinite recursion|recursion detected/i.test(legacy.error.message);
+
+    return { row: null, recursion: recursion || legacyRecursion };
   } catch {
-    return null;
+    return { row: null, recursion: false };
   }
 }
 
@@ -149,9 +160,34 @@ async function ensureProfile(
   email: string,
   fullName?: string | null
 ): Promise<SodaProfile | null> {
-  const existing = await fetchProfileRow(userId);
-  if (existing) {
-    return mapProfileRow(existing, email);
+  const fetched = await fetchProfileRow(userId);
+  if (fetched.row) {
+    return mapProfileRow(fetched.row, email);
+  }
+
+  const name =
+    fullName?.trim() || email.split("@")[0] || ROLE_LABELS.crew_member;
+  const username = email.includes("@") ? email.split("@")[0]! : null;
+
+  // Recursive profiles RLS (42P17) — SELECT always fails; inserting cannot heal it.
+  // Soft Team session breaks middleware↔shell /login redirect loop. Never invent Founder.
+  if (fetched.recursion) {
+    console.error(
+      "[session] profiles RLS recursion (42P17); soft Team session to stop redirect loop"
+    );
+    return {
+      id: userId,
+      email,
+      username,
+      fullName: name,
+      displayName: name,
+      role: "crew_member",
+      accessLevel: "team",
+      personId: null,
+      avatarInitials: initialsFrom(name, email),
+      isActive: true,
+      mustChangePassword: false,
+    };
   }
 
   const supabase = await createClient();
@@ -164,14 +200,13 @@ async function ensureProfile(
   const isFirst = (count ?? 0) === 0;
   const role: SodaRole = isFirst ? "founder" : "crew_member";
   const accessLevel: AccessLevel = isFirst ? "founder" : "team";
-  const name =
+  const resolvedName =
     fullName?.trim() || email.split("@")[0] || ROLE_LABELS[role];
-  const username = email.includes("@") ? email.split("@")[0]! : null;
 
   const insertPayload: Record<string, unknown> = {
     id: userId,
     email,
-    full_name: name,
+    full_name: resolvedName,
     role,
     access_level: accessLevel,
     is_active: true,
@@ -197,7 +232,7 @@ async function ensureProfile(
         .insert({
           id: userId,
           email,
-          full_name: name,
+          full_name: resolvedName,
           role,
           is_active: true,
         })
@@ -216,12 +251,12 @@ async function ensureProfile(
       id: userId,
       email,
       username,
-      fullName: name,
-      displayName: name,
+      fullName: resolvedName,
+      displayName: resolvedName,
       role: "crew_member",
       accessLevel: "team",
       personId: null,
-      avatarInitials: initialsFrom(name, email),
+      avatarInitials: initialsFrom(resolvedName, email),
       isActive: true,
       mustChangePassword: false,
     };
