@@ -24,6 +24,12 @@ import {
   homePathForPermissions,
 } from "@/lib/identity/nav";
 import { permissionsForAsync } from "@/lib/identity/permission-service";
+import {
+  allowsSignedOutOwnerFallback,
+  isAuthStrict,
+} from "@/lib/identity/auth-strict";
+
+export { isAuthStrict } from "@/lib/identity/auth-strict";
 
 export type SodaProfile = {
   id: string;
@@ -421,7 +427,8 @@ export async function sessionHomeAsync(session: SodaSession): Promise<string> {
 
 /**
  * Local/dev fallback ONLY when auth is not configured.
- * Strict production never uses this. Kept as Founder for solo local setup.
+ * Vercel Production never uses this (isAuthStrict always true there).
+ * Kept as Founder for solo local / Preview setup when SODA_AUTH_STRICT=0.
  */
 export function fallbackOwnerSession(): SodaSession {
   return {
@@ -443,24 +450,25 @@ export function fallbackOwnerSession(): SodaSession {
   };
 }
 
-export function isAuthStrict(): boolean {
-  if (process.env.SODA_AUTH_STRICT === "0") return false;
-  if (process.env.SODA_AUTH_STRICT === "1") return true;
-  // Strict only on Vercel production — local build/dev keeps owner fallback.
-  return process.env.VERCEL_ENV === "production";
+/**
+ * Signed-out branch of resolveSessionForApp.
+ * Production always returns null — never synthesizes a Founder session.
+ */
+export function resolveSignedOutAppSession(): SodaSession | null {
+  if (!allowsSignedOutOwnerFallback()) return null;
+  return fallbackOwnerSession();
 }
 
 /**
  * Resolve session for AppShell / pages.
  * Strict: null when signed out (caller redirects).
- * Non-strict: local founder fallback so local/dev keeps working before Auth enable.
+ * Non-strict (Dev/Preview only): local founder fallback.
  * Deduped per request via getSodaSession cache.
  */
 export const resolveSessionForApp = cache(
   async (): Promise<SodaSession | null> => {
     const session = await getSodaSession();
     if (session) return session;
-    if (!isAuthStrict()) return fallbackOwnerSession();
-    return null;
+    return resolveSignedOutAppSession();
   }
 );

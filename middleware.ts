@@ -1,5 +1,6 @@
 ﻿import { NextResponse, NextRequest } from "next/server";
 
+import { isAuthStrict } from "@/lib/identity/auth-strict";
 import { updateSession } from "@/lib/supabase/middleware";
 
 const PUBLIC_PREFIXES = [
@@ -23,12 +24,6 @@ function isPublicPath(pathname: string): boolean {
   return PUBLIC_PREFIXES.some(
     (p) => pathname === p || pathname.startsWith(`${p}/`)
   );
-}
-
-function isAuthStrict(): boolean {
-  if (process.env.SODA_AUTH_STRICT === "0") return false;
-  if (process.env.SODA_AUTH_STRICT === "1") return true;
-  return process.env.VERCEL_ENV === "production";
 }
 
 /** True when request likely carries a Supabase auth cookie. */
