@@ -170,6 +170,78 @@ When no DB credentials are available, the script auto-runs **`dry_validate`**: p
 
 ---
 
+## Storage Protection — Mission 08.3
+
+**Founder command:** Enterprise Storage Snapshot  
+**npm scripts:**
+
+```bash
+npm run backup:storage
+# alias:
+npm run soda:storage-snapshot
+```
+
+**CLI:** `npx tsx scripts/create-storage-snapshot.ts [--out <dir>] [--dry-validate]`
+
+### What it does
+
+1. Loads Supabase settings from `.env.local` / process env (**never logs full secrets**)
+2. Prefers **service role** (`SUPABASE_SERVICE_ROLE_KEY`) to `listBuckets` + recursive object list/download for every reachable bucket
+3. Falls back to **anon** key when service role is missing (public / policy-permitted objects only)
+4. Always packages local **`public/`** tree (brand logos, icons, web assets) and storage metadata JSON
+5. Writes `SODA_Storage_<date>.zip` with embedded `manifest.json`
+6. **Immediately validates:** every packaged file readable, manifest exists/valid, folder structure valid, integrity valid. Any failure → `backupStatus: FAILED` (never SUCCESS)
+7. **Hard stop:** never writes API keys, service-role credentials, or `.env` into the zip (keys used only to fetch)
+
+### `manifest.json` fields
+
+| Field | Meaning |
+|--------|---------|
+| `bucketCount` | Supabase buckets discovered this run |
+| `objectCount` | Objects packaged (remote downloads + local public files) |
+| `folderCount` | Unique folder prefixes in the archive |
+| `storageSize` | Total bytes of packaged asset/object payloads |
+| `checksum` | SHA-256 of packaged payload entries (`sha256:…`) |
+| `createdAt` | ISO timestamp |
+| `gitCommit` | Git SHA |
+| `applicationVersion` | `package.json` version |
+| `backupStatus` | `SUCCESS` \| `FAILED` |
+| `mode` | `service_role` \| `anon` \| `dry_validate` |
+| `limitations` | Human-readable gaps for this run |
+
+### Output location (priority)
+
+1. `--out <dir>` or `SODA_STORAGE_SNAPSHOT_OUT`
+2. `D:\SODA OS\Storage` (if present)
+3. `D:\SODA OS\Exports\Storage` (if Exports present)
+4. `<repo>/Exports/Storage/`
+
+Sibling file: `SODA_Storage_<date>.manifest.json` (quick inspect without unzipping).
+
+### Dry validation
+
+When no Storage API credentials are available, the script auto-runs **`dry_validate`**: packages local `public/` assets, exercises zip/manifest/folder/integrity checks, and states limitations clearly. Use `--dry-validate` to force this path.
+
+### Safety
+
+- Never packages `.env`, service-role keys, anon JWTs, or connection strings
+- Does not change ERP / Orders / Team Chat / Identity / Notifications product code or UI
+- Scripts + docs (+ architecture stubs) only for this mission
+
+### Future-ready (interfaces only — not implemented)
+
+Documented in `lib/backup/storage-protection-stubs.ts`:
+
+| Stub | Intent |
+|------|--------|
+| `IncrementalStorageBackupPlan` | Diff by etag / `updated_at` against a prior manifest |
+| `CloudReplicationPlan` | Mirror a validated package to external object storage (credential-free config refs) |
+| `MultiBucketBackupPlan` | Explicit include/exclude list for large multi-bucket tenants |
+
+Do not implement these flows until a later mission.
+
+---
+
 ## Related
 
 - Backup Center (ops packages): Mission 08.0 / `lib/backup`
