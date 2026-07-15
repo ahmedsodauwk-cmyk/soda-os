@@ -127,6 +127,16 @@ export async function provisionConnectForUser(userId: string): Promise<void> {
 
 export async function ensureConnectForSelf(): Promise<{ ok: boolean; error?: string }> {
   const supabase = await createClient();
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
+  if (authError || !user) {
+    return {
+      ok: false,
+      error: authError?.message ?? "سجّل دخولك تاني عشان تجهّز Team Chat",
+    };
+  }
   const { error } = await supabase.rpc("connect_ensure_self");
   if (error) return { ok: false, error: error.message };
   return { ok: true };
@@ -190,8 +200,9 @@ export async function listActivePeers(
 }
 
 /**
- * Silent Team Chat bootstrap: ensure self, then heal any missing peer DMs /
- * Team room via service RPCs before the UI list is returned.
+ * Team Chat roster load. Requires connect_ensure_self to have succeeded on an
+ * authenticated user client first — never substitutes service-role for that gate.
+ * After ensure_self, may heal missing peer DMs via admin RPCs.
  */
 export async function bootstrapTeamChatRoster(userId: string): Promise<{
   ok: boolean;
@@ -202,17 +213,13 @@ export async function bootstrapTeamChatRoster(userId: string): Promise<{
 }> {
   const self = await ensureConnectForSelf();
   if (!self.ok) {
-    // Fall through to admin heal if RLS/session RPC failed.
-    const healed = await adminEnsureConnectUser(userId);
-    if (!healed.ok) {
-      return {
-        ok: false,
-        error: self.error ?? healed.error ?? "فشل تجهيز Team Chat",
-        conversations: [],
-        peers: [],
-        presence: [],
-      };
-    }
+    return {
+      ok: false,
+      error: self.error ?? "فشل تجهيز Team Chat",
+      conversations: [],
+      peers: [],
+      presence: [],
+    };
   }
 
   const load = async () => {

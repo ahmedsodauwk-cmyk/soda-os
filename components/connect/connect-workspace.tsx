@@ -120,6 +120,9 @@ function ReceiptIcon({ status }: { status: ConnectMessage["receipt"] }) {
 
 export function ConnectWorkspace({ userId, displayName }: Props) {
   const [booting, setBooting] = useState(true);
+  const [bootFailed, setBootFailed] = useState(false);
+  /** True only after connect_ensure_self succeeded — gates realtime. */
+  const [provisioned, setProvisioned] = useState(false);
   const [conversations, setConversations] = useState<ConnectConversation[]>([]);
   const [peers, setPeers] = useState<ConnectPeer[]>([]);
   const [presence, setPresence] = useState<ConnectPresence[]>([]);
@@ -192,6 +195,80 @@ export function ConnectWorkspace({ userId, displayName }: Props) {
     }
   }, []);
 
+  /**
+   * Required order: session ready → connect_ensure_self (user client) →
+   * roster load → only then mark provisioned for realtime.
+   */
+  const runBootstrap = useCallback(async () => {
+    setBooting(true);
+    setBootFailed(false);
+    setProvisioned(false);
+    setError(null);
+
+    try {
+      const supabase = createClient();
+
+      // 1) Wait until authenticated session is fully available
+      const {
+        data: { user },
+        error: userErr,
+      } = await supabase.auth.getUser();
+      if (userErr || !user) {
+        setError(userErr?.message ?? CL.bootFailed);
+        setBootFailed(true);
+        setBooting(false);
+        return;
+      }
+
+      // 2–3) Provision self via authenticated user client — never service role
+      const { error: ensureErr } = await supabase.rpc("connect_ensure_self");
+      if (ensureErr) {
+        setError(ensureErr.message || CL.bootFailed);
+        setBootFailed(true);
+        setBooting(false);
+        return;
+      }
+
+      // 4) After ensure_self success: load conversations, peers, presence
+      const r = await bootstrapConnectAction();
+      if (!r.ok) {
+        setError(r.error ?? CL.bootFailed);
+        setBootFailed(true);
+        setBooting(false);
+        return;
+      }
+
+      const convos = r.conversations ?? [];
+      setConversations(convos);
+      setPeers(r.peers ?? []);
+      setPresence(r.presence ?? []);
+
+      let restored: string | null = null;
+      try {
+        restored = localStorage.getItem(LAST_CHAT_KEY);
+      } catch {
+        restored = null;
+      }
+      const restoredOk =
+        restored && convos.some((c) => c.id === restored) ? restored : null;
+      const team = convos.find((c) => c.kind === "team");
+      const nextId = restoredOk ?? team?.id ?? convos[0]?.id ?? null;
+      if (nextId) {
+        setActiveId(nextId);
+        persistActive(nextId);
+      }
+
+      // 6) Gate realtime — only after successful provisioning
+      setProvisioned(true);
+      setBooting(false);
+      await setConnectPresenceAction({ status: "online", activity: null });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : CL.bootFailed);
+      setBootFailed(true);
+      setBooting(false);
+    }
+  }, [persistActive]);
+
   const selectConversation = useCallback(
     (conversationId: string) => {
       setActiveId((prev) => {
@@ -254,35 +331,10 @@ export function ConnectWorkspace({ userId, displayName }: Props) {
 
   useEffect(() => {
     let cancelled = false;
-    (async () => {
-      const r = await bootstrapConnectAction();
+    void (async () => {
+      await runBootstrap();
+      // runBootstrap owns UI state; ignore late completion only for presence teardown
       if (cancelled) return;
-      if (!r.ok) {
-        setError(r.error ?? "فشل التحميل");
-        setBooting(false);
-        return;
-      }
-      const convos = r.conversations ?? [];
-      setConversations(convos);
-      setPeers(r.peers ?? []);
-      setPresence(r.presence ?? []);
-
-      let restored: string | null = null;
-      try {
-        restored = localStorage.getItem(LAST_CHAT_KEY);
-      } catch {
-        restored = null;
-      }
-      const restoredOk =
-        restored && convos.some((c) => c.id === restored) ? restored : null;
-      const team = convos.find((c) => c.kind === "team");
-      const nextId = restoredOk ?? team?.id ?? convos[0]?.id ?? null;
-      if (nextId) {
-        setActiveId(nextId);
-        persistActive(nextId);
-      }
-      setBooting(false);
-      await setConnectPresenceAction({ status: "online", activity: null });
     })();
 
     const onVis = () => {
@@ -301,15 +353,17 @@ export function ConnectWorkspace({ userId, displayName }: Props) {
       clearInterval(heartbeat);
       void setConnectPresenceAction({ status: "offline", activity: null });
     };
-  }, [persistActive]);
+  }, [runBootstrap]);
 
   useEffect(() => {
-    if (!activeId) return;
+    if (!activeId || !provisioned) return;
     void loadThread(activeId, true);
-  }, [activeId, loadThread]);
+  }, [activeId, loadThread, provisioned]);
 
-  // Realtime — messages + memberships so new accounts appear without reload
+  // Realtime — only after successful connect_ensure_self + roster load
   useEffect(() => {
+    if (!provisioned) return;
+
     const supabase = createClient();
     const channel = supabase
       .channel("soda-team-chat")
@@ -373,7 +427,7 @@ export function ConnectWorkspace({ userId, displayName }: Props) {
     return () => {
       void supabase.removeChannel(channel);
     };
-  }, [activeId, loadThread, refreshConvos]);
+  }, [provisioned, activeId, loadThread, refreshConvos]);
 
   async function loadOlder() {
     if (!activeId || !messages.length || loadingOlder || !hasMore) return;
@@ -664,6 +718,23 @@ export function ConnectWorkspace({ userId, displayName }: Props) {
     return (
       <div className="flex h-[min(78vh,820px)] items-center justify-center rounded-2xl border border-white/10 bg-[radial-gradient(ellipse_at_top,_rgba(41,25,74,0.55),_#0c0a12_65%)]">
         <Loader2 className="size-8 animate-spin text-[#D23B68]" />
+      </div>
+    );
+  }
+
+  if (bootFailed) {
+    return (
+      <div className="flex h-[min(78vh,820px)] flex-col items-center justify-center gap-4 rounded-2xl border border-white/10 bg-[radial-gradient(ellipse_at_top,_rgba(41,25,74,0.55),_#0c0a12_65%)] px-6 text-center">
+        <p className="max-w-sm text-sm text-red-300">
+          {error ?? CL.bootFailed}
+        </p>
+        <Button
+          type="button"
+          variant="secondary"
+          onClick={() => void runBootstrap()}
+        >
+          {CL.retry}
+        </Button>
       </div>
     );
   }

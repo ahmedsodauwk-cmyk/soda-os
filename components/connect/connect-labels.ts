@@ -57,4 +57,6 @@ export const CL = {
   presenceCustom: "حالة مخصصة",
   markRead: "اتقرت",
   playback: "سرعة التشغيل",
+  bootFailed: "مش قادرين نجهّز Team Chat دلوقتي",
+  retry: "حاول تاني",
 } as const;

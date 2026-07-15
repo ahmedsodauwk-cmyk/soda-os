@@ -71,8 +71,8 @@ export async function bootstrapConnectAction(): Promise<{
 }> {
   const gate = await requireConnect();
   if (!gate.ok) return gate;
-  // Silent: ensure Team room + private DM with every active Connect peer,
-  // heal via service RPCs when memberships are missing, then return roster.
+  // Gate: connect_ensure_self (authenticated user) must succeed before roster load.
+  // Missing peer DMs may still be healed via admin RPCs after that gate.
   const roster = await bootstrapTeamChatRoster(gate.userId);
   if (!roster.ok) return { ok: false, error: roster.error };
   await upsertPresence({ userId: gate.userId, status: "online", activity: null });
