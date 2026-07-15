@@ -10,6 +10,7 @@ import { redirect } from "next/navigation";
 
 import { ShellProvider } from "@/components/layout/shell-context";
 import { ShellFrame } from "@/components/layout/shell-frame";
+import { BOOT_BUDGET_MS, withTimeout } from "@/lib/async/with-timeout";
 import { loadNotificationsForSession } from "@/lib/core/notifications/load";
 import { getRecentlyViewed } from "@/lib/identity/recent";
 import { permissionsForAsync } from "@/lib/identity/permission-service";
@@ -33,7 +34,17 @@ export default async function ShellLayout({
     headerList.get("next-url") ||
     "/";
 
-  const session = await resolveSessionForApp();
+  // Hard ceiling: splash must hide within BOOT_BUDGET_MS regardless of
+  // session soft-fail, notifications, or any Connect/roster work.
+  const bootStarted = Date.now();
+  const bootLeft = () =>
+    Math.max(250, BOOT_BUDGET_MS - (Date.now() - bootStarted));
+
+  const session = await withTimeout(
+    resolveSessionForApp(),
+    bootLeft(),
+    null
+  );
 
   if (!session && isAuthStrict()) {
     redirect("/login");
@@ -48,12 +59,17 @@ export default async function ShellLayout({
     redirect("/settings/password?forced=1");
   }
 
-  // Parallelize shell data — never waterfall notifications → permissions.
+  // Parallelize shell data — never waterfall; stay inside remaining boot budget.
+  // Soft Team path used to hang forever on loadNotifications → refreshDashboardDomainData.
   const [notifications, recent, permissionResult] = await Promise.all([
-    loadNotificationsForSession(session),
+    withTimeout(loadNotificationsForSession(session), bootLeft(), []),
     getRecentlyViewed(),
     session
-      ? permissionsForAsync(session.profile.accessLevel)
+      ? withTimeout(
+          permissionsForAsync(session.profile.accessLevel),
+          bootLeft(),
+          null
+        )
       : Promise.resolve(null),
   ]);
 

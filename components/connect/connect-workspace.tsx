@@ -198,6 +198,8 @@ export function ConnectWorkspace({ userId, displayName }: Props) {
   /**
    * Required order: session ready → connect_ensure_self (user client) →
    * roster load → only then mark provisioned for realtime.
+   * Hard timeouts — Connect must never hang the chat page forever.
+   * Connect is NOT on app-shell critical path; this only protects /connect.
    */
   const runBootstrap = useCallback(async () => {
     setBooting(true);
@@ -205,34 +207,41 @@ export function ConnectWorkspace({ userId, displayName }: Props) {
     setProvisioned(false);
     setError(null);
 
+    const withClientTimeout = <T,>(p: Promise<T>, ms: number): Promise<T | null> =>
+      Promise.race([
+        p.then((v) => v as T | null, () => null),
+        new Promise<null>((resolve) => setTimeout(() => resolve(null), ms)),
+      ]);
+
     try {
       const supabase = createClient();
 
-      // 1) Wait until authenticated session is fully available
-      const {
-        data: { user },
-        error: userErr,
-      } = await supabase.auth.getUser();
-      if (userErr || !user) {
-        setError(userErr?.message ?? CL.bootFailed);
+      // 1) Wait until authenticated session is fully available (≤3s)
+      const auth = await withClientTimeout(supabase.auth.getUser(), 3_000);
+      const user = auth?.data?.user;
+      if (!auth || auth.error || !user) {
+        setError(auth?.error?.message ?? CL.bootFailed);
         setBootFailed(true);
         setBooting(false);
         return;
       }
 
-      // 2–3) Provision self via authenticated user client — never service role
-      const { error: ensureErr } = await supabase.rpc("connect_ensure_self");
-      if (ensureErr) {
-        setError(ensureErr.message || CL.bootFailed);
+      // 2–3) Provision self — never hang forever on RPC
+      const ensure = await withClientTimeout(
+        Promise.resolve(supabase.rpc("connect_ensure_self")),
+        3_000
+      );
+      if (!ensure || ensure.error) {
+        setError(ensure?.error?.message || CL.bootFailed);
         setBootFailed(true);
         setBooting(false);
         return;
       }
 
       // 4) After ensure_self success: load conversations, peers, presence
-      const r = await bootstrapConnectAction();
-      if (!r.ok) {
-        setError(r.error ?? CL.bootFailed);
+      const r = await withClientTimeout(bootstrapConnectAction(), 3_000);
+      if (!r || !r.ok) {
+        setError(r?.error ?? CL.bootFailed);
         setBootFailed(true);
         setBooting(false);
         return;
@@ -261,7 +270,7 @@ export function ConnectWorkspace({ userId, displayName }: Props) {
       // 6) Gate realtime — only after successful provisioning
       setProvisioned(true);
       setBooting(false);
-      await setConnectPresenceAction({ status: "online", activity: null });
+      void setConnectPresenceAction({ status: "online", activity: null });
     } catch (err) {
       setError(err instanceof Error ? err.message : CL.bootFailed);
       setBootFailed(true);

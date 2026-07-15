@@ -5,6 +5,7 @@
 
 import { cache } from "react";
 
+import { BOOT_BUDGET_MS, withTimeout } from "@/lib/async/with-timeout";
 import { createClient } from "@/lib/supabase/server";
 import {
   accessLevelCan,
@@ -165,8 +166,6 @@ async function ensureProfile(
     return mapProfileRow(fetched.row, email);
   }
 
-  const name =
-    fullName?.trim() || email.split("@")[0] || ROLE_LABELS.crew_member;
   const username = email.includes("@") ? email.split("@")[0]! : null;
 
   // Recursive profiles RLS (42P17) — SELECT always fails; inserting cannot heal it.
@@ -175,19 +174,7 @@ async function ensureProfile(
     console.error(
       "[session] profiles RLS recursion (42P17); soft Team session to stop redirect loop"
     );
-    return {
-      id: userId,
-      email,
-      username,
-      fullName: name,
-      displayName: name,
-      role: "crew_member",
-      accessLevel: "team",
-      personId: null,
-      avatarInitials: initialsFrom(name, email),
-      isActive: true,
-      mustChangePassword: false,
-    };
+    return softTeamProfile(userId, email, fullName);
   }
 
   const supabase = await createClient();
@@ -265,19 +252,68 @@ async function ensureProfile(
   return mapProfileRow(inserted, email, role);
 }
 
-/** Verified session + profile. Null when signed out. Deduped per request. */
-export const getSodaSession = cache(async (): Promise<SodaSession | null> => {
+/**
+ * Soft Team profile when auth succeeded but profile SELECT hangs / recurses.
+ * Never invent Founder — breaks middleware↔login loops without elevating.
+ */
+function softTeamProfile(
+  userId: string,
+  email: string,
+  fullName?: string | null
+): SodaProfile {
+  const name =
+    fullName?.trim() || email.split("@")[0] || ROLE_LABELS.crew_member;
+  const username = email.includes("@") ? email.split("@")[0]! : null;
+  return {
+    id: userId,
+    email,
+    username,
+    fullName: name,
+    displayName: name,
+    role: "crew_member",
+    accessLevel: "team",
+    personId: null,
+    avatarInitials: initialsFrom(name, email),
+    isActive: true,
+    mustChangePassword: false,
+  };
+}
+
+async function getSodaSessionInner(): Promise<SodaSession | null> {
   try {
     const supabase = await createClient();
-    const { data, error } = await supabase.auth.getUser();
-    if (error || !data.user) return null;
+    const started = Date.now();
+    const left = () =>
+      Math.max(200, BOOT_BUDGET_MS - 250 - (Date.now() - started));
 
-    const email = data.user.email ?? "";
-    const profile = await ensureProfile(
-      data.user.id,
-      email,
-      (data.user.user_metadata?.full_name as string | undefined) ??
-        (data.user.user_metadata?.name as string | undefined)
+    // Auth must not block splash forever (slow IdP / hung fetch).
+    const authResult = await withTimeout(
+      supabase.auth.getUser().then(
+        (r) => ({
+          user: r.data.user,
+          error: r.error,
+        }),
+        () => ({
+          user: null as null,
+          error: { message: "auth.getUser failed" },
+        })
+      ),
+      left(),
+      { user: null, error: { message: "auth.getUser timeout" } }
+    );
+    if (authResult.error || !authResult.user) return null;
+
+    const user = authResult.user;
+    const email = user.email ?? "";
+    const metaName =
+      (user.user_metadata?.full_name as string | undefined) ??
+      (user.user_metadata?.name as string | undefined);
+
+    // Profile / RLS hang → soft Team within remaining budget (never invent Founder).
+    const profile = await withTimeout(
+      ensureProfile(user.id, email, metaName),
+      left(),
+      softTeamProfile(user.id, email, metaName)
     );
     if (!profile || !profile.isActive) return null;
 
@@ -287,13 +323,19 @@ export const getSodaSession = cache(async (): Promise<SodaSession | null> => {
       resolveAccessLevel({ role: profile.role });
 
     return {
-      userId: data.user.id,
+      userId: user.id,
       email,
       profile: { ...profile, accessLevel },
     };
   } catch {
     return null;
   }
+}
+
+/** Verified session + profile. Null when signed out. Deduped per request. */
+export const getSodaSession = cache(async (): Promise<SodaSession | null> => {
+  // Inner steps already respect BOOT_BUDGET_MS; do not null a soft-Team result here.
+  return getSodaSessionInner();
 });
 
 export async function requireSodaSession(): Promise<SodaSession> {

@@ -1,6 +1,7 @@
 import { cache } from "react";
 
 import { refreshAssignments } from "@/lib/assignments/repository";
+import { BOOT_BUDGET_MS, withTimeout } from "@/lib/async/with-timeout";
 import { getClients } from "@/lib/clients/repository";
 import { refreshBusinessEventsFromDb } from "@/lib/core/events-store";
 import {
@@ -26,8 +27,10 @@ async function withLifecycle(
   items: NotificationRecord[],
   events: Awaited<ReturnType<typeof refreshBusinessEventsFromDb>>
 ): Promise<NotificationRecord[]> {
-  const stateMap = await loadNotificationStatesForUser(session.userId).catch(
-    () => new Map()
+  const stateMap = await withTimeout(
+    loadNotificationStatesForUser(session.userId).catch(() => new Map()),
+    BOOT_BUDGET_MS,
+    new Map()
   );
   const merged = applyPersistedState(items, stateMap);
   const synced = applySmartSync(merged, events);
@@ -60,19 +63,32 @@ export const loadNotificationsForSession = cache(
 
     if (session.profile.accessLevel === "founder") {
       const [events] = await Promise.all([
-        refreshBusinessEventsFromDb(80).catch(() => []),
-        refreshAssignments().catch(() => undefined),
+        withTimeout(
+          refreshBusinessEventsFromDb(80).catch(() => []),
+          BOOT_BUDGET_MS,
+          []
+        ),
+        withTimeout(
+          refreshAssignments().catch(() => undefined),
+          BOOT_BUDGET_MS,
+          undefined
+        ),
       ]);
       const items = hydrateNotificationsFromEvents(events);
       return withLifecycle(session, items, events);
     }
 
     // Wider pull then filter — scoped users often aren't in the latest 80 company events.
+    // Soft Team / hung Supabase fan-out must NOT block shell paint — continue in background.
     const [events] = await Promise.all([
-      refreshBusinessEventsFromDb(300).catch(() => [] as Awaited<
-        ReturnType<typeof refreshBusinessEventsFromDb>
-      >),
-      refreshDashboardDomainData(),
+      withTimeout(
+        refreshBusinessEventsFromDb(300).catch(() => [] as Awaited<
+          ReturnType<typeof refreshBusinessEventsFromDb>
+        >),
+        BOOT_BUDGET_MS,
+        [] as Awaited<ReturnType<typeof refreshBusinessEventsFromDb>>
+      ),
+      withTimeout(refreshDashboardDomainData(), BOOT_BUDGET_MS, undefined),
     ]);
 
     const scope = buildDataScope(session, {

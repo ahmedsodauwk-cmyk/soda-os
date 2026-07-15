@@ -6,6 +6,7 @@ import { FounderHomeStream } from "@/components/dashboard/founder-home-stream";
 import { HomeGreetingFirst } from "@/components/dashboard/home-greeting-first";
 import { WelcomeGate } from "@/components/dashboard/welcome-gate";
 import { SkeletonDashboardHome } from "@/components/ui/soda-skeleton";
+import { BOOT_BUDGET_MS, withTimeout } from "@/lib/async/with-timeout";
 import { buildDashboardSnapshot } from "@/lib/dashboard/stats";
 import {
   buildDataScope,
@@ -69,7 +70,8 @@ export default async function Home() {
   }
 
   // Non-Founder — scoped domain refresh + scoped snapshot (no company finance).
-  await refreshDashboardDomainData();
+  // Soft Team session must not hang forever on domain fan-out.
+  await withTimeout(refreshDashboardDomainData(), BOOT_BUDGET_MS, undefined);
   const allOrders = getOrders();
   const allClients = getClients();
   const scope = buildDataScope(session, {
