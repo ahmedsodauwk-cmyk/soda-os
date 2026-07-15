@@ -116,9 +116,28 @@ function mapProfileRow(
   };
 }
 
-async function fetchProfileRow(
+type ProfileFetchResult =
+  | { status: "ok"; row: ProfileRow }
+  | { status: "missing" }
+  | { status: "recursion" }
+  | { status: "error"; message: string };
+
+function isRecursionError(message: string | undefined): boolean {
+  return !!message && /42P17|infinite recursion|recursion detected/i.test(message);
+}
+
+function isMissingProfileError(error: {
+  code?: string;
+  message?: string;
+} | null): boolean {
+  if (!error) return true;
+  if (error.code === "PGRST116") return true;
+  return /0 rows|JSON object requested/i.test(error.message ?? "");
+}
+
+async function fetchProfileRowOnce(
   userId: string
-): Promise<{ row: ProfileRow | null; recursion: boolean }> {
+): Promise<ProfileFetchResult> {
   try {
     const supabase = await createClient();
     const full = await supabase
@@ -128,12 +147,12 @@ async function fetchProfileRow(
       .maybeSingle();
 
     if (!full.error && full.data) {
-      return { row: full.data as ProfileRow, recursion: false };
+      return { status: "ok", row: full.data as ProfileRow };
     }
 
-    const recursion =
-      !!full.error &&
-      /42P17|infinite recursion|recursion detected/i.test(full.error.message);
+    if (isRecursionError(full.error?.message)) {
+      return { status: "recursion" };
+    }
 
     // Columns may be missing until access-level migration is applied.
     const legacy = await supabase
@@ -143,17 +162,53 @@ async function fetchProfileRow(
       .maybeSingle();
 
     if (!legacy.error && legacy.data) {
-      return { row: legacy.data as ProfileRow, recursion: false };
+      return { status: "ok", row: legacy.data as ProfileRow };
     }
 
-    const legacyRecursion =
-      !!legacy.error &&
-      /42P17|infinite recursion|recursion detected/i.test(legacy.error.message);
+    if (isRecursionError(legacy.error?.message)) {
+      return { status: "recursion" };
+    }
 
-    return { row: null, recursion: recursion || legacyRecursion };
-  } catch {
-    return { row: null, recursion: false };
+    // Soft-Team / insert path only when SELECT proves no row — never on hard errors.
+    const hardFull =
+      full.error && !isMissingProfileError(full.error)
+        ? full.error.message
+        : null;
+    const hardLegacy =
+      legacy.error && !isMissingProfileError(legacy.error)
+        ? legacy.error.message
+        : null;
+    if (hardFull || hardLegacy) {
+      return {
+        status: "error",
+        message: hardLegacy ?? hardFull ?? "profile select failed",
+      };
+    }
+
+    // maybeSingle: data null + no error, or PGRST116 → confirmed missing.
+    return { status: "missing" };
+  } catch (err) {
+    return {
+      status: "error",
+      message: err instanceof Error ? err.message : "profile select threw",
+    };
   }
+}
+
+/** Bounded retries for transient RLS / network profile SELECT failures. */
+async function fetchProfileRow(
+  userId: string
+): Promise<ProfileFetchResult> {
+  const maxAttempts = 3;
+  let last: ProfileFetchResult = { status: "error", message: "untried" };
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    last = await fetchProfileRowOnce(userId);
+    if (last.status === "ok" || last.status === "missing") return last;
+    if (attempt < maxAttempts) {
+      await new Promise((r) => setTimeout(r, 40 * attempt));
+    }
+  }
+  return last;
 }
 
 async function ensureProfile(
@@ -162,20 +217,22 @@ async function ensureProfile(
   fullName?: string | null
 ): Promise<SodaProfile | null> {
   const fetched = await fetchProfileRow(userId);
-  if (fetched.row) {
+  if (fetched.status === "ok") {
     return mapProfileRow(fetched.row, email);
   }
 
-  const username = email.includes("@") ? email.split("@")[0]! : null;
-
-  // Recursive profiles RLS (42P17) — SELECT always fails; inserting cannot heal it.
-  // Soft Team session breaks middleware↔shell /login redirect loop. Never invent Founder.
-  if (fetched.recursion) {
+  // 42P17 / transient SELECT failure — never Soft-Team demote a real Founder.
+  // Fail closed (null → login) rather than invent accessLevel: team.
+  if (fetched.status === "recursion" || fetched.status === "error") {
     console.error(
-      "[session] profiles RLS recursion (42P17); soft Team session to stop redirect loop"
+      `[session] profile SELECT failed (${fetched.status}); fail closed — no Soft-Team demotion`,
+      fetched.status === "error" ? fetched.message : "42P17"
     );
-    return softTeamProfile(userId, email, fullName);
+    return null;
   }
+
+  // status === "missing" — authenticated user truly has no profile row.
+  const username = email.includes("@") ? email.split("@")[0]! : null;
 
   const supabase = await createClient();
 
@@ -233,28 +290,16 @@ async function ensureProfile(
   if (error || !inserted) {
     // NEVER invent Founder/owner grants when profile write fails.
     if (isAuthStrict()) return null;
-    // Local/dev soft profile — Team only (deny company admin).
-    return {
-      id: userId,
-      email,
-      username,
-      fullName: resolvedName,
-      displayName: resolvedName,
-      role: "crew_member",
-      accessLevel: "team",
-      personId: null,
-      avatarInitials: initialsFrom(resolvedName, email),
-      isActive: true,
-      mustChangePassword: false,
-    };
+    // Local/dev only — Soft-Team when profile row truly missing and insert failed.
+    return softTeamProfile(userId, email, fullName);
   }
 
   return mapProfileRow(inserted, email, role);
 }
 
 /**
- * Soft Team profile when auth succeeded but profile SELECT hangs / recurses.
- * Never invent Founder — breaks middleware↔login loops without elevating.
+ * Soft Team ONLY when the auth user truly has no profile row (local/dev insert
+ * fallback). Never use for 42P17 / timeout / transient SELECT failure.
  */
 function softTeamProfile(
   userId: string,
@@ -309,15 +354,15 @@ async function getSodaSessionInner(): Promise<SodaSession | null> {
       (user.user_metadata?.full_name as string | undefined) ??
       (user.user_metadata?.name as string | undefined);
 
-    // Profile / RLS hang → soft Team within remaining budget (never invent Founder).
+    // Profile hang → fail closed (null), never Soft-Team demote Founder.
     const profile = await withTimeout(
       ensureProfile(user.id, email, metaName),
       left(),
-      softTeamProfile(user.id, email, metaName)
+      null
     );
     if (!profile || !profile.isActive) return null;
 
-    // Coerce — never null an authenticated profile (middleware↔login redirect loop).
+    // Real profile only — Access Level from DB row / role mapping.
     const accessLevel =
       parseAccessLevel(profile.accessLevel) ??
       resolveAccessLevel({ role: profile.role });
@@ -334,7 +379,7 @@ async function getSodaSessionInner(): Promise<SodaSession | null> {
 
 /** Verified session + profile. Null when signed out. Deduped per request. */
 export const getSodaSession = cache(async (): Promise<SodaSession | null> => {
-  // Inner steps already respect BOOT_BUDGET_MS; do not null a soft-Team result here.
+  // Inner steps respect BOOT_BUDGET_MS; timeout fails closed (null), never Soft-Team.
   return getSodaSessionInner();
 });
 
