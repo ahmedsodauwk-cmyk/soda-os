@@ -28,6 +28,7 @@ GitHub is not the only source. The Founder PC holds the primary recovery tree (`
 
 ```bash
 npm run backup:source          # Create Source Snapshot → Exports/ or D:\SODA OS\Versions
+npm run backup:database        # Database snapshot → D:\SODA OS\Database (or Exports/Database)
 npm run founder:local-dirs     # Create D:\SODA OS\ folders when that drive exists
 ```
 

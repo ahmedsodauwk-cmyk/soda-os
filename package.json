@@ -35,6 +35,8 @@
     "smoke:smart-ops": "npx tsx scripts/smoke-smart-ops.ts",
     "backup:source": "npx tsx scripts/create-source-snapshot.ts",
     "soda:source-snapshot": "npx tsx scripts/create-source-snapshot.ts",
+    "backup:database": "npx tsx scripts/create-database-snapshot.ts",
+    "soda:database-snapshot": "npx tsx scripts/create-database-snapshot.ts",
     "founder:local-dirs": "npx tsx scripts/ensure-founder-local-structure.ts"
   },
   "dependencies": {
