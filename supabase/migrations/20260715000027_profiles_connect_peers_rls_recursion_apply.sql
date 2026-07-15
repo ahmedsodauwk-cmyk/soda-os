@@ -1,16 +1,14 @@
--- SODA VISUALS — HOTFIX: profiles_select_connect_peers RLS recursion (42P17)
+-- SODA VISUALS — HOTFIX: remaining profiles 42P17 (Connect peers RLS)
 -- Safe to re-run (CREATE OR REPLACE / DROP POLICY IF EXISTS).
 --
--- Root cause (full-app /login ↔ / redirect loop):
---   Connect foundation added profiles_select_connect_peers with
---   EXISTS (SELECT 1 FROM public.profiles me ...) inside a profiles policy.
---   That re-enters RLS → PostgreSQL 42P17 on every profiles SELECT.
---   Session resolution then returns null → shell redirect /login →
---   middleware sees auth cookie → redirect / → continuous refresh.
+-- Production still has recursive select via profiles_select_connect_peers
+-- (nested EXISTS … FROM profiles inside a profiles policy) OR an incomplete
+-- helper without row_security=off. Result: every profiles SELECT → 42P17
+-- and `[session] profile SELECT failed (recursion) 42P17`.
 --
--- Same class of bug as 20260714000019_profiles_rls_recursion_repair.sql.
--- Scope: replace ONLY the recursive Connect peers SELECT policy.
--- Prefer 20260715000027_… if re-applying on Production (plpgsql + SET).
+-- Pattern mirrors 20260714000019_profiles_rls_recursion_repair.sql:
+-- SECURITY DEFINER + SET row_security = off. Uses plpgsql so the body is
+-- never inlined into the policy expression (SQL functions can lose SET).
 
 CREATE OR REPLACE FUNCTION public.connect_viewer_is_active()
 RETURNS boolean
@@ -22,7 +20,8 @@ SET row_security = off
 AS $$
 BEGIN
   RETURN EXISTS (
-    SELECT 1 FROM public.profiles
+    SELECT 1
+    FROM public.profiles
     WHERE id = auth.uid()
       AND coalesce(is_active, false) = true
   );

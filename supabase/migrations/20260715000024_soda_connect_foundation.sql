@@ -545,19 +545,22 @@ create policy connect_presence_upsert on public.connect_presence
 -- Active peers for Connect directory (membership-safe; no Founder leak of messages).
 -- NEVER SELECT profiles inside a profiles policy — that causes 42P17 RLS recursion
 -- and a full-app /login ↔ / redirect loop. Helper uses row_security = off.
+-- plpgsql (not sql) so SET row_security = off cannot be lost to inlining.
 create or replace function public.connect_viewer_is_active()
 returns boolean
-language sql
+language plpgsql
 stable
 security definer
 set search_path = public
 set row_security = off
 as $$
-  select exists (
+begin
+  return exists (
     select 1 from public.profiles
     where id = auth.uid()
       and coalesce(is_active, false) = true
   );
+end;
 $$;
 
 revoke all on function public.connect_viewer_is_active() from public;

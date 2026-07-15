@@ -8,7 +8,7 @@ import { resolve } from "node:path";
 import { loadEnvLocal, maskSecret } from "./load-env-local";
 
 const MIGRATION =
-  "supabase/migrations/20260715000026_profiles_connect_peers_rls_fix.sql";
+  "supabase/migrations/20260715000027_profiles_connect_peers_rls_recursion_apply.sql";
 
 function projectRefFromUrl(url: string | undefined): string | undefined {
   if (!url) return undefined;
