@@ -126,6 +126,26 @@ export default async function SettingsPage() {
           </Card>
         ) : null}
 
+        {session.profile.accessLevel === "founder" ? (
+          <Card className="soda-cc-card border-soda-pink/20">
+            <CardHeader>
+              <CardTitle>Backup Center</CardTitle>
+              <CardDescription>
+                Founder-only recoverability — manual packages, history, and
+                download. Restore coming soon.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Link
+                href="/settings/backup"
+                className="text-sm text-soda-pink hover:underline"
+              >
+                Open Backup Center →
+              </Link>
+            </CardContent>
+          </Card>
+        ) : null}
+
         {canManageUsers ? (
           <Card className="soda-cc-card">
             <CardHeader>
@@ -147,6 +167,9 @@ export default async function SettingsPage() {
             { label: "Finance", href: "/finance" },
             { label: "People", href: "/people" },
             { label: "Authority Center", href: "/settings/authority" },
+            ...(session.profile.accessLevel === "founder"
+              ? [{ label: "Backup Center", href: "/settings/backup" }]
+              : []),
             { label: "About SODA VISUALS", href: "/about" },
           ]}
         />

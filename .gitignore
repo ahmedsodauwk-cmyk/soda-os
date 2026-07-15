@@ -50,3 +50,7 @@ next-env.d.ts
 # Mission 06.2 Notification Center UX screenshots
 .notification-ux-shots/
 
+# SODA Backup Center packages (Mission 08.0) — never commit backup payloads
+/data/backups/**
+!/data/backups/.gitkeep
+
