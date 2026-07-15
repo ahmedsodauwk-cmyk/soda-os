@@ -32,7 +32,10 @@
     "verify:business-core": "npx tsx scripts/verify-business-core.ts",
     "smoke:business-rules": "npx tsx scripts/smoke-business-rules.ts",
     "smoke:financial-core": "npx tsx scripts/smoke-financial-core.ts",
-    "smoke:smart-ops": "npx tsx scripts/smoke-smart-ops.ts"
+    "smoke:smart-ops": "npx tsx scripts/smoke-smart-ops.ts",
+    "backup:source": "npx tsx scripts/create-source-snapshot.ts",
+    "soda:source-snapshot": "npx tsx scripts/create-source-snapshot.ts",
+    "founder:local-dirs": "npx tsx scripts/ensure-founder-local-structure.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",

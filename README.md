@@ -22,10 +22,20 @@ Open [http://localhost:3000](http://localhost:3000).
 Official company name: **SODA VISUALS**  
 Never use: SODA Studio, or branding derived from “Studio”.
 
+## Source protection (Founder)
+
+GitHub is not the only source. The Founder PC holds the primary recovery tree (`D:\SODA OS\`). Details: `docs/SODA_MASTER/SOURCE_PROTECTION.md`.
+
+```bash
+npm run backup:source          # Create Source Snapshot → Exports/ or D:\SODA OS\Versions
+npm run founder:local-dirs     # Create D:\SODA OS\ folders when that drive exists
+```
+
 ## Learn More
 
 - [Next.js Documentation](https://nextjs.org/docs)
 - SODA MASTER docs under `docs/SODA_MASTER/`
+- Source protection: `docs/SODA_MASTER/SOURCE_PROTECTION.md`
 
 ## Deploy on Vercel
 

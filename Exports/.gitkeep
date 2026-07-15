@@ -1,0 +1,3 @@
+# Source snapshots (Mission 08.1) — never commit payload zips
+/Exports/**
+!/Exports/.gitkeep
