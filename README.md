@@ -36,6 +36,7 @@ npm run founder:local-dirs     # Create D:\SODA OS\ folders when that drive exis
 ## Learn More
 
 - [Next.js Documentation](https://nextjs.org/docs)
+- **Master Project State (official SoT):** `docs/SODA_MASTER/SODA_OS_MASTER_PROJECT_STATE.md`
 - SODA MASTER docs under `docs/SODA_MASTER/`
 - Source protection: `docs/SODA_MASTER/SOURCE_PROTECTION.md`
 
