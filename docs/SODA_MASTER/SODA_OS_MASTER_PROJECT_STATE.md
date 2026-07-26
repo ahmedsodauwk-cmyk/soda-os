@@ -5,8 +5,8 @@
 
 | Field | Value |
 |--------|--------|
-| **Document version** | `1.0.1` |
-| **Last updated** | `2026-07-16` |
+| **Document version** | `1.0.2` |
+| **Last updated** | `2026-07-26` |
 | **Product** | SODA OS |
 | **Company** | SODA VISUALS |
 | **Application version** | `0.1.0` (`package.json`) |
@@ -42,7 +42,7 @@ Before major auth / identity / DB / migrations / RLS / finance / production-data
 
 ## CURRENT MISSION
 
-**Mission SR-00.2 — Controlled Push, Deployment & Production Verification** (next security gate; not started)
+**Mission SR-01 — Core Domain RLS Lockdown** (next security gate; not started)
 
 Parallel reliability work remains open: **Mission 08.2.1 — Live Production Database Backup Completion**.
 
@@ -55,7 +55,7 @@ Parallel reliability work remains open: **Mission 08.2.1 — Live Production Dat
 3. Production credentials must **never** be stored in source / Git / logs / manifests / ZIPs
 4. Restore execution remains **disabled** until a dedicated Restore Engine mission
 5. Security audit **C1** (permissive domain RLS) and **C2** (ungated client domain mutations) remain **OPEN**
-6. **SR-00** Production auth fail-closed: architecture complete locally; **live Production verification pending** (no push/deploy yet)
+6. Security audit **H1–H5** remain **OPEN**
 
 ---
 
@@ -70,9 +70,10 @@ Parallel reliability work remains open: **Mission 08.2.1 — Live Production Dat
 | **Overall rating** | **CRITICAL** |
 | **C1** | **OPEN** — Permissive anon/authenticated RLS on core business tables |
 | **C2** | **OPEN** — Client Components mutate domain data without Server Action authz |
-| **H6 (auth footgun)** | Addressed in architecture by **SR-00** (local RC); Production runtime verify still pending |
+| **H6 (auth footgun)** | **REMEDIATED / VERIFIED** — SR-00 closed; Production auth fail-closed confirmed **2026-07-26** |
+| **H1–H5** | **OPEN** — unchanged from audit 2026-07-16 |
 
-Do **not** treat multi-user Production as safe until C1/C2 are closed and SR-00 live verification passes.
+Do **not** treat multi-user Production as safe until **C1** and **C2** are closed.
 
 ---
 
@@ -80,11 +81,15 @@ Do **not** treat multi-user Production as safe until C1/C2 are closed and SR-00 
 
 | Field | Value |
 |--------|--------|
-| **Status** | **ARCHITECTURE COMPLETE — LIVE VERIFICATION PENDING** |
-| **Local RC mission** | **SR-00.1** (this update) |
-| **Closed?** | **NO** — do not mark SR-00 CLOSED |
-| **Production deployment** | **NONE yet** |
-| **Next gate** | Scoped push/deployment + logged-out / Founder runtime verification (**SR-00.2**) |
+| **Status** | **CLOSED** |
+| **Local RC mission** | **SR-00.1** |
+| **Push / deploy / verify mission** | **SR-00.2** |
+| **Release Candidate commit** | `ebf763e8ceb5d5db13a469219e4fe8beedecd983` |
+| **Production deployment ID** | `dpl_82f5K6LVLAjpHAZ91nZzQJ2hyeGq` |
+| **Production alias** | https://soda-os.vercel.app — **Ready** |
+| **Verification date** | **2026-07-26** |
+| **Founder manual verification** | **PASS** |
+| **Next gate** | **SR-01 — Core Domain RLS Lockdown** |
 
 **Goal:** `VERCEL_ENV=production` always forces strict authentication; `SODA_AUTH_STRICT=0` cannot disable auth or synthesize `fallbackOwnerSession()` on Production; middleware + session share one `auth-strict` source of truth.
 
@@ -99,7 +104,18 @@ Do **not** treat multi-user Production as safe until C1/C2 are closed and SR-00 
 | `npm run build` | **PASS** (local; no Production secrets used) |
 | `git diff --check` (SR-00 scoped files) | **PASS** |
 
-**Not done in SR-00.1:** push, Vercel deploy, Production env changes, Supabase access, logged-out/Founder Production runtime proof.
+**Production evidence (SR-00.2 — 2026-07-26):**
+
+| Check | Result |
+|--------|--------|
+| Security commit deployed to Production | **PASS** — `ebf763e8ceb5d5db13a469219e4fe8beedecd983` |
+| Deployment state | **Ready** — `dpl_82f5K6LVLAjpHAZ91nZzQJ2hyeGq` |
+| Signed-out redirect `/` → `/login` | **PASS** — HTTP 307 |
+| Signed-out redirect `/brain` → `/login` | **PASS** — HTTP 307 |
+| Signed-out redirect `/people` → `/login` | **PASS** — HTTP 307 |
+| Signed-out redirect `/settings` → `/login` | **PASS** — HTTP 307 |
+| Founder manual login / auth smoke test | **PASS** (Founder confirmed in chat) |
+| H6 Production auth fallback | **REMEDIATED / VERIFIED** |
 
 ---
 
@@ -174,7 +190,7 @@ These decisions remain in force. Detail lives in the dedicated SoT chapters — 
 
 - Application feature modules (Orders, Finance, Team Chat / Connect, Notifications, Brain, Identity product UX) were **not** modified by the SR-00.1 documentation/auth-strict work beyond the scoped auth fail-closed files
 - Mission **08.2** is **not** CLOSED
-- Mission **SR-00** is **not** CLOSED (live Production verification pending)
+- Mission **SR-00** is **CLOSED** (SR-00.2 Production verification **2026-07-26**)
 - **C1** and **C2** remain **OPEN**
 - A live Production **database** dump does **not** yet exist
 - Restore Engine is **not** implemented / not executable from Backup Center
@@ -182,6 +198,15 @@ These decisions remain in force. Detail lives in the dedicated SoT chapters — 
 ---
 
 ## CHANGE LOG
+
+### v1.0.2 — 2026-07-26
+
+- Close **SR-00** — Production auth fail-closed verified on https://soda-os.vercel.app (**SR-00.2**)
+- Record RC commit `ebf763e8ceb5d5db13a469219e4fe8beedecd983`; deployment `dpl_82f5K6LVLAjpHAZ91nZzQJ2hyeGq` (**Ready**)
+- Record automated signed-out redirect evidence (`/`, `/brain`, `/people`, `/settings` → `/login`, HTTP 307) and Founder manual verification **PASS**
+- Mark **H6** Production auth fallback **REMEDIATED / VERIFIED**; **H1–H5** remain **OPEN**
+- Keep **C1**, **C2**, and live Production database backup gap **OPEN**
+- Set next security gate to **SR-01 — Core Domain RLS Lockdown**
 
 ### v1.0.1 — 2026-07-16
 

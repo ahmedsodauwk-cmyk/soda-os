@@ -517,3 +517,53 @@ Extensive Grep/Read/Glob of migrations, identity, middleware, actions, Connect, 
 - No commits or pushes.
 - No Production business data accessed or modified.
 - No secret values printed (variable names only).
+
+---
+
+## Appendix D — Remediation Status (SR-00 / H6)
+
+**Recorded:** 2026-07-26  
+**Mission:** SR-00 — Production Auth Fail-Closed (SR-00.1 local RC + SR-00.2 push/deploy/verify)  
+**Official state:** `docs/SODA_MASTER/SODA_OS_MASTER_PROJECT_STATE.md` (v1.0.2)
+
+> This appendix records post-audit remediation status only. **Original findings, severity counts, and §1–§22 content are unchanged.**
+
+### H6 — `SODA_AUTH_STRICT=0` synthesizes Founder session + opens middleware
+
+| Field | Value |
+|--------|--------|
+| **Original severity** | High (Critical **if** set on Production) — see §5 H6 |
+| **Remediation status** | **REMEDIATED / VERIFIED** |
+| **Mission** | **SR-00** — **CLOSED** |
+| **RC commit** | `ebf763e8ceb5d5db13a469219e4fe8beedecd983` |
+| **Production deployment** | `dpl_82f5K6LVLAjpHAZ91nZzQJ2hyeGq` — alias https://soda-os.vercel.app — **Ready** |
+| **Verification date** | **2026-07-26** |
+
+**Remediation implemented (source):** `lib/identity/auth-strict.ts` shared by middleware + session; `VERCEL_ENV=production` forces strict auth regardless of `SODA_AUTH_STRICT=0`; `fallbackOwnerSession()` cannot activate on Production.
+
+**Production verification evidence:**
+
+| Check | Result |
+|--------|--------|
+| Security commit deployed | **PASS** |
+| Signed-out `/` → `/login` | **PASS** — HTTP 307 |
+| Signed-out `/brain` → `/login` | **PASS** — HTTP 307 |
+| Signed-out `/people` → `/login` | **PASS** — HTTP 307 |
+| Signed-out `/settings` → `/login` | **PASS** — HTTP 307 |
+| Founder manual auth smoke test | **PASS** (Founder confirmed) |
+
+### Open findings (unchanged from 2026-07-16 audit)
+
+| ID | Status | Notes |
+|----|--------|--------|
+| **C1** | **OPEN** | Permissive anon/authenticated domain RLS |
+| **C2** | **OPEN** | Client Components mutate domain data without Server Action authz |
+| **H1** | **OPEN** | `profiles_select_connect_peers` broad PII exposure |
+| **H2** | **OPEN** | Connect Storage SELECT over-permissive |
+| **H3** | **OPEN** | Auth callback open redirect via `next` |
+| **H4** | **OPEN** | `handle_new_user` privileged metadata adoption |
+| **H5** | **OPEN** | Connect messages UPDATE any-member clause |
+
+**Overall audit rating remains CRITICAL** until **C1** and **C2** are closed. H6 no longer blocks Production auth-strict verification.
+
+**Next recommended mission:** **SR-01 — Core Domain RLS Lockdown** (addresses **C1**).
