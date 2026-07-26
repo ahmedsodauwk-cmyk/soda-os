@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 
 import { AddClientDialog } from "@/components/clients/add-client-dialog";
+import { useShellOptional } from "@/components/layout/shell-context";
 import { useUiActions } from "@/lib/brand/use-ui-actions";
 import { createClientAction } from "@/lib/clients/actions";
 import type { ClientType, NewClientInput } from "@/lib/clients/types";
@@ -20,6 +21,10 @@ export function ClientEntryActions({
 }: ClientEntryActionsProps) {
   const router = useRouter();
   const actions = useUiActions();
+  const shell = useShellOptional();
+  const isFounder = shell?.user?.accessLevel === "founder";
+
+  if (!isFounder) return null;
 
   async function handleAdd(input: NewClientInput) {
     const result = await createClientAction(input);

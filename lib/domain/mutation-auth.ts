@@ -1,7 +1,8 @@
-import "@/lib/domain/server-only-guard";
+﻿import "@/lib/domain/server-only-guard";
 
 import {
   accessLevelCan,
+  isFounderAccess,
 } from "@/lib/identity/access-levels";
 import type { Permission } from "@/lib/identity/permission-ids";
 import {
@@ -34,6 +35,17 @@ export async function requirePermission(
   const session = await resolveSessionForApp();
   if (!session) return { ok: false, error: "Unauthorized." };
   if (!accessLevelCan(session.profile.accessLevel, permission)) {
+    return { ok: false, error: "Forbidden." };
+  }
+  const scope = await buildServerDataScope(session);
+  return { ok: true, session, scope };
+}
+
+/** Founder-only mutations (order/client creation). Job title never grants this. */
+export async function requireFounder(): Promise<AuthGate> {
+  const session = await resolveSessionForApp();
+  if (!session) return { ok: false, error: "Unauthorized." };
+  if (!isFounderAccess(session.profile.accessLevel)) {
     return { ok: false, error: "Forbidden." };
   }
   const scope = await buildServerDataScope(session);
