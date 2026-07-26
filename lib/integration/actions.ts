@@ -1,4 +1,4 @@
-"use server";
+﻿"use server";
 
 import { revalidatePath } from "next/cache";
 
@@ -10,6 +10,7 @@ import {
 import {
   assertOrderAccess,
   isClientIdInScope,
+  requireFounder,
   requirePermission,
 } from "@/lib/domain/mutation-auth";
 import {
@@ -144,7 +145,7 @@ export async function runQuotationConversionFlowAction(
   quotationId: string,
   options?: { editedBy?: string; force?: boolean; emitDeposit?: boolean }
 ): Promise<DomainActionResult<QuotationConversionFlowResult>> {
-  const gate = await requirePermission("quotations.edit");
+  const gate = await requireFounder();
   if (!gate.ok) return actionError(gate.error);
 
   const quotation = getQuotationById(quotationId);

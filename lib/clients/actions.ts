@@ -1,4 +1,4 @@
-"use server";
+﻿"use server";
 
 import { revalidatePath } from "next/cache";
 
@@ -9,7 +9,7 @@ import {
 } from "@/lib/domain/types";
 import {
   assertClientAccess,
-  requirePermission,
+  requireFounder,
 } from "@/lib/domain/mutation-auth";
 import {
   createClient,
@@ -60,7 +60,7 @@ function revalidateClients(clientId?: string) {
 export async function createClientAction(
   input: NewClientInput
 ): Promise<DomainActionResult<Client>> {
-  const gate = await requirePermission("clients.manage");
+  const gate = await requireFounder();
   if (!gate.ok) return actionError(gate.error);
 
   try {
@@ -101,7 +101,7 @@ export async function createClientInlineAction(input: {
   whatsapp?: string;
   projectType: import("@/lib/orders/types").ProjectType;
 }): Promise<DomainActionResult<Client>> {
-  const gate = await requirePermission("clients.manage");
+  const gate = await requireFounder();
   if (!gate.ok) return actionError(gate.error);
 
   const name = input.name.trim();

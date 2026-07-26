@@ -8,7 +8,6 @@ import { useUiActions } from "@/lib/brand/use-ui-actions";
 import { refreshAssignments } from "@/lib/assignments/repository";
 import { refreshClients } from "@/lib/clients/repository";
 import { refreshFinance } from "@/lib/finance/repository";
-import { can, setHasAny } from "@/lib/identity/permissions";
 import { createSmartOrderAction } from "@/lib/orders/actions";
 import { refreshOrders } from "@/lib/orders/repository";
 import type { ProjectType, SmartOrderInput } from "@/lib/orders/types";
@@ -27,18 +26,15 @@ export function OrderEntryActions({
   const router = useRouter();
   const actions = useUiActions();
   const shell = useShellOptional();
-  const canCreate =
-    shell?.user?.allowedPermissions && shell.user.allowedPermissions.length > 0
-      ? setHasAny(shell.user.allowedPermissions, ["orders.create"])
-      : shell?.user?.accessLevel
-        ? can(shell.user.accessLevel, "orders.create")
-        : false;
+  const isFounder = shell?.user?.accessLevel === "founder";
 
-  if (!canCreate) return null;
+  if (!isFounder) return null;
 
   async function handleAdd(input: SmartOrderInput) {
     const result = await createSmartOrderAction(input);
-    if (!result.ok) throw new Error(result.error);
+    if (!result.ok) {
+      throw new Error(result.error);
+    }
     await refreshClients();
     await refreshPeople();
     await refreshProjects();
@@ -53,6 +49,7 @@ export function OrderEntryActions({
       onAdd={handleAdd}
       defaultProjectType={defaultProjectType}
       triggerLabel={triggerLabel ?? actions.createOrder}
+      allowInlineClientCreate
     />
   );
 }
