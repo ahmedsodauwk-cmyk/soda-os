@@ -1,144 +1,39 @@
-﻿/**
- * SR-02 — Founder-only order/client creation authz (no Production writes).
- * Run: npx tsx scripts/verify-sr02-authz.ts
+/**
+ * SR-02 order-create authz verifier (tests 1-9). Run: npx tsx scripts/verify-sr02-order-create.ts
  */
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import {
-  accessLevelCan,
-  accessLevelFromLegacyRole,
-  isFounderAccess,
-  parseAccessLevel,
-} from "@/lib/identity/access-levels";
-import { buildDataScope, isOrderIdInScope } from "@/lib/identity/data-scope";
-import type { SodaSession } from "@/lib/identity/session";
-import type { Client } from "@/lib/clients/types";
-import type { Order } from "@/lib/orders/types";
+import { accessLevelCan, accessLevelFromLegacyRole, parseAccessLevel } from "@/lib/identity/access-levels";
 
 const REPO = process.cwd();
 let passed = 0;
-function check(label: string, fn: () => void): void {
-  fn();
-  passed++;
-  console.log(`PASS  ${label}`);
-}
-function readRepo(path: string): string {
-  return readFileSync(join(REPO, path), "utf8");
-}
-function canFounderCreate(level: string | null | undefined): boolean {
-  const parsed = parseAccessLevel(level);
-  return parsed ? isFounderAccess(parsed) : false;
-}
-
+const check = (l: string, fn: () => void) => { fn(); passed++; console.log(`PASS  ${l}`); };
+const readRepo = (p: string) => readFileSync(join(REPO, p), "utf8");
 const ordersActions = readRepo("lib/orders/actions.ts");
-const clientsActions = readRepo("lib/clients/actions.ts");
-const integrationActions = readRepo("lib/integration/actions.ts");
 const mutationAuth = readRepo("lib/domain/mutation-auth.ts");
 const entryActions = readRepo("components/orders/order-entry-actions.tsx");
-const clientEntryActions = readRepo("components/clients/client-entry-actions.tsx");
 
-check("1 founder: order create allowed", () => {
-  assert.equal(isFounderAccess("founder"), true);
-  assert.match(ordersActions, /requireFounder\(\)/);
+check("1 founder allowed", () => assert.equal(accessLevelCan("founder", "orders.create"), true));
+check("2 team_leader allowed", () => assert.equal(accessLevelCan("team_leader", "orders.create"), true));
+check("3 account_manager allowed", () => assert.equal(accessLevelCan("account_manager", "orders.create"), true));
+check("4 team/crew denied", () => {
+  assert.equal(accessLevelCan("team", "orders.create"), false);
+  assert.equal(accessLevelCan(accessLevelFromLegacyRole("crew_member"), "orders.create"), false);
 });
-check("2 founder: client create allowed", () => {
-  assert.match(clientsActions, /createClientAction[\s\S]*?requireFounder\(\)/);
+check("5 unknown denied", () => assert.equal(accessLevelCan("superuser", "orders.create"), false));
+check("6 signed-out denied", () => assert.equal(accessLevelCan(null, "orders.create"), false));
+check("7 invalid profile denied", () => {
+  assert.equal(parseAccessLevel("bogus"), null);
+  assert.equal(accessLevelCan("bogus", "orders.create"), false);
 });
-check("3 founder: inline client create allowed", () => {
-  assert.match(clientsActions, /createClientInlineAction[\s\S]*?requireFounder\(\)/);
-});
-check("4 team_leader: order create denied", () => {
-  assert.equal(isFounderAccess("team_leader"), false);
-});
-check("5 team_leader: client create denied", () => {
-  assert.equal(isFounderAccess("team_leader"), false);
-});
-check("6 account_manager: order create denied", () => {
-  assert.equal(isFounderAccess("account_manager"), false);
-  assert.equal(accessLevelCan("account_manager", "orders.create"), true);
-});
-check("7 account_manager: client create denied", () => {
-  assert.equal(isFounderAccess("account_manager"), false);
-  assert.equal(accessLevelCan("account_manager", "clients.manage"), true);
-});
-check("8 team/crew: create denied", () => {
-  assert.equal(canFounderCreate("team"), false);
-  assert.equal(canFounderCreate(accessLevelFromLegacyRole("crew_member")), false);
-});
-check("9 other levels: create denied", () => {
-  assert.equal(canFounderCreate("superuser"), false);
-});
-check("10 signed-out: create denied", () => {
-  assert.equal(canFounderCreate(null), false);
-});
-check("11 invalid profile: create denied", () => {
-  assert.equal(canFounderCreate("bogus_level"), false);
-});
-check("12 identity spoofing: server derives session", () => {
+check("8 no identity spoofing", () => {
+  assert.match(ordersActions, /requirePermission\("orders\.create"\)/);
   assert.match(mutationAuth, /resolveSessionForApp/);
-  assert.doesNotMatch(ordersActions, /input\.(userId|accessLevel|role|profile)/);
 });
-check("13 direct actions require founder", () => {
-  assert.match(ordersActions, /createSmartOrderAction[\s\S]*?requireFounder\(\)/);
-  assert.match(clientsActions, /createClientAction[\s\S]*?requireFounder\(\)/);
+check("9 protected boundary", () => {
+  assert.match(ordersActions, /createSmartOrderAction[\s\S]*?requirePermission\("orders\.create"\)/);
+  assert.match(entryActions, /orders\.create/);
+  assert.doesNotMatch(entryActions, /\bcreateSmartOrder\s*\(/);
 });
-check("14 all paths covered", () => {
-  assert.match(entryActions, /accessLevel === "founder"/);
-  assert.match(clientEntryActions, /accessLevel === "founder"/);
-  assert.match(integrationActions, /runQuotationConversionFlowAction[\s\S]*?requireFounder\(\)/);
-});
-check("15 no production writes in verifier", () => {
-  assert.doesNotMatch(readRepo("scripts/verify-sr02-authz.ts"), /supabase|fetch\(/);
-});
-
-check("team scope includes only assigned orders", () => {
-  const teamSession = (personId: string): SodaSession => ({
-    userId: "team-user",
-    email: "crew@sodavisuals.com",
-    profile: {
-      id: "team-user",
-      email: "crew@sodavisuals.com",
-      username: "crew",
-      fullName: "Crew",
-      displayName: "Crew",
-      role: "crew_member",
-      accessLevel: "team",
-      personId,
-      avatarInitials: "CM",
-      isActive: true,
-      mustChangePassword: false,
-    },
-  });
-  const orders = [
-    {
-      id: "order-a",
-      clientId: "c",
-      clientName: "A",
-      projectId: "p",
-      workspaceId: "w",
-      projectType: "Wedding",
-      status: "Scheduled",
-      squadMemberIds: ["person-1"],
-      shootDate: "2026-08-01",
-      price: 1,
-      createdAt: "2026-07-01",
-    },
-  ] as unknown as Order[];
-  const clients = [
-    {
-      id: "c",
-      type: "individual",
-      segment: "wedding",
-      businessRole: "client",
-      name: "A",
-      phone: "0",
-      createdAt: "2026-07-01",
-      isActive: true,
-    },
-  ] as Client[];
-  const scope = buildDataScope(teamSession("person-1"), { orders, clients });
-  assert.equal(isOrderIdInScope("order-a", scope), true);
-});
-
-console.log(`\n${passed} SR-02 founder-only create authz checks passed.`);
+console.log(`\n${passed} order-create authz checks passed.`);

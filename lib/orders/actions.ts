@@ -1,4 +1,4 @@
-﻿"use server";
+"use server";
 
 import { revalidatePath } from "next/cache";
 
@@ -9,7 +9,7 @@ import {
 } from "@/lib/domain/types";
 import {
   assertOrderAccess,
-  requireFounder,
+  requirePermission,
 } from "@/lib/domain/mutation-auth";
 import {
   applyOrderStatus,
@@ -47,7 +47,7 @@ async function refreshOrderCaches(): Promise<void> {
 export async function createSmartOrderAction(
   input: SmartOrderInput
 ): Promise<DomainActionResult<SmartOrderResult>> {
-  const gate = await requireFounder();
+  const gate = await requirePermission("orders.create");
   if (!gate.ok) return actionError(gate.error);
 
   try {
