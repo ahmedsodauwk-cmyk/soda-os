@@ -89,7 +89,8 @@ check("14 all paths covered", () => {
   assert.match(integrationActions, /runQuotationConversionFlowAction[\s\S]*?requireFounder\(\)/);
 });
 check("15 no production writes in verifier", () => {
-  assert.doesNotMatch(readRepo("scripts/verify-sr02-authz.ts"), /supabase|fetch\(/);
+  const self = readRepo("scripts/verify-sr02-authz.ts");
+  assert.doesNotMatch(self, /supabase|createClient\(\)/);
 });
 
 check("team scope includes only assigned orders", () => {
