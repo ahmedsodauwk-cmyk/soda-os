@@ -5,8 +5,8 @@
 
 | Field | Value |
 |--------|--------|
-| **Document version** | `1.0.3` |
-| **Last updated** | `2026-07-26` |
+| **Document version** | `1.0.4` |
+| **Last updated** | `2026-07-27` |
 | **Product** | SODA OS |
 | **Company** | SODA VISUALS |
 | **Application version** | `0.1.0` (`package.json`) |
@@ -42,7 +42,7 @@ Before major auth / identity / DB / migrations / RLS / finance / production-data
 
 ## CURRENT MISSION
 
-**Mission SR-02 — Client-Side Domain Mutation Lockdown (C2)** (next security gate; not started)
+**High-Risk Remediation (H1–H5)** — next security gate after SR-02 closure.
 
 Parallel reliability work remains open: **Mission 08.2.1 — Live Production Database Backup Completion**.
 
@@ -54,8 +54,7 @@ Parallel reliability work remains open: **Mission 08.2.1 — Live Production Dat
 2. Mission 08.2 verified only as **`mode=dry_validate`** (architecture complete; live Production backup pending)
 3. Production credentials must **never** be stored in source / Git / logs / manifests / ZIPs
 4. Restore execution remains **disabled** until a dedicated Restore Engine mission
-5. Security audit **C2** (ungated client domain mutations) remains **OPEN**
-6. Security audit **H1–H5** remain **OPEN**
+5. Security audit **H1–H5** remain **OPEN** — multi-user Production is **not fully secure**
 
 ---
 
@@ -69,11 +68,11 @@ Parallel reliability work remains open: **Mission 08.2.1 — Live Production Dat
 | **Mode** | READ-ONLY (source + docs; no Production data access) |
 | **Overall rating** | **CRITICAL** |
 | **C1** | **REMEDIATED / VERIFIED** — SR-01 closed; core domain RLS lockdown confirmed **2026-07-26** |
-| **C2** | **OPEN** — Client Components mutate domain data without Server Action authz |
+| **C2** | **REMEDIATED / VERIFIED** — SR-02 closed; founder-only creation paths confirmed **2026-07-27** |
 | **H6 (auth footgun)** | **REMEDIATED / VERIFIED** — SR-00 closed; Production auth fail-closed confirmed **2026-07-26** |
 | **H1–H5** | **OPEN** — unchanged from audit 2026-07-16 |
 
-Overall audit rating remains **CRITICAL** while **C2** is open. Do **not** treat multi-user Production as safe until **C2** is closed.
+Overall audit rating is **HIGH** — all **Critical** findings (**C1**, **C2**) and **H6** are remediated; **H1–H5** remain **OPEN**. Multi-user Production is **not fully secure** until **H1–H5** are addressed.
 
 ---
 
@@ -172,6 +171,33 @@ Overall audit rating remains **CRITICAL** while **C2** is open. Do **not** treat
 
 ---
 
+### MISSION SR-02 — Client-Side Domain Mutation Lockdown
+
+| Field | Value |
+|--------|--------|
+| **Status** | **CLOSED** |
+| **Security commit** | `f1b2d4cf881bbc9a0d25810cd1660a274efba1f2` (`f1b2d4c`) |
+| **Verification date** | **2026-07-27** |
+| **Founder manual verification** | **PASS** (`SR-02 MANUAL CHECK PASS`) |
+| **Next gate** | **High-Risk Remediation (H1–H5)** |
+
+**Goal:** Move domain mutations behind `"use server"` actions with `mutation-auth` gates; restore founder-only order/client creation; remove Client Component → domain-db mutation paths (audit **C2**).
+
+**Remediation implemented (source):** `lib/domain/mutation-auth.ts` (`requireFounder`, `resolveSessionForApp`); `lib/orders/actions.ts`, `lib/clients/actions.ts`, `lib/integration/actions.ts` gate creation with `requireFounder()`; client entry components (`order-entry-actions.tsx`, `client-entry-actions.tsx`) hide create UI for non-Founder.
+
+**Local evidence (2026-07-27):**
+
+| Check | Result |
+|--------|--------|
+| `npx tsx scripts/verify-sr02-mutation-boundary.ts` | **PASS** — 18/18 |
+| `npx tsx scripts/verify-sr02-authz.ts` | **PASS** — 16/16 |
+| `npm run typecheck` | **PASS** |
+| `npm run build` | **PASS** (local; no Production secrets used) |
+| Founder manual SR-02 check | **PASS** |
+| **C2** ungated client domain mutations | **REMEDIATED / VERIFIED** |
+
+---
+
 ## RELIABILITY TRACK — Mission 08.x
 
 ### MISSION 08.0 — BACKUP CENTER (FOUNDATION)
@@ -245,14 +271,23 @@ These decisions remain in force. Detail lives in the dedicated SoT chapters — 
 - Mission **08.2** is **not** CLOSED
 - Mission **SR-00** is **CLOSED** (SR-00.2 Production verification **2026-07-26**)
 - Mission **SR-01** is **CLOSED** (Production RLS lockdown verification **2026-07-26**)
-- **C1** is **REMEDIATED / VERIFIED**; **C2** remains **OPEN**
-- Overall security audit rating remains **CRITICAL** while **C2** is open
+- Mission **SR-02** is **CLOSED** (founder-only creation paths verification **2026-07-27**)
+- **C1** and **C2** are **REMEDIATED / VERIFIED**; **H1–H5** remain **OPEN**
+- Overall security audit rating is **HIGH** — multi-user Production is **not fully secure** until **H1–H5** are addressed
 - A live Production **database** dump does **not** yet exist (Founder backup **2026-07-26** verified for SR-01 rehearsal only; Mission **08.2.1** remains open)
 - Restore Engine is **not** implemented / not executable from Backup Center
 
 ---
 
 ## CHANGE LOG
+
+### v1.0.4 — 2026-07-27
+
+- Close **SR-02** — Client-Side Domain Mutation Lockdown verified (**2026-07-27**)
+- Record security commit `f1b2d4cf881bbc9a0d25810cd1660a274efba1f2` (`f1b2d4c`); Founder manual **PASS** (`SR-02 MANUAL CHECK PASS`)
+- Mark **C2** ungated client domain mutations **REMEDIATED / VERIFIED**; local harness **18/18** + **16/16**; typecheck + build **PASS**
+- Keep **H1–H5** and Mission **08.2.1** live DB backup gap **OPEN**; overall audit **HIGH** — multi-user Production **not fully secure**
+- Set next security gate to **High-Risk Remediation (H1–H5)**
 
 ### v1.0.3 — 2026-07-26
 

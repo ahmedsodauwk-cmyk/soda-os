@@ -557,16 +557,16 @@ Extensive Grep/Read/Glob of migrations, identity, middleware, actions, Connect, 
 | ID | Status | Notes |
 |----|--------|--------|
 | **C1** | **REMEDIATED / VERIFIED** | SR-01 closed **2026-07-26** — see Appendix E |
-| **C2** | **OPEN** | Client Components mutate domain data without Server Action authz |
+| **C2** | **REMEDIATED / VERIFIED** | SR-02 closed **2026-07-27** — see Appendix F |
 | **H1** | **OPEN** | `profiles_select_connect_peers` broad PII exposure |
 | **H2** | **OPEN** | Connect Storage SELECT over-permissive |
 | **H3** | **OPEN** | Auth callback open redirect via `next` |
 | **H4** | **OPEN** | `handle_new_user` privileged metadata adoption |
 | **H5** | **OPEN** | Connect messages UPDATE any-member clause |
 
-**Overall audit rating remains CRITICAL** until **C2** is closed. H6 and C1 no longer block their respective verification gates.
+**Overall audit rating is HIGH** — all **Critical** findings (**C1**, **C2**) and **H6** are remediated; **H1–H5** remain **OPEN**. Multi-user Production is **not fully secure**.
 
-**Next recommended mission:** **SR-02 — Client-Side Domain Mutation Lockdown** (addresses **C2**).
+**Next recommended mission:** **High-Risk Remediation (H1–H5)**.
 
 ---
 
@@ -617,6 +617,54 @@ Extensive Grep/Read/Glob of migrations, identity, middleware, actions, Connect, 
 | `authenticated` (Founder JWT sim) | `clients` INSERT probe | Policy-allowed; rolled back | **PASS** |
 | Catalog | 12 SR-01 `soda_*` helpers | Present | **PASS** |
 
-**Overall audit rating remains CRITICAL** until **C2** is closed. C1 no longer blocks domain RLS verification.
+**Overall audit rating is HIGH** — **C1** and **C2** no longer block domain mutation / RLS verification; **H1–H5** remain **OPEN**.
 
-**Next recommended mission:** **SR-02 — Client-Side Domain Mutation Lockdown** (addresses **C2**).
+**Next recommended mission:** **High-Risk Remediation (H1–H5)**.
+
+---
+
+## Appendix F — Remediation Status (SR-02 / C2)
+
+**Recorded:** 2026-07-27  
+**Mission:** SR-02 — Client-Side Domain Mutation Lockdown  
+**Official state:** `docs/SODA_MASTER/SODA_OS_MASTER_PROJECT_STATE.md` (v1.0.4)
+
+> This appendix records post-audit remediation status only. **Original findings, severity counts, and §1–§22 content are unchanged.**
+
+### C2 — Client Components mutate domain data without Server Action authz
+
+| Field | Value |
+|--------|--------|
+| **Original severity** | Critical — see §4 C2 |
+| **Remediation status** | **REMEDIATED / VERIFIED** |
+| **Mission** | **SR-02** — **CLOSED** |
+| **Security commit** | `f1b2d4cf881bbc9a0d25810cd1660a274efba1f2` (`f1b2d4c`) |
+| **Verification date** | **2026-07-27** |
+| **Founder manual verification** | **PASS** (`SR-02 MANUAL CHECK PASS`) |
+
+**Remediation implemented (source):** Domain mutations routed through `"use server"` actions in `lib/orders/actions.ts`, `lib/clients/actions.ts`, `lib/integration/actions.ts`, and related modules; `lib/domain/mutation-auth.ts` provides `requireFounder()` and `resolveSessionForApp()`; Client Components no longer import domain-db for DML; order/client create UI gated to Founder in `components/orders/order-entry-actions.tsx` and `components/clients/client-entry-actions.tsx`.
+
+**Local verification evidence:**
+
+| Check | Result |
+|--------|--------|
+| `npx tsx scripts/verify-sr02-mutation-boundary.ts` | **PASS** — 18/18 |
+| `npx tsx scripts/verify-sr02-authz.ts` | **PASS** — 16/16 |
+| `npm run typecheck` | **PASS** |
+| `npm run build` | **PASS** (local; no Production secrets used) |
+| Founder manual SR-02 check | **PASS** |
+
+**Authorization test matrix summary (static harness):**
+
+| Actor / probe | Surface | Expected | Result |
+|----------------|---------|----------|--------|
+| Founder | `createSmartOrderAction` | `requireFounder()` gate | **PASS** |
+| Founder | `createClientAction` / `createClientInlineAction` | `requireFounder()` gate | **PASS** |
+| Founder | `runQuotationConversionFlowAction` | `requireFounder()` gate | **PASS** |
+| Team Leader / Account Manager / Team / Crew | Order + client create | Denied (non-Founder) | **PASS** |
+| Signed-out / invalid profile | Order + client create | Denied | **PASS** |
+| Client Components | Direct domain-db DML imports | None | **PASS** |
+
+**Overall audit rating is HIGH** — **C2** no longer blocks domain mutation verification; **H1–H5** remain **OPEN**. Multi-user Production is **not fully secure**.
+
+**Next recommended mission:** **High-Risk Remediation (H1–H5)**.
