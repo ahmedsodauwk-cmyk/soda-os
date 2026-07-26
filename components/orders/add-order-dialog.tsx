@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useMemo, useState } from "react";
 import { ChevronLeft, ChevronRight, UserPlus } from "lucide-react";
@@ -114,12 +114,15 @@ interface AddOrderDialogProps {
   onAdd: (order: SmartOrderInput) => void | Promise<void>;
   defaultProjectType?: ProjectType;
   triggerLabel?: string;
+  /** Founder-only inline client creation during order entry. */
+  allowInlineClientCreate?: boolean;
 }
 
 export function AddOrderDialog({
   onAdd,
   defaultProjectType,
   triggerLabel = UI_ACTIONS.createOrder,
+  allowInlineClientCreate = false,
 }: AddOrderDialogProps) {
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState(1);
@@ -390,7 +393,7 @@ export function AddOrderDialog({
           <DialogHeader>
             <DialogTitle>New Order</DialogTitle>
             <DialogDescription>
-              Step {step} of 5 — {STEPS[step - 1]?.title}
+              Step {step} of 5 â€” {STEPS[step - 1]?.title}
             </DialogDescription>
           </DialogHeader>
 
@@ -422,7 +425,8 @@ export function AddOrderDialog({
                 <div className="space-y-2 rounded-md border border-border/60 p-3">
                   <div className="flex items-center justify-between gap-2">
                     <Label htmlFor="clientSearch">Client</Label>
-                    <Button
+                    {allowInlineClientCreate ? (
+                      <Button
                       type="button"
                       variant="outline"
                       size="sm"
@@ -432,6 +436,8 @@ export function AddOrderDialog({
                       <UserPlus className="size-3.5" />
                       Create New Client
                     </Button>
+                  </Button>
+                    ) : null}
                   </div>
                   <Input
                     id="clientSearch"
@@ -442,7 +448,7 @@ export function AddOrderDialog({
                         updateField("clientName", e.target.value);
                       }
                     }}
-                    placeholder="Search clients by name or phone…"
+                    placeholder="Search clients by name or phoneâ€¦"
                     aria-invalid={!!errors.clientName}
                     autoComplete="off"
                   />
@@ -458,7 +464,7 @@ export function AddOrderDialog({
                             <span className="font-medium">{c.name}</span>
                             <span className="text-xs text-muted-foreground">
                               {c.phone}
-                              {c.whatsapp ? ` · WA ${c.whatsapp}` : ""}
+                              {c.whatsapp ? ` Â· WA ${c.whatsapp}` : ""}
                             </span>
                           </button>
                         </li>
@@ -509,7 +515,7 @@ export function AddOrderDialog({
                   </div>
                   {clientCtx ? (
                     <p className="text-xs text-muted-foreground">
-                      Previous orders: {clientCtx.previousOrders.length} ·
+                      Previous orders: {clientCtx.previousOrders.length} Â·
                       Outstanding:{" "}
                       {clientCtx.outstanding.toLocaleString("en-EG")} EGP
                     </p>
@@ -551,7 +557,7 @@ export function AddOrderDialog({
                           const op = getProjectOperatingView(p.id);
                           return (
                             <SelectItem key={p.id} value={p.id}>
-                              {p.name} · {p.status} ·{" "}
+                              {p.name} Â· {p.status} Â·{" "}
                               {formatPrice(op.finance.revenue)}
                             </SelectItem>
                           );
@@ -668,7 +674,7 @@ export function AddOrderDialog({
                       <p className="text-xs text-destructive">{errors.price}</p>
                     ) : null}
                     <p className="text-[11px] text-muted-foreground">
-                      Agreed price is not revenue — revenue is collected cash.
+                      Agreed price is not revenue â€” revenue is collected cash.
                     </p>
                   </div>
                   <div className="space-y-1.5">
@@ -786,7 +792,7 @@ export function AddOrderDialog({
                     value={form.notes}
                     onChange={(e) => updateField("notes", e.target.value)}
                     rows={2}
-                    placeholder="Free-form notes only — not structured fields"
+                    placeholder="Free-form notes only â€” not structured fields"
                   />
                 </div>
               </>
@@ -840,7 +846,7 @@ export function AddOrderDialog({
                               <span>
                                 {p.nickname || p.nameEn}{" "}
                                 <span className="text-muted-foreground">
-                                  · {p.jobTitle}
+                                  Â· {p.jobTitle}
                                 </span>
                               </span>
                             </label>
@@ -922,7 +928,7 @@ export function AddOrderDialog({
               <div className="space-y-3">
                 <Label>Planned expenses</Label>
                 <p className="text-xs text-muted-foreground">
-                  Estimates only — actuals are logged after the shoot.
+                  Estimates only â€” actuals are logged after the shoot.
                 </p>
                 {PLANNED_EXPENSE_KINDS.map((kind) => {
                   const line = (form.plannedExpenses ?? []).find(
@@ -956,15 +962,15 @@ export function AddOrderDialog({
               <div className="space-y-3 rounded-md border border-border/60 p-3 text-sm">
                 <p>
                   <span className="text-muted-foreground">Client:</span>{" "}
-                  {form.clientName || "—"}
+                  {form.clientName || "â€”"}
                 </p>
                 <p>
                   <span className="text-muted-foreground">Package:</span>{" "}
-                  {form.packageName || "—"} · {form.projectType}
+                  {form.packageName || "â€”"} Â· {form.projectType}
                 </p>
                 <p>
                   <span className="text-muted-foreground">Shoot:</span>{" "}
-                  {form.shootDate || "—"} · {form.location || "TBD"}
+                  {form.shootDate || "â€”"} Â· {form.location || "TBD"}
                 </p>
                 <p>
                   <span className="text-muted-foreground">Agreed price:</span>{" "}
@@ -977,7 +983,7 @@ export function AddOrderDialog({
                   <span className="text-muted-foreground">Squad:</span>{" "}
                   {form.team}
                   {(form.squadMemberIds?.length ?? 0) > 0
-                    ? ` · ${form.squadMemberIds!.length} crew · ${formatPrice(salaryTotal)}`
+                    ? ` Â· ${form.squadMemberIds!.length} crew Â· ${formatPrice(salaryTotal)}`
                     : ""}
                 </p>
                 <p>
@@ -1034,3 +1040,4 @@ export function AddOrderDialog({
     </>
   );
 }
+
