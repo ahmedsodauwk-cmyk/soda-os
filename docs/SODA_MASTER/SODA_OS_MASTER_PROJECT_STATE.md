@@ -5,7 +5,7 @@
 
 | Field | Value |
 |--------|--------|
-| **Document version** | `1.0.2` |
+| **Document version** | `1.0.3` |
 | **Last updated** | `2026-07-26` |
 | **Product** | SODA OS |
 | **Company** | SODA VISUALS |
@@ -42,7 +42,7 @@ Before major auth / identity / DB / migrations / RLS / finance / production-data
 
 ## CURRENT MISSION
 
-**Mission SR-01 — Core Domain RLS Lockdown** (next security gate; not started)
+**Mission SR-02 — Client-Side Domain Mutation Lockdown (C2)** (next security gate; not started)
 
 Parallel reliability work remains open: **Mission 08.2.1 — Live Production Database Backup Completion**.
 
@@ -54,7 +54,7 @@ Parallel reliability work remains open: **Mission 08.2.1 — Live Production Dat
 2. Mission 08.2 verified only as **`mode=dry_validate`** (architecture complete; live Production backup pending)
 3. Production credentials must **never** be stored in source / Git / logs / manifests / ZIPs
 4. Restore execution remains **disabled** until a dedicated Restore Engine mission
-5. Security audit **C1** (permissive domain RLS) and **C2** (ungated client domain mutations) remain **OPEN**
+5. Security audit **C2** (ungated client domain mutations) remains **OPEN**
 6. Security audit **H1–H5** remain **OPEN**
 
 ---
@@ -68,12 +68,12 @@ Parallel reliability work remains open: **Mission 08.2.1 — Live Production Dat
 | **Report** | `docs/audits/SODA_OS_SECURITY_PRODUCT_AUDIT_2026-07-16.md` |
 | **Mode** | READ-ONLY (source + docs; no Production data access) |
 | **Overall rating** | **CRITICAL** |
-| **C1** | **OPEN** — Permissive anon/authenticated RLS on core business tables |
+| **C1** | **REMEDIATED / VERIFIED** — SR-01 closed; core domain RLS lockdown confirmed **2026-07-26** |
 | **C2** | **OPEN** — Client Components mutate domain data without Server Action authz |
 | **H6 (auth footgun)** | **REMEDIATED / VERIFIED** — SR-00 closed; Production auth fail-closed confirmed **2026-07-26** |
 | **H1–H5** | **OPEN** — unchanged from audit 2026-07-16 |
 
-Do **not** treat multi-user Production as safe until **C1** and **C2** are closed.
+Overall audit rating remains **CRITICAL** while **C2** is open. Do **not** treat multi-user Production as safe until **C2** is closed.
 
 ---
 
@@ -89,7 +89,7 @@ Do **not** treat multi-user Production as safe until **C1** and **C2** are close
 | **Production alias** | https://soda-os.vercel.app — **Ready** |
 | **Verification date** | **2026-07-26** |
 | **Founder manual verification** | **PASS** |
-| **Next gate** | **SR-01 — Core Domain RLS Lockdown** |
+| **Next gate** | **SR-02 — Client-Side Domain Mutation Lockdown (C2)** |
 
 **Goal:** `VERCEL_ENV=production` always forces strict authentication; `SODA_AUTH_STRICT=0` cannot disable auth or synthesize `fallbackOwnerSession()` on Production; middleware + session share one `auth-strict` source of truth.
 
@@ -116,6 +116,59 @@ Do **not** treat multi-user Production as safe until **C1** and **C2** are close
 | Signed-out redirect `/settings` → `/login` | **PASS** — HTTP 307 |
 | Founder manual login / auth smoke test | **PASS** (Founder confirmed in chat) |
 | H6 Production auth fallback | **REMEDIATED / VERIFIED** |
+
+---
+
+### MISSION SR-01 — Core Domain RLS Lockdown
+
+| Field | Value |
+|--------|--------|
+| **Status** | **CLOSED** |
+| **Security commit** | `0931c2624ac97a888e8cf6d26631a0723c72e943` (`0931c26`) |
+| **Migration** | `20260726000028_sr01_core_domain_rls_lockdown.sql` |
+| **Rollback** | `supabase/rollbacks/20260726000028_sr01_core_domain_rls_lockdown_rollback.sql` |
+| **Verification date** | **2026-07-26** |
+| **Founder manual verification** | **PASS** (`SR-01 MANUAL CHECK PASS`) |
+| **Next gate** | **SR-02 — Client-Side Domain Mutation Lockdown (C2)** |
+
+**Goal:** Replace permissive `using (true)` anon/authenticated RLS on **24** core business (C1) tables with Access Level–scoped policies; revoke anon DML; add `SECURITY DEFINER` helpers with `SET row_security = off` and `search_path = public`.
+
+**Dependency note (Production prerequisite, not in SR-01 commit):** Migration `20260711000004_smart_order_engine_v3.sql` (`orders.squad_member_ids`) was applied on Production before SR-01 — required for order-scoped RLS helpers.
+
+**C1 tables locked (24):** `workspaces`, `workspace_subcategories`, `people`, `equipment`, `equipment_assignments`, `projects`, `orders`, `order_assignments`, `quotations`, `payments`, `invoices`, `deliveries`, `financial_events`, `financial_allocations`, `files`, `clients`, `expenses`, `account_transfers`, `period_closings`, `cash_accounts`, `cash_account_movements`, `crew_earnings`, `business_events`, `audit_log`.
+
+**SR-01 helpers (12):** `soda_is_domain_founder`, `soda_is_active_authenticated`, `soda_profile_access_level`, `soda_profile_person_id`, `soda_profile_display_name`, `soda_order_assigned_to_person`, `soda_person_shares_order_with`, `soda_can_access_order`, `soda_can_access_client`, `soda_can_access_person`, `soda_can_access_project`, `soda_can_access_quotation`.
+
+**Local evidence (pre-Production):**
+
+| Check | Result |
+|--------|--------|
+| `npx tsx scripts/verify-sr01-rls.ts` (static) | **PASS** — migration, rollback, 24 C1 tables, 12 helpers, anon revoke |
+| Disposable rehearsal (`scripts/sr01-disposable-rehearsal.ts`) | **PASS** — Gates 3–5 on disposable PG 18 cluster; row counts match Gate 2 baseline |
+| Rollback SQL reviewed | **PASS** — emergency restore path documented |
+
+**Production evidence (2026-07-26):**
+
+| Check | Result |
+|--------|--------|
+| Migration applied via pooler | **PASS** |
+| `npx tsx scripts/verify-sr01-rls.ts --live` | **PASS 25/25** |
+| C1 table row counts vs Gate 2 baseline | **PASS** — match |
+| Backup / rollback readiness | **PASS** — Founder-verified Production DB backup package **2026-07-26** (readable; used for disposable rehearsal Gate 2 baseline; no secrets in manifest) |
+| Founder manual SR-01 check | **PASS** |
+| **C1** permissive domain RLS | **REMEDIATED / VERIFIED** |
+
+**Authorization test matrix summary (live harness):**
+
+| Actor / probe | Surface | Expected | Result |
+|----------------|---------|----------|--------|
+| `anon` | C1 tables — permissive policies | None (`using (true)`) | **PASS** |
+| `anon` | `clients` SELECT | Denied (revoked grant or zero rows) | **PASS** |
+| `authenticated` (Founder JWT sim) | `profiles` SELECT | No 42P17 recursion | **PASS** |
+| `authenticated` (Founder JWT sim) | `clients` INSERT probe | Allowed under policy; rolled back | **PASS** |
+| Catalog | 12 `soda_*` SR-01 helpers | Present | **PASS** |
+
+**Disposable rehearsal tooling (not Production):** `scripts/sr01-disposable-rehearsal.ts` / `.ps1`; secure DB launcher `scripts/run-sr01-db-secure.ps1`.
 
 ---
 
@@ -191,13 +244,24 @@ These decisions remain in force. Detail lives in the dedicated SoT chapters — 
 - Application feature modules (Orders, Finance, Team Chat / Connect, Notifications, Brain, Identity product UX) were **not** modified by the SR-00.1 documentation/auth-strict work beyond the scoped auth fail-closed files
 - Mission **08.2** is **not** CLOSED
 - Mission **SR-00** is **CLOSED** (SR-00.2 Production verification **2026-07-26**)
-- **C1** and **C2** remain **OPEN**
-- A live Production **database** dump does **not** yet exist
+- Mission **SR-01** is **CLOSED** (Production RLS lockdown verification **2026-07-26**)
+- **C1** is **REMEDIATED / VERIFIED**; **C2** remains **OPEN**
+- Overall security audit rating remains **CRITICAL** while **C2** is open
+- A live Production **database** dump does **not** yet exist (Founder backup **2026-07-26** verified for SR-01 rehearsal only; Mission **08.2.1** remains open)
 - Restore Engine is **not** implemented / not executable from Backup Center
 
 ---
 
 ## CHANGE LOG
+
+### v1.0.3 — 2026-07-26
+
+- Close **SR-01** — Core Domain RLS Lockdown verified on Production (**2026-07-26**)
+- Record security commit `0931c2624ac97a888e8cf6d26631a0723c72e943`; migration `20260726000028_sr01_core_domain_rls_lockdown.sql`
+- Mark **C1** permissive domain RLS **REMEDIATED / VERIFIED**; live harness **25/25**; row counts match Gate 2 baseline; Founder manual **PASS**
+- Document Production prerequisite `20260711000004_smart_order_engine_v3.sql` (`orders.squad_member_ids`) — applied before SR-01, not part of SR-01 commit
+- Keep **C2**, **H1–H5**, and Mission **08.2.1** live DB backup gap **OPEN**; overall audit remains **CRITICAL**
+- Set next security gate to **SR-02 — Client-Side Domain Mutation Lockdown (C2)**
 
 ### v1.0.2 — 2026-07-26
 

@@ -552,11 +552,11 @@ Extensive Grep/Read/Glob of migrations, identity, middleware, actions, Connect, 
 | Signed-out `/settings` → `/login` | **PASS** — HTTP 307 |
 | Founder manual auth smoke test | **PASS** (Founder confirmed) |
 
-### Open findings (unchanged from 2026-07-16 audit)
+### Open findings (unchanged from 2026-07-16 audit except where noted)
 
 | ID | Status | Notes |
 |----|--------|--------|
-| **C1** | **OPEN** | Permissive anon/authenticated domain RLS |
+| **C1** | **REMEDIATED / VERIFIED** | SR-01 closed **2026-07-26** — see Appendix E |
 | **C2** | **OPEN** | Client Components mutate domain data without Server Action authz |
 | **H1** | **OPEN** | `profiles_select_connect_peers` broad PII exposure |
 | **H2** | **OPEN** | Connect Storage SELECT over-permissive |
@@ -564,6 +564,59 @@ Extensive Grep/Read/Glob of migrations, identity, middleware, actions, Connect, 
 | **H4** | **OPEN** | `handle_new_user` privileged metadata adoption |
 | **H5** | **OPEN** | Connect messages UPDATE any-member clause |
 
-**Overall audit rating remains CRITICAL** until **C1** and **C2** are closed. H6 no longer blocks Production auth-strict verification.
+**Overall audit rating remains CRITICAL** until **C2** is closed. H6 and C1 no longer block their respective verification gates.
 
-**Next recommended mission:** **SR-01 — Core Domain RLS Lockdown** (addresses **C1**).
+**Next recommended mission:** **SR-02 — Client-Side Domain Mutation Lockdown** (addresses **C2**).
+
+---
+
+## Appendix E — Remediation Status (SR-01 / C1)
+
+**Recorded:** 2026-07-26  
+**Mission:** SR-01 — Core Domain RLS Lockdown  
+**Official state:** `docs/SODA_MASTER/SODA_OS_MASTER_PROJECT_STATE.md` (v1.0.3)
+
+> This appendix records post-audit remediation status only. **Original findings, severity counts, and §1–§22 content are unchanged.**
+
+### C1 — Permissive anon/authenticated RLS on core business tables
+
+| Field | Value |
+|--------|--------|
+| **Original severity** | Critical — see §4 C1 |
+| **Remediation status** | **REMEDIATED / VERIFIED** |
+| **Mission** | **SR-01** — **CLOSED** |
+| **Security commit** | `0931c2624ac97a888e8cf6d26631a0723c72e943` (`0931c26`) |
+| **Migration** | `supabase/migrations/20260726000028_sr01_core_domain_rls_lockdown.sql` |
+| **Rollback** | `supabase/rollbacks/20260726000028_sr01_core_domain_rls_lockdown_rollback.sql` |
+| **Verification date** | **2026-07-26** |
+| **Founder manual verification** | **PASS** (`SR-01 MANUAL CHECK PASS`) |
+
+**Remediation implemented (source):** Migration `20260726000028` drops permissive anon/authenticated policies on **24** C1 tables; revokes anon table grants; installs **12** `SECURITY DEFINER` helpers (`soda_is_domain_founder`, `soda_can_access_order`, …) with `SET row_security = off` and `search_path = public`; replaces policies with Access Level–scoped RLS (Founder / Account Manager / Team Leader / Team).
+
+**Production prerequisite (not in SR-01 commit):** `20260711000004_smart_order_engine_v3.sql` — `orders.squad_member_ids` column required for order squad-scoped policies; applied on Production before SR-01 migration.
+
+**C1 tables (24):** `workspaces`, `workspace_subcategories`, `people`, `equipment`, `equipment_assignments`, `projects`, `orders`, `order_assignments`, `quotations`, `payments`, `invoices`, `deliveries`, `financial_events`, `financial_allocations`, `files`, `clients`, `expenses`, `account_transfers`, `period_closings`, `cash_accounts`, `cash_account_movements`, `crew_earnings`, `business_events`, `audit_log`.
+
+**Production verification evidence:**
+
+| Check | Result |
+|--------|--------|
+| Migration applied via pooler | **PASS** |
+| `npx tsx scripts/verify-sr01-rls.ts --live` | **PASS 25/25** |
+| C1 row counts vs Gate 2 baseline | **PASS** — match |
+| Backup / rollback readiness | **PASS** — Founder-verified Production DB backup **2026-07-26** (readable; disposable rehearsal baseline; no secrets exported) |
+| Founder manual SR-01 check | **PASS** |
+
+**Authorization test matrix summary (live harness):**
+
+| Actor / probe | Surface | Expected | Result |
+|----------------|---------|----------|--------|
+| `anon` | C1 permissive policies | None | **PASS** |
+| `anon` | `clients` SELECT | Denied | **PASS** |
+| `authenticated` (Founder JWT sim) | `profiles` SELECT | No 42P17 | **PASS** |
+| `authenticated` (Founder JWT sim) | `clients` INSERT probe | Policy-allowed; rolled back | **PASS** |
+| Catalog | 12 SR-01 `soda_*` helpers | Present | **PASS** |
+
+**Overall audit rating remains CRITICAL** until **C2** is closed. C1 no longer blocks domain RLS verification.
+
+**Next recommended mission:** **SR-02 — Client-Side Domain Mutation Lockdown** (addresses **C2**).
