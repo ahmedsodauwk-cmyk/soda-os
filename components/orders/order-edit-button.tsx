@@ -7,7 +7,7 @@ import { Pencil } from "lucide-react";
 import { EditOrderDialog } from "@/components/orders/edit-order-dialog";
 import { Button } from "@/components/ui/button";
 import { UI_ACTIONS } from "@/lib/brand/ui-actions";
-import { updateSmartOrder } from "@/lib/integration";
+import { updateSmartOrderAction } from "@/lib/orders/actions";
 import type { Order, SmartOrderInput } from "@/lib/orders/types";
 
 export function OrderEditButton({ order }: { order: Order }) {
@@ -15,7 +15,8 @@ export function OrderEditButton({ order }: { order: Order }) {
   const [open, setOpen] = useState(false);
 
   async function handleSave(id: string, patch: Partial<SmartOrderInput>) {
-    await updateSmartOrder(id, patch);
+    const result = await updateSmartOrderAction(id, patch);
+    if (!result.ok) throw new Error(result.error);
     setOpen(false);
     router.refresh();
   }

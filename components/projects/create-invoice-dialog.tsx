@@ -25,8 +25,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { advanceProjectJourney } from "@/lib/integration";
-import { createInvoice } from "@/lib/invoices/repository";
+import { advanceProjectJourneyAction } from "@/lib/integration/actions";
+import { createInvoiceAction } from "@/lib/invoices/actions";
 import type { ProjectOrderStub } from "@/lib/projects/types";
 
 interface CreateInvoiceDialogProps {
@@ -67,7 +67,7 @@ export function CreateInvoiceDialog({
     setError(null);
     try {
       const periodMonth = issueDate.slice(0, 7);
-      await createInvoice({
+      const invoiceResult = await createInvoiceAction({
         clientId,
         projectId,
         ...(orderId ? { orderId } : {}),
@@ -80,7 +80,12 @@ export function CreateInvoiceDialog({
         periodMonth,
         notes: notes.trim() || undefined,
       });
-      await advanceProjectJourney(projectId, "Invoice");
+      if (!invoiceResult.ok) throw new Error(invoiceResult.error);
+      const journeyResult = await advanceProjectJourneyAction(
+        projectId,
+        "Invoice"
+      );
+      if (!journeyResult.ok) throw new Error(journeyResult.error);
       setOpen(false);
       setNotes("");
       router.refresh();

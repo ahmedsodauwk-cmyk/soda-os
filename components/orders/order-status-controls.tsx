@@ -11,7 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { applyOrderStatus } from "@/lib/orders/engine";
+import { applyOrderStatusAction } from "@/lib/orders/actions";
 import {
   CREW_OPERATIONAL_STATUSES,
   type CrewOperationalStatus,
@@ -51,7 +51,11 @@ export function OrderStatusControls({
     setSaving(true);
     setError(null);
     try {
-      await applyOrderStatus(order.id, value as OrderStatus);
+      const result = await applyOrderStatusAction(
+        order.id,
+        value as OrderStatus
+      );
+      if (!result.ok) throw new Error(result.error);
       router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Status update failed");

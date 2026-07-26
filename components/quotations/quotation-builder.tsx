@@ -29,7 +29,13 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { UI_ACTIONS } from "@/lib/brand/ui-actions";
-import { runQuotationConversionFlow } from "@/lib/integration";
+import { runQuotationConversionFlowAction } from "@/lib/integration/actions";
+import {
+  markDepositReceivedAction,
+  restoreQuotationVersionAction,
+  setQuotationApprovalStatusAction,
+  updateQuotationAction,
+} from "@/lib/quotations/actions";
 import {
   APPROVAL_STATUSES,
   canConvertQuotation,
@@ -38,11 +44,7 @@ import {
   formatShortDate,
   generateLineId,
   getQuotationById,
-  markDepositReceived,
   PIPELINE_STAGES,
-  restoreQuotationVersion,
-  setQuotationApprovalStatus,
-  updateQuotation,
   type ApprovalStatus,
   type PipelineStage,
   type Quotation,
@@ -203,7 +205,7 @@ export function QuotationBuilder({ quotationId }: QuotationBuilderProps) {
   }
 
   async function save(changeSummary?: string) {
-    const saved = await updateQuotation(
+    const saveResult = await updateQuotationAction(
       q.id,
       {
         clientName: q.clientName,
@@ -237,11 +239,14 @@ export function QuotationBuilder({ quotationId }: QuotationBuilderProps) {
         changeSummary,
       }
     );
+    const saved = saveResult.ok ? saveResult.data : null;
     if (saved) {
       setDraft(structuredClone(saved));
       setMessage("Saved");
       setError(null);
       setTimeout(() => setMessage(null), 2000);
+    } else if (!saveResult.ok) {
+      setError(saveResult.error);
     }
   }
 
@@ -279,11 +284,12 @@ export function QuotationBuilder({ quotationId }: QuotationBuilderProps) {
   }
 
   async function handleStatus(status: ApprovalStatus) {
-    const updated = await setQuotationApprovalStatus(
+    const statusResult = await setQuotationApprovalStatusAction(
       q.id,
       status,
       q.assignedSales
     );
+    const updated = statusResult.ok ? statusResult.data : null;
     if (updated) {
       setDraft(structuredClone(updated));
       setMessage(`Status → ${status}`);
@@ -291,16 +297,21 @@ export function QuotationBuilder({ quotationId }: QuotationBuilderProps) {
   }
 
   async function handleStage(stage: PipelineStage) {
-    const updated = await updateQuotation(
+    const stageResult = await updateQuotationAction(
       q.id,
       { pipelineStage: stage },
       { editedBy: q.assignedSales, saveVersion: false }
     );
+    const updated = stageResult.ok ? stageResult.data : null;
     if (updated) setDraft(structuredClone(updated));
   }
 
   async function handleDeposit() {
-    const updated = await markDepositReceived(q.id, q.assignedSales);
+    const depositResult = await markDepositReceivedAction(
+      q.id,
+      q.assignedSales
+    );
+    const updated = depositResult.ok ? depositResult.data : null;
     if (updated) {
       setDraft(structuredClone(updated));
       setMessage("Deposit marked received");
@@ -309,9 +320,16 @@ export function QuotationBuilder({ quotationId }: QuotationBuilderProps) {
 
   async function handleConvert() {
     try {
-      const result = await runQuotationConversionFlow(q.id, {
+      const flowResult = await runQuotationConversionFlowAction(q.id, {
         editedBy: q.assignedSales,
       });
+      if (!flowResult.ok) {
+        throw new Error(flowResult.error);
+      }
+      if (!flowResult.data) {
+        throw new Error("Convert failed");
+      }
+      const result = flowResult.data;
       const refreshed = getQuotationById(q.id);
       if (refreshed) setDraft(structuredClone(refreshed));
       setMessage(`Converted → ${result.projectId} / ${result.orderId}`);
@@ -323,11 +341,12 @@ export function QuotationBuilder({ quotationId }: QuotationBuilderProps) {
   }
 
   async function handleRestore(version: number) {
-    const restored = await restoreQuotationVersion(
+    const restoreResult = await restoreQuotationVersionAction(
       q.id,
       version,
       q.assignedSales
     );
+    const restored = restoreResult.ok ? restoreResult.data : null;
     if (restored) {
       setDraft(structuredClone(restored));
       setMessage(`Restored version ${version}`);

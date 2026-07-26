@@ -14,7 +14,7 @@ import { getBusinessToday } from "@/lib/business/types";
 import { getCommercialClientProfile } from "@/lib/business/commercial-account";
 import { computeClientStats } from "@/lib/business/client-stats";
 import { fetchClientById } from "@/lib/clients/repository";
-import { getClientOperatingView } from "@/lib/integration";
+import { getClientOperatingView } from "@/lib/integration/queries";
 import { getOrders } from "@/lib/orders/repository";
 import { getPayments } from "@/lib/payments/repository";
 import { getProjects } from "@/lib/projects/repository";

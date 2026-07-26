@@ -27,13 +27,15 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { UI_ACTIONS } from "@/lib/brand/ui-actions";
 import {
-  createEquipment,
-  deleteEquipment,
+  createEquipmentAction,
+  deleteEquipmentAction,
+  updateEquipmentAction,
+} from "@/lib/equipment/actions";
+import {
   getEquipment,
   refreshEquipment,
-  updateEquipment,
-  type NewEquipmentInput,
 } from "@/lib/equipment/repository";
+import type { NewEquipmentInput } from "@/lib/equipment/repository";
 import {
   EQUIPMENT_STATUSES,
   EQUIPMENT_TYPES,
@@ -250,7 +252,8 @@ export function EquipmentInventoryContent() {
   }, [items, search]);
 
   async function handleCreate(input: NewEquipmentInput) {
-    await createEquipment(input);
+    const result = await createEquipmentAction(input);
+    if (!result.ok) throw new Error(result.error);
     setItems(getEquipment());
     router.refresh();
   }
@@ -259,7 +262,8 @@ export function EquipmentInventoryContent() {
     input: NewEquipmentInput & { status?: EquipmentStatus }
   ) {
     if (!editing) return;
-    await updateEquipment(editing.id, input);
+    const result = await updateEquipmentAction(editing.id, input);
+    if (!result.ok) throw new Error(result.error);
     setItems(getEquipment());
     setEditing(null);
     router.refresh();
@@ -267,7 +271,8 @@ export function EquipmentInventoryContent() {
 
   async function handleDelete(item: EquipmentItem) {
     if (!window.confirm(`Delete “${item.name}”?`)) return;
-    await deleteEquipment(item.id);
+    const result = await deleteEquipmentAction(item.id);
+    if (!result.ok) throw new Error(result.error);
     setItems(getEquipment());
     router.refresh();
   }

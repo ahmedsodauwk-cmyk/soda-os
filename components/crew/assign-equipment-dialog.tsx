@@ -15,8 +15,8 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import { assignEquipmentToPersonAction } from "@/lib/equipment/actions";
 import {
-  assignEquipmentToPerson,
   getAvailableEquipment,
   refreshEquipment,
 } from "@/lib/equipment/repository";
@@ -48,12 +48,11 @@ export function AssignEquipmentDialog({ personId }: AssignEquipmentDialogProps) 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!equipmentId) return;
-    const result = await assignEquipmentToPerson(equipmentId, personId);
-    if (result) {
-      setOpen(false);
-      setEquipmentId("");
-      router.refresh();
-    }
+    const result = await assignEquipmentToPersonAction(equipmentId, personId);
+    if (!result.ok) throw new Error(result.error);
+    setOpen(false);
+    setEquipmentId("");
+    router.refresh();
   }
 
   return (

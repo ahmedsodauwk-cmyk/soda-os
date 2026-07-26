@@ -24,7 +24,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { assignCrewToOrder } from "@/lib/integration";
+import { assignCrewToOrderAction } from "@/lib/integration/actions";
 import { getPeople, refreshPeople } from "@/lib/people/repository";
 import type { Person } from "@/lib/people/types";
 import type { ProjectOrderStub } from "@/lib/projects/types";
@@ -74,7 +74,7 @@ export function AssignCrewDialog({
     setSaving(true);
     setError(null);
     try {
-      await assignCrewToOrder({
+      const assignResult = await assignCrewToOrderAction({
         orderId,
         personId,
         role: role.trim(),
@@ -92,6 +92,7 @@ export function AssignCrewDialog({
           | "cancelled",
         notes: notes.trim() || undefined,
       });
+      if (!assignResult.ok) throw new Error(assignResult.error);
       setOpen(false);
       setPersonId("");
       setNotes("");

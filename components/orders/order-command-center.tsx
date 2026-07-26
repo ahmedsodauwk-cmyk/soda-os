@@ -37,7 +37,7 @@ import type { BusinessEvent } from "@/lib/core/types";
 import type { EquipmentAssignment } from "@/lib/equipment/types";
 import type { FileAsset } from "@/lib/files/types";
 import type { Expense } from "@/lib/finance/expenses";
-import type { OrderOperatingView } from "@/lib/integration";
+import type { OrderOperatingView } from "@/lib/integration/queries";
 import { buildOrderTimeline } from "@/lib/orders/timeline";
 import { formatDate, formatPrice } from "@/lib/orders/utils";
 import {

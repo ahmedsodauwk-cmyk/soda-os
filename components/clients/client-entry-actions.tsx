@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 
 import { AddClientDialog } from "@/components/clients/add-client-dialog";
 import { useUiActions } from "@/lib/brand/use-ui-actions";
-import { createClient } from "@/lib/clients/repository";
+import { createClientAction } from "@/lib/clients/actions";
 import type { ClientType, NewClientInput } from "@/lib/clients/types";
 
 interface ClientEntryActionsProps {
@@ -22,7 +22,8 @@ export function ClientEntryActions({
   const actions = useUiActions();
 
   async function handleAdd(input: NewClientInput) {
-    await createClient(input);
+    const result = await createClientAction(input);
+    if (!result.ok) throw new Error(result.error);
     router.refresh();
   }
 

@@ -1,3 +1,5 @@
+import "@/lib/domain/server-only-guard";
+
 /**
  * Smart Order Engine V3 — single orchestrator.
  * Order is the source of truth: create / edit / confirm / complete / cancel
@@ -87,15 +89,8 @@ function orderEventPayload(order: Order, summary: string) {
   };
 }
 
-export interface ClientOrderContext {
-  client: Client;
-  previousOrders: Order[];
-  projects: Project[];
-  revenue: number;
-  outstanding: number;
-  lastShoot: string | null;
-  collectionStatus: "clear" | "partial" | "outstanding" | "none";
-}
+export type { ClientOrderContext } from "@/lib/orders/context";
+export { getClientOrderContext } from "@/lib/orders/context";
 
 export interface SmartOrderResult {
   order: Order;
@@ -205,34 +200,6 @@ function toNewOrderInput(input: SmartOrderInput): NewOrderInput {
     deliverables: input.deliverables ?? [],
     reelCount: input.reelCount ?? 0,
     plannedExpenses: input.plannedExpenses ?? [],
-  };
-}
-
-/** Snapshot used by Smart Client autocomplete fill. */
-export function getClientOrderContext(clientId: string): ClientOrderContext | null {
-  const client = getClientById(clientId);
-  if (!client) return null;
-  const view = getClientOperatingView(clientId);
-  const shoots = view.orders
-    .map((o) => o.shootDate)
-    .filter(Boolean)
-    .sort((a, b) => b.localeCompare(a));
-  const outstanding = view.finance.outstanding;
-  const paid = view.finance.paid;
-  let collectionStatus: ClientOrderContext["collectionStatus"] = "none";
-  if (view.orders.length === 0) collectionStatus = "none";
-  else if (outstanding <= 0) collectionStatus = "clear";
-  else if (paid > 0) collectionStatus = "partial";
-  else collectionStatus = "outstanding";
-
-  return {
-    client,
-    previousOrders: view.orders,
-    projects: view.projects,
-    revenue: view.finance.obligatedTotal,
-    outstanding,
-    lastShoot: shoots[0] ?? null,
-    collectionStatus,
   };
 }
 

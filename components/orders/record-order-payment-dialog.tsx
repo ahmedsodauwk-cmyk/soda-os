@@ -24,9 +24,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { emitOrderClientPayment } from "@/lib/integration";
+import { recordOrderPaymentAction } from "@/lib/payments/actions";
 import type { Order } from "@/lib/orders/types";
-import { createPayment } from "@/lib/payments/repository";
 import type { PaymentKind, PaymentStatus } from "@/lib/payments/types";
 import type { PaymentMethod } from "@/lib/wallets/types";
 
@@ -85,31 +84,21 @@ export function RecordOrderPaymentDialog({
     setSaving(true);
     setError(null);
     try {
-      const today = new Date().toISOString().slice(0, 10);
-      const payment = await createPayment({
+      const recordResult = await recordOrderPaymentAction({
         orderId: order.id,
         projectId: order.projectId,
         clientId: order.clientId ?? "",
         workspaceId: order.workspaceId,
         amount: value,
-        currency: "EGP",
         kind,
         status,
-        paidAt: status === "paid" ? today : undefined,
-        note: note.trim() || undefined,
-        label: `${kind} — ${order.clientName}`,
         method,
         reference: reference.trim() || undefined,
         receiver: receiver.trim() || undefined,
+        note: note.trim() || undefined,
+        label: `${kind} — ${order.clientName}`,
       });
-      if (status === "paid" && kind !== "refund") {
-        await emitOrderClientPayment({
-          orderId: order.id,
-          amount: value,
-          paymentId: payment.id,
-          notes: note.trim() || `Payment on order ${order.id}`,
-        });
-      }
+      if (!recordResult.ok) throw new Error(recordResult.error);
       setAmount("");
       setNote("");
       setReference("");

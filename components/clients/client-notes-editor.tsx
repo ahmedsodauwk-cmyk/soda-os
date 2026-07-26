@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { updateClient } from "@/lib/clients/repository";
+import { updateClientAction } from "@/lib/clients/actions";
 
 interface ClientNotesEditorProps {
   clientId: string;
@@ -28,9 +28,10 @@ export function ClientNotesEditor({
     setMessage(null);
     startTransition(async () => {
       try {
-        await updateClient(clientId, {
+        const result = await updateClientAction(clientId, {
           notes: notes.trim() || undefined,
         });
+        if (!result.ok) throw new Error(result.error);
         setMessage("Saved");
         router.refresh();
       } catch (err) {

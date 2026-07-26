@@ -22,8 +22,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { assignEquipmentToPersonAction } from "@/lib/equipment/actions";
 import {
-  assignEquipmentToPerson,
   getAvailableEquipment,
   refreshEquipment,
 } from "@/lib/equipment/repository";
@@ -60,13 +60,12 @@ export function AssignProjectEquipmentDialog() {
     if (!personId || !equipmentId) return;
     setSaving(true);
     try {
-      const result = await assignEquipmentToPerson(equipmentId, personId);
-      if (result) {
-        setOpen(false);
-        setPersonId("");
-        setEquipmentId("");
-        router.refresh();
-      }
+      const result = await assignEquipmentToPersonAction(equipmentId, personId);
+      if (!result.ok) throw new Error(result.error);
+      setOpen(false);
+      setPersonId("");
+      setEquipmentId("");
+      router.refresh();
     } finally {
       setSaving(false);
     }

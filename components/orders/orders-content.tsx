@@ -17,11 +17,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  applyOrderStatus,
-  updateSmartOrder,
-} from "@/lib/orders/engine";
+  applyOrderStatusAction,
+  deleteOrderAction,
+  updateSmartOrderAction,
+} from "@/lib/orders/actions";
 import {
-  deleteOrder,
   getOrders,
   refreshOrders,
 } from "@/lib/orders/repository";
@@ -109,11 +109,14 @@ export function OrdersContent({
     ) {
       const { status, ...rest } = patch;
       if (Object.keys(rest).length > 0) {
-        await updateSmartOrder(id, rest);
+        const updateResult = await updateSmartOrderAction(id, rest);
+        if (!updateResult.ok) throw new Error(updateResult.error);
       }
-      await applyOrderStatus(id, status);
+      const statusResult = await applyOrderStatusAction(id, status);
+      if (!statusResult.ok) throw new Error(statusResult.error);
     } else {
-      await updateSmartOrder(id, patch);
+      const result = await updateSmartOrderAction(id, patch);
+      if (!result.ok) throw new Error(result.error);
     }
     setOrders(filterOrdersByScopeIds(getOrders(), allowedOrderIds));
     router.refresh();
@@ -127,7 +130,8 @@ export function OrdersContent({
     ) {
       return;
     }
-    await deleteOrder(order.id);
+    const result = await deleteOrderAction(order.id);
+    if (!result.ok) throw new Error(result.error);
     setOrders(filterOrdersByScopeIds(getOrders(), allowedOrderIds));
     router.refresh();
   }

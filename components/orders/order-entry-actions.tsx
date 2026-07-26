@@ -7,7 +7,7 @@ import { useUiActions } from "@/lib/brand/use-ui-actions";
 import { refreshAssignments } from "@/lib/assignments/repository";
 import { refreshClients } from "@/lib/clients/repository";
 import { refreshFinance } from "@/lib/finance/repository";
-import { createSmartOrder } from "@/lib/orders/engine";
+import { createSmartOrderAction } from "@/lib/orders/actions";
 import { refreshOrders } from "@/lib/orders/repository";
 import type { ProjectType, SmartOrderInput } from "@/lib/orders/types";
 import { refreshPeople } from "@/lib/people/repository";
@@ -26,10 +26,13 @@ export function OrderEntryActions({
   const actions = useUiActions();
 
   async function handleAdd(input: SmartOrderInput) {
+    const result = await createSmartOrderAction(input);
+    if (!result.ok) {
+      throw new Error(result.error);
+    }
     await refreshClients();
     await refreshPeople();
     await refreshProjects();
-    await createSmartOrder(input);
     await refreshOrders();
     await refreshAssignments();
     await refreshFinance();

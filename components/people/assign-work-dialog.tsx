@@ -25,7 +25,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { UI_ACTIONS } from "@/lib/brand/ui-actions";
 import { getClients, refreshClients } from "@/lib/clients/repository";
 import type { Client } from "@/lib/clients/types";
-import { assignCrewToOrder } from "@/lib/integration";
+import { assignCrewToOrderAction } from "@/lib/integration/actions";
 import {
   getOrders,
   refreshOrders,
@@ -126,7 +126,7 @@ export function AssignWorkDialog({
         .filter(Boolean)
         .join("\n");
 
-      await assignCrewToOrder({
+      const assignResult = await assignCrewToOrderAction({
         orderId,
         personId: person.id,
         role: role.trim() || person.jobTitle || "Crew",
@@ -135,6 +135,7 @@ export function AssignWorkDialog({
         deduction: 0,
         notes: meta || undefined,
       });
+      if (!assignResult.ok) throw new Error(assignResult.error);
       onOpenChange(false);
       setOrderId("");
       setClientId("");

@@ -25,8 +25,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { advanceProjectJourney } from "@/lib/integration";
-import { createDelivery } from "@/lib/invoices/repository";
+import { advanceProjectJourneyAction } from "@/lib/integration/actions";
+import { createDeliveryAction } from "@/lib/invoices/actions";
 import {
   DELIVERY_STATUSES,
   type DeliveryStatus,
@@ -60,7 +60,7 @@ export function CreateDeliveryDialog({
     setSaving(true);
     setError(null);
     try {
-      await createDelivery({
+      const deliveryResult = await createDeliveryAction({
         orderId,
         projectId,
         clientId,
@@ -72,7 +72,12 @@ export function CreateDeliveryDialog({
           ? { deliveredAt: new Date().toISOString() }
           : {}),
       });
-      await advanceProjectJourney(projectId, "Delivery");
+      if (!deliveryResult.ok) throw new Error(deliveryResult.error);
+      const journeyResult = await advanceProjectJourneyAction(
+        projectId,
+        "Delivery"
+      );
+      if (!journeyResult.ok) throw new Error(journeyResult.error);
       setOpen(false);
       setLabel("");
       setNotes("");

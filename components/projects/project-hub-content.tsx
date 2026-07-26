@@ -56,7 +56,7 @@ import {
 import { formatRelativeActivity } from "@/lib/projects/utils";
 import { getWorkspaceDisplayLabel } from "@/lib/workspaces/repository";
 import { getWorkspaceById } from "@/lib/taxonomy/repository";
-import { getProjectOperatingView } from "@/lib/integration";
+import { getProjectOperatingView } from "@/lib/integration/queries";
 import {
   assignmentFinalAmount,
   assignmentRemaining,

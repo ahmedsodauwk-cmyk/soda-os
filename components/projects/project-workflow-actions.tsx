@@ -12,7 +12,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { finishProject, markShootComplete } from "@/lib/integration";
+import {
+  finishProjectAction,
+  markShootCompleteAction,
+} from "@/lib/integration/actions";
 import type { Project, ProjectOrderStub } from "@/lib/projects/types";
 
 interface ProjectWorkflowActionsProps {
@@ -39,7 +42,8 @@ export function ProjectWorkflowActions({
     setBusy("shoot");
     setError(null);
     try {
-      await markShootComplete(orderId);
+      const result = await markShootCompleteAction(orderId);
+      if (!result.ok) throw new Error(result.error);
       router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed");
@@ -52,7 +56,8 @@ export function ProjectWorkflowActions({
     setBusy("finish");
     setError(null);
     try {
-      await finishProject(project.id);
+      const result = await finishProjectAction(project.id);
+      if (!result.ok) throw new Error(result.error);
       router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed");

@@ -24,13 +24,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  advanceProjectJourney,
-  emitOrderClientPayment,
-} from "@/lib/integration";
+import { advanceProjectJourneyAction } from "@/lib/integration/actions";
 import { getOrderById, refreshOrders } from "@/lib/orders/repository";
 import type { Order } from "@/lib/orders/types";
-import { createPayment } from "@/lib/payments/repository";
+import { recordOrderPaymentAction } from "@/lib/payments/actions";
 import type { PaymentKind, PaymentStatus } from "@/lib/payments/types";
 import type { ProjectOrderStub } from "@/lib/projects/types";
 
@@ -69,29 +66,24 @@ export function RecordProjectPaymentDialog({
     try {
       await refreshOrders();
       const order: Order | undefined = getOrderById(orderId);
-      const today = new Date().toISOString().slice(0, 10);
-      const payment = await createPayment({
+      const recordResult = await recordOrderPaymentAction({
         orderId,
         projectId: order?.projectId ?? projectId,
         clientId: order?.clientId ?? clientId,
         workspaceId: order?.workspaceId ?? workspaceId,
         amount: value,
-        currency: "EGP",
         kind,
         status,
-        paidAt: status === "paid" ? today : undefined,
+        method: "cash",
         note: note.trim() || undefined,
         label: `${kind} — ${order?.clientName ?? "project"}`,
       });
-      if (status === "paid" && kind !== "refund") {
-        await emitOrderClientPayment({
-          orderId,
-          amount: value,
-          paymentId: payment.id,
-          notes: note.trim() || `Payment on order ${orderId}`,
-        });
-      }
-      await advanceProjectJourney(projectId, "Payment");
+      if (!recordResult.ok) throw new Error(recordResult.error);
+      const journeyResult = await advanceProjectJourneyAction(
+        projectId,
+        "Payment"
+      );
+      if (!journeyResult.ok) throw new Error(journeyResult.error);
       setOpen(false);
       setAmount("");
       setNote("");

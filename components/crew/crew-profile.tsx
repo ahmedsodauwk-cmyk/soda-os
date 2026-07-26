@@ -23,7 +23,7 @@ import {
   getEquipmentHistoryForPerson,
   refreshEquipment,
 } from "@/lib/equipment/repository";
-import { getCrewOperatingView } from "@/lib/integration";
+import { getCrewOperatingView } from "@/lib/integration/queries";
 import { getCrewWallet } from "@/lib/wallets/crew-wallet";
 import { CREW_MONTHLY_BONUS_THRESHOLD } from "@/lib/orders/status";
 

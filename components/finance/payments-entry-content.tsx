@@ -26,15 +26,16 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { emitOrderClientPayment } from "@/lib/integration";
+import {
+  deletePaymentAction,
+  recordOrderPaymentAction,
+  updatePaymentAction,
+} from "@/lib/payments/actions";
 import { getOrders, refreshOrders } from "@/lib/orders/repository";
 import type { Order } from "@/lib/orders/types";
 import {
-  createPayment,
-  deletePayment,
   getPayments,
   refreshPayments,
-  updatePayment,
 } from "@/lib/payments/repository";
 import type { Payment, PaymentKind, PaymentStatus } from "@/lib/payments/types";
 import type { PaymentMethod } from "@/lib/wallets/types";
@@ -77,31 +78,21 @@ function RecordPaymentDialog({
     if (!order || !value || value <= 0) return;
     setSaving(true);
     try {
-      const today = new Date().toISOString().slice(0, 10);
-      const payment = await createPayment({
+      const recordResult = await recordOrderPaymentAction({
         orderId: order.id,
         projectId: order.projectId,
         clientId: order.clientId ?? "",
         workspaceId: order.workspaceId,
         amount: value,
-        currency: "EGP",
         kind,
         status,
-        paidAt: status === "paid" ? today : undefined,
-        note: note.trim() || undefined,
-        label: `${kind} — ${order.clientName}`,
         method,
         reference: reference.trim() || undefined,
         receiver: receiver.trim() || undefined,
+        note: note.trim() || undefined,
+        label: `${kind} — ${order.clientName}`,
       });
-      if (status === "paid" && kind !== "refund") {
-        await emitOrderClientPayment({
-          orderId: order.id,
-          amount: value,
-          paymentId: payment.id,
-          notes: note.trim() || `Payment on order ${order.id}`,
-        });
-      }
+      if (!recordResult.ok) throw new Error(recordResult.error);
       onRecorded();
       setOrderId("");
       setAmount("");
@@ -295,7 +286,8 @@ export function PaymentsEntryContent() {
     if (status === "paid") {
       patch.paidAt = new Date().toISOString().slice(0, 10);
     }
-    await updatePayment(id, patch);
+    const result = await updatePaymentAction(id, patch);
+    if (!result.ok) throw new Error(result.error);
     reload();
   }
 
@@ -307,7 +299,8 @@ export function PaymentsEntryContent() {
     ) {
       return;
     }
-    await deletePayment(payment.id);
+    const result = await deletePaymentAction(payment.id, payment.orderId);
+    if (!result.ok) throw new Error(result.error);
     reload();
   }
 

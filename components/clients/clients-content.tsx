@@ -16,10 +16,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  deleteClient,
+  deleteClientAction,
+  updateClientAction,
+} from "@/lib/clients/actions";
+import {
   getAllClients,
   refreshClients,
-  updateClient,
 } from "@/lib/clients/repository";
 import {
   CLIENT_TYPES,
@@ -73,7 +75,8 @@ export function ClientsContent({
     id: string,
     patch: Partial<NewClientInput> & { isActive?: boolean }
   ) {
-    await updateClient(id, patch);
+    const result = await updateClientAction(id, patch);
+    if (!result.ok) throw new Error(result.error);
     setClients(filterClientsByScopeIds(getAllClients(), allowedClientIds));
     router.refresh();
   }
@@ -86,7 +89,8 @@ export function ClientsContent({
     ) {
       return;
     }
-    await deleteClient(client.id);
+    const result = await deleteClientAction(client.id);
+    if (!result.ok) throw new Error(result.error);
     setClients(filterClientsByScopeIds(getAllClients(), allowedClientIds));
     router.refresh();
   }

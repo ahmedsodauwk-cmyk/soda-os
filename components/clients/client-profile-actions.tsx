@@ -7,9 +7,9 @@ import { EditClientDialog } from "@/components/clients/edit-client-dialog";
 import { Button } from "@/components/ui/button";
 import { UI_ACTIONS } from "@/lib/brand/ui-actions";
 import {
-  deleteClient,
-  updateClient,
-} from "@/lib/clients/repository";
+  deleteClientAction,
+  updateClientAction,
+} from "@/lib/clients/actions";
 import type { Client, NewClientInput } from "@/lib/clients/types";
 
 interface ClientProfileActionsProps {
@@ -24,13 +24,15 @@ export function ClientProfileActions({ client }: ClientProfileActionsProps) {
     id: string,
     patch: Partial<NewClientInput> & { isActive?: boolean }
   ) {
-    await updateClient(id, patch);
+    const result = await updateClientAction(id, patch);
+    if (!result.ok) throw new Error(result.error);
     router.refresh();
   }
 
   async function handleDelete() {
     if (!window.confirm(`Delete client “${client.name}”?`)) return;
-    await deleteClient(client.id);
+    const result = await deleteClientAction(client.id);
+    if (!result.ok) throw new Error(result.error);
     router.push("/clients");
     router.refresh();
   }

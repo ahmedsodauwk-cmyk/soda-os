@@ -31,11 +31,13 @@ import { UI_ACTIONS } from "@/lib/brand/ui-actions";
 import { getAllClients, refreshClients } from "@/lib/clients/repository";
 import type { Client } from "@/lib/clients/types";
 import {
-  createProject,
-  deleteProject,
+  createProjectAction,
+  deleteProjectAction,
+  updateProjectAction,
+} from "@/lib/projects/actions";
+import {
   getProjects,
   refreshProjects,
-  updateProject,
 } from "@/lib/projects/repository";
 import {
   PROJECT_STATUSES,
@@ -83,7 +85,7 @@ function AddProjectDialog({
     setSaving(true);
     try {
       const now = new Date().toISOString();
-      const project = await createProject({
+      const result = await createProjectAction({
         name: name.trim(),
         workspaceId,
         clientName: client.name,
@@ -99,6 +101,10 @@ function AddProjectDialog({
         isActive: true,
         ...emptyHub(),
       });
+      if (!result.ok) {
+        throw new Error(result.error);
+      }
+      const project = result.data!;
       onCreated(project);
       setName("");
       setClientId("");
@@ -234,14 +240,16 @@ export function ProjectsListContent() {
   );
 
   async function handleStatusChange(id: string, status: ProjectStatus) {
-    await updateProject(id, { status });
+    const result = await updateProjectAction(id, { status });
+    if (!result.ok) throw new Error(result.error);
     setProjects(getProjects());
     router.refresh();
   }
 
   async function handleDelete(project: Project) {
     if (!window.confirm(`Delete project “${project.name}”?`)) return;
-    await deleteProject(project.id);
+    const result = await deleteProjectAction(project.id);
+    if (!result.ok) throw new Error(result.error);
     setProjects(getProjects());
     router.refresh();
   }

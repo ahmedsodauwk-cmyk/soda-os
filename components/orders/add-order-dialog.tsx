@@ -24,14 +24,14 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { getClients } from "@/lib/clients/repository";
+import { createClientInlineAction } from "@/lib/clients/actions";
 import type { Client } from "@/lib/clients/types";
 import { getSuccessMessage } from "@/lib/brand/soda-voice";
 import { UI_ACTIONS } from "@/lib/brand/ui-actions";
 import {
-  createClientInline,
   getClientOrderContext,
   type ClientOrderContext,
-} from "@/lib/orders/engine";
+} from "@/lib/orders/context";
 import {
   DRESS_CODES,
   ORDER_DELIVERABLES,
@@ -52,7 +52,7 @@ import { formatPrice, workspaceIdFromProjectType } from "@/lib/orders/utils";
 import { validateSmartOrderInput } from "@/lib/orders/validation";
 import { getPeople } from "@/lib/people/repository";
 import { getProjectsByClient } from "@/lib/projects/repository";
-import { getProjectOperatingView } from "@/lib/integration";
+import { getProjectOperatingView } from "@/lib/integration/queries";
 import { cn } from "@/lib/utils";
 
 const STEPS = [
@@ -321,12 +321,16 @@ export function AddOrderDialog({
         ),
       };
       if (form.createNewClient && !form.clientId) {
-        const client = await createClientInline({
+        const inline = await createClientInlineAction({
           name: form.clientName,
           phone: form.phone,
           whatsapp: form.whatsapp || form.phone,
           projectType: form.projectType,
         });
+        if (!inline.ok) {
+          throw new Error(inline.error);
+        }
+        const client = inline.data!;
         payload = {
           ...payload,
           clientId: client.id,

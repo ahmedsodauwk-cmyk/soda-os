@@ -20,7 +20,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { UI_ACTIONS } from "@/lib/brand/ui-actions";
 import { getClients } from "@/lib/clients/repository";
-import { createQuotation } from "@/lib/quotations";
+import { createQuotationAction } from "@/lib/quotations/actions";
 import type { ClientSegment } from "@/lib/clients/types";
 
 export function NewQuotationForm() {
@@ -56,7 +56,7 @@ export function NewQuotationForm() {
       setError("Client and contact are required");
       return;
     }
-    const created = await createQuotation({
+    const createdResult = await createQuotationAction({
       clientId: clientId || undefined,
       clientName,
       company: company || undefined,
@@ -68,7 +68,11 @@ export function NewQuotationForm() {
       assignedSales,
       notes,
     });
-    router.push(`/quotations/${created.id}`);
+    if (!createdResult.ok) {
+      setError(createdResult.error);
+      return;
+    }
+    router.push(`/quotations/${createdResult.data!.id}`);
   }
 
   return (

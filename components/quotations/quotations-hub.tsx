@@ -25,9 +25,11 @@ import {
 } from "@/components/ui/select";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import {
-  deleteQuotation,
+  deleteQuotationAction,
+  moveQuotationStageAction,
+} from "@/lib/quotations/actions";
+import {
   getQuotations,
-  moveQuotationStage,
   PIPELINE_STAGES,
   refreshQuotations,
   type PipelineStage,
@@ -140,13 +142,15 @@ export function QuotationsHub() {
   }, [quotations]);
 
   async function handleMove(id: string, stage: PipelineStage) {
-    await moveQuotationStage(id, stage);
+    const result = await moveQuotationStageAction(id, stage);
+    if (!result.ok) throw new Error(result.error);
     setTick((t) => t + 1);
   }
 
   async function handleDelete(q: Quotation) {
     if (!window.confirm(`Delete quotation ${q.number}?`)) return;
-    await deleteQuotation(q.id);
+    const result = await deleteQuotationAction(q.id);
+    if (!result.ok) throw new Error(result.error);
     setTick((t) => t + 1);
   }
 
