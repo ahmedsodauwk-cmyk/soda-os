@@ -1,8 +1,9 @@
-"use client";
+﻿"use client";
 
 import { useRouter } from "next/navigation";
 
 import { AddOrderDialog } from "@/components/orders/add-order-dialog";
+import { useShellOptional } from "@/components/layout/shell-context";
 import { useUiActions } from "@/lib/brand/use-ui-actions";
 import { refreshAssignments } from "@/lib/assignments/repository";
 import { refreshClients } from "@/lib/clients/repository";
@@ -24,6 +25,10 @@ export function OrderEntryActions({
 }: OrderEntryActionsProps) {
   const router = useRouter();
   const actions = useUiActions();
+  const shell = useShellOptional();
+  const isFounder = shell?.user?.accessLevel === "founder";
+
+  if (!isFounder) return null;
 
   async function handleAdd(input: SmartOrderInput) {
     const result = await createSmartOrderAction(input);
@@ -44,6 +49,7 @@ export function OrderEntryActions({
       onAdd={handleAdd}
       defaultProjectType={defaultProjectType}
       triggerLabel={triggerLabel ?? actions.createOrder}
+      allowInlineClientCreate
     />
   );
 }

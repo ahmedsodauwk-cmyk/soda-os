@@ -47,14 +47,14 @@ const actions: {
     href: "/orders",
     icon: ClipboardList,
     anyOf: ["orders.create", "orders.edit"],
-    levels: ["founder", "account_manager", "team_leader"],
+    levels: ["founder"],
   },
   {
     labelKey: "quickActions.createClient",
     href: "/clients",
     icon: Contact,
     anyOf: ["clients.manage", "clients.edit"],
-    levels: ["founder", "account_manager"],
+    levels: ["founder"],
   },
   {
     labelKey: "quickActions.crew",
