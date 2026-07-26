@@ -114,12 +114,15 @@ interface AddOrderDialogProps {
   onAdd: (order: SmartOrderInput) => void | Promise<void>;
   defaultProjectType?: ProjectType;
   triggerLabel?: string;
+  /** Founder-only inline client creation during order entry. */
+  allowInlineClientCreate?: boolean;
 }
 
 export function AddOrderDialog({
   onAdd,
   defaultProjectType,
   triggerLabel = UI_ACTIONS.createOrder,
+  allowInlineClientCreate = false,
 }: AddOrderDialogProps) {
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState(1);
@@ -422,16 +425,18 @@ export function AddOrderDialog({
                 <div className="space-y-2 rounded-md border border-border/60 p-3">
                   <div className="flex items-center justify-between gap-2">
                     <Label htmlFor="clientSearch">Client</Label>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      className="gap-1"
-                      onClick={startCreateClient}
-                    >
-                      <UserPlus className="size-3.5" />
-                      Create New Client
-                    </Button>
+                    {allowInlineClientCreate ? (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="gap-1"
+                        onClick={startCreateClient}
+                      >
+                        <UserPlus className="size-3.5" />
+                        Create New Client
+                      </Button>
+                    ) : null}
                   </div>
                   <Input
                     id="clientSearch"
