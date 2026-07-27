@@ -22,12 +22,12 @@ export type Dictionary = {
     finance: string;
     statistics: string;
     myWallet: string;
+    myTasks: string;
+    myAssignedOrders: string;
+    mySchedule: string;
     bonus: string;
     target: string;
     penalties: string;
-    myFiles: string;
-    briefs: string;
-    dressCode: string;
     myPerformance: string;
     connect: string;
     notifications: string;
@@ -174,12 +174,12 @@ const en: Dictionary = {
     finance: "Finance",
     statistics: "Statistics",
     myWallet: "My Wallet",
+    myTasks: "My Tasks",
+    myAssignedOrders: "My Assigned Orders",
+    mySchedule: "My Schedule",
     bonus: "Bonus",
     target: "Target",
     penalties: "Penalties",
-    myFiles: "My Files",
-    briefs: "Briefs",
-    dressCode: "Dress Code",
     myPerformance: "My Performance",
     connect: "Team Chat",
     notifications: "Notifications",
@@ -326,12 +326,12 @@ const ar: Dictionary = {
     finance: "المالية",
     statistics: "الإحصائيات",
     myWallet: "محفظتي",
+    myTasks: "مهامي",
+    myAssignedOrders: "أوردراتي",
+    mySchedule: "جدولي",
     bonus: "البونص",
     target: "التارجيت",
     penalties: "الجزاءات",
-    myFiles: "ملفاتي",
-    briefs: "البريفز",
-    dressCode: "الدريس كود",
     myPerformance: "أدائي",
     connect: "Team Chat",
     notifications: "التنبيهات",

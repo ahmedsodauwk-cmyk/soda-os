@@ -123,8 +123,8 @@ function NavLinkButton({
         collapsed ? "justify-center px-2" : "px-3",
         item.accent === "brain"
           ? active
-            ? "soda-nav-pill-active bg-violet-500/20 text-violet-100"
-            : "text-violet-200/80 hover:bg-violet-500/10 hover:text-violet-100"
+            ? "soda-nav-brain soda-nav-pill-active bg-violet-500/25 text-violet-100 shadow-[0_0_12px_rgba(139,92,246,0.35)]"
+            : "soda-nav-brain text-violet-200/90 hover:bg-violet-500/15 hover:text-violet-100 hover:shadow-[0_0_10px_rgba(139,92,246,0.2)]"
           : active
             ? "soda-nav-pill-active soda-selected text-sidebar-accent-foreground"
             : "text-sidebar-foreground/70 hover:bg-sidebar-accent/40 hover:text-sidebar-foreground"
@@ -329,12 +329,30 @@ export function SidebarContent({
         aria-label="Primary"
       >
         {companySection ? (
-          <CompanyNav
-            items={companySection.items}
-            pathname={pathname}
-            collapsed={collapsed}
-            t={t}
-          />
+          <div className="space-y-0.5">
+            {companySection.items.map((item, index) => {
+              const isBrain = item.accent === "brain";
+              const prevIsBrain =
+                index > 0 && companySection.items[index - 1]?.accent === "brain";
+              const showBrainSep = isBrain && index > 0 && !prevIsBrain;
+              return (
+                <div key={item.titleKey}>
+                  {showBrainSep ? (
+                    <div
+                      className="my-2 border-t border-violet-500/25"
+                      aria-hidden
+                    />
+                  ) : null}
+                  <NavLinkButton
+                    item={item}
+                    active={isNavActive(pathname, item.href)}
+                    collapsed={collapsed}
+                    title={t(item.titleKey)}
+                  />
+                </div>
+              );
+            })}
+          </div>
         ) : null}
 
         {meSection ? (

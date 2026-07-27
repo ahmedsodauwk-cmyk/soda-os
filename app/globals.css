@@ -159,9 +159,10 @@
   );
   --soda-ease: cubic-bezier(0.22, 1, 0.36, 1);
   --soda-duration: 200ms;
-  --soda-duration-route-exit: 130ms;
-  --soda-duration-route: 220ms;
-  --soda-duration-press: 110ms;
+  --soda-duration-hover: 200ms;
+  --soda-duration-route-exit: 160ms;
+  --soda-duration-route: 240ms;
+  --soda-duration-press: 120ms;
   --soda-duration-slow: 280ms;
   --soda-duration-live: 480ms;
   --soda-stagger-step: 45ms;
@@ -783,14 +784,14 @@
   }
   to {
     opacity: 0;
-    transform: translateY(-10px);
+    transform: translateY(-16px);
   }
 }
 
 @keyframes soda-page-in {
   from {
     opacity: 0;
-    transform: translateY(12px);
+    transform: translateY(16px);
   }
   to {
     opacity: 1;
@@ -850,6 +851,7 @@
   .soda-card:hover {
     box-shadow: var(--soda-shadow-lift);
     border-color: color-mix(in srgb, #d23b68 28%, transparent);
+    transition-duration: var(--soda-duration-hover);
   }
 }
 
@@ -1219,19 +1221,22 @@
 }
 
 .soda-founder-clock {
-  background: linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--soda-pink) 6%, transparent) 0%,
-    color-mix(in srgb, var(--card) 90%, transparent) 100%
-  );
+  background: none;
+  border: none;
+  padding: 0;
 }
 
-.dark .soda-founder-clock {
-  background: linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--soda-pink) 10%, transparent) 0%,
-    color-mix(in srgb, var(--card) 85%, transparent) 100%
-  );
+.soda-founder-folder {
+  transition:
+    border-color var(--soda-duration-hover) var(--soda-ease),
+    background-color var(--soda-duration-hover) var(--soda-ease),
+    transform var(--soda-duration-hover) var(--soda-ease);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .soda-founder-folder:hover {
+    transform: translateY(-2px);
+  }
 }
 
 .soda-founder-pulse {

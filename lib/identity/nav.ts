@@ -23,15 +23,13 @@ import {
   Target,
   Gift,
   AlertTriangle,
-  FolderOpen,
-  ScrollText,
-  Shirt,
   TrendingUp,
   Bell,
   Building2,
   UserRound,
   Brain,
   MessageCircle,
+  ClipboardList,
 } from "lucide-react";
 
 import type { AccessLevel } from "@/lib/identity/access-levels";
@@ -90,11 +88,14 @@ export const SIDEBAR_HIDDEN_TITLE_KEYS = new Set<DictKey>([
   "nav.equipment",
 ]);
 
-/** Founder My Workspace — permanent sidebar clutter removed from display. */
+/** Founder My Workspace — crew-only items hidden; SODA Brain stays in company nav. */
 export const SIDEBAR_FOUNDER_HIDDEN_ME_KEYS = new Set<DictKey>([
   "nav.target",
   "nav.bonus",
   "nav.penalties",
+  "nav.myTasks",
+  "nav.myAssignedOrders",
+  "nav.mySchedule",
 ]);
 
 function orderIndex(titleKey: DictKey): number {
@@ -257,10 +258,38 @@ export const NAV_ITEMS: NavItem[] = [
     workspace: "company",
   },
   {
+    titleKey: "nav.myTasks",
+    href: "/me/tasks",
+    icon: ClipboardList,
+    anyOf: ["dashboard.crew", "dashboard.team"],
+    workspace: "me",
+  },
+  {
+    titleKey: "nav.myAssignedOrders",
+    href: "/orders",
+    icon: ShoppingCart,
+    anyOf: ["orders.view"],
+    workspace: "me",
+  },
+  {
+    titleKey: "nav.mySchedule",
+    href: "/calendar",
+    icon: Calendar,
+    anyOf: ["calendar.view"],
+    workspace: "me",
+  },
+  {
     titleKey: "nav.myWallet",
     href: "/me/wallet",
     icon: Wallet,
     anyOf: ["me.wallet"],
+    workspace: "me",
+  },
+  {
+    titleKey: "nav.myPerformance",
+    href: "/me/performance",
+    icon: TrendingUp,
+    anyOf: ["me.performance"],
     workspace: "me",
   },
   {
@@ -282,34 +311,6 @@ export const NAV_ITEMS: NavItem[] = [
     href: "/me/penalties",
     icon: AlertTriangle,
     anyOf: ["me.penalties"],
-    workspace: "me",
-  },
-  {
-    titleKey: "nav.myFiles",
-    href: "/me/files",
-    icon: FolderOpen,
-    anyOf: ["me.files"],
-    workspace: "me",
-  },
-  {
-    titleKey: "nav.briefs",
-    href: "/me/briefs",
-    icon: ScrollText,
-    anyOf: ["me.briefs"],
-    workspace: "me",
-  },
-  {
-    titleKey: "nav.dressCode",
-    href: "/me/dress-code",
-    icon: Shirt,
-    anyOf: ["me.dress_code"],
-    workspace: "me",
-  },
-  {
-    titleKey: "nav.myPerformance",
-    href: "/me/performance",
-    icon: TrendingUp,
-    anyOf: ["me.performance"],
     workspace: "me",
   },
   {
