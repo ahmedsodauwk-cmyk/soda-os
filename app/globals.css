@@ -159,7 +159,9 @@
   );
   --soda-ease: cubic-bezier(0.22, 1, 0.36, 1);
   --soda-duration: 200ms;
-  --soda-duration-route: 240ms;
+  --soda-duration-route-exit: 130ms;
+  --soda-duration-route: 220ms;
+  --soda-duration-press: 110ms;
   --soda-duration-slow: 280ms;
   --soda-duration-live: 480ms;
   --soda-stagger-step: 45ms;
@@ -762,8 +764,27 @@
 }
 
 .soda-page-enter,
-.soda-route-enter {
+.soda-route-enter-active {
   animation: soda-page-in var(--soda-duration-route) var(--soda-ease) both;
+}
+
+.soda-route-exit {
+  animation: soda-page-out var(--soda-duration-route-exit) var(--soda-ease) both;
+}
+
+.soda-route-idle {
+  animation: none;
+}
+
+@keyframes soda-page-out {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
 }
 
 @keyframes soda-page-in {
@@ -853,8 +874,48 @@
     );
 }
 
+/* Sidebar nav — gradient pill active indicator */
+.soda-nav-pill-active {
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, #d23b68 42%, #3d2a5c 58%) 0%,
+    color-mix(in srgb, #d23b68 24%, #29194a 76%) 100%
+  );
+  transition:
+    background var(--soda-duration) var(--soda-ease),
+    box-shadow var(--soda-duration) var(--soda-ease),
+    transform var(--soda-duration-press) var(--soda-ease);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .soda-nav-pill-active {
+    animation: soda-nav-pill-in var(--soda-duration-route) var(--soda-ease) both;
+  }
+}
+
+@keyframes soda-nav-pill-in {
+  from {
+    opacity: 0.85;
+    transform: translateX(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Button press feedback */
+@media (prefers-reduced-motion: no-preference) {
+  [data-slot="button"]:active:not(:disabled),
+  button:active:not(:disabled) {
+    transform: scale(0.97);
+    transition-duration: var(--soda-duration-press);
+  }
+}
+
 /* Selected / active glow */
 .soda-selected,
+.soda-nav-pill-active,
 [aria-current="page"].soda-nav-active {
   box-shadow: 0 0 0 1px color-mix(in srgb, #d23b68 45%, transparent),
     0 0 24px color-mix(in srgb, #d23b68 22%, transparent);
@@ -1071,6 +1132,8 @@
   .soda-live-fade-enter,
   .soda-page-enter,
   .soda-route-enter,
+  .soda-route-enter-active,
+  .soda-route-exit,
   .soda-stagger-children > *,
   .soda-mark-pulse,
   .soda-splash-fade,
@@ -1097,7 +1160,7 @@
 }
 
 /* -------------------------------------------------------------------------- */
-/*  Founder Command Center — compact no-scroll layout (1440×900 target)      */
+/*  Founder Command Center — reference geometry, natural scroll              */
 /* -------------------------------------------------------------------------- */
 
 .soda-founder-home {
@@ -1141,48 +1204,18 @@
 
 .soda-founder-main {
   min-height: 0;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(1, minmax(0, 1fr));
 }
 
-@media (min-width: 1024px) and (min-height: 800px) {
-  .soda-founder-home {
-    max-height: none;
-    overflow: visible;
-  }
-
-  .soda-founder-screen-1 {
-    max-height: calc(100dvh - 5.5rem);
-    overflow: hidden;
-  }
-
+@media (min-width: 1024px) {
   .soda-founder-main {
-    flex: 1 1 auto;
-    min-height: 0;
-    max-height: clamp(11rem, 36vh, 20rem);
-  }
-
-  .soda-founder-panel {
-    max-height: 100%;
-    overflow: hidden;
-  }
-
-  .soda-founder-panel [data-slot="card-content"] {
-    overflow: hidden;
-  }
-
-  .soda-founder-bottom {
-    flex-shrink: 0;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 
-@media (min-width: 1440px) and (min-height: 860px) {
-  .soda-founder-screen-1 {
-    max-height: calc(100dvh - 5rem);
-  }
-
-  .soda-founder-main {
-    max-height: clamp(12rem, 34vh, 21rem);
-  }
+/* Natural scroll — no max-height clipping on operational panels */
+.soda-founder-panel [data-slot="card-content"] {
+  overflow: visible;
 }
 
 .soda-founder-clock {
