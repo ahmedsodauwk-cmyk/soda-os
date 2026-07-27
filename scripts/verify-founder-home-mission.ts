@@ -28,6 +28,7 @@ const founderActions = read("components/dashboard/founder-home-actions.tsx");
 const founderFolders = read("components/dashboard/founder-folder-grid.tsx");
 const companyUpdates = read("components/dashboard/founder-company-updates.tsx");
 const routeTransition = read("components/layout/route-transition.tsx");
+const shellFrame = read("components/layout/shell-frame.tsx");
 const globalsCss = read("app/globals.css");
 const navSource = read("lib/identity/nav.ts");
 
@@ -36,6 +37,7 @@ console.log("verify-founder-home-mission\n");
 check("1: single action group component exists on Home", () => {
   assert.match(founderHome, /FounderHomeActions/);
   assert.match(founderActions, /Add Quotation/);
+  assert.match(founderActions, /OrderEntryActions/);
   assert.doesNotMatch(founderHome, /FounderActionStrip/);
 });
 
@@ -52,18 +54,21 @@ check("3: folder grid covers required destinations (no SODA Brain)", () => {
     "/quotations",
     "/calendar",
     "/people",
+    "/finance",
     "/connect",
     "/notifications",
   ]) {
     assert.match(founderFolders, new RegExp(`href: "${href}"`));
   }
   assert.doesNotMatch(founderFolders, /\/brain/);
+  assert.match(founderFolders, /ArrowRight/);
 });
 
 check("4: Studio Activity replaced by Latest Company Updates", () => {
   assert.match(founderHome, /FounderCompanyUpdates/);
   assert.match(companyUpdates, /Latest Company Updates/);
   assert.doesNotMatch(founderHome, /FounderStudioActivity/);
+  assert.match(founderHome, /soda-founder-lower-panels/);
 });
 
 check("5: no backup FS on Founder Home critical path", () => {
@@ -112,23 +117,31 @@ check("10: brain isolation — personal brain UI disabled", () => {
   assert.equal(isPersonalBrainUiEnabled(), false);
 });
 
-check("11: Motion V2 route timing ~400ms total", () => {
-  assert.equal(v2Motion.routeExitMs + v2Motion.routeEnterMs, 400);
+check("11: Motion route timing ~650ms total", () => {
+  assert.equal(v2Motion.routeExitMs + v2Motion.routeEnterMs, 650);
   assert.match(routeTransition, /v2Motion\.routeExitMs/);
+  assert.match(globalsCss, /translateX/);
 });
 
 check("12: prefers-reduced-motion in globals", () => {
   assert.match(globalsCss, /prefers-reduced-motion: reduce/);
+  assert.match(globalsCss, /soda-fade-only/);
 });
 
 check("13: hover and press durations in V2 range", () => {
-  assert.ok(v2Motion.hoverMs >= 180 && v2Motion.hoverMs <= 240);
-  assert.ok(v2Motion.pressMs >= 100 && v2Motion.pressMs <= 140);
+  assert.ok(v2Motion.hoverMs >= 220 && v2Motion.hoverMs <= 300);
+  assert.ok(v2Motion.pressMs >= 120 && v2Motion.pressMs <= 160);
 });
 
 check("14: Add Quotation links to existing flow", () => {
   assert.match(founderActions, /\/quotations\/new/);
 });
 
-console.log(`\n${passed}/14 PASS`);
-if (passed !== 14) process.exit(1);
+check("15: brain rail in shell (not sidebar)", () => {
+  assert.match(shellFrame, /SodaBrainPanelClient/);
+  assert.match(navSource, /nav\.brain/);
+  assert.match(navSource, /"nav.brain"/);
+});
+
+console.log(`\n${passed}/15 PASS`);
+if (passed !== 15) process.exit(1);
