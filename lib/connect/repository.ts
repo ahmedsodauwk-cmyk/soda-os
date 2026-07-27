@@ -182,21 +182,41 @@ export async function adminBootstrapAllActive(): Promise<{
 }
 
 function peerHasConnectAccess(peer: ConnectPeer): boolean {
+  if (!peer.accessLevel) return true;
   return accessLevelCan(peer.accessLevel, "connect.view");
+}
+
+type PeerRow = {
+  id: string;
+  full_name?: string | null;
+  username?: string | null;
+  email?: string | null;
+  access_level?: string | null;
+  person_id?: string | null;
+  is_active?: boolean | null;
+};
+
+async function fetchPeersByIds(ids: string[]): Promise<Map<string, ConnectPeer>> {
+  const peersById = new Map<string, ConnectPeer>();
+  if (!ids.length) return peersById;
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("connect_get_peers_by_ids", {
+    p_peer_ids: ids,
+  });
+  if (error || !data) return peersById;
+  for (const p of data as PeerRow[]) peersById.set(p.id, mapPeer(p));
+  return peersById;
 }
 
 export async function listActivePeers(
   excludeUserId: string
 ): Promise<ConnectPeer[]> {
   const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("profiles")
-    .select("id, full_name, username, email, access_level, person_id, is_active")
-    .eq("is_active", true)
-    .neq("id", excludeUserId)
-    .order("full_name", { ascending: true });
+  const { data, error } = await supabase.rpc("connect_list_directory_peers", {
+    p_exclude_user_id: excludeUserId,
+  });
   if (error || !data) return [];
-  return data.map(mapPeer).filter(peerHasConnectAccess);
+  return (data as PeerRow[]).map(mapPeer).filter(peerHasConnectAccess);
 }
 
 /**
@@ -277,14 +297,8 @@ export async function bootstrapTeamChatRoster(userId: string): Promise<{
 }
 
 export async function getPeer(userId: string): Promise<ConnectPeer | null> {
-  const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("profiles")
-    .select("id, full_name, username, email, access_level, person_id, is_active")
-    .eq("id", userId)
-    .maybeSingle();
-  if (error || !data) return null;
-  return mapPeer(data);
+  const peers = await fetchPeersByIds([userId]);
+  return peers.get(userId) ?? null;
 }
 
 export async function listPresence(): Promise<ConnectPresence[]> {
@@ -367,16 +381,7 @@ export async function listConversationsForUser(
     ),
   ];
 
-  const peersById = new Map<string, ConnectPeer>();
-  if (peerIds.length) {
-    const { data: profiles } = await supabase
-      .from("profiles")
-      .select(
-        "id, full_name, username, email, access_level, person_id, is_active"
-      )
-      .in("id", peerIds);
-    for (const p of profiles ?? []) peersById.set(p.id, mapPeer(p));
-  }
+  const peersById = await fetchPeersByIds(peerIds);
 
   const presenceList = await listPresence();
   const presenceById = new Map(presenceList.map((p) => [p.userId, p]));
@@ -532,11 +537,7 @@ export async function listMessages(
   }
 
   const senderIds = [...new Set(data.map((m) => m.sender_id as string))];
-  const { data: senders } = await supabase
-    .from("profiles")
-    .select("id, full_name, username, email, access_level, person_id, is_active")
-    .in("id", senderIds);
-  const senderMap = new Map((senders ?? []).map((s) => [s.id, mapPeer(s)]));
+  const senderMap = await fetchPeersByIds(senderIds);
 
   const replyIds = data
     .map((m) => m.reply_to_id as string | null)
