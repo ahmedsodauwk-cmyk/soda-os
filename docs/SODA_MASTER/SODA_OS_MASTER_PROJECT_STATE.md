@@ -5,7 +5,7 @@
 
 | Field | Value |
 |--------|--------|
-| **Document version** | `1.1.0` |
+| **Document version** | `1.1.1` |
 | **Last updated** | `2026-07-28` |
 | **Product** | SODA OS |
 | **Company** | SODA VISUALS |
@@ -42,7 +42,7 @@ Before major auth / identity / DB / migrations / RLS / finance / production-data
 
 ## CURRENT MISSION
 
-**SODA OS Visual System V2** — premium dark/light design foundation, two-screenful Founder Home, motion primitives, English-first + SODA Language, route styling. Deployed to Production **pending** push verification below.
+**SODA OS Visual Reference Lock** — reference geometry Founder Home, AppShell, motion, backup repair. Deployed **2026-07-28** — **pending** Founder visual review + Vercel Ready confirmation.
 
 Parallel: **H1–H5 Production Apply** — H1 migration **repaired** **2026-07-27**; Production apply **pending** Founder retry via secure launcher.
 
@@ -51,7 +51,7 @@ Parallel: **H1–H5 Production Apply** — H1 migration **repaired** **2026-07-2
 ## CURRENT BLOCKERS
 
 1. **H1–H5 migrations** not yet applied on Production — H1 SQL **repaired** (`person_id text`); apply via `scripts/apply-h-remediation-migrations.ts` (secure launcher)
-2. **H1 + H3 app changes** not yet deployed to https://soda-os.vercel.app (pending push + Vercel Ready)
+2. **H1 + H3 app changes** deployed to https://soda-os.vercel.app (**2026-07-28** push `ec617bc`; Vercel Ready confirmation pending)
 3. Production credentials must **never** be stored in source / Git / logs / manifests / ZIPs
 4. Restore drill script added (`scripts/restore-drill-disposable.ts`); SR-01 disposable rehearsal remains prior Gate 4 evidence on same backup
 5. Non-Founder Production manual checks **not** assumed passed
@@ -313,6 +313,45 @@ These decisions remain in force. Detail lives in the dedicated SoT chapters — 
 ---
 
 ## CHANGE LOG
+
+### v1.1.1 — 2026-07-28 (Visual Reference Lock + Motion + Backup Repair)
+
+**Scope:** UI/UX + Backup Center download repair only — no DB, auth, permissions, APIs, or business-logic changes.
+
+**Reference-locked AppShell:**
+
+- Compact sidebar (`w-56`), gradient pill active nav, profile card footer
+- Removed main `overflow-hidden` clipping on operational content
+
+**Reference-locked Founder Home:**
+
+- 3-column main: Needs Your Decision | Recent Orders | Calendar / Today
+- Compact status row: Team Activity, Pending Approvals, Unread Notifications, Storage (Founder)
+- Action strip: New Order, Add Client, SODA Language guidance
+- Screen 2: Financial Pulse, Quotation Pipeline, Team Availability, Studio Activity
+- Removed max-height / overflow clipping CSS
+
+**Motion:**
+
+- `app/(shell)/template.tsx` + `RouteTransition` — exit 130ms, enter 220ms
+- Sidebar pill animation, button press feedback, `prefers-reduced-motion`
+
+**Backup Center:**
+
+- `POST /api/backup/create` — in-memory ZIP streamed same request (Vercel ephemeral FS)
+- Label: Recovery Metadata Package (honest metadata-only scope)
+
+**Commits:** `f7c9093`, `bb841b7`, `ec617bc`, `d76c819`, `dac07f7`
+
+**Verification (local):**
+
+| Check | Result |
+|--------|--------|
+| `npm run typecheck` | **PASS** |
+| `npm run build` | **PASS** |
+| `npm run lint` | Baseline pre-existing errors (unchanged scope) |
+
+**Status:** **PENDING FOUNDER VISUAL REVIEW** — reference PNGs not present in workspace; production HTTP smoke **PASS** after push.
 
 ### v1.1.0 — 2026-07-28 (SODA OS Visual System V2)
 
