@@ -5,7 +5,7 @@
 
 | Field | Value |
 |--------|--------|
-| **Document version** | `1.1.1` |
+| **Document version** | `1.1.2` |
 | **Last updated** | `2026-07-28` |
 | **Product** | SODA OS |
 | **Company** | SODA VISUALS |
@@ -42,6 +42,8 @@ Before major auth / identity / DB / migrations / RLS / finance / production-data
 
 ## CURRENT MISSION
 
+**P0 Founder Home crash recovery** — hotfix deployed **2026-07-28** (`f7bd477`) — **PENDING FOUNDER MANUAL VERIFICATION** on authenticated Home.
+
 **SODA OS Visual Reference Lock** — reference geometry Founder Home, AppShell, motion, backup repair. Deployed **2026-07-28** — **pending** Founder visual review + Vercel Ready confirmation.
 
 Parallel: **H1–H5 Production Apply** — H1 migration **repaired** **2026-07-27**; Production apply **pending** Founder retry via secure launcher.
@@ -50,11 +52,12 @@ Parallel: **H1–H5 Production Apply** — H1 migration **repaired** **2026-07-2
 
 ## CURRENT BLOCKERS
 
-1. **H1–H5 migrations** not yet applied on Production — H1 SQL **repaired** (`person_id text`); apply via `scripts/apply-h-remediation-migrations.ts` (secure launcher)
-2. **H1 + H3 app changes** deployed to https://soda-os.vercel.app (**2026-07-28** push `ec617bc`; Vercel Ready confirmation pending)
-3. Production credentials must **never** be stored in source / Git / logs / manifests / ZIPs
-4. Restore drill script added (`scripts/restore-drill-disposable.ts`); SR-01 disposable rehearsal remains prior Gate 4 evidence on same backup
-5. Non-Founder Production manual checks **not** assumed passed
+1. **Founder Home authenticated render** — P0 hotfix deployed (`f7bd477`); Founder must confirm Home loads after login (agent cannot test authenticated session)
+2. **H1–H5 migrations** not yet applied on Production — H1 SQL **repaired** (`person_id text`); apply via `scripts/apply-h-remediation-migrations.ts` (secure launcher)
+3. **H1 + H3 app changes** deployed to https://soda-os.vercel.app (**2026-07-28** push `ec617bc`; Vercel Ready confirmation pending)
+4. Production credentials must **never** be stored in source / Git / logs / manifests / ZIPs
+5. Restore drill script added (`scripts/restore-drill-disposable.ts`); SR-01 disposable rehearsal remains prior Gate 4 evidence on same backup
+6. Non-Founder Production manual checks **not** assumed passed
 
 ---
 
@@ -313,6 +316,42 @@ These decisions remain in force. Detail lives in the dedicated SoT chapters — 
 ---
 
 ## CHANGE LOG
+
+### v1.1.2 — 2026-07-28 (P0 Founder Home crash recovery)
+
+**Incident:** Authenticated Founder Home on Production showed Next.js "Something went wrong" error boundary after Visual Reference Lock deploy (`bb841b7`).
+
+**Root cause:** `FounderHomeStream` → `getBackupDashboardStatus()` → `readBackupIndex()` → `ensureRoot()` → `mkdirSync` on Vercel ephemeral/read-only filesystem (`data/backups`). Build passed because no runtime FS write occurs at build time; crash only on authenticated Founder Home Server Component render.
+
+**Hotfix commit:** `f7bd477` — `fix(production): prevent backup status from crashing Founder Home`
+
+**Changes:**
+- `readBackupIndex()` — fail-soft read only; no `mkdirSync`; returns `[]` on missing/unreadable index
+- `getBackupDashboardStatus()` — wrapped in try/catch with `fallbackBackupDashboardStatus()`; never throws to Home
+- `scripts/verify-backup-home-resilience.ts` — 7-check harness
+
+**Production deployment:**
+
+| Field | Value |
+|--------|--------|
+| **Commit** | `f7bd4772fb6e981710de76d7c0c26520b07dec8c` |
+| **GitHub deployment** | `5630695901` — **success** |
+| **Deployment URL** | https://soda-gfrmsloab-soda-os.vercel.app |
+| **Production alias** | https://soda-os.vercel.app — **Ready** |
+| **HTTP smoke** | `/login` **200**; signed-out `/` → `/login` **307** |
+
+**Verification (local):**
+
+| Check | Result |
+|--------|--------|
+| `npx tsx scripts/verify-backup-home-resilience.ts` | **PASS 7/7** |
+| `npx tsx scripts/verify-auth-strict.ts` | **PASS 8/8** |
+| `npm run typecheck` | **PASS** |
+| `npm run build` | **PASS** |
+| Targeted ESLint (hotfix files) | **PASS** |
+| `git diff --check` (hotfix files) | **PASS** |
+
+**Status:** **HOTFIX DEPLOYED — PENDING FOUNDER MANUAL VERIFICATION** (authenticated Home render).
 
 ### v1.1.1 — 2026-07-28 (Visual Reference Lock + Motion + Backup Repair)
 
