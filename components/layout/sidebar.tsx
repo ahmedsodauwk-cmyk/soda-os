@@ -119,15 +119,15 @@ function NavLinkButton({
         />
       }
       className={cn(
-        "h-9 w-full cursor-pointer justify-start gap-2.5 rounded-md font-normal transition-all",
-        collapsed ? "justify-center px-0" : "px-3",
+        "relative h-9 w-full cursor-pointer justify-start gap-2 rounded-lg font-normal transition-all duration-200",
+        collapsed ? "justify-center px-2" : "px-3",
         item.accent === "brain"
           ? active
-            ? "border-l-[3px] border-violet-400 bg-violet-500/15 text-violet-100 shadow-[0_0_24px_color-mix(in_srgb,#8b5cf6_28%,transparent)]"
-            : "border-l-[3px] border-transparent text-violet-200/80 hover:border-violet-400/60 hover:bg-violet-500/10 hover:text-violet-100"
+            ? "soda-nav-pill-active bg-violet-500/20 text-violet-100"
+            : "text-violet-200/80 hover:bg-violet-500/10 hover:text-violet-100"
           : active
-            ? "soda-nav-active soda-selected border-l-[3px] border-soda-pink bg-sidebar-accent text-sidebar-accent-foreground shadow-[0_0_20px_color-mix(in_srgb,var(--soda-pink)_35%,transparent)]"
-            : "border-l-[3px] border-transparent text-sidebar-foreground/70 hover:border-soda-pink/50 hover:bg-sidebar-accent/70 hover:text-sidebar-foreground"
+            ? "soda-nav-pill-active soda-selected text-sidebar-accent-foreground"
+            : "text-sidebar-foreground/70 hover:bg-sidebar-accent/40 hover:text-sidebar-foreground"
       )}
     >
       {item.emoji ? (
@@ -296,7 +296,7 @@ export function SidebarContent({
     <>
       <div
         className={cn(
-          "relative flex h-[3.75rem] shrink-0 items-center border-b border-sidebar-border",
+          "relative flex h-14 shrink-0 items-center border-b border-sidebar-border/80",
           collapsed ? "justify-center px-2" : "px-3.5"
         )}
       >
@@ -351,15 +351,15 @@ export function SidebarContent({
 
       <div
         className={cn(
-          "shrink-0 space-y-4 border-t border-sidebar-border pt-4 pb-[calc(1rem+env(safe-area-inset-bottom,0px))]",
-          collapsed ? "px-2" : "px-4"
+          "shrink-0 border-t border-sidebar-border/80 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))]",
+          collapsed ? "px-2" : "px-3"
         )}
       >
         <DropdownMenu>
           <DropdownMenuTrigger
             className={cn(
-              "flex w-full cursor-pointer items-center gap-2.5 rounded-lg p-2 text-left outline-none transition-colors hover:bg-sidebar-accent focus-visible:ring-2 focus-visible:ring-sidebar-ring",
-              collapsed && "justify-center"
+              "flex w-full cursor-pointer items-center gap-2.5 rounded-lg border border-sidebar-border/40 bg-sidebar-accent/15 p-2 text-left outline-none transition-colors hover:bg-sidebar-accent/30 focus-visible:ring-2 focus-visible:ring-sidebar-ring",
+              collapsed && "justify-center border-transparent bg-transparent"
             )}
             aria-label={collapsed ? user?.fullName ?? "Account" : undefined}
           >
@@ -467,7 +467,7 @@ export default function Sidebar({ user }: SidebarProps) {
     <aside
       className={cn(
         "soda-sidebar-rail hidden h-screen min-h-0 shrink-0 flex-col border-r border-sidebar-border text-sidebar-foreground transition-[width] duration-200 lg:flex",
-        collapsed ? "w-[4.25rem]" : "w-60"
+        collapsed ? "w-[4.25rem]" : "w-56"
       )}
     >
       <SidebarContent

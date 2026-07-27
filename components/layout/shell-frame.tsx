@@ -35,7 +35,7 @@ export function ShellFrame({
     <NotificationLiveProvider userId={user?.userId} initial={notifications}>
       <main
         data-soda-section={section}
-        className="soda-brand-wash relative flex min-h-screen overflow-hidden bg-transparent"
+        className="soda-brand-wash relative flex min-h-screen bg-transparent"
       >
         <PageAtmosphere section={section} />
         <Sidebar user={user} />
@@ -56,7 +56,7 @@ export function ShellFrame({
 
           <div
             className={cn(
-              "soda-route-enter mx-auto w-full max-w-[1600px]",
+              "mx-auto w-full max-w-[1600px]",
               compactChrome ? "p-3 sm:p-4 lg:p-4" : "p-4 sm:p-5 lg:p-6"
             )}
           >
