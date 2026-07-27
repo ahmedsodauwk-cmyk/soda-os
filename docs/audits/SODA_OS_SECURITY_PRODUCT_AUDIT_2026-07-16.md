@@ -558,15 +558,15 @@ Extensive Grep/Read/Glob of migrations, identity, middleware, actions, Connect, 
 |----|--------|--------|
 | **C1** | **REMEDIATED / VERIFIED** | SR-01 closed **2026-07-26** — see Appendix E |
 | **C2** | **REMEDIATED / VERIFIED** | SR-02 closed **2026-07-27** — see Appendix F |
-| **H1** | **OPEN** | `profiles_select_connect_peers` broad PII exposure |
-| **H2** | **OPEN** | Connect Storage SELECT over-permissive |
-| **H3** | **OPEN** | Auth callback open redirect via `next` |
-| **H4** | **OPEN** | `handle_new_user` privileged metadata adoption |
-| **H5** | **OPEN** | Connect messages UPDATE any-member clause |
+| **H1** | **REMEDIATED IN SOURCE** | Migration `20260727000029`; Production apply **PENDING** — see Appendix G |
+| **H2** | **REMEDIATED IN SOURCE** | Migration `20260727000030`; Production apply **PENDING** — see Appendix G |
+| **H3** | **REMEDIATED IN SOURCE** | `app/auth/callback/route.ts`; deploy **PENDING** — see Appendix G |
+| **H4** | **REMEDIATED IN SOURCE** | Migration `20260727000031`; Production apply **PENDING** — see Appendix G |
+| **H5** | **REMEDIATED IN SOURCE** | Migration `20260727000032`; Production apply **PENDING** — see Appendix G |
 
-**Overall audit rating is HIGH** — all **Critical** findings (**C1**, **C2**) and **H6** are remediated; **H1–H5** remain **OPEN**. Multi-user Production is **not fully secure**.
+**Overall audit rating is MEDIUM-HIGH** — all **Critical** findings (**C1**, **C2**) and **H6** are remediated on Production; **H1–H5** remediated in source pending Production apply/deploy.
 
-**Next recommended mission:** **High-Risk Remediation (H1–H5)**.
+**Next recommended mission:** **H1–H5 Production Apply + Deploy**.
 
 ---
 
@@ -668,3 +668,27 @@ Extensive Grep/Read/Glob of migrations, identity, middleware, actions, Connect, 
 **Overall audit rating is HIGH** — **C2** no longer blocks domain mutation verification; **H1–H5** remain **OPEN**. Multi-user Production is **not fully secure**.
 
 **Next recommended mission:** **High-Risk Remediation (H1–H5)**.
+
+---
+
+## Appendix G — Remediation Status (H1–H5)
+
+**Recorded:** 2026-07-27  
+**Mission:** High-Risk Remediation (H1–H5)  
+**Official state:** `docs/SODA_MASTER/SODA_OS_MASTER_PROJECT_STATE.md` (v1.0.5)
+
+| Finding | Status | Evidence |
+|---------|--------|----------|
+| **H1** Connect peer PII | **REMEDIATED IN SOURCE** | `20260727000029_h1_connect_peer_directory.sql`; `connect_list_directory_peers` / `connect_get_peers_by_ids` RPCs; drops `profiles_select_connect_peers`; `lib/connect/repository.ts` |
+| **H2** Connect storage SELECT | **REMEDIATED IN SOURCE** | `20260727000030_h2_connect_storage_select.sql` — SELECT scoped to `auth.uid()` folder |
+| **H3** Auth callback redirect | **REMEDIATED IN SOURCE** | `app/auth/callback/route.ts` — `safeRelativeRedirect`; exchange error handling |
+| **H4** handle_new_user metadata | **REMEDIATED IN SOURCE** | `20260727000031_h4_handle_new_user_harden.sql` — ignores `owner`/`admin`/`founder` from metadata |
+| **H5** Connect messages UPDATE | **REMEDIATED IN SOURCE** | `20260727000032_h5_connect_messages_update.sql` — sender-only UPDATE |
+
+**Static verification:** `npx tsx scripts/verify-h-remediation.ts` — **PASS 10/10** (2026-07-27).
+
+**Production apply:** **PENDING** — agent shell could not reach Supabase DB host (`ENOTFOUND` direct + all pooler regions). Founder must run `npx tsx scripts/apply-h-remediation-migrations.ts` from interactive terminal with `DATABASE_URL`, or paste migrations in Supabase SQL Editor, then deploy app.
+
+**Gate 2 backup:** `D:\SODA OS\Database\SODA_Database_2026-07-26_195823.zip` — verified readable (manifest present; 32 entries).
+
+**Decision:** **OPERATIONAL WITH BACKUP** (Founder-primary Production); **NOT READY** for broad multi-user until H1–H5 Production apply + deploy verified.

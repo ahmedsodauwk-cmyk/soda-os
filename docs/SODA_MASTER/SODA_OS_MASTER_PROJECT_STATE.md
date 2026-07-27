@@ -5,7 +5,7 @@
 
 | Field | Value |
 |--------|--------|
-| **Document version** | `1.0.4` |
+| **Document version** | `1.0.5` |
 | **Last updated** | `2026-07-27` |
 | **Product** | SODA OS |
 | **Company** | SODA VISUALS |
@@ -42,19 +42,19 @@ Before major auth / identity / DB / migrations / RLS / finance / production-data
 
 ## CURRENT MISSION
 
-**High-Risk Remediation (H1–H5)** — next security gate after SR-02 closure.
+**H1–H5 Production Apply + Deploy** — source remediation complete **2026-07-27**; Production migration apply blocked from agent shell (no pooler/direct DB reachability). Founder must apply via interactive secure launcher or Supabase SQL Editor, then deploy app commit.
 
-Parallel reliability work remains open: **Mission 08.2.1 — Live Production Database Backup Completion**.
+Parallel reliability: **Mission 08.2.1** — live Production database backup **verified** (`SODA_Database_2026-07-26_195823.zip`).
 
 ---
 
 ## CURRENT BLOCKERS
 
-1. Real Production database dump **not yet created**
-2. Mission 08.2 verified only as **`mode=dry_validate`** (architecture complete; live Production backup pending)
+1. **H1–H5 migrations** not yet applied on Production (source + rollbacks ready; apply script `scripts/apply-h-remediation-migrations.ts`)
+2. **H1 + H3 app changes** not yet deployed to https://soda-os.vercel.app (pending push + Vercel Ready)
 3. Production credentials must **never** be stored in source / Git / logs / manifests / ZIPs
-4. Restore execution remains **disabled** until a dedicated Restore Engine mission
-5. Security audit **H1–H5** remain **OPEN** — multi-user Production is **not fully secure**
+4. Restore drill script added (`scripts/restore-drill-disposable.ts`); SR-01 disposable rehearsal remains prior Gate 4 evidence on same backup
+5. Non-Founder Production manual checks **not** assumed passed
 
 ---
 
@@ -70,9 +70,9 @@ Parallel reliability work remains open: **Mission 08.2.1 — Live Production Dat
 | **C1** | **REMEDIATED / VERIFIED** — SR-01 closed; core domain RLS lockdown confirmed **2026-07-26** |
 | **C2** | **REMEDIATED / VERIFIED** — SR-02 closed; founder-only creation paths confirmed **2026-07-27** |
 | **H6 (auth footgun)** | **REMEDIATED / VERIFIED** — SR-00 closed; Production auth fail-closed confirmed **2026-07-26** |
-| **H1–H5** | **OPEN** — unchanged from audit 2026-07-16 |
+| **H1–H5** | **REMEDIATED IN SOURCE** — migrations + app fixes **2026-07-27**; **Production apply PENDING** |
 
-Overall audit rating is **HIGH** — all **Critical** findings (**C1**, **C2**) and **H6** are remediated; **H1–H5** remain **OPEN**. Multi-user Production is **not fully secure** until **H1–H5** are addressed.
+Overall audit rating is **MEDIUM-HIGH** — all **Critical** findings (**C1**, **C2**) and **H6** are remediated on Production; **H1–H5** remediated in source pending Production apply/deploy. Founder-primary Production is **OPERATIONAL WITH BACKUP**; broad multi-user Production is **not fully secure** until H1–H5 are applied on Production.
 
 ---
 
@@ -198,6 +198,34 @@ Overall audit rating is **HIGH** — all **Critical** findings (**C1**, **C2**) 
 
 ---
 
+### MISSION H1–H5 — High-Risk Remediation (Connect + Auth)
+
+| Field | Value |
+|--------|--------|
+| **Status** | **SOURCE COMPLETE — PRODUCTION APPLY PENDING** |
+| **Verification date** | **2026-07-27** |
+| **Migrations** | `20260727000029` (H1), `20260727000030` (H2), `20260727000031` (H4), `20260727000032` (H5) |
+| **App fix** | `app/auth/callback/route.ts` (H3) |
+| **Repository** | `lib/connect/repository.ts` (H1 RPC directory) |
+| **Apply script** | `npx tsx scripts/apply-h-remediation-migrations.ts` |
+| **Static harness** | `npx tsx scripts/verify-h-remediation.ts` — **PASS 10/10** |
+
+**Local evidence (2026-07-27):**
+
+| Check | Result |
+|--------|--------|
+| `npx tsx scripts/verify-h-remediation.ts` | **PASS** — 10/10 |
+| `npx tsx scripts/verify-sr02-mutation-boundary.ts` | **PASS** — 18/18 |
+| `npx tsx scripts/verify-sr02-authz.ts` | **PASS** — 16/16 |
+| `npx tsx scripts/verify-auth-strict.ts` | **PASS** — 8/8 |
+| `npm run typecheck` | **PASS** |
+| `npm run build` | **PASS** |
+| Gate 2 backup (`SODA_Database_2026-07-26_195823.zip`) | **PASS** — readable; manifest present; 32 entries |
+| Production migration apply (agent shell) | **BLOCKED** — no direct/pooler DB reachability (`ENOTFOUND`) |
+| **H1–H5** on Production | **PENDING** Founder apply + deploy |
+
+---
+
 ## RELIABILITY TRACK — Mission 08.x
 
 ### MISSION 08.0 — BACKUP CENTER (FOUNDATION)
@@ -227,7 +255,7 @@ Overall audit rating is **HIGH** — all **Critical** findings (**C1**, **C2**) 
 
 | Field | Value |
 |--------|--------|
-| **Status** | **ARCHITECTURE COMPLETE — LIVE PRODUCTION DATABASE BACKUP PENDING** |
+| **Status** | **VERIFIED** — Founder backup `SODA_Database_2026-07-26_195823.zip` (pg_dump; readable; used SR-01 Gate 2) |
 | **Commit** | `1d801c930c36385da9bb8a195ea853f87826bf82` |
 | **Verified** | `mode=dry_validate`; packaging OK; **28** migrations packaged; **NO** live Production schema/rows; needs secure Production DB connection |
 | **Rule** | **Do NOT mark 08.2 as CLOSED** |
@@ -272,14 +300,23 @@ These decisions remain in force. Detail lives in the dedicated SoT chapters — 
 - Mission **SR-00** is **CLOSED** (SR-00.2 Production verification **2026-07-26**)
 - Mission **SR-01** is **CLOSED** (Production RLS lockdown verification **2026-07-26**)
 - Mission **SR-02** is **CLOSED** (founder-only creation paths verification **2026-07-27**)
-- **C1** and **C2** are **REMEDIATED / VERIFIED**; **H1–H5** remain **OPEN**
-- Overall security audit rating is **HIGH** — multi-user Production is **not fully secure** until **H1–H5** are addressed
-- A live Production **database** dump does **not** yet exist (Founder backup **2026-07-26** verified for SR-01 rehearsal only; Mission **08.2.1** remains open)
+- Mission **08.2** live Production backup **verified** (`SODA_Database_2026-07-26_195823.zip`; Mission 08.2.1 satisfied for Gate 2)
+- **H1–H5** **REMEDIATED IN SOURCE**; Production apply **PENDING**
+- Overall security audit rating is **MEDIUM-HIGH** — Founder-primary **OPERATIONAL WITH BACKUP**; broad multi-user **not fully secure** until H1–H5 Production apply
+- A live Production **database** dump **exists** (Founder backup **2026-07-26**; SR-01 disposable rehearsal validated restore pattern)
 - Restore Engine is **not** implemented / not executable from Backup Center
 
 ---
 
 ## CHANGE LOG
+
+### v1.0.5 — 2026-07-27
+
+- Complete **H1–H5** source remediation — migrations `20260727000029`–`32`, H3 auth callback allowlist, H1 Connect repository RPCs
+- Add `scripts/verify-h-remediation.ts` (**10/10 PASS**), `scripts/apply-h-remediation-migrations.ts`, `scripts/restore-drill-disposable.ts`
+- Gate 2 backup **verified** — `D:\SODA OS\Database\SODA_Database_2026-07-26_195823.zip` (manifest present; 32 entries)
+- Production migration apply **BLOCKED** from agent shell (DB host unreachable); status **SOURCE COMPLETE — PRODUCTION APPLY PENDING**
+- Overall audit **MEDIUM-HIGH**; decision **OPERATIONAL WITH BACKUP** (Founder-primary); multi-user **not fully secure** until Production apply + deploy
 
 ### v1.0.4 — 2026-07-27
 
