@@ -360,9 +360,18 @@ These decisions remain in force. Detail lives in the dedicated SoT chapters — 
 | 1440×900 no-scroll CSS | Applied (`minmax(0,1fr)` grid, max-height clamps) |
 | Screenshots | **Pending Founder login** — `docs/screenshots/founder-redesign-2026-07-27/` |
 
-**Status:** **DEPLOY PENDING** — commit + push below.
+**Status:** **DEPLOYED TO PRODUCTION** (**2026-07-27**).
 
-### v1.0.8 — 2026-07-27 (Founder Home & Sidebar — Production deploy)
+**Production deployment:**
+
+| Field | Value |
+|--------|--------|
+| **Commit** | `e04edbf` (`feat(ui): English-first Founder Home with SODA Language guidance`) |
+| **Deployment ID** | Pending Vercel dashboard confirmation (agent shell: no `gh` / `VERCEL_TOKEN`; HTTP smoke **PASS**) |
+| **Production alias** | https://soda-os.vercel.app — **Ready** (`/login` **200**; signed-out `/` → `/login` **307**) |
+| **Previous deploy** | `dpl_5H51fxEhAYoGUGcpRj5jxSaEys9Z` (v1.0.8 / `b731209`) |
+
+Founder manual viewport / screenshot capture still recommended (`docs/screenshots/founder-redesign-2026-07-27/`).
 
 - Deploy Founder Home / Sidebar visual redesign to Production — commit `b731209e96aad8181a5ce78b769474748ee51463`
 - Vercel deployment `dpl_5H51fxEhAYoGUGcpRj5jxSaEys9Z` — **Ready** on https://soda-os.vercel.app
