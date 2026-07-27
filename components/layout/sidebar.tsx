@@ -153,36 +153,6 @@ function NavLinkButton({
   );
 }
 
-function CompanyNav({
-  items,
-  pathname,
-  collapsed,
-  t,
-}: {
-  items: NavItem[];
-  pathname: string;
-  collapsed: boolean;
-  t: (key: NavItem["titleKey"]) => string;
-}) {
-  return (
-    <div className="space-y-0.5">
-      {items.map((item) => {
-        const title = t(item.titleKey);
-        const active = isNavActive(pathname, item.href);
-        return (
-          <NavLinkButton
-            key={item.titleKey}
-            item={item}
-            active={active}
-            collapsed={collapsed}
-            title={title}
-          />
-        );
-      })}
-    </div>
-  );
-}
-
 function MyWorkspaceSection({
   section,
   pathname,
