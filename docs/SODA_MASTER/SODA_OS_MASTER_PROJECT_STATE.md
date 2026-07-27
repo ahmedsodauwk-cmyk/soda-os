@@ -5,7 +5,7 @@
 
 | Field | Value |
 |--------|--------|
-| **Document version** | `1.0.6` |
+| **Document version** | `1.0.8` |
 | **Last updated** | `2026-07-27` |
 | **Product** | SODA OS |
 | **Company** | SODA VISUALS |
@@ -313,6 +313,58 @@ These decisions remain in force. Detail lives in the dedicated SoT chapters — 
 ---
 
 ## CHANGE LOG
+
+### v1.0.8 — 2026-07-27 (Founder Home & Sidebar — Production deploy)
+
+- Deploy Founder Home / Sidebar visual redesign to Production — commit `b731209e96aad8181a5ce78b769474748ee51463`
+- Vercel deployment `dpl_5H51fxEhAYoGUGcpRj5jxSaEys9Z` — **Ready** on https://soda-os.vercel.app
+- Pre-deploy gates: `npm run typecheck` **PASS**; `npm run build` **PASS**
+- HTTP smoke: `/login` **200**; signed-out `/` → `/login` **307**
+
+### v1.0.7 — 2026-07-27 (Founder Home & Sidebar Visual Redesign — UI/UX only)
+
+**Scope:** UI/UX only — no database, auth, permissions, APIs, or business-logic changes.
+
+**Visual changes:**
+
+- **Sidebar:** Flat primary nav (Home → Team Chat order); hide Projects, Commercial, Weddings, Equipment from display only; collapsible icon rail; My Workspace accordion (closed by default); Founder hides Target/Bonus/Penalties from sidebar; tooltips when collapsed; SODA logo preserved
+- **Founder Command Center:** Compact Arabic greeting header with live clock, theme toggle, key actions; daily snapshot (4 KPIs); two-column main (Operations Today + Needs Your Decision); bottom pulse row (financial, quotations, team); warm ivory light mode + deep aubergine night mode via existing tokens
+- **Shell:** `compactChrome` on Founder Home — slimmer header, no breadcrumbs/recently-viewed, tighter padding; no-scroll CSS target at 1440×900
+
+**Files changed:**
+
+- `lib/identity/nav.ts` — sidebar display filter + order
+- `components/layout/sidebar.tsx` — redesign
+- `components/layout/shell-frame.tsx`, `shell-context.tsx`, `shell-page-meta.tsx`, `header.tsx`, `app-shell.tsx`
+- `components/dashboard/founder-command-header.tsx`, `founder-daily-snapshot.tsx`, `founder-operations-today.tsx`, `founder-needs-decision.tsx`, `founder-bottom-pulse.tsx`, `founder-home-stream.tsx`
+- `app/(shell)/page.tsx`, `app/globals.css`
+
+**Preserved:** All routes/pages, real data queries, RTL Arabic copy, permission logic, SODA Brain naming, loading/error/empty states.
+
+**Verification (local):**
+
+| Check | Result |
+|--------|--------|
+| `npm run typecheck` | **PASS** |
+| `npm run build` | **PASS** |
+| ESLint (changed files) | **PASS** |
+| Night/Light theme toggle | Implemented (existing mechanism) |
+| 1440×900 no-scroll | CSS layout applied; **Founder manual viewport check recommended** |
+| Screenshots | Directory: `docs/screenshots/founder-redesign-2026-07-27/` — capture after Founder login |
+
+**Status:** **DEPLOYED TO PRODUCTION** (**2026-07-27**).
+
+**Production deployment:**
+
+| Field | Value |
+|--------|--------|
+| **Commit** | `b731209e96aad8181a5ce78b769474748ee51463` (`feat(ui): Founder Home and Sidebar visual redesign`) |
+| **Deployment ID** | `dpl_5H51fxEhAYoGUGcpRj5jxSaEys9Z` |
+| **Deployment URL** | https://soda-evosi1hra-soda-os.vercel.app |
+| **Production alias** | https://soda-os.vercel.app — **Ready** |
+| **HTTP smoke** | `/login` **200**; signed-out `/` → `/login` **307** |
+
+Founder manual viewport / screenshot capture still recommended (`docs/screenshots/founder-redesign-2026-07-27/`).
 
 ### v1.0.5 — 2026-07-27
 
