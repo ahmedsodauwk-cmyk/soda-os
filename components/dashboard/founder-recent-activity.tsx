@@ -1,7 +1,8 @@
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, ClipboardList } from "lucide-react";
 
 import { SodaSectionHeader } from "@/components/brand/soda-section-header";
+import { SodaEmptyState } from "@/components/ui/soda-empty-state";
 import { Badge } from "@/components/ui/badge";
 import {
   Card,
@@ -23,13 +24,34 @@ export function FounderRecentActivity({
   orders,
   limit = 5,
 }: FounderRecentActivityProps) {
-  if (orders.length === 0) return null;
-
   const visible = orders.slice(0, limit);
   const remaining = Math.max(0, orders.length - visible.length);
 
+  if (orders.length === 0) {
+    return (
+      <Card className="soda-founder-panel soda-cc-card h-full min-w-0">
+        <CardHeader className="px-3 py-2.5 pb-1.5">
+          <SodaSectionHeader
+            title="Recent Orders"
+            layer="recentOrders"
+            as="h2"
+            size="card"
+          />
+        </CardHeader>
+        <CardContent className="px-3 pb-2.5 pt-0">
+          <SodaEmptyState
+            icon={ClipboardList}
+            title="No recent orders"
+            layer="recentOrders"
+            className="py-6"
+          />
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
-    <Card className="soda-founder-panel soda-cc-card min-w-0">
+    <Card className="soda-founder-panel soda-cc-card h-full min-w-0">
       <CardHeader className="flex-row items-start justify-between space-y-0 px-3 py-2.5 pb-1.5">
         <SodaSectionHeader
           title="Recent Orders"

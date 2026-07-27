@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { Eye, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 
 import { ClientEntryActions } from "@/components/clients/client-entry-actions";
 import { SodaLanguage } from "@/components/brand/soda-language";
@@ -107,16 +107,6 @@ export function FounderCommandHeader({
       <div className="flex flex-wrap items-center gap-2 lg:shrink-0">
         <ThemeSwitcher className="shrink-0" />
 
-        <Button
-          variant="outline"
-          size="sm"
-          className="h-9 gap-1.5 border-soda-pink/25 text-[15px] font-semibold"
-          nativeButton={false}
-          render={<Link href="/attention" />}
-        >
-          <Eye className="size-4" />
-          <span>Quick View</span>
-        </Button>
         <Button
           size="sm"
           className="soda-btn-primary h-9 gap-1.5 text-[15px] font-semibold"

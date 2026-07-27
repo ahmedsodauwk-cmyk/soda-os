@@ -115,7 +115,11 @@ export type HumanLayerKey =
   | "deliveriesFiles"
   | "monthlyAccount"
   | "orderBasedPayments"
-  | "deliveries";
+  | "deliveries"
+  | "teamActivity"
+  | "pendingApprovals"
+  | "unreadNotifications"
+  | "storageStatus";
 
 /** Canonical map — English key → SODA Side Language (Egyptian Arabic, ≤2 lines). */
 export const HUMAN_LAYER: Record<HumanLayerKey, string> = {
@@ -179,6 +183,10 @@ export const HUMAN_LAYER: Record<HumanLayerKey, string> = {
   financialPulse: "محصّل ومستحق من الشغل الحي — مش أرقام وهمية.",
   teamAvailability: "مين شغال دلوقتي ومين فاضي — من الأوردرات الحية.",
   owedToCrew: "مستحقات الفريق اللي لسه متدفعتش.",
+  teamActivity: "مين شغال دلوقتي — من الأوردرات الحية.",
+  pendingApprovals: "موافقات ومتابعات محتاجة قرارك.",
+  unreadNotifications: "تنبيهات لسه ما اتفتحتش.",
+  storageStatus: "حالة التخزين والنسخ الاحتياطي.",
 
   /* Finance */
   outstandingBalance: "لسه ليك فلوس عند العميل.",
