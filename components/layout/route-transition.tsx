@@ -3,14 +3,12 @@
 import { useEffect, useRef, useState } from "react";
 
 import { cn } from "@/lib/utils";
-
-const EXIT_MS = 130;
-const ENTER_MS = 220;
+import { v2Motion } from "@/lib/visual/v2";
 
 type Phase = "enter" | "exit" | "idle";
 
 /**
- * Soft route transition — exit 100–160ms, enter 180–260ms, 8–14px translate.
+ * Motion V2 — exit then enter (~400ms total), 16px translate.
  * AppShell chrome stays mounted; only page body animates.
  */
 export function RouteTransition({ children }: { children: React.ReactNode }) {
@@ -37,14 +35,17 @@ export function RouteTransition({ children }: { children: React.ReactNode }) {
     const timer = window.setTimeout(() => {
       setDisplay(children);
       setPhase("enter");
-    }, EXIT_MS);
+    }, v2Motion.routeExitMs);
 
     return () => window.clearTimeout(timer);
   }, [children, display]);
 
   useEffect(() => {
     if (phase !== "enter") return;
-    const timer = window.setTimeout(() => setPhase("idle"), ENTER_MS);
+    const timer = window.setTimeout(
+      () => setPhase("idle"),
+      v2Motion.routeEnterMs
+    );
     return () => window.clearTimeout(timer);
   }, [phase]);
 
