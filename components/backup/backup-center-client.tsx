@@ -4,7 +4,6 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { Download, HardDrive, Loader2 } from "lucide-react";
 
-import { createBackupAction } from "@/lib/backup/actions";
 import { formatBytes } from "@/lib/backup/format";
 import { BACKUP_CLOUD_PROVIDERS } from "@/lib/backup/providers";
 import type {
@@ -112,16 +111,34 @@ export function BackupCenterClient({
   function onCreate() {
     setError(null);
     startTransition(async () => {
-      const result = await createBackupAction();
-      if (!result.ok) {
-        setError(result.error ?? "Backup failed.");
-        return;
+      try {
+        const res = await fetch("/api/backup/create", { method: "POST" });
+        if (!res.ok) {
+          const body = (await res.json().catch(() => null)) as
+            | { error?: string }
+            | null;
+          setError(body?.error ?? "Recovery package failed.");
+          return;
+        }
+
+        const blob = await res.blob();
+        const disposition = res.headers.get("Content-Disposition") ?? "";
+        const match = disposition.match(/filename="([^"]+)"/);
+        const filename = match?.[1] ?? "soda-recovery-metadata.zip";
+        const url = URL.createObjectURL(blob);
+        const anchor = document.createElement("a");
+        anchor.href = url;
+        anchor.download = filename;
+        anchor.rel = "noopener";
+        document.body.appendChild(anchor);
+        anchor.click();
+        anchor.remove();
+        URL.revokeObjectURL(url);
+        setLastDownload(filename);
+        router.refresh();
+      } catch {
+        setError("Recovery package download failed.");
       }
-      if (result.downloadPath) {
-        setLastDownload(result.downloadPath);
-        window.location.assign(result.downloadPath);
-      }
-      router.refresh();
     });
   }
 
@@ -235,11 +252,12 @@ export function BackupCenterClient({
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <HardDrive className="size-5 text-soda-pink" />
-              Manual Backup
+              Recovery Metadata Package
             </CardTitle>
             <CardDescription>
-              Generate a complete metadata package with brand copies, migration
-              list, and manifest — never secrets.
+              Generate a metadata recovery package with brand copies, migration
+              list, and manifest — not a full database or storage backup. Never
+              includes secrets.
             </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -256,7 +274,7 @@ export function BackupCenterClient({
                   Creating…
                 </>
               ) : (
-                "Create Backup"
+                "Create Recovery Package"
               )}
             </Button>
             {error ? (
