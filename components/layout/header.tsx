@@ -26,6 +26,7 @@ import { HumanTitle } from "@/components/brand/human-title";
 import { LanguageSwitcher } from "@/components/i18n/language-switcher";
 import { getSideLanguage } from "@/lib/brand/human-layer";
 import type { HumanLayerKey } from "@/lib/brand/human-layer";
+import { cn } from "@/lib/utils";
 import { useI18n } from "@/lib/i18n/provider";
 import type { DictKey } from "@/lib/i18n/dictionaries";
 import type { NotificationRecord } from "@/lib/core/types";
@@ -41,6 +42,8 @@ interface HeaderProps {
   layer?: HumanLayerKey;
   notifications?: NotificationRecord[];
   user?: SidebarUser;
+  /** Slimmer chrome for Founder Command Center. */
+  compact?: boolean;
 }
 
 export default function Header({
@@ -50,12 +53,17 @@ export default function Header({
   layer = "dashboard",
   notifications = [],
   user,
+  compact = false,
 }: HeaderProps) {
   const { t } = useI18n();
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const displayTitle = titleKey
     ? t(titleKey)
-    : (title ?? t("pages.home"));
+    : title
+      ? title
+      : compact
+        ? null
+        : t("pages.home");
   const sideLanguage =
     subtitle ?? (layer ? getSideLanguage(layer) : getSideLanguage("dashboard"));
 
@@ -77,7 +85,12 @@ export default function Header({
   }, [mobileNavOpen]);
 
   return (
-    <header className="soda-topbar sticky top-0 z-10 flex min-h-[4.25rem] items-center justify-between gap-4 border-b px-4 py-3.5 backdrop-blur-md sm:px-6">
+    <header
+      className={cn(
+        "soda-topbar sticky top-0 z-10 flex items-center justify-between gap-4 border-b px-4 backdrop-blur-md sm:px-6",
+        compact ? "min-h-[3rem] py-2" : "min-h-[4.25rem] py-3.5"
+      )}
+    >
       <div className="flex min-w-0 items-center gap-3">
         <Sheet open={mobileNavOpen} onOpenChange={setMobileNavOpen}>
           <SheetTrigger
@@ -102,10 +115,11 @@ export default function Header({
         </Sheet>
 
         <HumanTitle
-          title={displayTitle}
-          explanation={sideLanguage}
+          title={displayTitle ?? ""}
+          explanation={compact ? undefined : sideLanguage}
           as="h1"
           size="page"
+          className={compact ? "sr-only" : undefined}
         />
       </div>
 

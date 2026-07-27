@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "node --use-system-ca ./node_modules/next/dist/bin/next dev",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
@@ -41,6 +41,10 @@
     "soda:database-backup-secure": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/run-database-backup-secure.ps1",
     "backup:storage": "npx tsx scripts/create-storage-snapshot.ts",
     "soda:storage-snapshot": "npx tsx scripts/create-storage-snapshot.ts",
+    "backup:source-recovery": "npx tsx scripts/create-source-recovery.ts",
+    "soda:source-recovery": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/run-source-recovery.ps1",
+    "backup:source-recovery:verify": "npx tsx scripts/verify-source-recovery.ts",
+    "soda:source-recovery:verify": "npx tsx scripts/verify-source-recovery.ts",
     "founder:local-dirs": "npx tsx scripts/ensure-founder-local-structure.ts"
   },
   "dependencies": {

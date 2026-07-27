@@ -68,6 +68,88 @@ export type NavSection = {
   items: NavItem[];
 };
 
+/** Sidebar display order — company primary nav (routes unchanged when hidden). */
+export const SIDEBAR_COMPANY_ORDER: readonly DictKey[] = [
+  "nav.home",
+  "nav.brain",
+  "nav.quotations",
+  "nav.orders",
+  "nav.clients",
+  "nav.people",
+  "nav.calendar",
+  "nav.finance",
+  "nav.statistics",
+  "nav.connect",
+] as const;
+
+/** Hidden from sidebar display only — pages and files remain. */
+export const SIDEBAR_HIDDEN_TITLE_KEYS = new Set<DictKey>([
+  "nav.projects",
+  "nav.commercial",
+  "nav.weddings",
+  "nav.equipment",
+]);
+
+/** Founder My Workspace — permanent sidebar clutter removed from display. */
+export const SIDEBAR_FOUNDER_HIDDEN_ME_KEYS = new Set<DictKey>([
+  "nav.target",
+  "nav.bonus",
+  "nav.penalties",
+]);
+
+function orderIndex(titleKey: DictKey): number {
+  const i = SIDEBAR_COMPANY_ORDER.indexOf(titleKey);
+  return i === -1 ? 999 : i;
+}
+
+function filterSidebarCompanyItems(items: NavItem[]): NavItem[] {
+  return items
+    .filter((item) => !SIDEBAR_HIDDEN_TITLE_KEYS.has(item.titleKey))
+    .sort((a, b) => orderIndex(a.titleKey) - orderIndex(b.titleKey));
+}
+
+function filterSidebarMeItems(
+  items: NavItem[],
+  level?: AccessLevel
+): NavItem[] {
+  if (level !== "founder") return items;
+  return items.filter(
+    (item) => !SIDEBAR_FOUNDER_HIDDEN_ME_KEYS.has(item.titleKey)
+  );
+}
+
+/**
+ * Sidebar-only nav — filters hidden routes and applies display order.
+ * Does not change permission logic or route availability.
+ */
+export function navSectionsForSidebarDisplay(
+  level: AccessLevel | undefined,
+  granted: ReadonlySet<string> | readonly string[]
+): NavSection[] {
+  const base =
+    level != null
+      ? navSectionsForAccessLevel(level, granted)
+      : navSectionsForPermissions(granted);
+
+  return base
+    .map((section) => {
+      if (section.id === "company") {
+        return {
+          ...section,
+          items: filterSidebarCompanyItems(section.items),
+        };
+      }
+      if (section.id === "me") {
+        return {
+          ...section,
+          items: filterSidebarMeItems(section.items, level),
+        };
+      }
+      return section;
+    })
+    .filter((section) => section.items.length > 0);
+}
+
 export const NAV_ITEMS: NavItem[] = [
   {
     titleKey: "nav.brain",

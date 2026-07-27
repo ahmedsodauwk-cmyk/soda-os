@@ -95,9 +95,9 @@
   --soda-atm-side-x: 0%;
   --soda-atm-side-y: 45%;
 
-  --background: #f4eef8;
+  --background: #faf6f0;
   --foreground: #160f24;
-  --card: color-mix(in srgb, #ffffff 78%, #efe6f6 22%);
+  --card: color-mix(in srgb, #ffffff 82%, #f5efe6 18%);
   --card-foreground: #160f24;
   --popover: color-mix(in srgb, #ffffff 88%, #f7eef5 12%);
   --popover-foreground: #160f24;
@@ -1045,4 +1045,75 @@
     transition-duration: var(--soda-duration);
     transition-timing-function: var(--soda-ease);
   }
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Founder Command Center — compact no-scroll layout (1440×900 target)      */
+/* -------------------------------------------------------------------------- */
+
+.soda-founder-home {
+  --founder-row-gap: 0.5rem;
+  gap: var(--founder-row-gap);
+}
+
+.soda-founder-panel [data-slot="card"] {
+  box-shadow: var(--soda-shadow-soft);
+}
+
+.soda-founder-panel:hover {
+  transform: none;
+}
+
+.soda-founder-metric {
+  min-height: 3.25rem;
+}
+
+.soda-founder-main {
+  min-height: 0;
+}
+
+@media (min-width: 1024px) and (min-height: 800px) {
+  .soda-founder-home {
+    max-height: calc(100dvh - 5.5rem);
+    overflow: hidden;
+  }
+
+  .soda-founder-main {
+    flex: 1 1 auto;
+    min-height: 0;
+    max-height: clamp(12rem, 38vh, 22rem);
+  }
+
+  .soda-founder-panel {
+    max-height: 100%;
+    overflow: hidden;
+  }
+
+  .soda-founder-panel [data-slot="card-content"] {
+    overflow: hidden;
+  }
+}
+
+.soda-founder-clock {
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--soda-pink) 6%, transparent) 0%,
+    color-mix(in srgb, var(--card) 90%, transparent) 100%
+  );
+}
+
+.dark .soda-founder-clock {
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--soda-pink) 10%, transparent) 0%,
+    color-mix(in srgb, var(--card) 85%, transparent) 100%
+  );
+}
+
+.soda-founder-pulse {
+  min-height: 5.5rem;
+}
+
+.soda-founder-pulse:hover {
+  transform: none;
 }

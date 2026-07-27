@@ -12,6 +12,7 @@ type Props = {
   layer: HumanLayerKey;
   subtitle?: string;
   showBreadcrumbs?: boolean;
+  compactChrome?: boolean;
   children: ReactNode;
 };
 
@@ -25,6 +26,7 @@ export function ShellPageMeta({
   layer,
   subtitle,
   showBreadcrumbs = true,
+  compactChrome = false,
   children,
 }: Props) {
   const shell = useShellOptional();
@@ -38,8 +40,9 @@ export function ShellPageMeta({
       layer,
       subtitle,
       showBreadcrumbs,
+      compactChrome,
     });
-  }, [setMeta, titleKey, title, layer, subtitle, showBreadcrumbs]);
+  }, [setMeta, titleKey, title, layer, subtitle, showBreadcrumbs, compactChrome]);
 
   return <>{children}</>;
 }

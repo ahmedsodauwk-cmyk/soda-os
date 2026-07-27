@@ -15,6 +15,7 @@ import { RecentlyViewed } from "@/components/navigation/recently-viewed";
 import { NotificationLiveProvider } from "@/components/notifications/notification-live-store";
 import { useShell } from "@/components/layout/shell-context";
 import { resolveSectionPersonality } from "@/lib/brand/tokens";
+import { cn } from "@/lib/utils";
 import type { RecentRecord } from "@/lib/identity/recent";
 
 export function ShellFrame({
@@ -28,6 +29,7 @@ export function ShellFrame({
   const pathname = usePathname() || "/";
   const section = resolveSectionPersonality(meta.layer);
   const showBreadcrumbs = meta.showBreadcrumbs !== false;
+  const compactChrome = meta.compactChrome === true;
 
   return (
     <NotificationLiveProvider userId={user?.userId} initial={notifications}>
@@ -43,17 +45,25 @@ export function ShellFrame({
           className="relative z-[1] flex min-h-0 flex-1 flex-col overflow-y-auto"
         >
           <Header
-            titleKey={meta.titleKey}
-            title={meta.title}
+            titleKey={compactChrome ? undefined : meta.titleKey}
+            title={compactChrome ? undefined : meta.title}
             layer={meta.layer}
-            subtitle={meta.subtitle}
+            subtitle={compactChrome ? undefined : meta.subtitle}
             notifications={notifications}
             user={user}
+            compact={compactChrome}
           />
 
-          <div className="soda-page-enter mx-auto w-full max-w-[1600px] p-4 sm:p-5 lg:p-6">
-            {showBreadcrumbs ? <Breadcrumbs pathname={pathname} /> : null}
-            {recent.length > 0 ? (
+          <div
+            className={cn(
+              "soda-page-enter mx-auto w-full max-w-[1600px]",
+              compactChrome ? "p-3 sm:p-4 lg:p-4" : "p-4 sm:p-5 lg:p-6"
+            )}
+          >
+            {showBreadcrumbs && !compactChrome ? (
+              <Breadcrumbs pathname={pathname} />
+            ) : null}
+            {recent.length > 0 && !compactChrome ? (
               <div className="mb-3">
                 <RecentlyViewed items={recent} />
               </div>

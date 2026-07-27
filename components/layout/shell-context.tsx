@@ -26,6 +26,8 @@ export type ShellPageMeta = {
   layer: HumanLayerKey;
   subtitle?: string;
   showBreadcrumbs?: boolean;
+  /** Tighter shell padding — Founder Command Center no-scroll layout. */
+  compactChrome?: boolean;
 };
 
 type ShellContextValue = {
@@ -61,12 +63,14 @@ export function ShellProvider({
         prev.title === next.title &&
         prev.layer === next.layer &&
         prev.subtitle === next.subtitle &&
-        prev.showBreadcrumbs === next.showBreadcrumbs
+        prev.showBreadcrumbs === next.showBreadcrumbs &&
+        prev.compactChrome === next.compactChrome
       ) {
         return prev;
       }
       return {
         showBreadcrumbs: true,
+        compactChrome: false,
         ...next,
       };
     });

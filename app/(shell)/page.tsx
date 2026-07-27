@@ -50,7 +50,13 @@ export default async function Home() {
   // Founder — greeting paints immediately; heavy snapshot streams independently.
   if (!session || level === "founder") {
     return (
-      <AppShell titleKey="pages.home" layer="dashboard" session={session}>
+      <AppShell
+        titleKey="pages.home"
+        layer="dashboard"
+        session={session}
+        showBreadcrumbs={false}
+        compactChrome
+      >
         <Suspense
           fallback={
             <>

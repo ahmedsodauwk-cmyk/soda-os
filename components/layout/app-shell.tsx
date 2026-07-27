@@ -20,6 +20,8 @@ interface AppShellProps {
   subtitle?: string;
   children: React.ReactNode;
   showBreadcrumbs?: boolean;
+  /** Tighter shell chrome for Founder Command Center. */
+  compactChrome?: boolean;
   /** @deprecated Layout resolves session — kept for page call-site compatibility. */
   session?: SodaSession | null;
 }
@@ -31,6 +33,7 @@ export async function AppShell({
   subtitle,
   children,
   showBreadcrumbs = true,
+  compactChrome = false,
 }: AppShellProps) {
   return (
     <ShellPageMeta
@@ -39,6 +42,7 @@ export async function AppShell({
       layer={layer}
       subtitle={subtitle}
       showBreadcrumbs={showBreadcrumbs}
+      compactChrome={compactChrome}
     >
       {children}
     </ShellPageMeta>
