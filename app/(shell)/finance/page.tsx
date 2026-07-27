@@ -63,7 +63,7 @@ export default async function FinancePage() {
   const closings = listPeriodClosings().slice(0, 5);
 
   const body = (
-      <div className="space-y-6">
+      <div className="soda-stagger-children space-y-6">
         <div className="rounded-xl border border-border/60 bg-muted/10 px-6 py-8">
           <p className="font-heading text-base font-semibold tracking-tight">
             محفظة الشركة

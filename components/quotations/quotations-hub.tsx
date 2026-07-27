@@ -155,7 +155,7 @@ export function QuotationsHub() {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="soda-stagger-children space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-2">
           <div className="relative">
