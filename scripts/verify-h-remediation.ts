@@ -32,6 +32,12 @@ check("H1 migration exists", () => {
   assert.match(sql, /DROP POLICY IF EXISTS profiles_select_connect_peers/);
 });
 
+check("H1 RPC person_id matches profiles.text", () => {
+  const sql = read("supabase/migrations/20260727000029_h1_connect_peer_directory.sql");
+  assert.match(sql, /person_id text/);
+  assert.doesNotMatch(sql, /person_id uuid/);
+});
+
 check("H1 rollback exists", () => {
   const sql = read("supabase/rollbacks/20260727000029_h1_connect_peer_directory_rollback.sql");
   assert.match(sql, /profiles_select_connect_peers/);

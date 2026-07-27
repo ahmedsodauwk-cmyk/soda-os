@@ -36,7 +36,7 @@ RETURNS TABLE (
   username text,
   email text,
   access_level text,
-  person_id uuid,
+  person_id text,
   is_active boolean
 )
 LANGUAGE sql
@@ -72,7 +72,7 @@ RETURNS TABLE (
   username text,
   email text,
   access_level text,
-  person_id uuid,
+  person_id text,
   is_active boolean
 )
 LANGUAGE sql

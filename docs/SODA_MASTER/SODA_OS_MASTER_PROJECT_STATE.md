@@ -5,7 +5,7 @@
 
 | Field | Value |
 |--------|--------|
-| **Document version** | `1.0.5` |
+| **Document version** | `1.0.6` |
 | **Last updated** | `2026-07-27` |
 | **Product** | SODA OS |
 | **Company** | SODA VISUALS |
@@ -42,7 +42,7 @@ Before major auth / identity / DB / migrations / RLS / finance / production-data
 
 ## CURRENT MISSION
 
-**H1–H5 Production Apply + Deploy** — source remediation complete **2026-07-27**; Production migration apply blocked from agent shell (no pooler/direct DB reachability). Founder must apply via interactive secure launcher or Supabase SQL Editor, then deploy app commit.
+**H1–H5 Production Apply + Deploy** — H1 migration **repaired** **2026-07-27** (`person_id text` return-type fix; disposable rehearsal **PASS**). Production apply **pending** Founder retry via secure launcher (`scripts/run-sr01-db-secure.ps1` + apply script). Read-only Production catalog: **no partial H1 apply** (legacy `profiles_select_connect_peers` intact).
 
 Parallel reliability: **Mission 08.2.1** — live Production database backup **verified** (`SODA_Database_2026-07-26_195823.zip`).
 
@@ -50,7 +50,7 @@ Parallel reliability: **Mission 08.2.1** — live Production database backup **v
 
 ## CURRENT BLOCKERS
 
-1. **H1–H5 migrations** not yet applied on Production (source + rollbacks ready; apply script `scripts/apply-h-remediation-migrations.ts`)
+1. **H1–H5 migrations** not yet applied on Production — H1 SQL **repaired** (`person_id text`); apply via `scripts/apply-h-remediation-migrations.ts` (secure launcher)
 2. **H1 + H3 app changes** not yet deployed to https://soda-os.vercel.app (pending push + Vercel Ready)
 3. Production credentials must **never** be stored in source / Git / logs / manifests / ZIPs
 4. Restore drill script added (`scripts/restore-drill-disposable.ts`); SR-01 disposable rehearsal remains prior Gate 4 evidence on same backup
@@ -202,26 +202,30 @@ Overall audit rating is **MEDIUM-HIGH** — all **Critical** findings (**C1**, *
 
 | Field | Value |
 |--------|--------|
-| **Status** | **SOURCE COMPLETE — PRODUCTION APPLY PENDING** |
+| **Status** | **SOURCE COMPLETE (H1 REPAIRED) — PRODUCTION APPLY PENDING** |
 | **Verification date** | **2026-07-27** |
-| **Migrations** | `20260727000029` (H1), `20260727000030` (H2), `20260727000031` (H4), `20260727000032` (H5) |
+| **Migrations** | `20260727000029` (H1 — `person_id text` fix), `20260727000030` (H2), `20260727000031` (H4), `20260727000032` (H5) |
 | **App fix** | `app/auth/callback/route.ts` (H3) |
 | **Repository** | `lib/connect/repository.ts` (H1 RPC directory) |
-| **Apply script** | `npx tsx scripts/apply-h-remediation-migrations.ts` |
-| **Static harness** | `npx tsx scripts/verify-h-remediation.ts` — **PASS 10/10** |
+| **Apply script** | `npx tsx scripts/apply-h-remediation-migrations.ts` (SQL errors surfaced distinctly from connection failures) |
+| **Static harness** | `npx tsx scripts/verify-h-remediation.ts` — **PASS 11/11** |
+| **Disposable H1** | `npx tsx scripts/verify-h1-disposable.ts` — **PASS** (minimal Production-shaped schema) |
+| **Production catalog** | `npx tsx scripts/inspect-h1-production-catalog.ts` — **no partial apply** (0 H1 RPCs; legacy policy present) |
 
 **Local evidence (2026-07-27):**
 
 | Check | Result |
 |--------|--------|
-| `npx tsx scripts/verify-h-remediation.ts` | **PASS** — 10/10 |
+| `npx tsx scripts/verify-h-remediation.ts` | **PASS** — 11/11 |
+| `npx tsx scripts/verify-h1-disposable.ts` | **PASS** — H1 applies on disposable PG |
+| `npx tsx scripts/inspect-h1-production-catalog.ts` | **PASS** — no partial H1 on Production |
 | `npx tsx scripts/verify-sr02-mutation-boundary.ts` | **PASS** — 18/18 |
 | `npx tsx scripts/verify-sr02-authz.ts` | **PASS** — 16/16 |
 | `npx tsx scripts/verify-auth-strict.ts` | **PASS** — 8/8 |
 | `npm run typecheck` | **PASS** |
 | `npm run build` | **PASS** |
 | Gate 2 backup (`SODA_Database_2026-07-26_195823.zip`) | **PASS** — readable; manifest present; 32 entries |
-| Production migration apply (agent shell) | **BLOCKED** — no direct/pooler DB reachability (`ENOTFOUND`) |
+| Production migration apply (agent shell) | **BLOCKED** — Founder must retry via secure launcher after H1 repair |
 | **H1–H5** on Production | **PENDING** Founder apply + deploy |
 
 ---

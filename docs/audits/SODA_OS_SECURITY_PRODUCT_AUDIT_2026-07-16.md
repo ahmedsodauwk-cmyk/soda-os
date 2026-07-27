@@ -675,19 +675,21 @@ Extensive Grep/Read/Glob of migrations, identity, middleware, actions, Connect, 
 
 **Recorded:** 2026-07-27  
 **Mission:** High-Risk Remediation (H1–H5)  
-**Official state:** `docs/SODA_MASTER/SODA_OS_MASTER_PROJECT_STATE.md` (v1.0.5)
+**Official state:** `docs/SODA_MASTER/SODA_OS_MASTER_PROJECT_STATE.md` (v1.0.6)
 
 | Finding | Status | Evidence |
 |---------|--------|----------|
-| **H1** Connect peer PII | **REMEDIATED IN SOURCE** | `20260727000029_h1_connect_peer_directory.sql`; `connect_list_directory_peers` / `connect_get_peers_by_ids` RPCs; drops `profiles_select_connect_peers`; `lib/connect/repository.ts` |
+| **H1** Connect peer PII | **REMEDIATED IN SOURCE (REPAIRED)** | `20260727000029_h1_connect_peer_directory.sql` — `connect_list_directory_peers` / `connect_get_peers_by_ids` declare `person_id text` (matches `profiles.person_id`); drops `profiles_select_connect_peers`; disposable rehearsal **PASS**; Production **not partially applied** |
 | **H2** Connect storage SELECT | **REMEDIATED IN SOURCE** | `20260727000030_h2_connect_storage_select.sql` — SELECT scoped to `auth.uid()` folder |
 | **H3** Auth callback redirect | **REMEDIATED IN SOURCE** | `app/auth/callback/route.ts` — `safeRelativeRedirect`; exchange error handling |
 | **H4** handle_new_user metadata | **REMEDIATED IN SOURCE** | `20260727000031_h4_handle_new_user_harden.sql` — ignores `owner`/`admin`/`founder` from metadata |
 | **H5** Connect messages UPDATE | **REMEDIATED IN SOURCE** | `20260727000032_h5_connect_messages_update.sql` — sender-only UPDATE |
 
-**Static verification:** `npx tsx scripts/verify-h-remediation.ts` — **PASS 10/10** (2026-07-27).
+**Static verification:** `npx tsx scripts/verify-h-remediation.ts` — **PASS 11/11**; `npx tsx scripts/verify-h1-disposable.ts` — **PASS** (2026-07-27).
 
-**Production apply:** **PENDING** — agent shell could not reach Supabase DB host (`ENOTFOUND` direct + all pooler regions). Founder must run `npx tsx scripts/apply-h-remediation-migrations.ts` from interactive terminal with `DATABASE_URL`, or paste migrations in Supabase SQL Editor, then deploy app.
+**H1 repair (2026-07-27):** Root cause — `RETURNS TABLE (person_id uuid)` vs `profiles.person_id text` caused `return type mismatch in function declared to return record`. Fixed to `person_id text` in both RPCs. Apply script now reports SQL errors separately from connection failures.
+
+**Production apply:** **PENDING** — read-only catalog shows 0 H1 RPCs and legacy policy intact (no partial apply). Founder must run secure launcher + apply script, then deploy app.
 
 **Gate 2 backup:** `D:\SODA OS\Database\SODA_Database_2026-07-26_195823.zip` — verified readable (manifest present; 32 entries).
 
