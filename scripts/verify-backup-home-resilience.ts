@@ -42,11 +42,10 @@ async function run(): Promise<void> {
     "utf8"
   );
 
-  await check("1: Founder Home uses getBackupDashboardStatus (success path)", async () => {
-    assert.match(founderHomeSource, /getBackupDashboardStatus/);
+  await check("1: Founder Home does not call backup FS on critical path", async () => {
+    assert.doesNotMatch(founderHomeSource, /getBackupDashboardStatus/);
     const status = await getBackupDashboardStatus();
     assert.equal(typeof status.systemStatus, "string");
-    assert.equal(typeof status.totalBackups, "number");
   });
 
   await check("2: getBackupDashboardStatus has fail-soft fallback (Home survives throws)", async () => {

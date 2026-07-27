@@ -1,13 +1,9 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useState } from "react";
-import { Plus } from "lucide-react";
 
-import { ClientEntryActions } from "@/components/clients/client-entry-actions";
 import { SodaLanguage } from "@/components/brand/soda-language";
 import { ThemeSwitcher } from "@/components/theme/theme-switcher";
-import { Button } from "@/components/ui/button";
 import {
   buildHeroOperationalLines,
   getHeroGreeting,
@@ -51,7 +47,7 @@ function formatEnglishTime(now: Date): string {
   }).format(now);
 }
 
-/** Founder header — Arabic greeting + summary (SODA Language), English date/time + actions. */
+/** Founder header — Arabic greeting anchor, SODA Language, English date/time below. */
 export function FounderCommandHeader({
   dashboard,
   operatorName,
@@ -66,61 +62,44 @@ export function FounderCommandHeader({
   return (
     <header
       aria-labelledby="founder-command-greeting"
-      className="soda-founder-header flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between"
+      className="soda-founder-header flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between"
     >
       <div className="min-w-0 flex-1 space-y-1">
-        <div className="flex flex-wrap items-start gap-x-4 gap-y-1">
-          <h1
-            id="founder-command-greeting"
-            lang="ar"
-            dir="rtl"
-            className="soda-founder-greeting font-ar min-w-0 font-bold leading-tight tracking-tight text-foreground"
-            suppressHydrationWarning
-          >
-            {greeting}
-          </h1>
-          <aside
-            aria-label="Date and time"
-            className="soda-founder-clock shrink-0 rounded-lg border border-border/60 bg-card/50 px-3 py-1.5 text-left"
-          >
-            <p
-              className="text-sm font-medium text-foreground"
-              suppressHydrationWarning
-            >
-              {formatEnglishDate(clock)}
-            </p>
-            <p
-              className="font-mono text-[15px] font-semibold tabular-nums text-soda-pink"
-              suppressHydrationWarning
-            >
-              {formatEnglishTime(clock)}
-            </p>
-          </aside>
-        </div>
+        <h1
+          id="founder-command-greeting"
+          lang="ar"
+          dir="rtl"
+          className="soda-founder-greeting font-ar min-w-0 font-bold leading-tight tracking-tight text-foreground"
+          suppressHydrationWarning
+        >
+          {greeting}
+        </h1>
         {summary ? (
           <SodaLanguage size="header" className="max-w-2xl">
             {summary}
           </SodaLanguage>
         ) : null}
+        <div
+          aria-label="Date and time"
+          className="soda-founder-clock pt-0.5 text-left"
+        >
+          <p
+            className="text-sm font-medium text-muted-foreground"
+            suppressHydrationWarning
+          >
+            {formatEnglishDate(clock)}
+          </p>
+          <p
+            className="font-mono text-[15px] font-semibold tabular-nums text-soda-pink"
+            suppressHydrationWarning
+          >
+            {formatEnglishTime(clock)}
+          </p>
+        </div>
       </div>
 
-      <div className="flex flex-wrap items-center gap-2 lg:shrink-0">
+      <div className="flex shrink-0 items-center sm:pt-1">
         <ThemeSwitcher className="shrink-0" />
-
-        <Button
-          size="sm"
-          className="soda-btn-primary h-9 gap-1.5 text-[15px] font-semibold"
-          nativeButton={false}
-          render={<Link href="/orders" />}
-        >
-          <Plus className="size-4" />
-          <span>New Order</span>
-        </Button>
-        <ClientEntryActions
-          triggerLabel="Add Client"
-          triggerVariant="outline"
-          triggerClassName="h-9 border-soda-pink/25"
-        />
       </div>
     </header>
   );

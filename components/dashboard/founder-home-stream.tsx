@@ -1,19 +1,14 @@
 /**
  * Founder Home body — streamed under Suspense (Mission 06.0 Phase 06).
- * Reference-locked layout: 3-column main grid + compact status row + action strip.
+ * Folder-first layout: greeting, single action group, folder grid, company updates.
  */
 
-import { FounderActionStrip } from "@/components/dashboard/founder-action-strip";
-import { FounderBottomPulse } from "@/components/dashboard/founder-bottom-pulse";
-import { FounderCalendarToday } from "@/components/dashboard/founder-calendar-today";
 import { FounderCommandHeader } from "@/components/dashboard/founder-command-header";
-import { FounderCompactStatusRow } from "@/components/dashboard/founder-compact-status-row";
-import { FounderDailySnapshot } from "@/components/dashboard/founder-daily-snapshot";
+import { FounderCompanyUpdates } from "@/components/dashboard/founder-company-updates";
+import { FounderFolderGrid } from "@/components/dashboard/founder-folder-grid";
+import { FounderHomeActions } from "@/components/dashboard/founder-home-actions";
 import { FounderNeedsDecision } from "@/components/dashboard/founder-needs-decision";
-import { FounderRecentActivity } from "@/components/dashboard/founder-recent-activity";
-import { FounderStudioActivity } from "@/components/dashboard/founder-studio-activity";
 import { WelcomeGate } from "@/components/dashboard/welcome-gate";
-import { getBackupDashboardStatus } from "@/lib/backup/status";
 import { loadNotificationsForSession } from "@/lib/core/notifications/load";
 import { loadDashboardSnapshot } from "@/lib/dashboard";
 import { resolveSessionForApp } from "@/lib/identity/session";
@@ -48,13 +43,9 @@ export async function FounderHomeStream({
     : [];
   const unreadCount = notifications.filter((n) => n.status === "unread").length;
 
-  const backupStatus =
-    level === "founder" ? await getBackupDashboardStatus() : null;
-
   return (
     <WelcomeGate dashboard={voiceInput}>
       <div className="soda-founder-home flex min-h-0 min-w-0 flex-col gap-3">
-        {/* Screenful 1 — header, KPIs, 3-col grid, status row, actions */}
         <section
           aria-label="Command overview"
           className="soda-founder-screen-1 soda-stagger-children"
@@ -64,38 +55,22 @@ export async function FounderHomeStream({
             operatorName={operatorName}
           />
 
-          <FounderDailySnapshot dashboard={dashboard} />
+          <FounderHomeActions />
 
-          <div className="soda-founder-main grid min-h-0 grid-cols-1 gap-2 lg:grid-cols-3">
-            <FounderNeedsDecision items={dashboard.attention} />
-            <FounderRecentActivity orders={dashboard.recentOrders} />
-            <FounderCalendarToday dashboard={dashboard} />
-          </div>
-
-          <FounderCompactStatusRow
-            team={dashboard.team}
-            attention={dashboard.attention}
-            unreadNotifications={unreadCount}
-            storageStatus={backupStatus?.storageStatus ?? null}
-            showStorage={level === "founder"}
-          />
-
-          <FounderActionStrip />
-        </section>
-
-        {/* Screenful 2 — financial pulse, pipeline, team, activity (no duplicate order list) */}
-        <section
-          aria-label="Studio pulse"
-          className="soda-founder-screen-2 soda-stagger-children"
-        >
-          <FounderBottomPulse
+          <FounderFolderGrid
             dashboard={dashboard}
             showFinance={showFinance && level === "founder"}
+            unreadNotifications={unreadCount}
           />
-          <FounderStudioActivity
-            team={dashboard.team}
-            attention={dashboard.attention}
-          />
+
+          <FounderNeedsDecision items={dashboard.attention} limit={3} />
+        </section>
+
+        <section
+          aria-label="Company updates"
+          className="soda-founder-screen-2 soda-stagger-children"
+        >
+          <FounderCompanyUpdates limit={5} />
         </section>
       </div>
     </WelcomeGate>
