@@ -69,15 +69,15 @@ export type NavSection = {
 /** Sidebar display order — company primary nav (routes unchanged when hidden). */
 export const SIDEBAR_COMPANY_ORDER: readonly DictKey[] = [
   "nav.home",
-  "nav.brain",
-  "nav.quotations",
   "nav.orders",
   "nav.clients",
-  "nav.people",
+  "nav.quotations",
   "nav.calendar",
+  "nav.people",
   "nav.finance",
   "nav.statistics",
   "nav.connect",
+  "nav.notifications",
 ] as const;
 
 /** Hidden from sidebar display only — pages and files remain. */
@@ -86,6 +86,7 @@ export const SIDEBAR_HIDDEN_TITLE_KEYS = new Set<DictKey>([
   "nav.commercial",
   "nav.weddings",
   "nav.equipment",
+  "nav.brain",
 ]);
 
 /** Founder My Workspace — crew-only items hidden; SODA Brain stays in company nav. */
@@ -326,7 +327,7 @@ export const NAV_ITEMS: NavItem[] = [
     href: "/notifications",
     icon: Bell,
     anyOf: ["notifications.view"],
-    workspace: "me",
+    workspace: "company",
   },
   {
     titleKey: "nav.settings",

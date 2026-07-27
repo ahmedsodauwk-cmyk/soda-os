@@ -159,10 +159,14 @@
   );
   --soda-ease: cubic-bezier(0.22, 1, 0.36, 1);
   --soda-duration: 200ms;
-  --soda-duration-hover: 200ms;
-  --soda-duration-route-exit: 160ms;
-  --soda-duration-route: 240ms;
-  --soda-duration-press: 120ms;
+  --soda-duration-hover: 260ms;
+  --soda-duration-route-exit: 300ms;
+  --soda-duration-route: 350ms;
+  --soda-duration-press: 140ms;
+  --soda-duration-sidebar-pill: 400ms;
+  --soda-duration-creation-order: 580ms;
+  --soda-duration-creation-quotation: 550ms;
+  --soda-duration-creation-client: 500ms;
   --soda-duration-slow: 280ms;
   --soda-duration-live: 480ms;
   --soda-stagger-step: 45ms;
@@ -780,23 +784,53 @@
 @keyframes soda-page-out {
   from {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateX(0);
   }
   to {
     opacity: 0;
-    transform: translateY(-16px);
+    transform: translateX(-24px);
   }
 }
 
 @keyframes soda-page-in {
   from {
     opacity: 0;
-    transform: translateY(16px);
+    transform: translateX(28px);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateX(0);
   }
+}
+
+@keyframes soda-page-out-back {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(28px);
+  }
+}
+
+@keyframes soda-page-in-back {
+  from {
+    opacity: 0;
+    transform: translateX(-24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.soda-route-back.soda-route-exit {
+  animation: soda-page-out-back var(--soda-duration-route-exit) var(--soda-ease) both;
+}
+
+.soda-route-back.soda-route-enter-active {
+  animation: soda-page-in-back var(--soda-duration-route) var(--soda-ease) both;
 }
 
 /* Staggered card entrance — children animate in sequence */
@@ -1136,17 +1170,37 @@
   .soda-route-enter,
   .soda-route-enter-active,
   .soda-route-exit,
+  .soda-route-back.soda-route-exit,
+  .soda-route-back.soda-route-enter-active,
   .soda-stagger-children > *,
   .soda-mark-pulse,
   .soda-splash-fade,
   .soda-login-brand,
   .soda-atmosphere::before,
-  .soda-atmosphere::after {
+  .soda-atmosphere::after,
+  .soda-founder-folder:hover {
     animation: none;
+    transform: none;
+  }
+
+  .soda-route-exit,
+  .soda-route-enter-active,
+  .soda-route-back.soda-route-exit,
+  .soda-route-back.soda-route-enter-active {
+    animation: soda-fade-only 200ms var(--soda-ease) both;
   }
 
   .soda-logo-interactive:hover .soda-logo-mark {
     filter: none;
+  }
+}
+
+@keyframes soda-fade-only {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
   }
 }
 
@@ -1246,4 +1300,44 @@
 
 .soda-founder-pulse:hover {
   transform: none;
+}
+
+/* Three-column shell — sidebar | main | brain rail */
+.soda-shell-3col {
+  --soda-sidebar-width: 14rem;
+  --soda-brain-rail-width: 17.5rem;
+}
+
+.soda-brain-panel {
+  box-shadow: inset 1px 0 0 color-mix(in srgb, #8b5cf6 18%, transparent);
+}
+
+.soda-nav-pill-active {
+  transition: background-color var(--soda-duration-sidebar-pill) var(--soda-ease),
+    box-shadow var(--soda-duration-sidebar-pill) var(--soda-ease),
+    color var(--soda-duration-sidebar-pill) var(--soda-ease);
+}
+
+.soda-creation-panel[data-state="open"] {
+  animation: soda-creation-in var(--soda-duration-creation-order) var(--soda-ease) both;
+}
+
+.soda-creation-drawer.soda-creation-client[data-state="open"] {
+  animation: soda-creation-in var(--soda-duration-creation-client) var(--soda-ease) both;
+}
+
+.soda-creation-quotation:active {
+  transform: scale(0.98);
+  transition-duration: var(--soda-duration-press);
+}
+
+@keyframes soda-creation-in {
+  from {
+    opacity: 0;
+    transform: translateX(32px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
 }

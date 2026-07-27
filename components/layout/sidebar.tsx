@@ -364,7 +364,6 @@ export function SidebarContent({
                 </p>
                 <p className="truncate text-xs text-sidebar-foreground/60">
                   {accessLabel ?? "—"}
-                  {user?.email ? ` · ${user.email}` : null}
                 </p>
               </div>
             ) : null}

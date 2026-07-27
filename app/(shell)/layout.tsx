@@ -10,6 +10,7 @@ import { redirect } from "next/navigation";
 
 import { ShellProvider } from "@/components/layout/shell-context";
 import { ShellFrame } from "@/components/layout/shell-frame";
+import { loadBrainPanelForShell } from "@/components/layout/soda-brain-panel-data";
 import { BOOT_BUDGET_MS, withTimeout } from "@/lib/async/with-timeout";
 import { loadNotificationsForSession } from "@/lib/core/notifications/load";
 import { getRecentlyViewed } from "@/lib/identity/recent";
@@ -103,8 +104,21 @@ export default async function ShellLayout({
       }
     : undefined;
 
+  const brainPanel =
+    session?.profile.accessLevel === "founder"
+      ? await withTimeout(loadBrainPanelForShell(), bootLeft(), {
+          focus: [],
+          insights: [],
+          migrationHint: null,
+        })
+      : null;
+
   return (
-    <ShellProvider user={user} notifications={notifications}>
+    <ShellProvider
+      user={user}
+      notifications={notifications}
+      brainPanel={brainPanel}
+    >
       <ShellFrame recent={recent}>{children}</ShellFrame>
     </ShellProvider>
   );

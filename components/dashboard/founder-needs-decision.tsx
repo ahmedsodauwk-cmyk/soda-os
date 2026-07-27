@@ -25,6 +25,14 @@ const categoryIcon = {
   deadline_soon: AlertTriangle,
 } as const;
 
+const categoryBadge: Record<AttentionItem["category"], string> = {
+  overdue_delivery: "Delivery",
+  unpaid_client: "Collections",
+  waiting_payment: "Payment",
+  unassigned_team: "Crew",
+  deadline_soon: "Deadline",
+};
+
 /** Subtle priority — no loud warning reds. */
 const severityStyles: Record<AttentionItem["severity"], string> = {
   critical:
@@ -62,7 +70,7 @@ interface FounderNeedsDecisionProps {
 /** Needs Your Decision — approvals, delays, collections, crew gaps. */
 export function FounderNeedsDecision({
   items,
-  limit = 4,
+  limit = 6,
 }: FounderNeedsDecisionProps) {
   const sorted = [...items].sort((a, b) => priorityScore(b) - priorityScore(a));
   const visible = sorted.slice(0, limit);
@@ -108,6 +116,12 @@ export function FounderNeedsDecision({
                     <p className="text-[15px] font-semibold leading-snug">
                       {item.title}
                     </p>
+                    <Badge
+                      variant="outline"
+                      className="border-soda-pink/20 bg-soda-pink/5 text-[10px] font-semibold uppercase"
+                    >
+                      {categoryBadge[item.category]}
+                    </Badge>
                     <span className="text-xs text-muted-foreground">
                       {severityLabel[item.severity]}
                     </span>

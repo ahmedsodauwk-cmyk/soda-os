@@ -1,6 +1,7 @@
 /**
  * Founder Home body — streamed under Suspense (Mission 06.0 Phase 06).
- * Folder-first layout: greeting, single action group, folder grid, company updates.
+ * Three-column shell: sidebar | main workspace | SODA Brain rail (desktop).
+ * Main: greeting, actions, 4×2 folder grid, decision + updates panels.
  */
 
 import { FounderCommandHeader } from "@/components/dashboard/founder-command-header";
@@ -62,14 +63,13 @@ export async function FounderHomeStream({
             showFinance={showFinance && level === "founder"}
             unreadNotifications={unreadCount}
           />
-
-          <FounderNeedsDecision items={dashboard.attention} limit={3} />
         </section>
 
         <section
-          aria-label="Company updates"
-          className="soda-founder-screen-2 soda-stagger-children"
+          aria-label="Operational panels"
+          className="soda-founder-lower-panels soda-stagger-children grid min-h-0 gap-3 lg:grid-cols-2"
         >
+          <FounderNeedsDecision items={dashboard.attention} limit={6} />
           <FounderCompanyUpdates limit={5} />
         </section>
       </div>

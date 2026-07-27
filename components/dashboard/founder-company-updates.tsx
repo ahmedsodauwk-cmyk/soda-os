@@ -17,10 +17,8 @@ interface FounderCompanyUpdatesProps {
 export function FounderCompanyUpdates({ limit = 5 }: FounderCompanyUpdatesProps) {
   const rows = buildActivityFeed({ includePayments: true }).slice(0, limit);
 
-  if (rows.length === 0) return null;
-
   return (
-    <Card className="soda-founder-panel soda-cc-card min-w-0">
+    <Card className="soda-founder-panel soda-cc-card min-w-0 h-full">
       <CardHeader className="flex-row items-start justify-between space-y-0 px-3 py-2.5 pb-1.5">
         <SodaSectionHeader
           title="Latest Company Updates"
@@ -37,6 +35,11 @@ export function FounderCompanyUpdates({ limit = 5 }: FounderCompanyUpdatesProps)
         </Link>
       </CardHeader>
       <CardContent className="px-3 pb-2.5 pt-0">
+        {rows.length === 0 ? (
+          <p className="rounded-lg border border-border/50 bg-muted/20 px-3 py-3 text-center text-[15px] text-muted-foreground">
+            No company updates yet today.
+          </p>
+        ) : (
         <ul className="divide-y divide-border/40">
           {rows.map((row) => (
             <li key={row.id}>
@@ -59,6 +62,7 @@ export function FounderCompanyUpdates({ limit = 5 }: FounderCompanyUpdatesProps)
             </li>
           ))}
         </ul>
+        )}
       </CardContent>
     </Card>
   );

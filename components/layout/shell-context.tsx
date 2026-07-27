@@ -19,6 +19,7 @@ import type { HumanLayerKey } from "@/lib/brand/human-layer";
 import type { NotificationRecord } from "@/lib/core/types";
 import type { DictKey } from "@/lib/i18n/dictionaries";
 import type { SidebarUser } from "@/components/layout/sidebar";
+import type { CommandCenterBrainPanelData } from "@/lib/brain/command-center-panel";
 
 export type ShellPageMeta = {
   titleKey?: DictKey;
@@ -35,6 +36,8 @@ type ShellContextValue = {
   notifications: NotificationRecord[];
   meta: ShellPageMeta;
   setMeta: (meta: ShellPageMeta) => void;
+  /** Founder Brain panel data — rail (desktop) + drawer (tablet/mobile). */
+  brainPanel?: CommandCenterBrainPanelData | null;
 };
 
 const ShellContext = createContext<ShellContextValue | null>(null);
@@ -48,10 +51,12 @@ const DEFAULT_META: ShellPageMeta = {
 export function ShellProvider({
   user,
   notifications,
+  brainPanel = null,
   children,
 }: {
   user?: SidebarUser;
   notifications: NotificationRecord[];
+  brainPanel?: CommandCenterBrainPanelData | null;
   children: ReactNode;
 }) {
   const [meta, setMetaState] = useState<ShellPageMeta>(DEFAULT_META);
@@ -82,8 +87,9 @@ export function ShellProvider({
       notifications,
       meta,
       setMeta,
+      brainPanel,
     }),
-    [user, notifications, meta, setMeta]
+    [user, notifications, meta, setMeta, brainPanel]
   );
 
   return (

@@ -1,5 +1,6 @@
+import { OrderEntryActions } from "@/components/orders/order-entry-actions";
 import Link from "next/link";
-import { FileText, Plus } from "lucide-react";
+import { FileText } from "lucide-react";
 
 import { ClientEntryActions } from "@/components/clients/client-entry-actions";
 import { Button } from "@/components/ui/button";
@@ -11,15 +12,10 @@ export function FounderHomeActions() {
       aria-label="Quick actions"
       className="soda-founder-actions flex flex-wrap items-center gap-2"
     >
-      <Button
-        size="sm"
-        className="soda-btn-primary h-9 gap-1.5 text-[15px] font-semibold"
-        nativeButton={false}
-        render={<Link href="/orders" />}
-      >
-        <Plus className="size-4" aria-hidden />
-        <span>New Order</span>
-      </Button>
+      <OrderEntryActions
+        triggerLabel="New Order"
+        triggerClassName="soda-btn-primary h-9 gap-1.5 text-[15px] font-semibold"
+      />
       <ClientEntryActions
         triggerLabel="Add Client"
         triggerVariant="outline"
@@ -28,7 +24,7 @@ export function FounderHomeActions() {
       <Button
         size="sm"
         variant="outline"
-        className="h-9 gap-1.5 border-soda-pink/25 text-[15px] font-semibold"
+        className="soda-creation-quotation h-9 gap-1.5 border-soda-pink/25 text-[15px] font-semibold"
         nativeButton={false}
         render={<Link href="/quotations/new" />}
       >

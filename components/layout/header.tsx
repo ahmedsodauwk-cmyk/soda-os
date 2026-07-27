@@ -24,6 +24,8 @@ import {
 } from "@/components/layout/sidebar";
 import { HumanTitle } from "@/components/brand/human-title";
 import { LanguageSwitcher } from "@/components/i18n/language-switcher";
+import { SodaBrainDrawer } from "@/components/layout/soda-brain-drawer";
+import { useShellOptional } from "@/components/layout/shell-context";
 import { getSideLanguage } from "@/lib/brand/human-layer";
 import type { HumanLayerKey } from "@/lib/brand/human-layer";
 import { cn } from "@/lib/utils";
@@ -55,6 +57,10 @@ export default function Header({
   user,
   compact = false,
 }: HeaderProps) {
+  const shell = useShellOptional();
+  const brainPanel = shell?.brainPanel;
+  const showBrainDrawer =
+    user?.accessLevel === "founder" && brainPanel != null;
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const displayTitle = titleKey
     ? operationalT(titleKey)
@@ -123,6 +129,12 @@ export default function Header({
       </div>
 
       <div className="flex items-center gap-2">
+        {showBrainDrawer ? (
+          <SodaBrainDrawer
+            data={brainPanel}
+            className="xl:hidden border-violet-500/30 text-violet-200"
+          />
+        ) : null}
         <LanguageSwitcher variant="icon" />
         <HeaderSearch />
         <HeaderNotifications initial={notifications} />
