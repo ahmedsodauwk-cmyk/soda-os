@@ -24,32 +24,56 @@ function rollup(
   return "OK";
 }
 
-export async function getBackupDashboardStatus(): Promise<BackupDashboardStatus> {
-  const history = readBackupIndex();
-  const [database, storage, assets] = await Promise.all([
-    collectDatabaseMetadata(),
-    collectStorageMetadata(),
-    collectAssetsIndex(),
-  ]);
-
-  const totalSizeBytes = history.reduce((sum, b) => sum + (b.sizeBytes || 0), 0);
-  const lastBackupAt = history[0]?.createdAt ?? null;
-
+function fallbackBackupDashboardStatus(): BackupDashboardStatus {
   return {
-    systemStatus: rollup([
-      database.status,
-      storage.status,
-      assets.status,
-    ]),
-    lastBackupAt,
-    totalBackups: history.length,
-    totalSizeBytes,
+    systemStatus: "UNKNOWN",
+    lastBackupAt: null,
+    totalBackups: 0,
+    totalSizeBytes: 0,
     gitCommit: getGitCommit(),
     applicationVersion: getApplicationVersion(),
     lastDatabaseMigration: getLastMigrationName(),
-    storageStatus: storage.status,
-    assetsStatus: assets.status,
-    databaseStatus: database.status,
+    storageStatus: "UNKNOWN",
+    assetsStatus: "UNKNOWN",
+    databaseStatus: "UNKNOWN",
     ephemeralStorage: isEphemeralBackupFs(),
   };
+}
+
+/** Never throws — safe for Founder Home and other Server Component surfaces. */
+export async function getBackupDashboardStatus(): Promise<BackupDashboardStatus> {
+  try {
+    const history = readBackupIndex();
+    const [database, storage, assets] = await Promise.all([
+      collectDatabaseMetadata(),
+      collectStorageMetadata(),
+      collectAssetsIndex(),
+    ]);
+
+    const totalSizeBytes = history.reduce(
+      (sum, b) => sum + (b.sizeBytes || 0),
+      0
+    );
+    const lastBackupAt = history[0]?.createdAt ?? null;
+
+    return {
+      systemStatus: rollup([
+        database.status,
+        storage.status,
+        assets.status,
+      ]),
+      lastBackupAt,
+      totalBackups: history.length,
+      totalSizeBytes,
+      gitCommit: getGitCommit(),
+      applicationVersion: getApplicationVersion(),
+      lastDatabaseMigration: getLastMigrationName(),
+      storageStatus: storage.status,
+      assetsStatus: assets.status,
+      databaseStatus: database.status,
+      ephemeralStorage: isEphemeralBackupFs(),
+    };
+  } catch {
+    return fallbackBackupDashboardStatus();
+  }
 }

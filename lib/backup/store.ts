@@ -17,6 +17,7 @@ import {
 } from "@/lib/backup/paths";
 import type { BackupHistoryEntry } from "@/lib/backup/types";
 
+/** Write paths only — never call from readBackupIndex (Vercel FS may be read-only). */
 function ensureRoot(): void {
   const root = getBackupsRoot();
   if (!existsSync(root)) {
@@ -24,11 +25,13 @@ function ensureRoot(): void {
   }
 }
 
+/**
+ * Read backup history index. Fail-soft: no mkdir; returns [] when missing or FS unavailable.
+ */
 export function readBackupIndex(): BackupHistoryEntry[] {
-  ensureRoot();
   const indexPath = getBackupIndexPath();
-  if (!existsSync(indexPath)) return [];
   try {
+    if (!existsSync(indexPath)) return [];
     const raw = JSON.parse(readFileSync(indexPath, "utf8")) as {
       backups?: BackupHistoryEntry[];
     };
