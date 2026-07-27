@@ -12,12 +12,16 @@ interface ClientEntryActionsProps {
   defaultType?: ClientType;
   defaultSegment?: NewClientInput["segment"];
   triggerLabel?: string;
+  triggerClassName?: string;
+  triggerVariant?: "default" | "outline" | "secondary";
 }
 
 export function ClientEntryActions({
   defaultType,
   defaultSegment,
   triggerLabel,
+  triggerClassName,
+  triggerVariant,
 }: ClientEntryActionsProps) {
   const router = useRouter();
   const actions = useUiActions();
@@ -38,6 +42,8 @@ export function ClientEntryActions({
       defaultType={defaultType}
       defaultSegment={defaultSegment}
       triggerLabel={triggerLabel ?? actions.createClient}
+      triggerClassName={triggerClassName}
+      triggerVariant={triggerVariant}
     />
   );
 }

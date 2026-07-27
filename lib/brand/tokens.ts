@@ -146,13 +146,15 @@ export const sodaType = {
     en: "font-heading text-xl font-semibold tracking-tight sm:text-[1.65rem]",
     ar: "font-ar text-[0.9375rem] leading-[1.85] sm:text-base sm:leading-[1.8]",
   },
-  sectionTitle: "font-heading text-base font-semibold tracking-tight",
+  sectionTitle: "font-heading text-lg font-bold tracking-tight sm:text-xl",
   sectionWhisper:
     "font-ar text-[0.9375rem] leading-[1.8] text-muted-foreground sm:text-base sm:leading-[1.75]",
-  body: "text-sm leading-relaxed",
+  body: "text-[15px] leading-relaxed sm:text-base",
   bodyAr: "font-ar text-[0.9375rem] leading-[1.8]",
-  caption: "text-xs leading-relaxed text-muted-foreground",
-  captionAr: "font-ar text-[13px] leading-[1.75] text-muted-foreground",
+  caption: "text-sm leading-relaxed text-muted-foreground",
+  captionAr: "font-ar text-[14px] leading-[1.75] text-muted-foreground",
+  cardTitle: "font-heading text-base font-semibold leading-snug sm:text-[17px]",
+  button: "text-[15px] font-semibold",
   kpiValue: "font-mono text-2xl font-semibold tracking-tight tabular-nums",
   heroAr:
     "font-ar text-[1.75rem] leading-[1.35] font-semibold tracking-tight sm:text-[2.05rem] sm:leading-[1.3]",
@@ -189,8 +191,10 @@ export const sodaElevation = {
 export const sodaMotion = {
   fast: "120ms",
   base: "200ms",
-  slow: "320ms",
+  route: "240ms",
+  slow: "280ms",
   live: "480ms",
+  stagger: "45ms",
   ease: "cubic-bezier(0.22, 1, 0.36, 1)",
 } as const;
 

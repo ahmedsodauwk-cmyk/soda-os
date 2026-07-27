@@ -159,8 +159,19 @@
   );
   --soda-ease: cubic-bezier(0.22, 1, 0.36, 1);
   --soda-duration: 200ms;
-  --soda-duration-slow: 320ms;
+  --soda-duration-route: 240ms;
+  --soda-duration-slow: 280ms;
   --soda-duration-live: 480ms;
+  --soda-stagger-step: 45ms;
+
+  /* Status tokens */
+  --soda-status-success: oklch(0.72 0.15 155);
+  --soda-status-warning: oklch(0.78 0.14 75);
+  --soda-status-danger: oklch(0.68 0.19 25);
+  --soda-status-info: oklch(0.72 0.12 250);
+
+  /* Focus ring */
+  --soda-focus-ring: 0 0 0 3px color-mix(in srgb, var(--ring) 40%, transparent);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -750,19 +761,55 @@
   }
 }
 
-.soda-page-enter {
-  animation: soda-page-in var(--soda-duration-slow) var(--soda-ease) both;
+.soda-page-enter,
+.soda-route-enter {
+  animation: soda-page-in var(--soda-duration-route) var(--soda-ease) both;
 }
 
 @keyframes soda-page-in {
   from {
     opacity: 0;
-    transform: translateY(8px);
+    transform: translateY(12px);
   }
   to {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+/* Staggered card entrance — children animate in sequence */
+.soda-stagger-children > * {
+  animation: soda-page-in var(--soda-duration-route) var(--soda-ease) both;
+}
+
+.soda-stagger-children > *:nth-child(1) {
+  animation-delay: calc(var(--soda-stagger-step) * 0);
+}
+.soda-stagger-children > *:nth-child(2) {
+  animation-delay: calc(var(--soda-stagger-step) * 1);
+}
+.soda-stagger-children > *:nth-child(3) {
+  animation-delay: calc(var(--soda-stagger-step) * 2);
+}
+.soda-stagger-children > *:nth-child(4) {
+  animation-delay: calc(var(--soda-stagger-step) * 3);
+}
+.soda-stagger-children > *:nth-child(5) {
+  animation-delay: calc(var(--soda-stagger-step) * 4);
+}
+.soda-stagger-children > *:nth-child(6) {
+  animation-delay: calc(var(--soda-stagger-step) * 5);
+}
+
+.soda-empty-state {
+  background:
+    radial-gradient(
+      ellipse 60% 50% at 50% 0%,
+      color-mix(in srgb, #d23b68 6%, transparent) 0%,
+      transparent 60%
+    ),
+    var(--soda-gradient-card),
+    var(--card);
 }
 
 /* Cards — white → soft purple / pink tint (never flat) */
@@ -1023,6 +1070,8 @@
 @media (prefers-reduced-motion: reduce) {
   .soda-live-fade-enter,
   .soda-page-enter,
+  .soda-route-enter,
+  .soda-stagger-children > *,
   .soda-mark-pulse,
   .soda-splash-fade,
   .soda-login-brand,
@@ -1056,6 +1105,21 @@
   gap: var(--founder-row-gap);
 }
 
+/* Two-screenful layout: screen 1 = command; screen 2 = pulse + secondary */
+.soda-founder-screen-1 {
+  display: flex;
+  flex-direction: column;
+  gap: var(--founder-row-gap);
+  min-height: 0;
+}
+
+.soda-founder-screen-2 {
+  display: flex;
+  flex-direction: column;
+  gap: var(--founder-row-gap);
+  min-height: 0;
+}
+
 .soda-founder-greeting {
   font-size: clamp(1.875rem, 2.8vw, 2.25rem);
   font-weight: 700;
@@ -1082,7 +1146,12 @@
 
 @media (min-width: 1024px) and (min-height: 800px) {
   .soda-founder-home {
-    max-height: calc(100dvh - 5.25rem);
+    max-height: none;
+    overflow: visible;
+  }
+
+  .soda-founder-screen-1 {
+    max-height: calc(100dvh - 5.5rem);
     overflow: hidden;
   }
 
@@ -1107,7 +1176,7 @@
 }
 
 @media (min-width: 1440px) and (min-height: 860px) {
-  .soda-founder-home {
+  .soda-founder-screen-1 {
     max-height: calc(100dvh - 5rem);
   }
 

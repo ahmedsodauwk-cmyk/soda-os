@@ -31,7 +31,7 @@ export default async function SettingsPage() {
 
   return (
     <AppShell titleKey="pages.settings" layer="settings" session={session}>
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className="soda-stagger-children grid gap-4 lg:grid-cols-2">
         <Card className="soda-cc-card">
           <CardHeader>
             <CardTitle>Profile</CardTitle>

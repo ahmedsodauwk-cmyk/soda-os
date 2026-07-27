@@ -38,7 +38,7 @@ export function ClientsHub({
         <ClientEntryActions />
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="soda-stagger-children grid gap-4 sm:grid-cols-2">
         {lanes.map((lane) => {
           const Icon = lane.icon;
           return (

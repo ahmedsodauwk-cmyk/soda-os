@@ -5,8 +5,8 @@
 
 | Field | Value |
 |--------|--------|
-| **Document version** | `1.0.9` |
-| **Last updated** | `2026-07-27` |
+| **Document version** | `1.1.0` |
+| **Last updated** | `2026-07-28` |
 | **Product** | SODA OS |
 | **Company** | SODA VISUALS |
 | **Application version** | `0.1.0` (`package.json`) |
@@ -42,7 +42,7 @@ Before major auth / identity / DB / migrations / RLS / finance / production-data
 
 ## CURRENT MISSION
 
-**Founder Visual Revision — English UI + SODA Language** — English-first operational chrome, Arabic SODA Language guidance layer, premium Founder Home no-scroll layout. Deployed to Production **pending** push verification below.
+**SODA OS Visual System V2** — premium dark/light design foundation, two-screenful Founder Home, motion primitives, English-first + SODA Language, route styling. Deployed to Production **pending** push verification below.
 
 Parallel: **H1–H5 Production Apply** — H1 migration **repaired** **2026-07-27**; Production apply **pending** Founder retry via secure launcher.
 
@@ -313,6 +313,48 @@ These decisions remain in force. Detail lives in the dedicated SoT chapters — 
 ---
 
 ## CHANGE LOG
+
+### v1.1.0 — 2026-07-28 (SODA OS Visual System V2)
+
+**Scope:** UI/UX only — design tokens V2, motion system, Founder Home two-screenful layout, route styling, reusable empty states. No DB, auth, permissions, APIs, or business-logic changes.
+
+**Design foundation V2:**
+
+- `lib/visual/v2.ts` — TS mirror for motion, typography, spacing, stagger/route-enter classes
+- `app/globals.css` — status tokens, focus ring, route enter 240ms, card stagger 45ms, `.soda-route-enter`, `.soda-stagger-children`, `.soda-empty-state`
+- Card titles 16–17px/semibold; motion `prefers-reduced-motion` respected
+
+**Founder Home (1440×900):**
+
+- Screenful 1: Arabic greeting, English date/time, snapshot KPIs, Today's Operations + Needs Your Decision, New Order + Add Client
+- Screenful 2: Financial Pulse (when authorized), Quotation Pipeline, Team Availability, Recent Orders (real data only)
+- `components/dashboard/founder-recent-activity.tsx` — recent orders panel
+
+**Routes styled:**
+
+- Shell route enter (`shell-frame.tsx`), Orders/Clients hub stagger, Settings card grid stagger
+- Reusable `components/ui/soda-empty-state.tsx`
+
+**Files changed:**
+
+- `lib/visual/v2.ts`, `lib/brand/tokens.ts`, `app/globals.css`
+- `components/ui/card.tsx`, `soda-empty-state.tsx`
+- `components/dashboard/founder-*.tsx`, `founder-recent-activity.tsx`
+- `components/layout/shell-frame.tsx`
+- `components/clients/add-client-dialog.tsx`, `client-entry-actions.tsx`, `clients-hub.tsx`
+- `components/orders/orders-hub.tsx`
+- `app/(shell)/settings/page.tsx`
+
+**Verification (local):**
+
+| Check | Result |
+|--------|--------|
+| `npm run typecheck` | **PASS** |
+| `npm run build` | **PASS** |
+| `npm run lint` | Baseline pre-existing errors (unchanged scope) |
+| `git diff --check` (mission files) | **PASS** |
+
+**Status:** **DEPLOYED TO PRODUCTION** — pending Vercel Ready confirmation after push.
 
 ### v1.0.9 — 2026-07-27 (Founder Visual Revision — English UI + SODA Language)
 

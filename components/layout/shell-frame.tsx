@@ -56,7 +56,7 @@ export function ShellFrame({
 
           <div
             className={cn(
-              "soda-page-enter mx-auto w-full max-w-[1600px]",
+              "soda-route-enter mx-auto w-full max-w-[1600px]",
               compactChrome ? "p-3 sm:p-4 lg:p-4" : "p-4 sm:p-5 lg:p-6"
             )}
           >

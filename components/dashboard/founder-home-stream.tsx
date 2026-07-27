@@ -8,6 +8,7 @@ import { FounderCommandHeader } from "@/components/dashboard/founder-command-hea
 import { FounderDailySnapshot } from "@/components/dashboard/founder-daily-snapshot";
 import { FounderNeedsDecision } from "@/components/dashboard/founder-needs-decision";
 import { FounderOperationsToday } from "@/components/dashboard/founder-operations-today";
+import { FounderRecentActivity } from "@/components/dashboard/founder-recent-activity";
 import { WelcomeGate } from "@/components/dashboard/welcome-gate";
 import { loadDashboardSnapshot } from "@/lib/dashboard";
 import { setHasAny, type Permission } from "@/lib/identity/permissions";
@@ -37,23 +38,36 @@ export async function FounderHomeStream({
 
   return (
     <WelcomeGate dashboard={voiceInput}>
-      <div className="soda-founder-home soda-page-enter flex min-h-0 flex-col gap-2 min-w-0">
-        <FounderCommandHeader
-          dashboard={voiceInput}
-          operatorName={operatorName}
-        />
+      <div className="soda-founder-home soda-route-enter flex min-h-0 flex-col gap-3 min-w-0">
+        {/* Screenful 1 — greeting, status, priorities, schedule, actions */}
+        <section
+          aria-label="Command overview"
+          className="soda-founder-screen-1 soda-stagger-children"
+        >
+          <FounderCommandHeader
+            dashboard={voiceInput}
+            operatorName={operatorName}
+          />
 
-        <FounderDailySnapshot dashboard={dashboard} />
+          <FounderDailySnapshot dashboard={dashboard} />
 
-        <div className="soda-founder-main grid min-h-0 flex-1 grid-cols-1 gap-2 lg:grid-cols-2">
-          <FounderOperationsToday dashboard={dashboard} />
-          <FounderNeedsDecision items={dashboard.attention} />
-        </div>
+          <div className="soda-founder-main grid min-h-0 flex-1 grid-cols-1 gap-2 lg:grid-cols-2">
+            <FounderOperationsToday dashboard={dashboard} />
+            <FounderNeedsDecision items={dashboard.attention} />
+          </div>
+        </section>
 
-        <FounderBottomPulse
-          dashboard={dashboard}
-          showFinance={showFinance && level === "founder"}
-        />
+        {/* Screenful 2 — money, team, quotations, recent orders (real data only) */}
+        <section
+          aria-label="Studio pulse"
+          className="soda-founder-screen-2 soda-stagger-children"
+        >
+          <FounderBottomPulse
+            dashboard={dashboard}
+            showFinance={showFinance && level === "founder"}
+          />
+          <FounderRecentActivity orders={dashboard.recentOrders} />
+        </section>
       </div>
     </WelcomeGate>
   );

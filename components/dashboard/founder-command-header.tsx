@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Eye, Plus } from "lucide-react";
 
+import { ClientEntryActions } from "@/components/clients/client-entry-actions";
 import { SodaLanguage } from "@/components/brand/soda-language";
 import { ThemeSwitcher } from "@/components/theme/theme-switcher";
 import { Button } from "@/components/ui/button";
@@ -125,6 +126,11 @@ export function FounderCommandHeader({
           <Plus className="size-4" />
           <span>New Order</span>
         </Button>
+        <ClientEntryActions
+          triggerLabel="Add Client"
+          triggerVariant="outline"
+          triggerClassName="h-9 border-soda-pink/25"
+        />
       </div>
     </header>
   );

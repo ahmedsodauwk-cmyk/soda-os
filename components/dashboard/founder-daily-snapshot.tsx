@@ -89,7 +89,7 @@ export function FounderDailySnapshot({ dashboard }: FounderDailySnapshotProps) {
     <section aria-label="Daily snapshot">
       <SodaLanguage layer="todaySnapshot" size="compact" className="mb-1.5 hidden sm:block" />
       <div
-        className="soda-founder-snapshot grid grid-cols-2 gap-2 lg:grid-cols-4"
+        className="soda-founder-snapshot soda-stagger-children grid grid-cols-2 gap-2 lg:grid-cols-4"
         role="list"
       >
         {metrics.map((m) => {

@@ -30,6 +30,7 @@ import {
 import { formatClientType } from "@/lib/clients/utils";
 import { getSuccessMessage } from "@/lib/brand/soda-voice";
 import { UI_ACTIONS } from "@/lib/brand/ui-actions";
+import { cn } from "@/lib/utils";
 
 const emptyForm: NewClientInput = {
   type: "individual",
@@ -51,6 +52,8 @@ interface AddClientDialogProps {
   defaultType?: ClientType;
   defaultSegment?: NewClientInput["segment"];
   triggerLabel?: string;
+  triggerClassName?: string;
+  triggerVariant?: "default" | "outline" | "secondary";
 }
 
 function buildEmptyForm(
@@ -71,6 +74,8 @@ export function AddClientDialog({
   defaultType,
   defaultSegment,
   triggerLabel = UI_ACTIONS.createClient,
+  triggerClassName,
+  triggerVariant = "default",
 }: AddClientDialogProps) {
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState<NewClientInput>(() =>
@@ -188,7 +193,15 @@ export function AddClientDialog({
         </p>
       ) : null}
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogTrigger render={<Button className="cursor-pointer gap-1.5" />}>
+      <DialogTrigger
+        render={
+          <Button
+            variant={triggerVariant}
+            size="sm"
+            className={cn("cursor-pointer gap-1.5 text-[15px] font-semibold", triggerClassName)}
+          />
+        }
+      >
         {triggerLabel}
       </DialogTrigger>
 
