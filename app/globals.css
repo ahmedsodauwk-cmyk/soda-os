@@ -1056,8 +1056,14 @@
   gap: var(--founder-row-gap);
 }
 
+.soda-founder-greeting {
+  font-size: clamp(1.875rem, 2.8vw, 2.25rem);
+  font-weight: 700;
+}
+
 .soda-founder-panel [data-slot="card"] {
   box-shadow: var(--soda-shadow-soft);
+  background: var(--soda-gradient-card);
 }
 
 .soda-founder-panel:hover {
@@ -1065,23 +1071,25 @@
 }
 
 .soda-founder-metric {
-  min-height: 3.25rem;
+  min-height: 3.75rem;
+  background: var(--soda-gradient-card);
 }
 
 .soda-founder-main {
   min-height: 0;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 @media (min-width: 1024px) and (min-height: 800px) {
   .soda-founder-home {
-    max-height: calc(100dvh - 5.5rem);
+    max-height: calc(100dvh - 5.25rem);
     overflow: hidden;
   }
 
   .soda-founder-main {
     flex: 1 1 auto;
     min-height: 0;
-    max-height: clamp(12rem, 38vh, 22rem);
+    max-height: clamp(11rem, 36vh, 20rem);
   }
 
   .soda-founder-panel {
@@ -1091,6 +1099,20 @@
 
   .soda-founder-panel [data-slot="card-content"] {
     overflow: hidden;
+  }
+
+  .soda-founder-bottom {
+    flex-shrink: 0;
+  }
+}
+
+@media (min-width: 1440px) and (min-height: 860px) {
+  .soda-founder-home {
+    max-height: calc(100dvh - 5rem);
+  }
+
+  .soda-founder-main {
+    max-height: clamp(12rem, 34vh, 21rem);
   }
 }
 
@@ -1111,7 +1133,8 @@
 }
 
 .soda-founder-pulse {
-  min-height: 5.5rem;
+  min-height: 6rem;
+  background: var(--soda-gradient-card);
 }
 
 .soda-founder-pulse:hover {

@@ -6,7 +6,7 @@ import {
   Wallet,
 } from "lucide-react";
 
-import { toEasternDigits } from "@/lib/brand/soda-voice";
+import { SodaLanguage } from "@/components/brand/soda-language";
 import type { DashboardSnapshot } from "@/lib/dashboard/types";
 import { computeQuotationMetrics } from "@/lib/quotations";
 import { getBusinessToday } from "@/lib/business/types";
@@ -15,7 +15,7 @@ import { cn } from "@/lib/utils";
 type SnapshotMetric = {
   id: string;
   label: string;
-  whisper: string;
+  guidanceLayer: "todayOrdersSnapshot" | "needsDecisionSnapshot" | "pendingCollections" | "pendingQuotationsSnapshot";
   value: number;
   href: string;
   icon: typeof ClipboardList;
@@ -44,32 +44,32 @@ function buildMetrics(dashboard: DashboardSnapshot): SnapshotMetric[] {
   return [
     {
       id: "today-orders",
-      label: "أوردرات النهاردة",
-      whisper: "شوتات وتسليمات اليوم",
+      label: "Today's Orders",
+      guidanceLayer: "todayOrdersSnapshot",
       value: todayOrders,
       href: "/schedule/today",
       icon: ClipboardList,
     },
     {
       id: "needs-input",
-      label: "محتاج قرارك",
-      whisper: "موافقات ومتابعات",
+      label: "Needs Your Decision",
+      guidanceLayer: "needsDecisionSnapshot",
       value: needsInput,
       href: "/attention",
       icon: AlertCircle,
     },
     {
       id: "collections",
-      label: "تحصيلات معلّقة",
-      whisper: "متأخرة أو مستنية",
+      label: "Pending Collections",
+      guidanceLayer: "pendingCollections",
       value: collections,
       href: "/finance",
       icon: Wallet,
     },
     {
       id: "quotations",
-      label: "عروض أسعار",
-      whisper: "في البايبلاين",
+      label: "Pending Quotations",
+      guidanceLayer: "pendingQuotationsSnapshot",
       value: pendingQuotes,
       href: "/quotations",
       icon: FileText,
@@ -83,44 +83,47 @@ interface FounderDailySnapshotProps {
 
 /** Top row — four compact clickable KPIs from live dashboard data. */
 export function FounderDailySnapshot({ dashboard }: FounderDailySnapshotProps) {
-  const n = toEasternDigits;
   const metrics = buildMetrics(dashboard);
 
   return (
-    <div
-      className="soda-founder-snapshot grid grid-cols-2 gap-2 lg:grid-cols-4"
-      role="list"
-      aria-label="لمحة يومية"
-    >
-      {metrics.map((m) => {
-        const Icon = m.icon;
-        return (
-          <Link
-            key={m.id}
-            href={m.href}
-            role="listitem"
-            className={cn(
-              "soda-founder-metric group flex items-center gap-2.5 rounded-lg border border-border/60 bg-card/60 px-3 py-2 transition-colors",
-              "hover:border-soda-pink/35 hover:bg-soda-pink/[0.04] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            )}
-          >
-            <div className="soda-kpi-icon-pink flex size-7 shrink-0 items-center justify-center rounded-md">
-              <Icon className="size-3.5" />
-            </div>
-            <div className="min-w-0 flex-1" dir="rtl">
-              <p className="font-ar truncate text-[11px] text-muted-foreground">
-                {m.label}
-              </p>
-              <p className="font-mono text-lg font-semibold tabular-nums leading-none">
-                {n(m.value)}
-              </p>
-              <p className="font-ar hidden truncate text-[10px] text-muted-foreground/80 sm:block">
-                {m.whisper}
-              </p>
-            </div>
-          </Link>
-        );
-      })}
-    </div>
+    <section aria-label="Daily snapshot">
+      <SodaLanguage layer="todaySnapshot" size="compact" className="mb-1.5 hidden sm:block" />
+      <div
+        className="soda-founder-snapshot grid grid-cols-2 gap-2 lg:grid-cols-4"
+        role="list"
+      >
+        {metrics.map((m) => {
+          const Icon = m.icon;
+          return (
+            <Link
+              key={m.id}
+              href={m.href}
+              role="listitem"
+              className={cn(
+                "soda-founder-metric group flex min-w-0 items-center gap-2.5 rounded-lg border border-border/60 bg-card/60 px-3 py-2.5 transition-colors",
+                "hover:border-soda-pink/35 hover:bg-soda-pink/[0.04] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              )}
+            >
+              <div className="soda-kpi-icon-pink flex size-8 shrink-0 items-center justify-center rounded-md">
+                <Icon className="size-4" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-semibold text-foreground">
+                  {m.label}
+                </p>
+                <p className="font-mono text-xl font-bold tabular-nums leading-none">
+                  {m.value}
+                </p>
+                <SodaLanguage
+                  layer={m.guidanceLayer}
+                  size="compact"
+                  className="hidden truncate sm:block"
+                />
+              </div>
+            </Link>
+          );
+        })}
+      </div>
+    </section>
   );
 }

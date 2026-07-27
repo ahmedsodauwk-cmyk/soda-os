@@ -2,15 +2,15 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { FileText, Plus } from "lucide-react";
+import { Eye, Plus } from "lucide-react";
 
+import { SodaLanguage } from "@/components/brand/soda-language";
 import { ThemeSwitcher } from "@/components/theme/theme-switcher";
 import { Button } from "@/components/ui/button";
 import {
   buildHeroOperationalLines,
   getHeroGreeting,
 } from "@/lib/dashboard/hero-summary";
-import { toEasternDigits } from "@/lib/brand/soda-voice";
 import type { DashboardVoiceInput } from "@/lib/brand/types";
 
 interface FounderCommandHeaderProps {
@@ -33,28 +33,24 @@ function useLocalNow(): Date {
   return now;
 }
 
-function formatWeekday(now: Date): string {
-  return new Intl.DateTimeFormat("ar-EG", { weekday: "long" }).format(now);
-}
-
-function formatDate(now: Date): string {
-  return new Intl.DateTimeFormat("ar-EG", {
+function formatEnglishDate(now: Date): string {
+  return new Intl.DateTimeFormat("en-GB", {
+    weekday: "long",
     day: "numeric",
     month: "long",
     year: "numeric",
   }).format(now);
 }
 
-function formatLiveTime(now: Date): string {
-  const raw = new Intl.DateTimeFormat("en-GB", {
-    hour: "2-digit",
+function formatEnglishTime(now: Date): string {
+  return new Intl.DateTimeFormat("en-GB", {
+    hour: "numeric",
     minute: "2-digit",
-    hour12: false,
+    hour12: true,
   }).format(now);
-  return toEasternDigits(raw);
 }
 
-/** Compact Founder header — greeting, live clock, summary, theme + key actions. */
+/** Founder header — Arabic greeting + summary (SODA Language), English date/time + actions. */
 export function FounderCommandHeader({
   dashboard,
   operatorName,
@@ -69,71 +65,65 @@ export function FounderCommandHeader({
   return (
     <header
       aria-labelledby="founder-command-greeting"
-      className="soda-founder-header flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between"
+      className="soda-founder-header flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between"
     >
-      <div className="min-w-0 flex-1 space-y-0.5" dir="rtl">
-        <h1
-          id="founder-command-greeting"
-          className="font-ar text-xl font-semibold leading-tight tracking-tight text-foreground sm:text-[1.35rem]"
-          suppressHydrationWarning
-        >
-          {greeting}
-        </h1>
+      <div className="min-w-0 flex-1 space-y-1">
+        <div className="flex flex-wrap items-start gap-x-4 gap-y-1">
+          <h1
+            id="founder-command-greeting"
+            lang="ar"
+            dir="rtl"
+            className="soda-founder-greeting font-ar min-w-0 font-bold leading-tight tracking-tight text-foreground"
+            suppressHydrationWarning
+          >
+            {greeting}
+          </h1>
+          <aside
+            aria-label="Date and time"
+            className="soda-founder-clock shrink-0 rounded-lg border border-border/60 bg-card/50 px-3 py-1.5 text-left"
+          >
+            <p
+              className="text-sm font-medium text-foreground"
+              suppressHydrationWarning
+            >
+              {formatEnglishDate(clock)}
+            </p>
+            <p
+              className="font-mono text-[15px] font-semibold tabular-nums text-soda-pink"
+              suppressHydrationWarning
+            >
+              {formatEnglishTime(clock)}
+            </p>
+          </aside>
+        </div>
         {summary ? (
-          <p className="font-ar text-xs leading-relaxed text-muted-foreground sm:text-[13px]">
+          <SodaLanguage size="header" className="max-w-2xl">
             {summary}
-          </p>
+          </SodaLanguage>
         ) : null}
       </div>
 
-      <div className="flex flex-wrap items-center gap-2 sm:shrink-0">
-        <aside
-          aria-label="التاريخ والوقت"
-          className="soda-founder-clock flex items-center gap-2 rounded-lg border border-border/60 bg-card/50 px-2.5 py-1.5"
-          dir="rtl"
-        >
-          <div className="min-w-0 text-end">
-            <p
-              className="font-ar text-[10px] font-medium text-soda-pink"
-              suppressHydrationWarning
-            >
-              {formatWeekday(clock)}
-            </p>
-            <p
-              className="font-mono text-sm font-semibold tabular-nums"
-              suppressHydrationWarning
-            >
-              {formatLiveTime(clock)}
-            </p>
-          </div>
-          <p
-            className="font-ar hidden border-s border-border/50 ps-2 text-[10px] text-muted-foreground sm:block"
-            suppressHydrationWarning
-          >
-            {formatDate(clock)}
-          </p>
-        </aside>
-
+      <div className="flex flex-wrap items-center gap-2 lg:shrink-0">
         <ThemeSwitcher className="shrink-0" />
 
         <Button
           variant="outline"
           size="sm"
-          className="h-8 gap-1.5 border-soda-pink/25 text-xs"
+          className="h-9 gap-1.5 border-soda-pink/25 text-[15px] font-semibold"
           nativeButton={false}
-          render={<Link href="/quotations/new" />}
+          render={<Link href="/attention" />}
         >
-          <FileText className="size-3.5" />
-          <span className="hidden sm:inline">عرض سعر</span>
+          <Eye className="size-4" />
+          <span>Quick View</span>
         </Button>
         <Button
           size="sm"
-          className="soda-btn-primary h-8 gap-1.5 text-xs"
+          className="soda-btn-primary h-9 gap-1.5 text-[15px] font-semibold"
           nativeButton={false}
           render={<Link href="/orders" />}
         >
-          <Plus className="size-3.5" />
-          <span className="hidden sm:inline">أوردر</span>
+          <Plus className="size-4" />
+          <span>New Order</span>
         </Button>
       </div>
     </header>

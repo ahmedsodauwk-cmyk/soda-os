@@ -1,8 +1,6 @@
+import { SodaLanguage } from "@/components/brand/soda-language";
 import { cn } from "@/lib/utils";
-import {
-  getHumanLayer,
-  type HumanLayerKey,
-} from "@/lib/brand/human-layer";
+import type { HumanLayerKey } from "@/lib/brand/human-layer";
 
 type TitleTag = "h1" | "h2" | "h3" | "h4" | "p" | "div";
 
@@ -32,23 +30,21 @@ interface HumanExplanationProps {
   size?: HumanTitleSize;
 }
 
-/** One muted Egyptian Arabic business line (`.font-ar`, RTL). */
+/** One muted Egyptian Arabic business line — SODA Language (always ar/RTL). */
 export function HumanExplanation({
   layer,
   children,
   className,
   size = "section",
 }: HumanExplanationProps) {
-  const text = children ?? (layer ? getHumanLayer(layer) : undefined);
-  if (!text) return null;
-
   return (
-    <p
+    <SodaLanguage
+      layer={layer}
+      size={size === "page" ? "header" : size === "compact" ? "compact" : "section"}
       className={cn(explanationSizeClass[size], className)}
-      dir="rtl"
     >
-      {text}
-    </p>
+      {children}
+    </SodaLanguage>
   );
 }
 

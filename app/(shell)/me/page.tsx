@@ -8,15 +8,13 @@ import { permissionsForAccessLevel } from "@/lib/identity/access-levels";
 import { resolveSessionForApp } from "@/lib/identity/session";
 import { navForPermissions } from "@/lib/identity/nav";
 import { permissionsForAsync } from "@/lib/identity/permission-service";
-import { getDictValue } from "@/lib/i18n/dictionaries";
-import { getRequestDictionary } from "@/lib/i18n/server";
+import { operationalT } from "@/lib/i18n/operational";
 
 export const dynamic = "force-dynamic";
 
 export default async function MeHomePage() {
   const session = await resolveSessionForApp();
   if (!session) redirect("/login");
-  const { dict } = await getRequestDictionary();
   const permResult = await permissionsForAsync(session.profile.accessLevel);
   const granted =
     permResult.permissions.length > 0
@@ -37,7 +35,7 @@ export default async function MeHomePage() {
             )
             .map((item) => {
               const Icon = item.icon;
-              const title = getDictValue(dict, item.titleKey);
+              const title = operationalT(item.titleKey);
               return (
                 <Link
                   key={item.href}

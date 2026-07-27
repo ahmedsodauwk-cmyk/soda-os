@@ -6,13 +6,12 @@ import {
   UserX,
 } from "lucide-react";
 
+import { SodaSectionHeader } from "@/components/brand/soda-section-header";
 import { Badge } from "@/components/ui/badge";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
-  CardTitle,
 } from "@/components/ui/card";
 import type { AttentionItem } from "@/lib/dashboard/types";
 import { formatPrice } from "@/lib/orders/utils";
@@ -36,9 +35,9 @@ const severityStyles: Record<AttentionItem["severity"], string> = {
 };
 
 const severityLabel: Record<AttentionItem["severity"], string> = {
-  critical: "عاجل",
-  warning: "متابعة",
-  info: "معلومة",
+  critical: "Urgent",
+  warning: "Follow Up",
+  info: "Info",
 };
 
 function priorityScore(item: AttentionItem): number {
@@ -63,27 +62,25 @@ interface FounderNeedsDecisionProps {
 /** Needs Your Decision — approvals, delays, collections, crew gaps. */
 export function FounderNeedsDecision({
   items,
-  limit = 5,
+  limit = 4,
 }: FounderNeedsDecisionProps) {
   const sorted = [...items].sort((a, b) => priorityScore(b) - priorityScore(a));
   const visible = sorted.slice(0, limit);
   const remaining = Math.max(0, sorted.length - visible.length);
 
   return (
-    <Card className="soda-founder-panel soda-cc-card h-full">
+    <Card className="soda-founder-panel soda-cc-card h-full min-w-0">
       <CardHeader className="flex-row items-start justify-between space-y-0 px-3 py-2.5 pb-1.5">
-        <div>
-          <CardTitle className="font-ar text-sm font-semibold" dir="rtl">
-            محتاج قرارك
-          </CardTitle>
-          <CardDescription className="font-ar text-[11px]" dir="rtl">
-            موافقات، تأخير، تحصيل، وطاقم ناقص — بالأولوية
-          </CardDescription>
-        </div>
-        <Link href="/attention">
+        <SodaSectionHeader
+          title="Needs Your Decision"
+          layer="needsYourDecision"
+          as="h2"
+          size="card"
+        />
+        <Link href="/attention" aria-label="View all attention items">
           <Badge
             variant="outline"
-            className="border-soda-pink/25 bg-soda-pink/8 font-mono text-[10px] tabular-nums text-soda-pink"
+            className="border-soda-pink/25 bg-soda-pink/8 font-mono text-sm tabular-nums text-soda-pink"
           >
             {items.length}
           </Badge>
@@ -91,11 +88,8 @@ export function FounderNeedsDecision({
       </CardHeader>
       <CardContent className="space-y-1 px-3 pb-2.5 pt-0">
         {visible.length === 0 ? (
-          <p
-            className="font-ar rounded-lg border border-border/50 bg-muted/20 px-3 py-3 text-center text-xs text-muted-foreground"
-            dir="rtl"
-          >
-            كل حاجة ماشية — مفيش قرارات مستنية دلوقتي.
+          <p className="rounded-lg border border-border/50 bg-muted/20 px-3 py-3 text-center text-[15px] text-muted-foreground">
+            All clear — nothing waiting on your decision right now.
           </p>
         ) : (
           visible.map((item) => {
@@ -103,22 +97,22 @@ export function FounderNeedsDecision({
             const body = (
               <div
                 className={cn(
-                  "flex items-start gap-2 rounded-md border px-2 py-1.5 transition-colors",
+                  "flex items-start gap-2 rounded-md border px-2.5 py-2 transition-colors",
                   severityStyles[item.severity],
                   item.href && "hover:bg-muted/30"
                 )}
               >
-                <Icon className="mt-0.5 size-3.5 shrink-0 opacity-70" />
-                <div className="min-w-0 flex-1" dir="rtl">
-                  <div className="flex flex-wrap items-center gap-1">
-                    <p className="font-ar text-xs font-medium leading-snug">
+                <Icon className="mt-0.5 size-4 shrink-0 opacity-70" aria-hidden />
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <p className="text-[15px] font-semibold leading-snug">
                       {item.title}
                     </p>
-                    <span className="font-ar text-[9px] text-muted-foreground">
+                    <span className="text-xs text-muted-foreground">
                       {severityLabel[item.severity]}
                     </span>
                   </div>
-                  <p className="font-ar text-[10px] leading-relaxed text-muted-foreground">
+                  <p className="text-sm leading-relaxed text-muted-foreground">
                     {item.detail}
                     {item.amount != null ? ` · ${formatPrice(item.amount)}` : ""}
                   </p>
@@ -138,10 +132,16 @@ export function FounderNeedsDecision({
         {remaining > 0 ? (
           <Link
             href="/attention"
-            className="font-ar block pt-0.5 text-center text-[10px] text-soda-pink hover:underline"
-            dir="rtl"
+            className="block pt-1 text-center text-sm font-semibold text-soda-pink hover:underline"
           >
-            +{remaining} تانية — عرض الكل
+            View All (+{remaining})
+          </Link>
+        ) : visible.length > 0 ? (
+          <Link
+            href="/attention"
+            className="block pt-1 text-center text-sm font-semibold text-soda-pink hover:underline"
+          >
+            View All
           </Link>
         ) : null}
       </CardContent>

@@ -46,6 +46,15 @@ export type HumanLayerKey =
   | "commercialLanes"
   | "crewWorkload"
   | "operations"
+  | "todayOperations"
+  | "needsYourDecision"
+  | "todaySnapshot"
+  | "todayOrdersSnapshot"
+  | "needsDecisionSnapshot"
+  | "pendingCollections"
+  | "pendingQuotationsSnapshot"
+  | "financialPulse"
+  | "teamAvailability"
   | "owedToCrew"
   /* Finance / metrics */
   | "outstandingBalance"
@@ -158,6 +167,17 @@ export const HUMAN_LAYER: Record<HumanLayerKey, string> = {
   commercialLanes: "أداء المسارات التجارية.",
   crewWorkload: "تحميل الشغل على فريق صودا.",
   operations: "أرقام التشغيل الحية من الشغل الجاري.",
+  todayOperations:
+    "أهم الأوردرات والحركات النهاردة — وقت، حالة، والخطوة الجاية.",
+  needsYourDecision:
+    "دي الحاجات اللي واقفة على قرار منك. ابدأ بالأعلى أولوية.",
+  todaySnapshot: "لمحة سريعة على أهم أرقام اليوم — اضغط أي خانة للتفاصيل.",
+  todayOrdersSnapshot: "شوتات وتسليمات اليوم — اضغط للجدول.",
+  needsDecisionSnapshot: "موافقات ومتابعات محتاجة قرارك.",
+  pendingCollections: "تحصيلات متأخرة أو مستنية — تابع من المالية.",
+  pendingQuotationsSnapshot: "عروض في البايبلاين — متابعة سريعة.",
+  financialPulse: "محصّل ومستحق من الشغل الحي — مش أرقام وهمية.",
+  teamAvailability: "مين شغال دلوقتي ومين فاضي — من الأوردرات الحية.",
   owedToCrew: "مستحقات الفريق اللي لسه متدفعتش.",
 
   /* Finance */

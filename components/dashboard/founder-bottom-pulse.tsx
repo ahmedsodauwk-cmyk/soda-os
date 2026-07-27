@@ -1,13 +1,12 @@
 import Link from "next/link";
 import { FileText, TrendingUp, UsersRound } from "lucide-react";
 
+import { SodaSectionHeader } from "@/components/brand/soda-section-header";
 import {
   Card,
   CardContent,
   CardHeader,
-  CardTitle,
 } from "@/components/ui/card";
-import { toEasternDigits } from "@/lib/brand/soda-voice";
 import type {
   DashboardSnapshot,
   FinancialOverview,
@@ -19,18 +18,18 @@ import { getBusinessToday } from "@/lib/business/types";
 import { formatPrice } from "@/lib/orders/utils";
 import { dashboardHref } from "@/lib/identity/navigation";
 
-function teamStatusSummary(team: TeamPerformanceRow[]): string {
+function teamStatusSummaryEn(team: TeamPerformanceRow[]): string {
   if (team.length === 0) {
-    return "مفيش بيانات طاقم ظاهرة دلوقتي.";
+    return "No crew data visible right now.";
   }
   const active = team.filter((t) => t.currentWorkload > 0);
   if (active.length === 0) {
-    return "الطاقم متاح — مفيش ضغط شغل ظاهر.";
+    return "Crew available — no workload pressure showing.";
   }
   const top = [...active].sort(
     (a, b) => b.currentWorkload - a.currentWorkload
   )[0];
-  return `${top.name} عنده أعلى حمل (${toEasternDigits(top.currentWorkload)} أوردر).`;
+  return `${top.name} has the highest load (${top.currentWorkload} orders).`;
 }
 
 function FinancialPulseUnit({
@@ -39,22 +38,23 @@ function FinancialPulseUnit({
   financial: FinancialOverview;
 }) {
   return (
-    <Card className="soda-founder-pulse soda-cc-card">
+    <Card className="soda-founder-pulse soda-cc-card min-w-0">
       <CardHeader className="px-3 py-2 pb-1">
-        <CardTitle className="flex items-center gap-1.5 text-xs font-medium">
-          <TrendingUp className="size-3.5 text-soda-pink" />
-          <span className="font-ar" dir="rtl">
-            نبض مالي
-          </span>
-        </CardTitle>
+        <SodaSectionHeader
+          title="Financial Pulse"
+          layer="financialPulse"
+          as="h2"
+          size="compact"
+          guidanceSize="compact"
+        />
       </CardHeader>
-      <CardContent className="space-y-1 px-3 pb-2.5 pt-0" dir="rtl">
+      <CardContent className="space-y-1.5 px-3 pb-2.5 pt-0">
         <Link
           href={dashboardHref("collected")}
           className="block rounded-md transition-colors hover:bg-muted/30"
         >
-          <p className="font-ar text-[10px] text-muted-foreground">محصّل</p>
-          <p className="font-mono text-sm font-semibold tabular-nums">
+          <p className="text-sm text-muted-foreground">Collected</p>
+          <p className="font-mono text-base font-bold tabular-nums">
             {formatPrice(financial.collected)}
           </p>
         </Link>
@@ -62,8 +62,8 @@ function FinancialPulseUnit({
           href="/attention"
           className="block rounded-md transition-colors hover:bg-muted/30"
         >
-          <p className="font-ar text-[10px] text-muted-foreground">مستحق</p>
-          <p className="font-mono text-sm font-semibold tabular-nums text-foreground/90">
+          <p className="text-sm text-muted-foreground">Outstanding</p>
+          <p className="font-mono text-base font-bold tabular-nums text-foreground/90">
             {formatPrice(financial.outstanding)}
           </p>
         </Link>
@@ -74,34 +74,34 @@ function FinancialPulseUnit({
 
 function QuotationPulseUnit() {
   const m = computeQuotationMetrics(getBusinessToday());
-  const n = toEasternDigits;
 
   return (
-    <Card className="soda-founder-pulse soda-cc-card">
+    <Card className="soda-founder-pulse soda-cc-card min-w-0">
       <CardHeader className="px-3 py-2 pb-1">
-        <CardTitle className="flex items-center gap-1.5 text-xs font-medium">
-          <FileText className="size-3.5 text-soda-pink" />
-          <span className="font-ar" dir="rtl">
-            بايبلاين العروض
-          </span>
-        </CardTitle>
+        <SodaSectionHeader
+          title="Quotation Pipeline"
+          layer="quotationPipeline"
+          as="h2"
+          size="compact"
+          guidanceSize="compact"
+        />
       </CardHeader>
-      <CardContent className="space-y-1 px-3 pb-2.5 pt-0" dir="rtl">
+      <CardContent className="space-y-1.5 px-3 pb-2.5 pt-0">
         <Link
           href="/quotations"
           className="flex items-baseline justify-between gap-2 rounded-md transition-colors hover:bg-muted/30"
         >
-          <span className="font-ar text-[10px] text-muted-foreground">معلّقة</span>
-          <span className="font-mono text-sm font-semibold tabular-nums">
-            {n(m.pendingCount)}
+          <span className="text-sm text-muted-foreground">Pending</span>
+          <span className="font-mono text-base font-bold tabular-nums">
+            {m.pendingCount}
           </span>
         </Link>
         <Link
           href="/quotations"
           className="flex items-baseline justify-between gap-2 rounded-md transition-colors hover:bg-muted/30"
         >
-          <span className="font-ar text-[10px] text-muted-foreground">قيمة البايبلاين</span>
-          <span className="font-mono text-xs font-semibold tabular-nums">
+          <span className="text-sm text-muted-foreground">Pipeline value</span>
+          <span className="font-mono text-sm font-bold tabular-nums">
             {formatEgp(m.pipelineValue)}
           </span>
         </Link>
@@ -111,29 +111,29 @@ function QuotationPulseUnit() {
 }
 
 function TeamPulseUnit({ team }: { team: TeamPerformanceRow[] }) {
-  const n = toEasternDigits;
   const onDuty = team.filter((t) => t.currentWorkload > 0).length;
 
   return (
-    <Card className="soda-founder-pulse soda-cc-card">
+    <Card className="soda-founder-pulse soda-cc-card min-w-0">
       <CardHeader className="px-3 py-2 pb-1">
-        <CardTitle className="flex items-center gap-1.5 text-xs font-medium">
-          <UsersRound className="size-3.5 text-soda-pink" />
-          <span className="font-ar" dir="rtl">
-            الطاقم دلوقتي
-          </span>
-        </CardTitle>
+        <SodaSectionHeader
+          title="Team Availability"
+          layer="teamAvailability"
+          as="h2"
+          size="compact"
+          guidanceSize="compact"
+        />
       </CardHeader>
-      <CardContent className="px-3 pb-2.5 pt-0" dir="rtl">
+      <CardContent className="px-3 pb-2.5 pt-0">
         <Link
           href="/people"
           className="block rounded-md transition-colors hover:bg-muted/30"
         >
-          <p className="font-mono text-sm font-semibold tabular-nums">
-            {n(onDuty)} / {n(team.length)} شغالين
+          <p className="font-mono text-base font-bold tabular-nums">
+            {onDuty} / {team.length} on duty
           </p>
-          <p className="font-ar mt-1 text-[10px] leading-relaxed text-muted-foreground">
-            {teamStatusSummary(team)}
+          <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
+            {teamStatusSummaryEn(team)}
           </p>
         </Link>
       </CardContent>
@@ -152,14 +152,14 @@ export function FounderBottomPulse({
   showFinance = true,
 }: FounderBottomPulseProps) {
   return (
-    <div className="soda-founder-bottom grid grid-cols-1 gap-2 sm:grid-cols-3">
+    <div className="soda-founder-bottom grid min-w-0 grid-cols-1 gap-2 sm:grid-cols-3">
       {showFinance ? (
         <FinancialPulseUnit financial={dashboard.financial} />
       ) : (
-        <Card className="soda-founder-pulse soda-cc-card">
+        <Card className="soda-founder-pulse soda-cc-card min-w-0">
           <CardContent className="flex h-full items-center justify-center px-3 py-4">
-            <p className="font-ar text-center text-[10px] text-muted-foreground" dir="rtl">
-              الملخص المالي مش متاح لصلاحياتك.
+            <p className="text-center text-sm text-muted-foreground">
+              Financial summary not available for your permissions.
             </p>
           </CardContent>
         </Card>

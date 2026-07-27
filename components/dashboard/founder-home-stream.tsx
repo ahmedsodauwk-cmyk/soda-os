@@ -37,7 +37,7 @@ export async function FounderHomeStream({
 
   return (
     <WelcomeGate dashboard={voiceInput}>
-      <div className="soda-founder-home soda-page-enter flex flex-col gap-2">
+      <div className="soda-founder-home soda-page-enter flex min-h-0 flex-col gap-2 min-w-0">
         <FounderCommandHeader
           dashboard={voiceInput}
           operatorName={operatorName}

@@ -40,7 +40,7 @@ import {
   type AccessLevel,
 } from "@/lib/identity/access-levels";
 import { ROLE_LABELS, type SodaRole } from "@/lib/identity/roles";
-import { useI18n } from "@/lib/i18n/provider";
+import { operationalT } from "@/lib/i18n/operational";
 import type { NavItem, NavSection } from "@/lib/identity/nav";
 
 const SIDEBAR_COLLAPSED_KEY = "soda-sidebar-collapsed";
@@ -269,7 +269,7 @@ export function SidebarContent({
   onToggleCollapse,
 }: SidebarContentProps) {
   const pathname = usePathname();
-  const { t } = useI18n();
+  const t = operationalT;
   const [pending, startTransition] = useTransition();
 
   const sections =

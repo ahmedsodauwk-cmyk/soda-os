@@ -1,15 +1,13 @@
 import Link from "next/link";
-import { ArrowLeft, Camera, Package } from "lucide-react";
+import { ArrowRight, Camera, Package } from "lucide-react";
 
+import { SodaSectionHeader } from "@/components/brand/soda-section-header";
 import { Badge } from "@/components/ui/badge";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
-  CardTitle,
 } from "@/components/ui/card";
-import { toEasternDigits } from "@/lib/brand/soda-voice";
 import type { DashboardSnapshot, RecentOrderRow } from "@/lib/dashboard/types";
 import { statusStyles } from "@/lib/orders/status-styles";
 import { cn } from "@/lib/utils";
@@ -25,7 +23,17 @@ type OpsRow = {
   kind: "shoot" | "delivery" | "order";
 };
 
-function buildOpsRows(dashboard: DashboardSnapshot): OpsRow[] {
+const NEXT_STEP_EN: Partial<Record<RecentOrderRow["status"], string>> = {
+  Pending: "Confirm details",
+  Holding: "Client follow-up",
+  Shooting: "Shooting",
+  Editing: "Editing",
+  Completed: "Delivery",
+  Delivered: "Closed",
+  Cancelled: "Cancelled",
+};
+
+function buildOpsRows(dashboard: DashboardSnapshot, limit = 4): OpsRow[] {
   const rows: OpsRow[] = [];
 
   for (const shoot of dashboard.schedule.todayShoots) {
@@ -34,8 +42,8 @@ function buildOpsRows(dashboard: DashboardSnapshot): OpsRow[] {
       time: shoot.date?.slice(11, 16) || "—",
       title: shoot.title,
       status: String(shoot.status),
-      crewNote: shoot.location ? `📍 ${shoot.location}` : "الطاقم — راجع الأوردر",
-      nextStep: "تصوير النهاردة",
+      crewNote: shoot.location ? shoot.location : "Crew — see order",
+      nextStep: "Shoot today",
       href: shoot.href || `/orders/${shoot.orderId}`,
       kind: "shoot",
     });
@@ -48,39 +56,29 @@ function buildOpsRows(dashboard: DashboardSnapshot): OpsRow[] {
       title: d.title,
       status: String(d.status),
       crewNote: d.clientName,
-      nextStep: "تسليم النهاردة",
+      nextStep: "Delivery today",
       href: d.href || `/orders/${d.orderId}`,
       kind: "delivery",
     });
   }
 
-  for (const order of dashboard.recentOrders.slice(0, 4)) {
-    if (rows.length >= 6) break;
+  for (const order of dashboard.recentOrders) {
+    if (rows.length >= limit + 2) break;
     if (rows.some((r) => r.id === `order-${order.id}`)) continue;
     rows.push(orderRowFromRecent(order));
   }
 
-  return rows.slice(0, 5);
+  return rows.slice(0, limit);
 }
 
 function orderRowFromRecent(order: RecentOrderRow): OpsRow {
-  const nextByStatus: Partial<Record<RecentOrderRow["status"], string>> = {
-    Pending: "تأكيد التفاصيل",
-    Holding: "متابعة العميل",
-    Shooting: "تصوير",
-    Editing: "مونتاج",
-    Completed: "تسليم",
-    Delivered: "مغلق",
-    Cancelled: "ملغي",
-  };
-
   return {
     id: `order-${order.id}`,
     time: order.shootDate || "—",
     title: order.clientName,
     status: order.status,
     crewNote: order.projectType,
-    nextStep: nextByStatus[order.status] ?? "متابعة",
+    nextStep: NEXT_STEP_EN[order.status] ?? "Follow up",
     href: `/orders/${order.id}`,
     kind: "order",
   };
@@ -88,37 +86,43 @@ function orderRowFromRecent(order: RecentOrderRow): OpsRow {
 
 interface FounderOperationsTodayProps {
   dashboard: DashboardSnapshot;
+  limit?: number;
 }
 
-/** Operations Today — priority movements with time, status, crew hint, next step. */
-export function FounderOperationsToday({ dashboard }: FounderOperationsTodayProps) {
-  const rows = buildOpsRows(dashboard);
-  const n = toEasternDigits;
+/** Today's Operations — priority movements with time, status, crew hint, next step. */
+export function FounderOperationsToday({
+  dashboard,
+  limit = 4,
+}: FounderOperationsTodayProps) {
+  const allRows = buildOpsRows(dashboard, limit);
+  const rows = allRows.slice(0, limit);
+  const totalToday =
+    dashboard.schedule.todayShoots.length +
+    dashboard.schedule.deliveries.filter((d) => d.when === "today").length +
+    dashboard.recentOrders.length;
+  const remaining = Math.max(0, totalToday - rows.length);
 
   return (
-    <Card className="soda-founder-panel soda-cc-card h-full">
+    <Card className="soda-founder-panel soda-cc-card h-full min-w-0">
       <CardHeader className="flex-row items-start justify-between space-y-0 px-3 py-2.5 pb-1.5">
-        <div>
-          <CardTitle className="font-ar text-sm font-semibold" dir="rtl">
-            شغل النهاردة
-          </CardTitle>
-          <CardDescription className="font-ar text-[11px]" dir="rtl">
-            أهم الأوردرات والحركات — وقت، حالة، والخطوة الجاية
-          </CardDescription>
-        </div>
+        <SodaSectionHeader
+          title="Today's Operations"
+          layer="todayOperations"
+          as="h2"
+          size="card"
+        />
         <Link
           href="/orders"
-          className="font-ar inline-flex items-center gap-1 text-[11px] text-soda-pink hover:underline"
-          dir="rtl"
+          className="inline-flex items-center gap-1 text-sm font-semibold text-soda-pink hover:underline"
         >
-          عرض الكل
-          <ArrowLeft className="size-3" />
+          View All
+          <ArrowRight className="size-3.5" aria-hidden />
         </Link>
       </CardHeader>
       <CardContent className="space-y-1 px-3 pb-2.5 pt-0">
         {rows.length === 0 ? (
-          <p className="font-ar py-3 text-center text-xs text-muted-foreground" dir="rtl">
-            مفيش حركة ظاهرة النهاردة — الستوديو هادي.
+          <p className="py-3 text-center text-[15px] text-muted-foreground">
+            No visible movement today — studio is quiet.
           </p>
         ) : (
           <ul className="divide-y divide-border/40">
@@ -130,16 +134,19 @@ export function FounderOperationsToday({ dashboard }: FounderOperationsTodayProp
                     href={row.href}
                     className="flex items-start gap-2 rounded-md px-1 py-1.5 transition-colors hover:bg-muted/40"
                   >
-                    <KindIcon className="mt-0.5 size-3.5 shrink-0 text-soda-pink/80" />
-                    <div className="min-w-0 flex-1" dir="rtl">
+                    <KindIcon
+                      className="mt-0.5 size-4 shrink-0 text-soda-pink/80"
+                      aria-hidden
+                    />
+                    <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-1.5">
-                        <span className="font-ar truncate text-xs font-medium">
+                        <span className="truncate text-[15px] font-semibold">
                           {row.title}
                         </span>
                         <Badge
                           variant="outline"
                           className={cn(
-                            "h-4 px-1 text-[9px]",
+                            "h-5 px-1.5 text-xs",
                             statusStyles[row.status as keyof typeof statusStyles] ??
                               "border-border/50 bg-muted/30 text-muted-foreground"
                           )}
@@ -147,12 +154,12 @@ export function FounderOperationsToday({ dashboard }: FounderOperationsTodayProp
                           {row.status}
                         </Badge>
                       </div>
-                      <p className="font-ar text-[10px] text-muted-foreground">
+                      <p className="text-sm text-muted-foreground">
                         {row.crewNote} · {row.nextStep}
                       </p>
                     </div>
-                    <span className="font-mono shrink-0 text-[10px] tabular-nums text-muted-foreground">
-                      {row.time !== "—" ? n(row.time) : "—"}
+                    <span className="shrink-0 font-mono text-sm tabular-nums text-muted-foreground">
+                      {row.time}
                     </span>
                   </Link>
                 </li>
@@ -160,6 +167,14 @@ export function FounderOperationsToday({ dashboard }: FounderOperationsTodayProp
             })}
           </ul>
         )}
+        {remaining > 0 ? (
+          <Link
+            href="/orders"
+            className="block pt-1 text-center text-sm font-semibold text-soda-pink hover:underline"
+          >
+            View All (+{remaining})
+          </Link>
+        ) : null}
       </CardContent>
     </Card>
   );

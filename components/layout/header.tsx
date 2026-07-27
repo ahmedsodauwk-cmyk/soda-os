@@ -27,7 +27,7 @@ import { LanguageSwitcher } from "@/components/i18n/language-switcher";
 import { getSideLanguage } from "@/lib/brand/human-layer";
 import type { HumanLayerKey } from "@/lib/brand/human-layer";
 import { cn } from "@/lib/utils";
-import { useI18n } from "@/lib/i18n/provider";
+import { operationalT } from "@/lib/i18n/operational";
 import type { DictKey } from "@/lib/i18n/dictionaries";
 import type { NotificationRecord } from "@/lib/core/types";
 
@@ -55,15 +55,14 @@ export default function Header({
   user,
   compact = false,
 }: HeaderProps) {
-  const { t } = useI18n();
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const displayTitle = titleKey
-    ? t(titleKey)
+    ? operationalT(titleKey)
     : title
       ? title
       : compact
         ? null
-        : t("pages.home");
+        : operationalT("pages.home");
   const sideLanguage =
     subtitle ?? (layer ? getSideLanguage(layer) : getSideLanguage("dashboard"));
 
@@ -99,7 +98,7 @@ export default function Header({
             }
           >
             <Menu />
-            <span className="sr-only">{t("actions.openMenu")}</span>
+            <span className="sr-only">Open menu</span>
           </SheetTrigger>
 
           <SheetContent
@@ -140,9 +139,9 @@ export default function Header({
             }
           >
             <Settings />
-            <span className="sr-only">{t("common.settings")}</span>
+            <span className="sr-only">Settings</span>
           </TooltipTrigger>
-          <TooltipContent>{t("common.settings")}</TooltipContent>
+          <TooltipContent>Settings</TooltipContent>
         </Tooltip>
       </div>
     </header>

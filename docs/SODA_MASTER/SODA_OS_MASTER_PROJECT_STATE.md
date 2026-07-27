@@ -5,7 +5,7 @@
 
 | Field | Value |
 |--------|--------|
-| **Document version** | `1.0.8` |
+| **Document version** | `1.0.9` |
 | **Last updated** | `2026-07-27` |
 | **Product** | SODA OS |
 | **Company** | SODA VISUALS |
@@ -42,9 +42,9 @@ Before major auth / identity / DB / migrations / RLS / finance / production-data
 
 ## CURRENT MISSION
 
-**H1–H5 Production Apply + Deploy** — H1 migration **repaired** **2026-07-27** (`person_id text` return-type fix; disposable rehearsal **PASS**). Production apply **pending** Founder retry via secure launcher (`scripts/run-sr01-db-secure.ps1` + apply script). Read-only Production catalog: **no partial H1 apply** (legacy `profiles_select_connect_peers` intact).
+**Founder Visual Revision — English UI + SODA Language** — English-first operational chrome, Arabic SODA Language guidance layer, premium Founder Home no-scroll layout. Deployed to Production **pending** push verification below.
 
-Parallel reliability: **Mission 08.2.1** — live Production database backup **verified** (`SODA_Database_2026-07-26_195823.zip`).
+Parallel: **H1–H5 Production Apply** — H1 migration **repaired** **2026-07-27**; Production apply **pending** Founder retry via secure launcher.
 
 ---
 
@@ -313,6 +313,54 @@ These decisions remain in force. Detail lives in the dedicated SoT chapters — 
 ---
 
 ## CHANGE LOG
+
+### v1.0.9 — 2026-07-27 (Founder Visual Revision — English UI + SODA Language)
+
+**Scope:** UI/UX only — English-first operational labels, Arabic SODA Language guidance, Founder Home typography/layout. No DB, auth, permissions, APIs, or business-logic changes.
+
+**English-first:**
+
+- Operational chrome (nav, page titles, Founder Home cards, theme switcher, header actions) uses English via `lib/i18n/operational.ts` regardless of UI locale
+- Live Western date/time on Founder header (`en-GB` — e.g. Monday, 27 July 2026 / 9:16 PM)
+- Header actions: **New Order**, **Quick View** (`/attention`), theme **Light / Dark / System**
+- DB values (client/crew/order names, statuses) remain untranslated
+
+**SODA Language:**
+
+- `components/brand/soda-language.tsx` — reusable Arabic guidance (`lang="ar"` `dir="rtl"`)
+- `components/brand/soda-section-header.tsx` — English title + SODA Language block
+- Extended `lib/brand/human-layer.ts` with Founder section keys (`needsYourDecision`, `todayOperations`, `financialPulse`, `teamAvailability`, snapshot keys)
+- Shell pages keep Arabic guidance via `HumanTitle` / `AppShell` `layer` prop (Brain, Quotations, Orders, Clients, Crew, Calendar, Finance, Statistics, Team Chat, My Workspace)
+
+**Founder Home labels (English):**
+
+- Snapshot: Today's Orders, Needs Your Decision, Pending Collections, Pending Quotations
+- Main: Today's Operations, Needs Your Decision
+- Bottom: Financial Pulse, Quotation Pipeline, Team Availability
+- Actions: New Order, View All, Quick View
+
+**Typography:** Greeting clamp 30–36px/700; section titles 17–20px/600–700; body 15–16px; buttons 15px/600; metadata min 14px
+
+**Files changed:**
+
+- `lib/i18n/operational.ts`, `lib/brand/human-layer.ts`
+- `components/brand/soda-language.tsx`, `soda-section-header.tsx`, `human-title.tsx`
+- `components/dashboard/founder-*.tsx` (all six Founder Home modules)
+- `components/layout/header.tsx`, `sidebar.tsx`, `shell-page-meta.tsx`
+- `components/theme/theme-switcher.tsx`
+- `app/globals.css`, `app/(shell)/me/page.tsx`
+
+**Verification (local):**
+
+| Check | Result |
+|--------|--------|
+| `npm run typecheck` | **PASS** |
+| `npm run build` | **PASS** |
+| `npm run lint` | Baseline pre-existing errors (unchanged scope) |
+| 1440×900 no-scroll CSS | Applied (`minmax(0,1fr)` grid, max-height clamps) |
+| Screenshots | **Pending Founder login** — `docs/screenshots/founder-redesign-2026-07-27/` |
+
+**Status:** **DEPLOY PENDING** — commit + push below.
 
 ### v1.0.8 — 2026-07-27 (Founder Home & Sidebar — Production deploy)
 
