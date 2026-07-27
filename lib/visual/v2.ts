@@ -4,11 +4,15 @@
  */
 
 export const v2Motion = {
-  routeExitMs: 160,
-  routeEnterMs: 240,
+  routeExitMs: 300,
+  routeEnterMs: 350,
   cardStaggerMs: 45,
-  hoverMs: 200,
-  pressMs: 120,
+  hoverMs: 260,
+  pressMs: 140,
+  sidebarIndicatorMs: 400,
+  creationOrderMs: 580,
+  creationQuotationMs: 550,
+  creationClientMs: 500,
   ease: "cubic-bezier(0.22, 1, 0.36, 1)",
 } as const;
 

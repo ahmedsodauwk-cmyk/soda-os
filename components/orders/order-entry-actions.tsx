@@ -17,11 +17,13 @@ import { refreshProjects } from "@/lib/projects/repository";
 interface OrderEntryActionsProps {
   defaultProjectType?: ProjectType;
   triggerLabel?: string;
+  triggerClassName?: string;
 }
 
 export function OrderEntryActions({
   defaultProjectType,
   triggerLabel,
+  triggerClassName,
 }: OrderEntryActionsProps) {
   const router = useRouter();
   const actions = useUiActions();
@@ -49,6 +51,7 @@ export function OrderEntryActions({
       onAdd={handleAdd}
       defaultProjectType={defaultProjectType}
       triggerLabel={triggerLabel ?? actions.createOrder}
+      triggerClassName={triggerClassName}
       allowInlineClientCreate
     />
   );

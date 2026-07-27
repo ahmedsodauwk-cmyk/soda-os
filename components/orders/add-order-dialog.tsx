@@ -114,6 +114,7 @@ interface AddOrderDialogProps {
   onAdd: (order: SmartOrderInput) => void | Promise<void>;
   defaultProjectType?: ProjectType;
   triggerLabel?: string;
+  triggerClassName?: string;
   /** Founder-only inline client creation during order entry. */
   allowInlineClientCreate?: boolean;
 }
@@ -122,6 +123,7 @@ export function AddOrderDialog({
   onAdd,
   defaultProjectType,
   triggerLabel = UI_ACTIONS.createOrder,
+  triggerClassName,
   allowInlineClientCreate = false,
 }: AddOrderDialogProps) {
   const [open, setOpen] = useState(false);
@@ -385,11 +387,17 @@ export function AddOrderDialog({
         </p>
       ) : null}
       <Dialog open={open} onOpenChange={handleOpenChange}>
-        <DialogTrigger render={<Button className="cursor-pointer gap-1.5" />}>
+        <DialogTrigger
+          render={
+            <Button
+              className={cn("cursor-pointer gap-1.5", triggerClassName)}
+            />
+          }
+        >
           {triggerLabel}
         </DialogTrigger>
 
-        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
+        <DialogContent className="soda-creation-panel soda-creation-order max-h-[90vh] overflow-y-auto sm:max-w-2xl">
           <DialogHeader>
             <DialogTitle>New Order</DialogTitle>
             <DialogDescription>
