@@ -137,23 +137,30 @@ export function SkeletonTimeline({
 export function SkeletonDashboardHome() {
   return (
     <div className="space-y-3 sm:space-y-4">
-      <SkeletonPulse className="h-16 w-full max-w-xl rounded-xl" />
-      <div className="grid grid-cols-1 gap-3 lg:grid-cols-5 lg:gap-4">
-        <SkeletonCard className="lg:col-span-3" />
-        <div className="grid gap-3 sm:grid-cols-2 lg:col-span-2 lg:grid-cols-1">
-          <SkeletonCard />
-          <SkeletonCard />
-        </div>
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+        <SkeletonPulse className="h-20 w-full max-w-xl rounded-xl" />
+        <SkeletonPulse className="h-[5.5rem] w-44 shrink-0 rounded-xl" />
       </div>
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+      <div className="grid grid-cols-2 gap-2 lg:grid-cols-5">
         <SkeletonStat />
         <SkeletonStat />
         <SkeletonStat />
         <SkeletonStat />
+        <SkeletonStat className="col-span-2 lg:col-span-1" />
       </div>
-      <div className="grid grid-cols-1 gap-3 xl:grid-cols-5">
-        <SkeletonCard className="xl:col-span-2" />
-        <SkeletonCard className="xl:col-span-3" />
+      <div className="grid grid-cols-1 gap-3 lg:grid-cols-3">
+        <SkeletonCard />
+        <SkeletonCard />
+        <SkeletonCard />
+      </div>
+      <div className="grid grid-cols-1 gap-3 lg:grid-cols-3">
+        <SkeletonCard />
+        <SkeletonCard className="min-h-[280px]" />
+        <SkeletonCard />
+      </div>
+      <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
+        <SkeletonCard />
+        <SkeletonCard />
       </div>
     </div>
   );

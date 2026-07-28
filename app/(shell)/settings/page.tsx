@@ -14,10 +14,12 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { can } from "@/lib/identity/permissions";
 import { ACCESS_LEVEL_LABELS } from "@/lib/identity/access-levels";
 import { ROLE_LABELS } from "@/lib/identity/roles";
 import { resolveSessionForApp } from "@/lib/identity/session";
+import { getPersonById } from "@/lib/people/repository";
 import { getCompanyEmailDomain } from "@/lib/auth/company-email";
 
 export const dynamic = "force-dynamic";
@@ -28,6 +30,13 @@ export default async function SettingsPage() {
 
   const emailDomain = await getCompanyEmailDomain();
   const canManageUsers = can(session.profile.accessLevel, "settings.users");
+  const linkedPerson = session.profile.personId
+    ? getPersonById(session.profile.personId)
+    : undefined;
+  const avatarUrl = linkedPerson?.avatarUrl ?? null;
+  const profileHref = session.profile.personId
+    ? `/people/${session.profile.personId}`
+    : "/me";
 
   return (
     <AppShell titleKey="pages.settings" layer="settings" session={session}>
@@ -37,11 +46,38 @@ export default async function SettingsPage() {
             <CardTitle>Profile</CardTitle>
             <CardDescription>Signed-in SODA VISUALS identity</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-2 text-sm">
-            <p>
-              <span className="text-muted-foreground">Name · </span>
-              {session.profile.displayName || session.profile.fullName}
-            </p>
+          <CardContent className="space-y-3 text-sm">
+            <div className="flex items-center gap-3">
+              <Avatar size="lg">
+                {avatarUrl ? (
+                  <AvatarImage
+                    src={avatarUrl}
+                    alt={session.profile.displayName || session.profile.fullName}
+                  />
+                ) : null}
+                <AvatarFallback className="bg-[linear-gradient(135deg,#29194A,#D23B68)] text-sm font-medium text-white">
+                  {session.profile.avatarInitials}
+                </AvatarFallback>
+              </Avatar>
+              <div className="min-w-0">
+                <p className="font-medium text-foreground">
+                  {session.profile.displayName || session.profile.fullName}
+                </p>
+                {avatarUrl ? (
+                  <p className="text-xs text-muted-foreground">
+                    Photo from crew profile
+                  </p>
+                ) : (
+                  <p className="text-xs text-muted-foreground">
+                    No profile photo — initials shown. Add a photo URL in{" "}
+                    <Link href={profileHref} className="text-soda-pink hover:underline">
+                      My Profile
+                    </Link>
+                    .
+                  </p>
+                )}
+              </div>
+            </div>
             <p>
               <span className="text-muted-foreground">Username · </span>
               {session.profile.username ?? "—"}

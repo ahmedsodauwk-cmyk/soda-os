@@ -137,7 +137,7 @@ export default function Header({
             className="xl:hidden border-violet-500/30 text-violet-200"
           />
         ) : null}
-        <LanguageSwitcher variant="icon" />
+        {!compact ? <LanguageSwitcher variant="icon" /> : null}
         <HeaderSearch />
         <HeaderNotifications initial={notifications} />
 
