@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import {
   ChevronDown,
   ChevronLeft,
@@ -92,6 +92,76 @@ function isNavActive(pathname: string, href: string): boolean {
 function profileHref(user?: SidebarUser): string {
   if (user?.personId) return `/people/${user.personId}`;
   return "/me";
+}
+
+function SidebarNavGroup({
+  items,
+  pathname,
+  collapsed,
+  t,
+}: {
+  items: NavItem[];
+  pathname: string;
+  collapsed: boolean;
+  t: (key: NavItem["titleKey"]) => string;
+}) {
+  const groupRef = useRef<HTMLDivElement>(null);
+  const [indicator, setIndicator] = useState({ top: 0, height: 36, visible: false });
+
+  useEffect(() => {
+    if (collapsed || !groupRef.current) {
+      setIndicator((s) => ({ ...s, visible: false }));
+      return;
+    }
+    const activeEl = groupRef.current.querySelector<HTMLElement>(
+      '[aria-current="page"]'
+    );
+    if (!activeEl) {
+      setIndicator((s) => ({ ...s, visible: false }));
+      return;
+    }
+    const groupRect = groupRef.current.getBoundingClientRect();
+    const activeRect = activeEl.getBoundingClientRect();
+    setIndicator({
+      top: activeRect.top - groupRect.top,
+      height: activeRect.height,
+      visible: true,
+    });
+  }, [pathname, collapsed, items]);
+
+  return (
+    <div ref={groupRef} className="soda-sidebar-nav-group relative space-y-0.5">
+      {indicator.visible ? (
+        <div
+          className="soda-sidebar-indicator"
+          style={{ top: indicator.top, height: indicator.height }}
+          aria-hidden
+        />
+      ) : null}
+      {items.map((item, index) => {
+        const isBrain = item.accent === "brain";
+        const prevIsBrain =
+          index > 0 && items[index - 1]?.accent === "brain";
+        const showBrainSep = isBrain && index > 0 && !prevIsBrain;
+        return (
+          <div key={item.titleKey}>
+            {showBrainSep ? (
+              <div
+                className="my-2 border-t border-violet-500/25"
+                aria-hidden
+              />
+            ) : null}
+            <NavLinkButton
+              item={item}
+              active={isNavActive(pathname, item.href)}
+              collapsed={collapsed}
+              title={t(item.titleKey)}
+            />
+          </div>
+        );
+      })}
+    </div>
+  );
 }
 
 function NavLinkButton({
@@ -214,22 +284,31 @@ function MyWorkspaceSection({
         />
       </button>
       {open ? (
-        <div className="mt-0.5 space-y-0.5">
-          {section.items.map((item) => {
-            const title = t(item.titleKey);
-            const active = isNavActive(pathname, item.href);
-            return (
-              <NavLinkButton
-                key={item.titleKey}
-                item={item}
-                active={active}
-                collapsed={false}
-                title={title}
-              />
-            );
-          })}
+        <div
+          className="soda-my-workspace-collapse mt-0.5"
+          data-open="true"
+        >
+          <div className="space-y-0.5">
+            {section.items.map((item) => {
+              const title = t(item.titleKey);
+              const active = isNavActive(pathname, item.href);
+              return (
+                <NavLinkButton
+                  key={item.titleKey}
+                  item={item}
+                  active={active}
+                  collapsed={false}
+                  title={title}
+                />
+              );
+            })}
+          </div>
         </div>
-      ) : null}
+      ) : (
+        <div className="soda-my-workspace-collapse" data-open="false">
+          <div />
+        </div>
+      )}
     </div>
   );
 }
@@ -300,30 +379,12 @@ export function SidebarContent({
         aria-label="Primary"
       >
         {companySection ? (
-          <div className="space-y-0.5">
-            {companySection.items.map((item, index) => {
-              const isBrain = item.accent === "brain";
-              const prevIsBrain =
-                index > 0 && companySection.items[index - 1]?.accent === "brain";
-              const showBrainSep = isBrain && index > 0 && !prevIsBrain;
-              return (
-                <div key={item.titleKey}>
-                  {showBrainSep ? (
-                    <div
-                      className="my-2 border-t border-violet-500/25"
-                      aria-hidden
-                    />
-                  ) : null}
-                  <NavLinkButton
-                    item={item}
-                    active={isNavActive(pathname, item.href)}
-                    collapsed={collapsed}
-                    title={t(item.titleKey)}
-                  />
-                </div>
-              );
-            })}
-          </div>
+          <SidebarNavGroup
+            items={companySection.items}
+            pathname={pathname}
+            collapsed={collapsed}
+            t={t}
+          />
         ) : null}
 
         {meSection ? (

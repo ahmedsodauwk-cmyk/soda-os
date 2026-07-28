@@ -1,64 +1,61 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { usePathname } from "next/navigation";
 
+import { useReducedMotion } from "@/lib/visual/animations";
+import { motionV3 } from "@/lib/visual/motion";
+import { useNavigationDirection } from "@/lib/visual/use-navigation-direction";
 import { cn } from "@/lib/utils";
-import { v2Motion } from "@/lib/visual/v2";
 
 type Phase = "enter" | "exit" | "idle";
 
 /**
- * Command Center route motion — exit left fade, enter from right (~650ms).
+ * Command Center route motion V3 — exit left fade (~240ms), enter from right (~580ms).
  * Sidebar + Brain rail stay mounted; only page body animates.
  */
 export function RouteTransition({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname();
   const [display, setDisplay] = useState(children);
   const [phase, setPhase] = useState<Phase>("idle");
-  const [goingBack, setGoingBack] = useState(false);
-  const reducedMotion = useRef(false);
-  const historyIdx = useRef(0);
-
-  useEffect(() => {
-    reducedMotion.current =
-      typeof window !== "undefined" &&
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  }, []);
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const current = (window.history.state as { idx?: number } | null)?.idx ?? 0;
-    setGoingBack(current < historyIdx.current);
-    historyIdx.current = current;
-  }, [pathname]);
+  const reducedMotion = useReducedMotion();
+  const direction = useNavigationDirection();
+  const goingBack = direction === "back";
+  const exitTimer = useRef<number | null>(null);
+  const enterTimer = useRef<number | null>(null);
 
   useEffect(() => {
     if (children === display) return;
 
-    if (reducedMotion.current) {
-      setDisplay(children);
-      setPhase("idle");
-      return;
+    if (exitTimer.current) window.clearTimeout(exitTimer.current);
+    if (enterTimer.current) window.clearTimeout(enterTimer.current);
+
+    const nextChildren = children;
+
+    if (reducedMotion) {
+      const id = window.requestAnimationFrame(() => {
+        setDisplay(nextChildren);
+        setPhase("idle");
+      });
+      return () => window.cancelAnimationFrame(id);
     }
 
-    setPhase("exit");
-    const timer = window.setTimeout(() => {
-      setDisplay(children);
-      setPhase("enter");
-    }, v2Motion.routeExitMs);
+    const raf = window.requestAnimationFrame(() => {
+      setPhase("exit");
+      exitTimer.current = window.setTimeout(() => {
+        setDisplay(nextChildren);
+        setPhase("enter");
+        enterTimer.current = window.setTimeout(
+          () => setPhase("idle"),
+          motionV3.routeEnterMs
+        );
+      }, motionV3.routeExitMs);
+    });
 
-    return () => window.clearTimeout(timer);
-  }, [children, display]);
-
-  useEffect(() => {
-    if (phase !== "enter") return;
-    const timer = window.setTimeout(
-      () => setPhase("idle"),
-      v2Motion.routeEnterMs
-    );
-    return () => window.clearTimeout(timer);
-  }, [phase]);
+    return () => {
+      window.cancelAnimationFrame(raf);
+      if (exitTimer.current) window.clearTimeout(exitTimer.current);
+      if (enterTimer.current) window.clearTimeout(enterTimer.current);
+    };
+  }, [children, display, reducedMotion]);
 
   return (
     <div

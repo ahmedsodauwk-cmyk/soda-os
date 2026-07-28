@@ -365,12 +365,8 @@ export function AddOrderDialog({
   function handleOpenChange(nextOpen: boolean) {
     setOpen(nextOpen);
     if (!nextOpen) {
-      setForm(buildEmptyForm(defaultProjectType));
-      setClientQuery("");
-      setClientCtx(null);
+      // Preserve unsaved form data on close — reset only after successful submit
       setErrors({});
-      setPhoneLocked(false);
-      setStep(1);
     } else {
       setSuccessNote(null);
     }
@@ -397,8 +393,8 @@ export function AddOrderDialog({
           {triggerLabel}
         </DialogTrigger>
 
-        <DialogContent className="soda-creation-panel soda-creation-order max-h-[90vh] overflow-y-auto sm:max-w-2xl">
-          <DialogHeader>
+        <DialogContent className="soda-creation-panel soda-creation-order flex max-h-[100dvh] flex-col overflow-hidden p-0 sm:max-w-none">
+          <DialogHeader className="shrink-0 border-b px-5 py-4">
             <DialogTitle>New Order</DialogTitle>
             <DialogDescription>
               Step {step} of 5 — {STEPS[step - 1]?.title}
@@ -423,7 +419,8 @@ export function AddOrderDialog({
             ))}
           </nav>
 
-          <form onSubmit={handleSubmit} className="grid gap-4">
+          <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col overflow-hidden">
+            <div className="soda-stagger-children flex-1 space-y-4 overflow-y-auto px-5 py-4">
             {errors.form ? (
               <p className="text-xs text-destructive">{errors.form}</p>
             ) : null}
@@ -1012,8 +1009,9 @@ export function AddOrderDialog({
                 ) : null}
               </div>
             ) : null}
+            </div>
 
-            <DialogFooter className="gap-2 sm:justify-between">
+            <DialogFooter className="sticky bottom-0 shrink-0 gap-2 border-t bg-card/95 px-5 py-4 backdrop-blur-sm sm:justify-between">
               <div className="flex gap-2">
                 {step > 1 ? (
                   <Button type="button" variant="outline" onClick={goBack}>

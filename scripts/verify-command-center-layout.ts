@@ -59,13 +59,13 @@ check("6: Home V3 — ops + management + lower rows", () => {
   assert.match(founderHome, /lg:grid-cols-3/);
 });
 
-check("7: route motion ~650ms total", () => {
-  assert.equal(v2Motion.routeExitMs + v2Motion.routeEnterMs, 650);
+check("7: route motion ~820ms total", () => {
+  assert.equal(v2Motion.routeExitMs + v2Motion.routeEnterMs, 820);
 });
 
 check("8: horizontal route keyframes", () => {
-  assert.match(globalsCss, /translateX\(-24px\)/);
-  assert.match(globalsCss, /translateX\(28px\)/);
+  assert.match(globalsCss, /translateX\(-27px\)/);
+  assert.match(globalsCss, /translateX\(34px\)/);
 });
 
 check("9: brain quick ask Arabic placeholder", () => {

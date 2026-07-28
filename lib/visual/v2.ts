@@ -3,17 +3,20 @@
  * Runtime theme lives in `app/globals.css`; this file is the TS mirror for components.
  */
 
+import { motionV3 } from "@/lib/visual/motion";
+
+/** @deprecated Prefer `motionV3` from `@/lib/visual/motion` — kept for verify scripts. */
 export const v2Motion = {
-  routeExitMs: 300,
-  routeEnterMs: 350,
+  routeExitMs: motionV3.routeExitMs,
+  routeEnterMs: motionV3.routeEnterMs,
   cardStaggerMs: 45,
-  hoverMs: 260,
-  pressMs: 140,
-  sidebarIndicatorMs: 400,
-  creationOrderMs: 580,
-  creationQuotationMs: 550,
-  creationClientMs: 500,
-  ease: "cubic-bezier(0.22, 1, 0.36, 1)",
+  hoverMs: motionV3.cardHoverMs,
+  pressMs: motionV3.cardPressMs,
+  sidebarIndicatorMs: motionV3.sidebarIndicatorMs,
+  creationOrderMs: motionV3.creationOrderMs,
+  creationQuotationMs: motionV3.creationQuotationMs,
+  creationClientMs: motionV3.creationClientMs,
+  ease: motionV3.ease,
 } as const;
 
 export const v2Typography = {

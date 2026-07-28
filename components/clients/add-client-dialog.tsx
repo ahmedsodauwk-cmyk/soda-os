@@ -173,7 +173,7 @@ export function AddClientDialog({
   function handleOpenChange(nextOpen: boolean) {
     setOpen(nextOpen);
     if (!nextOpen) {
-      setForm(buildEmptyForm(defaultType, defaultSegment));
+      // Preserve unsaved form data on close — reset only after successful submit
       setErrors({});
     } else {
       setSuccessNote(null);
@@ -205,8 +205,8 @@ export function AddClientDialog({
         {triggerLabel}
       </DialogTrigger>
 
-      <DialogContent className="soda-creation-drawer soda-creation-client max-h-[90vh] overflow-y-auto sm:max-w-xl">
-        <DialogHeader>
+      <DialogContent className="soda-creation-drawer soda-creation-client flex max-h-[100dvh] flex-col overflow-y-auto p-0 sm:max-w-none">
+        <DialogHeader className="border-b px-5 py-4">
           <DialogTitle>Add New Client</DialogTitle>
           <DialogDescription>
             Create a new individual or company client. Name and phone are
