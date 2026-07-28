@@ -46,6 +46,7 @@ import {
 } from "@/lib/projects/types";
 import { filterProjects } from "@/lib/projects/utils";
 import { getWorkspaces } from "@/lib/taxonomy/repository";
+import { useCanFounderMutateExisting } from "@/lib/identity/use-founder-mutation";
 
 function emptyHub() {
   return {
@@ -214,6 +215,7 @@ function AddProjectDialog({
 
 export function ProjectsListContent() {
   const router = useRouter();
+  const canMutateExisting = useCanFounderMutateExisting();
   const [projects, setProjects] = useState<Project[]>([]);
   const [clients, setClients] = useState<Client[]>([]);
   const [search, setSearch] = useState("");
@@ -315,32 +317,36 @@ export function ProjectsListContent() {
               </p>
             </div>
             <div className="flex flex-wrap items-center gap-2">
-              <Select
-                value={project.status}
-                onValueChange={(v) => {
-                  if (v) void handleStatusChange(project.id, v as ProjectStatus);
-                }}
-              >
-                <SelectTrigger className="h-8 w-32">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {PROJECT_STATUSES.map((s) => (
-                    <SelectItem key={s} value={s}>
-                      {s}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              {canMutateExisting ? (
+                <Select
+                  value={project.status}
+                  onValueChange={(v) => {
+                    if (v) void handleStatusChange(project.id, v as ProjectStatus);
+                  }}
+                >
+                  <SelectTrigger className="h-8 w-32">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {PROJECT_STATUSES.map((s) => (
+                      <SelectItem key={s} value={s}>
+                        {s}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              ) : null}
               <ProjectStatusBadge status={project.status} />
-              <Button
-                variant="ghost"
-                size="icon-sm"
-                className="size-7 text-destructive"
-                onClick={() => void handleDelete(project)}
-              >
-                <Trash2 className="size-3.5" />
-              </Button>
+              {canMutateExisting ? (
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  className="size-7 text-destructive"
+                  onClick={() => void handleDelete(project)}
+                >
+                  <Trash2 className="size-3.5" />
+                </Button>
+              ) : null}
             </div>
           </li>
         ))}

@@ -9,6 +9,7 @@ import {
 } from "@/lib/domain/types";
 import {
   isClientIdInScope,
+  requireFounderMutationAccess,
   requirePermission,
 } from "@/lib/domain/mutation-auth";
 import {
@@ -79,7 +80,10 @@ export async function updateProjectAction(
     status?: ProjectStatus;
   }
 ): Promise<DomainActionResult<Project>> {
-  const access = await assertProjectAccess(projectId, "projects.edit");
+  const gate = await requireFounderMutationAccess();
+  if (!gate.ok) return actionError(gate.error);
+
+  const access = await assertProjectAccess(projectId, "projects.view");
   if (!access.ok) return actionError(access.error);
 
   const safePatch: Partial<Omit<Project, "id" | "createdAt" | "updatedAt">> & {
@@ -108,7 +112,10 @@ export async function updateProjectAction(
 export async function deleteProjectAction(
   projectId: string
 ): Promise<DomainActionResult> {
-  const access = await assertProjectAccess(projectId, "projects.edit");
+  const gate = await requireFounderMutationAccess();
+  if (!gate.ok) return actionError(gate.error);
+
+  const access = await assertProjectAccess(projectId, "projects.view");
   if (!access.ok) return actionError(access.error);
 
   try {

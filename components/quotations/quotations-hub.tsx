@@ -37,6 +37,7 @@ import {
 } from "@/lib/quotations";
 import { formatEgp, formatShortDate } from "@/lib/quotations/utils";
 import { cn } from "@/lib/utils";
+import { useCanFounderMutateExisting } from "@/lib/identity/use-founder-mutation";
 
 type ViewMode = "kanban" | "list";
 
@@ -85,6 +86,7 @@ function QuotationCard({ q }: { q: Quotation }) {
 }
 
 export function QuotationsHub() {
+  const canMutateExisting = useCanFounderMutateExisting();
   const [view, setView] = useState<ViewMode>("kanban");
   const [search, setSearch] = useState("");
   const [segment, setSegment] = useState<"all" | "commercial" | "wedding">(
@@ -242,7 +244,8 @@ export function QuotationsHub() {
                   {byStage[stage].map((q) => (
                     <div key={q.id} className="space-y-1">
                       <QuotationCard q={q} />
-                      {stage !== "Converted to Project" &&
+                      {canMutateExisting &&
+                      stage !== "Converted to Project" &&
                       stage !== "Rejected" ? (
                         <Select
                           onValueChange={(v) => {
@@ -340,14 +343,16 @@ export function QuotationsHub() {
                             <CheckCircle2 className="size-3.5 text-emerald-500" />
                           ) : null}
                         </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon-sm"
-                          className="size-7 text-destructive"
-                          onClick={() => void handleDelete(q)}
-                        >
-                          <Trash2 className="size-3.5" />
-                        </Button>
+                        {canMutateExisting ? (
+                          <Button
+                            variant="ghost"
+                            size="icon-sm"
+                            className="size-7 text-destructive"
+                            onClick={() => void handleDelete(q)}
+                          >
+                            <Trash2 className="size-3.5" />
+                          </Button>
+                        ) : null}
                       </div>
                     </td>
                   </tr>

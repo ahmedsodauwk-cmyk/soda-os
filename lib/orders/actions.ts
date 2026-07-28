@@ -8,8 +8,8 @@ import {
   type DomainActionResult,
 } from "@/lib/domain/types";
 import {
-  assertOrderAccess,
   requireFounder,
+  requireFounderMutationAccess,
 } from "@/lib/domain/mutation-auth";
 import {
   applyOrderStatus,
@@ -64,7 +64,7 @@ export async function updateSmartOrderAction(
   orderId: string,
   patch: Partial<SmartOrderInput>
 ): Promise<DomainActionResult> {
-  const gate = await assertOrderAccess(orderId, "orders.edit");
+  const gate = await requireFounderMutationAccess();
   if (!gate.ok) return actionError(gate.error);
 
   try {
@@ -81,7 +81,7 @@ export async function applyOrderStatusAction(
   orderId: string,
   status: OrderStatus
 ): Promise<DomainActionResult> {
-  const gate = await assertOrderAccess(orderId, "orders.status");
+  const gate = await requireFounderMutationAccess();
   if (!gate.ok) return actionError(gate.error);
 
   try {
@@ -97,7 +97,7 @@ export async function applyOrderStatusAction(
 export async function deleteOrderAction(
   orderId: string
 ): Promise<DomainActionResult> {
-  const gate = await assertOrderAccess(orderId, "orders.delete");
+  const gate = await requireFounderMutationAccess();
   if (!gate.ok) return actionError(gate.error);
 
   try {

@@ -11,6 +11,7 @@ import {
   updateClientAction,
 } from "@/lib/clients/actions";
 import type { Client, NewClientInput } from "@/lib/clients/types";
+import { useCanFounderMutateExisting } from "@/lib/identity/use-founder-mutation";
 
 interface ClientProfileActionsProps {
   client: Client;
@@ -19,6 +20,11 @@ interface ClientProfileActionsProps {
 export function ClientProfileActions({ client }: ClientProfileActionsProps) {
   const router = useRouter();
   const [editing, setEditing] = useState(false);
+  const canMutateExisting = useCanFounderMutateExisting();
+
+  if (!canMutateExisting) {
+    return null;
+  }
 
   async function handleSave(
     id: string,

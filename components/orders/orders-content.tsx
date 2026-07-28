@@ -43,6 +43,7 @@ import {
   WORKSPACE_TAB_ORDER,
 } from "@/lib/orders/utils";
 import { getWorkspaces } from "@/lib/taxonomy/repository";
+import { useCanFounderMutateExisting } from "@/lib/identity/use-founder-mutation";
 
 export function OrdersContent({
   initialOrders,
@@ -54,6 +55,7 @@ export function OrdersContent({
   allowedOrderIds?: string[] | null;
 }) {
   const router = useRouter();
+  const canMutateExisting = useCanFounderMutateExisting();
   const [orders, setOrders] = useState(
     () => initialOrders ?? filterOrdersByScopeIds(getOrders(), allowedOrderIds)
   );
@@ -184,8 +186,8 @@ export function OrdersContent({
           <CardContent className="p-4">
             <OrdersTable
               orders={filteredOrders}
-              onEdit={setEditing}
-              onDelete={handleDeleteOrder}
+              onEdit={canMutateExisting ? setEditing : undefined}
+              onDelete={canMutateExisting ? handleDeleteOrder : undefined}
             />
           </CardContent>
         </Card>
@@ -193,7 +195,7 @@ export function OrdersContent({
 
       <EditOrderDialog
         order={editing}
-        open={!!editing}
+        open={!!editing && canMutateExisting}
         onOpenChange={(open) => {
           if (!open) setEditing(null);
         }}

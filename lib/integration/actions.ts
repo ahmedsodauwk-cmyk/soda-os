@@ -8,10 +8,9 @@ import {
   type DomainActionResult,
 } from "@/lib/domain/types";
 import {
-  assertOrderAccess,
   isClientIdInScope,
   requireFounder,
-  requirePermission,
+  requireFounderMutationAccess,
 } from "@/lib/domain/mutation-auth";
 import {
   advanceProjectJourney,
@@ -40,7 +39,7 @@ function revalidateIntegrationPaths() {
 export async function assignCrewToOrderAction(
   input: NewAssignmentInput
 ): Promise<DomainActionResult> {
-  const gate = await assertOrderAccess(input.orderId, "work.assign");
+  const gate = await requireFounderMutationAccess();
   if (!gate.ok) return actionError(gate.error);
 
   try {
@@ -63,7 +62,7 @@ export async function emitOrderClientPaymentAction(input: {
   paymentId?: string;
   notes?: string;
 }): Promise<DomainActionResult> {
-  const gate = await assertOrderAccess(input.orderId, "payments.edit");
+  const gate = await requireFounderMutationAccess();
   if (!gate.ok) return actionError(gate.error);
 
   if (!Number.isFinite(input.amount) || input.amount <= 0) {
@@ -83,7 +82,7 @@ export async function emitOrderClientPaymentAction(input: {
 export async function markShootCompleteAction(
   orderId: string
 ): Promise<DomainActionResult> {
-  const gate = await assertOrderAccess(orderId, "orders.status");
+  const gate = await requireFounderMutationAccess();
   if (!gate.ok) return actionError(gate.error);
 
   try {
@@ -99,7 +98,7 @@ export async function markShootCompleteAction(
 export async function finishProjectAction(
   projectId: string
 ): Promise<DomainActionResult> {
-  const gate = await requirePermission("projects.edit");
+  const gate = await requireFounderMutationAccess();
   if (!gate.ok) return actionError(gate.error);
 
   const project = await fetchProjectById(projectId);
@@ -122,7 +121,7 @@ export async function advanceProjectJourneyAction(
   projectId: string,
   stage: Parameters<typeof advanceProjectJourney>[1]
 ): Promise<DomainActionResult> {
-  const gate = await requirePermission("projects.edit");
+  const gate = await requireFounderMutationAccess();
   if (!gate.ok) return actionError(gate.error);
 
   const project = await fetchProjectById(projectId);

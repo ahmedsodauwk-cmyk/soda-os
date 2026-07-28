@@ -8,8 +8,8 @@ import {
   type DomainActionResult,
 } from "@/lib/domain/types";
 import {
-  assertClientAccess,
   requireFounder,
+  requireFounderMutationAccess,
 } from "@/lib/domain/mutation-auth";
 import {
   createClient,
@@ -77,7 +77,7 @@ export async function updateClientAction(
   clientId: string,
   patch: Partial<NewClientInput> & { isActive?: boolean }
 ): Promise<DomainActionResult<Client>> {
-  const gate = await assertClientAccess(clientId, "clients.edit");
+  const gate = await requireFounderMutationAccess();
   if (!gate.ok) return actionError(gate.error);
 
   const safePatch = pickClientPatch(patch);
@@ -126,7 +126,7 @@ export async function createClientInlineAction(input: {
 export async function deleteClientAction(
   clientId: string
 ): Promise<DomainActionResult> {
-  const gate = await assertClientAccess(clientId, "clients.manage");
+  const gate = await requireFounderMutationAccess();
   if (!gate.ok) return actionError(gate.error);
 
   try {

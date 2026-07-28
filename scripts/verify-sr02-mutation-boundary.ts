@@ -149,7 +149,7 @@ function runActionAuthChecks(): void {
     check(`${file} uses mutation-auth or session gate`, () => {
       assert.match(
         source,
-        /mutation-auth|resolveSessionForApp|requirePermission|requireFounder|assertOrderAccess|assertClientAccess|requireFounderSession|requireBrainFounder|requireConnect/
+        /mutation-auth|resolveSessionForApp|requirePermission|requireFounder|requireFounderMutationAccess|assertOrderAccess|assertClientAccess|requireFounderSession|requireBrainFounder|requireConnect/
       );
     });
   }
