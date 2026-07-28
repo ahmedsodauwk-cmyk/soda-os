@@ -26,14 +26,18 @@ function check(label: string, fn: () => void): void {
 function mockSession(level: SodaSession["profile"]["accessLevel"]): SodaSession {
   return {
     userId: "test-user",
+    email: "test@example.com",
     profile: {
+      id: "profile-test-user",
       accessLevel: level,
       role: "crew_member",
       personId: level === "founder" ? null : "person-1",
       displayName: "Test User",
       fullName: "Test User",
       email: "test@example.com",
+      username: "testuser",
       avatarInitials: "TU",
+      isActive: true,
       mustChangePassword: false,
     },
   };
