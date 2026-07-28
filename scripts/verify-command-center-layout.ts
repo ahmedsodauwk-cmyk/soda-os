@@ -28,8 +28,10 @@ const founderHome = read("components/dashboard/founder-home-stream.tsx");
 
 console.log("verify-command-center-layout\n");
 
-check("1: three-column shell frame with brain rail", () => {
+check("1: shell frame — 3col Founder brain rail, 2col otherwise", () => {
   assert.match(shellFrame, /soda-shell-3col/);
+  assert.match(shellFrame, /soda-shell-2col/);
+  assert.match(shellFrame, /showBrainRail/);
   assert.match(shellFrame, /SodaBrainPanelClient/);
   assert.match(shellFrame, /variant="rail"/);
 });
@@ -50,6 +52,7 @@ check("4: brain rail width ~280px (17.5rem)", () => {
 
 check("5: sidebar width token 14rem (w-56)", () => {
   assert.match(globalsCss, /--soda-sidebar-width: 14rem/);
+  assert.match(globalsCss, /\.soda-shell-2col/);
 });
 
 check("6: Home V3 — ops + management + lower rows", () => {

@@ -1436,7 +1436,12 @@
   font-size: clamp(0.6875rem, 4.25cqi + 0.35rem, 1.125rem);
 }
 
-/* Three-column shell — sidebar | main | brain rail */
+/* Two-column shell — sidebar | main (non-Founder; no brain rail gutter) */
+.soda-shell-2col {
+  --soda-sidebar-width: 14rem;
+}
+
+/* Three-column shell — sidebar | main | brain rail (Founder only) */
 .soda-shell-3col {
   --soda-sidebar-width: 14rem;
   --soda-brain-rail-width: 17.5rem;

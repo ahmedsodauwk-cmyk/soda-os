@@ -1,22 +1,23 @@
 /**
- * Personal Brain shell integration boundary (no migration / no data in this mission).
- * Non-Founder: rail hidden; placeholder contract for future Personal Brain mission.
+ * Personal Brain shell integration boundary.
+ * DEFERRED BY FOUNDER — NOT PART OF CURRENT RELEASE.
+ * No UI surface for any Access Level until migration 20260728000033 is approved.
  */
 
 import type { AccessLevel } from "@/lib/identity/access-levels";
-import { isPersonalBrainUiEnabled } from "@/lib/personal-brain/feature-flag";
 
 export type PersonalBrainShellContract = {
   /** Whether the shell should show a Personal Brain surface. */
   visible: boolean;
   /** User-facing title when surface is shown. */
   title: string;
-  /** Safe empty/placeholder copy — not labeled as working until migration applied. */
+  /** Safe empty copy — never shown while deferred. */
   placeholderMessage: string;
   /** Capability hook for future data adapter. */
   dataAdapterReady: boolean;
 };
 
+/** Internal contract only — always hidden until Personal Brain ships. */
 export function resolvePersonalBrainShell(
   accessLevel: AccessLevel
 ): PersonalBrainShellContract {
@@ -29,14 +30,10 @@ export function resolvePersonalBrainShell(
     };
   }
 
-  const enabled = isPersonalBrainUiEnabled();
-
   return {
     visible: false,
-    title: "Personal Brain",
-    placeholderMessage: enabled
-      ? "Personal Brain is coming soon — your private notes will live here."
-      : "Personal Brain is not enabled yet. Founder migration approval is required.",
+    title: "",
+    placeholderMessage: "",
     dataAdapterReady: false,
   };
 }

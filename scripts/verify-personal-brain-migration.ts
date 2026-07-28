@@ -77,13 +77,19 @@ check("8: Personal Brain UI gated off until migration approved", () => {
   assert.equal(isPersonalBrainUiEnabled(), false);
 });
 
-check("9: personal brain gate page exists", () => {
+check("9: personal brain route deferred — redirects, no placeholder UI", () => {
   const gate = readFileSync(
     path.join(root, "components/personal-brain/personal-brain-gate.tsx"),
     "utf8"
   );
+  const page = readFileSync(
+    path.join(root, "app/(shell)/me/personal-brain/page.tsx"),
+    "utf8"
+  );
   assert.match(gate, /20260728000033/);
   assert.match(gate, /isPersonalBrainUiEnabled/);
+  assert.match(page, /redirect\("\/me"\)/);
+  assert.match(page, /DEFERRED BY FOUNDER/);
 });
 
 console.log(`\n${passed}/9 PASS`);

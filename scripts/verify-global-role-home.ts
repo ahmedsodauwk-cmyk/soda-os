@@ -74,14 +74,26 @@ check("5: All four access levels have registry coverage", () => {
   assert.match(roleHome, /accessLevel === "team"/);
 });
 
-check("6: Brain rail Founder-only; Personal Brain boundary exists", () => {
+check("6: Brain rail Founder-only; no Personal Brain UI leakage", () => {
   assert.match(shellFrame, /user\?\.accessLevel === "founder"/);
+  assert.match(shellFrame, /showBrainRail \? "soda-shell-3col" : "soda-shell-2col"/);
   assert.match(shellLayout, /accessLevel === "founder"/);
   assert.match(shellLayout, /brainPanel/);
   assert.match(brainAdapter, /resolvePersonalBrainShell/);
-  assert.match(brainAdapter, /dataAdapterReady/);
+  assert.match(brainAdapter, /DEFERRED BY FOUNDER/);
+  assert.match(brainAdapter, /visible: false/);
+  assert.doesNotMatch(brainAdapter, /coming soon/i);
   assert.doesNotMatch(roleHome, /brain_entries/);
   assert.doesNotMatch(roleHome, /listBrainEntries/);
+  assert.doesNotMatch(roleHome, /Personal Brain/i);
+  assert.doesNotMatch(roleHome, /SodaBrainPanel/);
+});
+
+check("6b: Personal Brain route redirects when deferred", () => {
+  const personalBrainPage = read("app/(shell)/me/personal-brain/page.tsx");
+  assert.match(personalBrainPage, /isPersonalBrainUiEnabled/);
+  assert.match(personalBrainPage, /redirect\("\/me"\)/);
+  assert.match(personalBrainPage, /accessLevel !== "founder"/);
 });
 
 check("7: Quick actions permission-gated (not hard-coded role labels only)", () => {
@@ -107,4 +119,4 @@ check("10: Hero uses shared rotating brief (FounderHero via FounderCommandHeader
   assert.match(roleHome, /scopeVoiceInputForHome/);
 });
 
-console.log(`\n${passed}/10 checks passed`);
+console.log(`\n${passed}/11 checks passed`);
