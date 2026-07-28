@@ -13,6 +13,8 @@ export type BrainPanelFocusItem = {
   title: string;
   detail: string;
   href?: string;
+  /** Visual checklist state — info-severity attention items count as done. */
+  completed?: boolean;
 };
 
 export type BrainPanelInsightItem = {
@@ -49,6 +51,7 @@ export async function loadCommandCenterBrainPanel(): Promise<CommandCenterBrainP
         title: item.title,
         detail: item.detail,
         href: item.href,
+        completed: item.severity === "info",
       }));
 
     const focusFromSchedule: BrainPanelFocusItem[] = [];

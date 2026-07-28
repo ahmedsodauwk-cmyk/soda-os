@@ -14,6 +14,7 @@ import { loadBrainPanelForShell } from "@/components/layout/soda-brain-panel-dat
 import { BOOT_BUDGET_MS, withTimeout } from "@/lib/async/with-timeout";
 import { loadNotificationsForSession } from "@/lib/core/notifications/load";
 import { getRecentlyViewed } from "@/lib/identity/recent";
+import { getPersonById } from "@/lib/people/repository";
 import { permissionsForAsync } from "@/lib/identity/permission-service";
 import {
   isAuthStrict,
@@ -98,6 +99,9 @@ export default async function ShellLayout({
         role: session.profile.role,
         accessLevel: session.profile.accessLevel,
         avatarInitials: session.profile.avatarInitials,
+        avatarUrl: session.profile.personId
+          ? getPersonById(session.profile.personId)?.avatarUrl ?? null
+          : null,
         email: session.profile.email,
         personId: session.profile.personId,
         allowedPermissions,

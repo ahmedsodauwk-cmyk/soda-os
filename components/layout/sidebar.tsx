@@ -16,7 +16,7 @@ import {
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -62,6 +62,7 @@ export type SidebarUser = {
   role: SodaRole;
   accessLevel?: AccessLevel;
   avatarInitials: string;
+  avatarUrl?: string | null;
   email: string;
   /** Linked people.profiles person id — My Profile → /people/[id]. */
   personId?: string | null;
@@ -346,12 +347,15 @@ export function SidebarContent({
         <DropdownMenu>
           <DropdownMenuTrigger
             className={cn(
-              "flex w-full cursor-pointer items-center gap-2.5 rounded-lg border border-sidebar-border/40 bg-sidebar-accent/15 p-2 text-left outline-none transition-colors hover:bg-sidebar-accent/30 focus-visible:ring-2 focus-visible:ring-sidebar-ring",
+              "soda-sidebar-profile flex w-full cursor-pointer items-center gap-2.5 rounded-lg border border-sidebar-border/40 bg-sidebar-accent/15 p-2 text-left outline-none transition-colors hover:bg-sidebar-accent/30 focus-visible:ring-2 focus-visible:ring-sidebar-ring",
               collapsed && "justify-center border-transparent bg-transparent"
             )}
             aria-label={collapsed ? user?.fullName ?? "Account" : undefined}
           >
             <Avatar size="sm">
+              {user?.avatarUrl ? (
+                <AvatarImage src={user.avatarUrl} alt={user.fullName} />
+              ) : null}
               <AvatarFallback className="bg-[linear-gradient(135deg,#29194A,#D23B68)] text-xs font-medium text-white">
                 {user?.avatarInitials ?? "SO"}
               </AvatarFallback>
@@ -365,6 +369,11 @@ export function SidebarContent({
                 <p className="truncate text-xs text-sidebar-foreground/60">
                   {accessLabel ?? "—"}
                 </p>
+                {user?.accessLevel ? (
+                  <p className="truncate text-[10px] text-sidebar-foreground/45">
+                    Access Level: {accessLabel ?? user.accessLevel}
+                  </p>
+                ) : null}
               </div>
             ) : null}
           </DropdownMenuTrigger>

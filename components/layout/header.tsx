@@ -25,6 +25,7 @@ import {
 import { HumanTitle } from "@/components/brand/human-title";
 import { LanguageSwitcher } from "@/components/i18n/language-switcher";
 import { SodaBrainDrawer } from "@/components/layout/soda-brain-drawer";
+import { ThemeSwitcher } from "@/components/theme/theme-switcher";
 import { useShellOptional } from "@/components/layout/shell-context";
 import { getSideLanguage } from "@/lib/brand/human-layer";
 import type { HumanLayerKey } from "@/lib/brand/human-layer";
@@ -129,6 +130,7 @@ export default function Header({
       </div>
 
       <div className="flex items-center gap-2">
+        {compact ? <ThemeSwitcher className="shrink-0" /> : null}
         {showBrainDrawer ? (
           <SodaBrainDrawer
             data={brainPanel}

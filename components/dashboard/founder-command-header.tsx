@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 
 import { SodaLanguage } from "@/components/brand/soda-language";
-import { ThemeSwitcher } from "@/components/theme/theme-switcher";
 import {
   buildHeroOperationalLines,
   getHeroGreeting,
@@ -62,9 +61,9 @@ export function FounderCommandHeader({
   return (
     <header
       aria-labelledby="founder-command-greeting"
-      className="soda-founder-header flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between"
+      className="soda-founder-header min-w-0 flex-1 space-y-1"
     >
-      <div className="min-w-0 flex-1 space-y-1">
+      <div className="space-y-1">
         <h1
           id="founder-command-greeting"
           lang="ar"
@@ -96,10 +95,6 @@ export function FounderCommandHeader({
             {formatEnglishTime(clock)}
           </p>
         </div>
-      </div>
-
-      <div className="flex shrink-0 items-center sm:pt-1">
-        <ThemeSwitcher className="shrink-0" />
       </div>
     </header>
   );

@@ -51,12 +51,13 @@ export async function FounderHomeStream({
           aria-label="Command overview"
           className="soda-founder-screen-1 soda-stagger-children"
         >
-          <FounderCommandHeader
-            dashboard={voiceInput}
-            operatorName={operatorName}
-          />
-
-          <FounderHomeActions />
+          <div className="soda-founder-command-top">
+            <FounderCommandHeader
+              dashboard={voiceInput}
+              operatorName={operatorName}
+            />
+            <FounderHomeActions className="lg:pt-1" />
+          </div>
 
           <FounderFolderGrid
             dashboard={dashboard}

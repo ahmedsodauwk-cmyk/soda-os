@@ -112,25 +112,23 @@ export function FounderNeedsDecision({
               >
                 <Icon className="mt-0.5 size-4 shrink-0 opacity-70" aria-hidden />
                 <div className="min-w-0 flex-1">
-                  <div className="flex flex-wrap items-center gap-1.5">
-                    <p className="text-[15px] font-semibold leading-snug">
-                      {item.title}
-                    </p>
-                    <Badge
-                      variant="outline"
-                      className="border-soda-pink/20 bg-soda-pink/5 text-[10px] font-semibold uppercase"
-                    >
-                      {categoryBadge[item.category]}
-                    </Badge>
-                    <span className="text-xs text-muted-foreground">
-                      {severityLabel[item.severity]}
-                    </span>
-                  </div>
+                  <p className="text-[15px] font-semibold leading-snug">
+                    {item.title}
+                  </p>
                   <p className="text-sm leading-relaxed text-muted-foreground">
                     {item.detail}
                     {item.amount != null ? ` · ${formatPrice(item.amount)}` : ""}
                   </p>
+                  <span className="mt-0.5 inline text-xs text-muted-foreground">
+                    {severityLabel[item.severity]}
+                  </span>
                 </div>
+                <Badge
+                  variant="outline"
+                  className="shrink-0 border-soda-pink/25 bg-soda-pink/8 text-[10px] font-semibold uppercase"
+                >
+                  {categoryBadge[item.category]}
+                </Badge>
               </div>
             );
 

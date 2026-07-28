@@ -4,13 +4,17 @@ import { FileText } from "lucide-react";
 
 import { ClientEntryActions } from "@/components/clients/client-entry-actions";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 /** Single Founder Home action group — no duplicates elsewhere on Home. */
-export function FounderHomeActions() {
+export function FounderHomeActions({ className }: { className?: string }) {
   return (
     <section
       aria-label="Quick actions"
-      className="soda-founder-actions flex flex-wrap items-center gap-2"
+      className={cn(
+        "soda-founder-actions flex flex-wrap items-center justify-end gap-2",
+        className
+      )}
     >
       <OrderEntryActions
         triggerLabel="New Order"

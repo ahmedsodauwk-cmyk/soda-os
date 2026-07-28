@@ -44,7 +44,7 @@ check("3: layout loads brain panel data for Founder", () => {
 });
 
 check("4: brain rail width ~280px (17.5rem)", () => {
-  assert.match(brainPanel, /w-\[17\.5rem\]/);
+  assert.match(brainPanel, /--soda-brain-rail-width/);
   assert.match(globalsCss, /--soda-brain-rail-width: 17\.5rem/);
 });
 
