@@ -3,7 +3,11 @@
  * Zero metrics are omitted (never invent filler).
  */
 
-import { getGreeting, toEasternDigits } from "@/lib/brand/soda-voice";
+import {
+  getGreeting,
+  resolveDisplayName,
+  toEasternDigits,
+} from "@/lib/brand/soda-voice";
 import type { DashboardSnapshot } from "@/lib/dashboard/types";
 import type { DashboardVoiceInput, DayPeriod } from "@/lib/brand/types";
 
@@ -25,6 +29,28 @@ export function getHeroGreeting(
   operatorName?: string | null
 ): string {
   return getGreeting(getHeroDayPeriod(date), date, operatorName);
+}
+
+export type HeroGreetingParts = {
+  prefix: string;
+  name: string;
+  emoji: string;
+};
+
+const HERO_GREETING_EMOJI = "👋";
+
+/** Greeting split for RTL layout — emoji after name (left visually in RTL). */
+export function getHeroGreetingParts(
+  date: Date = new Date(),
+  operatorName?: string | null
+): HeroGreetingParts {
+  const name = resolveDisplayName(operatorName);
+  const full = getHeroGreeting(date, operatorName);
+  const rest = full.replace(/^\u{1F44B}\s*/u, "");
+  const prefix = rest.endsWith(name)
+    ? rest.slice(0, rest.length - name.length)
+    : rest.replace(name, "");
+  return { prefix, name, emoji: HERO_GREETING_EMOJI };
 }
 
 /** @deprecated Prefer getHeroGreeting(date, name) — kept for soft compatibility. */

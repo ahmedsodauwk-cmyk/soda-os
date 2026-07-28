@@ -71,7 +71,7 @@ export async function FounderHomeStream({
           aria-label="Command overview"
           className="soda-founder-screen-1 soda-stagger-children"
         >
-          <div className="soda-founder-hero-row">
+          <div className="soda-founder-hero-row soda-founder-hero-block">
             <FounderCommandHeader
               dashboard={voiceInput}
               operatorName={operatorName}

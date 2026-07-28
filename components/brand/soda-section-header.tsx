@@ -5,7 +5,7 @@ import { SodaLanguage, type SodaLanguageSize } from "@/components/brand/soda-lan
 const titleSizeClass = {
   page: "text-xl font-bold tracking-tight sm:text-2xl",
   section: "text-lg font-bold tracking-tight sm:text-[1.25rem]",
-  card: "text-base font-semibold leading-snug sm:text-[17px]",
+  card: "soda-founder-panel-heading text-base font-semibold leading-snug sm:text-lg",
   compact: "text-sm font-semibold",
 } as const;
 

@@ -58,7 +58,7 @@ export function SodaBrainPanelClient({
   return (
     <aside
       className={cn(
-        "soda-brain-panel flex min-h-0 flex-col border-border/60 bg-[linear-gradient(180deg,color-mix(in_srgb,var(--background)_88%,#29194A)_0%,var(--background)_55%,color-mix(in_srgb,var(--background)_94%,#1a1030)_100%)]",
+        "soda-brain-panel flex min-h-0 flex-col border-border/40 bg-card/80",
         variant === "rail"
           ? "hidden h-screen w-[var(--soda-brain-rail-width,17.5rem)] shrink-0 border-l lg:flex"
           : "flex h-full w-full flex-col border-0",
@@ -66,7 +66,7 @@ export function SodaBrainPanelClient({
       )}
       aria-label="SODA Brain"
     >
-      <div className="shrink-0 border-b border-violet-500/20 px-4 pb-4 pt-5">
+      <div className="shrink-0 border-b border-border/50 px-4 pb-4 pt-5">
         <BrainOrb />
         <div className="mt-3 text-center">
           <p className="text-xs font-bold tracking-[0.14em] text-violet-200 uppercase">
@@ -76,7 +76,7 @@ export function SodaBrainPanelClient({
             <p className="text-sm font-medium text-muted-foreground">
               Founder Intelligence
             </p>
-            <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold text-emerald-400">
+            <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/25 bg-emerald-500/10 px-2 py-0.5 text-[11px] font-semibold text-emerald-400">
               <span className="size-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.8)]" />
               Online
             </span>
@@ -105,7 +105,7 @@ export function SodaBrainPanelClient({
               lang="ar"
               dir="rtl"
               disabled={pending}
-              className="h-10 border-violet-500/25 bg-background/60 pe-10 text-[15px]"
+              className="h-10 border-border/50 bg-background/50 pe-10 text-[15px]"
             />
             <Button
               type="submit"
@@ -160,7 +160,7 @@ export function SodaBrainPanelClient({
                   {item.href ? (
                     <Link
                       href={item.href}
-                      className="soda-brain-focus-item flex items-start gap-2 rounded-lg border border-violet-500/15 bg-violet-500/5 px-3 py-2 transition-colors hover:bg-violet-500/10"
+                      className="soda-brain-focus-item flex items-start gap-2 rounded-lg border border-border/55 bg-card/50 px-3 py-2 transition-colors hover:border-soda-pink/25 hover:bg-soda-pink/[0.04]"
                     >
                       <span
                         className={cn(
@@ -185,7 +185,7 @@ export function SodaBrainPanelClient({
                       </div>
                     </Link>
                   ) : (
-                    <div className="soda-brain-focus-item flex items-start gap-2 rounded-lg border border-violet-500/15 bg-violet-500/5 px-3 py-2">
+                    <div className="soda-brain-focus-item flex items-start gap-2 rounded-lg border border-border/55 bg-card/50 px-3 py-2">
                       <span
                         className={cn(
                           "mt-0.5 flex size-4 shrink-0 items-center justify-center rounded border",
@@ -230,9 +230,9 @@ export function SodaBrainPanelClient({
             <ul className="space-y-1.5">
               {data.insights.map((item) => {
                 const row = (
-                  <div className="soda-brain-insight-card rounded-lg border border-violet-500/20 bg-violet-500/5 px-3 py-2.5">
-                    <p className="text-xs text-muted-foreground">{item.label}</p>
-                    <p className="truncate text-sm font-bold text-foreground">
+                  <div className="soda-brain-insight-card rounded-lg border px-3 py-2.5">
+                    <p className="text-sm text-muted-foreground">{item.label}</p>
+                    <p className="truncate text-[15px] font-bold text-foreground">
                       {item.value}
                     </p>
                   </div>
@@ -263,10 +263,10 @@ export function SodaBrainPanelClient({
         ) : null}
       </div>
 
-      <div className="shrink-0 border-t border-violet-500/20 p-4">
+      <div className="shrink-0 border-t border-border/50 p-4">
         <Button
           variant="outline"
-          className="w-full gap-2 border-violet-500/35 bg-transparent text-foreground hover:bg-violet-500/10"
+          className="w-full gap-2 border-border/55 bg-transparent text-foreground hover:bg-soda-pink/[0.04]"
           nativeButton={false}
           render={<Link href="/brain" />}
         >

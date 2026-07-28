@@ -1236,6 +1236,10 @@
   gap: 0.75rem;
 }
 
+.soda-founder-hero-block {
+  min-height: 7.5rem;
+}
+
 @media (min-width: 1024px) {
   .soda-founder-command-top {
     flex-direction: row;
@@ -1291,8 +1295,38 @@
 }
 
 .soda-founder-greeting {
-  font-size: clamp(1.875rem, 2.8vw, 2.25rem);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.2em;
+  font-size: clamp(2.125rem, 2.8vw, 2.375rem);
   font-weight: 700;
+}
+
+.soda-founder-greeting-emoji {
+  display: inline-block;
+  unicode-bidi: isolate;
+}
+
+.soda-founder-operational {
+  font-size: clamp(1.0625rem, 1.4vw, 1.1875rem);
+  line-height: 1.7;
+}
+
+.soda-founder-kpi-label {
+  font-size: clamp(0.9375rem, 1.1vw, 1rem);
+}
+
+.soda-founder-kpi-value {
+  font-size: clamp(1.375rem, 2vw, 1.75rem);
+}
+
+.soda-founder-clock-time {
+  font-size: clamp(1.375rem, 2vw, 1.75rem);
+}
+
+.soda-founder-panel-heading {
+  font-size: clamp(1.125rem, 1.5vw, 1.25rem);
 }
 
 .soda-founder-panel [data-slot="card"] {
@@ -1360,9 +1394,13 @@
 }
 
 .soda-brain-panel {
+  background:
+    var(--soda-gradient-card),
+    color-mix(in srgb, var(--card) 92%, #29194a 8%);
+  border-left-color: color-mix(in srgb, var(--border) 70%, #8b5cf6 15%);
   box-shadow:
-    inset 1px 0 0 color-mix(in srgb, #8b5cf6 18%, transparent),
-    -8px 0 32px color-mix(in srgb, #29194a 20%, transparent);
+    inset 1px 0 0 color-mix(in srgb, #8b5cf6 12%, transparent),
+    -4px 0 24px color-mix(in srgb, #29194a 12%, transparent);
 }
 
 .soda-brain-orb {
@@ -1410,7 +1448,9 @@
 }
 
 .soda-brain-insight-card {
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, #8b5cf6 12%, transparent);
+  background: var(--soda-gradient-card), color-mix(in srgb, var(--card) 88%, transparent);
+  border-color: color-mix(in srgb, var(--border) 65%, #8b5cf6 12%);
+  box-shadow: var(--soda-shadow-soft);
 }
 
 .soda-sidebar-profile {

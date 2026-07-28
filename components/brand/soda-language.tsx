@@ -7,9 +7,9 @@ import {
 const sizeClass = {
   page: "text-[15px] leading-[1.75] sm:text-base sm:leading-[1.7]",
   section: "text-[15px] leading-[1.75]",
-  card: "text-sm leading-[1.7]",
-  compact: "text-[13px] leading-[1.65]",
-  header: "text-base leading-[1.75] sm:text-[17px] sm:leading-[1.7]",
+  card: "text-sm leading-[1.7] sm:text-[14px]",
+  compact: "text-[14px] leading-[1.65]",
+  header: "soda-founder-operational",
 } as const;
 
 export type SodaLanguageSize = keyof typeof sizeClass;

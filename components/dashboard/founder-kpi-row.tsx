@@ -122,11 +122,11 @@ export function FounderKpiRow({
                 <div className="soda-kpi-icon-pink flex size-7 shrink-0 items-center justify-center rounded-md">
                   <Icon className="size-3.5" aria-hidden />
                 </div>
-                <p className="truncate text-sm font-semibold text-foreground">
+                <p className="soda-founder-kpi-label truncate font-semibold text-foreground">
                   {m.label}
                 </p>
               </div>
-              <p className="font-mono text-xl font-bold tabular-nums leading-none">
+              <p className="soda-founder-kpi-value font-mono font-bold tabular-nums leading-none">
                 {m.value}
               </p>
               <SodaLanguage

@@ -3,7 +3,7 @@
 import { SodaLanguage } from "@/components/brand/soda-language";
 import {
   buildHeroOperationalLines,
-  getHeroGreeting,
+  getHeroGreetingParts,
 } from "@/lib/dashboard/hero-summary";
 import type { DashboardVoiceInput } from "@/lib/brand/types";
 
@@ -17,7 +17,10 @@ export function FounderCommandHeader({
   dashboard,
   operatorName,
 }: FounderCommandHeaderProps) {
-  const greeting = getHeroGreeting(new Date(), operatorName);
+  const { prefix, name, emoji } = getHeroGreetingParts(
+    new Date(),
+    operatorName
+  );
   const lines = buildHeroOperationalLines(dashboard);
   const summary = lines[0]?.text ?? null;
 
@@ -32,7 +35,11 @@ export function FounderCommandHeader({
         dir="rtl"
         className="soda-founder-greeting font-ar min-w-0 font-bold leading-tight tracking-tight text-foreground"
       >
-        {greeting}
+        <span className="soda-founder-greeting-prefix">{prefix}</span>
+        <span className="soda-founder-greeting-name">{name}</span>
+        <span className="soda-founder-greeting-emoji" aria-hidden>
+          {emoji}
+        </span>
       </h1>
       {summary ? (
         <SodaLanguage size="header" className="max-w-2xl">
