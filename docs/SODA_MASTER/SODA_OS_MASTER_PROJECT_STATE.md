@@ -5,7 +5,7 @@
 
 | Field | Value |
 |--------|--------|
-| **Document version** | `1.1.2` |
+| **Document version** | `1.1.3` |
 | **Last updated** | `2026-07-28` |
 | **Product** | SODA OS |
 | **Company** | SODA VISUALS |
@@ -42,22 +42,25 @@ Before major auth / identity / DB / migrations / RLS / finance / production-data
 
 ## CURRENT MISSION
 
-**P0 Founder Home crash recovery** — hotfix deployed **2026-07-28** (`f7bd477`) — **PENDING FOUNDER MANUAL VERIFICATION** on authenticated Home.
+**Centered Creation Workspaces + Home V3 / Motion V3 Production Release** — merged to `main` and pushed **2026-07-28** (`2017e78`) — **PENDING FOUNDER MANUAL VERIFICATION** on authenticated creation flows (Order, Client, Quotation drawer).
 
-**SODA OS Visual Reference Lock** — reference geometry Founder Home, AppShell, motion, backup repair. Deployed **2026-07-28** — **pending** Founder visual review + Vercel Ready confirmation.
+**Home V3 + Motion V3** — Founder reference layout, route motion, Financial Summary fix, brain rail — included in same release (`749922f` → `8a3b69d` → `2017e78`).
 
 Parallel: **H1–H5 Production Apply** — H1 migration **repaired** **2026-07-27**; Production apply **pending** Founder retry via secure launcher.
+
+**Personal Brain** — migration scaffold in source (`20260728000033`); UI **disabled** (`isPersonalBrainUiEnabled() === false`); **NOT applied** on Production.
 
 ---
 
 ## CURRENT BLOCKERS
 
-1. **Founder Home authenticated render** — P0 hotfix deployed (`f7bd477`); Founder must confirm Home loads after login (agent cannot test authenticated session)
-2. **H1–H5 migrations** not yet applied on Production — H1 SQL **repaired** (`person_id text`); apply via `scripts/apply-h-remediation-migrations.ts` (secure launcher)
-3. **H1 + H3 app changes** deployed to https://soda-os.vercel.app (**2026-07-28** push `ec617bc`; Vercel Ready confirmation pending)
+1. **Centered creation workspaces** — deployed to Production (`2017e78`); Founder must confirm New Order + New Client centered workspaces and New Quotation right drawer (agent cannot test authenticated session)
+2. **Founder Home authenticated render** — included in Home V3 release; Founder must confirm Home loads after login
+3. **H1–H5 migrations** not yet applied on Production — H1 SQL **repaired** (`person_id text`); apply via `scripts/apply-h-remediation-migrations.ts` (secure launcher)
 4. Production credentials must **never** be stored in source / Git / logs / manifests / ZIPs
 5. Restore drill script added (`scripts/restore-drill-disposable.ts`); SR-01 disposable rehearsal remains prior Gate 4 evidence on same backup
 6. Non-Founder Production manual checks **not** assumed passed
+7. **Personal Brain** migration **pending** — scaffold only; do not apply on Production without explicit Founder instruction
 
 ---
 
@@ -542,6 +545,47 @@ Founder manual viewport / screenshot capture still recommended (`docs/screenshot
 | **HTTP smoke** | `/login` **200**; signed-out `/` → `/login` **307** |
 
 Founder manual viewport / screenshot capture still recommended (`docs/screenshots/founder-redesign-2026-07-27/`).
+
+### Centered Creation Workspaces — 2026-07-28
+
+**Goal:** Founder-approved interaction correction — New Order and New Client open as centered animated workspaces; New Quotation remains right-side drawer. Merge Home V3 + Motion V3 preview into `main`; deploy to Production.
+
+| Field | Value |
+|--------|--------|
+| **Interaction commit** | `2017e786cf1c2da8c1c7d291bf3f8cb2a572c570` (`2017e78`) |
+| **Merge base** | `d12170f5aaef7eb1e5964dc3c41b9a3b602f944c` (`origin/main` before merge) |
+| **Preview branch** | `home-v3-reference-preview` |
+| **Production alias** | https://soda-os.vercel.app |
+| **Production commit (post-push)** | `2017e78` on `origin/main` |
+| **Vercel deployment ID** | **Unconfirmed** — CLI TLS error; HTTP smoke **PASS** (`/login` **200**) |
+| **Personal Brain migration** | **NOT applied** on Production (scaffold in source only) |
+
+**Interaction changes:**
+
+| Flow | Presentation |
+|------|----------------|
+| **New Order** | Centered large workspace — `min(1100px, calc(100vw - 80px))`, max-height ~90vh; open 720ms scale 0.96 + translateY 20px; close 550ms reverse |
+| **New Client** | Centered medium workspace — `min(720px, calc(100vw - 80px))`, max-height ~85vh; open 585ms scale 0.96 + translateY 16px; close 500ms reverse |
+| **New Quotation** | **Unchanged** — right-side drawer |
+
+**Verification (automated — 2026-07-28):**
+
+| Check | Result |
+|--------|--------|
+| `npm run typecheck` | **PASS** |
+| `npx tsx scripts/verify-creation-interactions.ts` | **PASS 13/13** |
+| `npx tsx scripts/verify-home-v3-reference.ts` | **PASS 11/11** |
+| `npx tsx scripts/verify-sr02-authz.ts` | **PASS 16/16** |
+| `npx tsx scripts/verify-sr02-mutation-boundary.ts` | **PASS 18/18** |
+| `npm run build` | **PASS** |
+| `npm run lint` (full repo) | **FAIL** — pre-existing errors (unrelated files; not introduced by this mission) |
+| `npx tsx scripts/verify-founder-home-mission.ts` | **FAIL** — pre-existing Motion V3 route timing (820ms vs V2 650ms expectation) |
+| `git diff --check` (scoped mission files) | **PASS**; unrelated `SOURCE_PROTECTION.md` trailing whitespace pre-existing |
+| Production `/login` HTTP smoke | **PASS** — **200** |
+| Founder authenticated creation flows | **PENDING** — manual checklist required |
+| Preview screenshots / video | **NOT CAPTURED** — browser MCP unavailable; Preview URL pattern unconfirmed |
+
+**Status:** **DEPLOYED TO PRODUCTION** — automated gates **PASS**; Founder manual verification **PENDING**.
 
 ### v1.0.5 — 2026-07-27
 
