@@ -29,7 +29,7 @@ export const motionClasses = {
   cardInteractive: "soda-card-interactive",
   heroRotator: "soda-founder-hero-rotator",
   heroSlide: "soda-founder-hero-slide",
-  creationPanel: "soda-creation-panel",
+  creationWorkspace: "soda-creation-workspace",
   creationDrawer: "soda-creation-drawer",
   creationOrder: "soda-creation-order",
   creationQuotation: "soda-creation-quotation",

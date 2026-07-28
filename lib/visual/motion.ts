@@ -23,8 +23,10 @@ export const motionV3 = {
   heroBriefMs: 5500,
 
   creationOrderMs: 720,
+  creationOrderCloseMs: 550,
   creationQuotationMs: 660,
   creationClientMs: 585,
+  creationClientCloseMs: 500,
 
   ease: "cubic-bezier(0.22, 1, 0.36, 1)",
   routeExitTranslatePx: 27,

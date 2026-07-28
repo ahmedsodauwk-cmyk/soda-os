@@ -205,8 +205,8 @@ export function AddClientDialog({
         {triggerLabel}
       </DialogTrigger>
 
-      <DialogContent className="soda-creation-drawer soda-creation-client flex max-h-[100dvh] flex-col overflow-y-auto p-0 sm:max-w-none">
-        <DialogHeader className="border-b px-5 py-4">
+      <DialogContent className="soda-creation-workspace soda-creation-client flex max-h-[min(85vh,85dvh)] flex-col overflow-hidden p-0 sm:max-w-none">
+        <DialogHeader className="shrink-0 border-b px-5 py-4">
           <DialogTitle>Add New Client</DialogTitle>
           <DialogDescription>
             Create a new individual or company client. Name and phone are
@@ -214,7 +214,11 @@ export function AddClientDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="grid gap-4">
+        <form
+          onSubmit={handleSubmit}
+          className="flex min-h-0 flex-1 flex-col overflow-hidden"
+        >
+          <div className="soda-stagger-children flex-1 space-y-4 overflow-y-auto px-5 py-4">
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-1.5">
               <Label>Client Type</Label>
@@ -315,7 +319,9 @@ export function AddClientDialog({
             />
           </div>
 
-          <DialogFooter>
+          </div>
+
+          <DialogFooter className="sticky bottom-0 shrink-0 gap-2 border-t bg-card/95 px-5 py-4 backdrop-blur-sm sm:justify-end">
             <Button
               type="button"
               variant="outline"

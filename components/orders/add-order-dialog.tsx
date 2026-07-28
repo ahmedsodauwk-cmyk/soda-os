@@ -393,7 +393,7 @@ export function AddOrderDialog({
           {triggerLabel}
         </DialogTrigger>
 
-        <DialogContent className="soda-creation-panel soda-creation-order flex max-h-[100dvh] flex-col overflow-hidden p-0 sm:max-w-none">
+        <DialogContent className="soda-creation-workspace soda-creation-order flex max-h-[min(90vh,90dvh)] flex-col overflow-hidden p-0 sm:max-w-none">
           <DialogHeader className="shrink-0 border-b px-5 py-4">
             <DialogTitle>New Order</DialogTitle>
             <DialogDescription>
