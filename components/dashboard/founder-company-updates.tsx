@@ -21,7 +21,7 @@ export function FounderCompanyUpdates({ limit = 5 }: FounderCompanyUpdatesProps)
     <Card className="soda-founder-panel soda-cc-card min-w-0 h-full">
       <CardHeader className="flex-row items-start justify-between space-y-0 px-3 py-2.5 pb-1.5">
         <SodaSectionHeader
-          title="Latest Company Updates"
+          title="Latest Updates"
           layer="sodaLive"
           as="h2"
           size="card"

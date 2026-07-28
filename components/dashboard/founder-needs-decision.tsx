@@ -80,7 +80,7 @@ export function FounderNeedsDecision({
     <Card className="soda-founder-panel soda-cc-card h-full min-w-0">
       <CardHeader className="flex-row items-start justify-between space-y-0 px-3 py-2.5 pb-1.5">
         <SodaSectionHeader
-          title="Needs Your Decision"
+          title="Needs Your Attention"
           layer="needsYourDecision"
           as="h2"
           size="card"

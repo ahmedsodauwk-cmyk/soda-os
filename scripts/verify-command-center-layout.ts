@@ -52,11 +52,11 @@ check("5: sidebar width token 14rem (w-56)", () => {
   assert.match(globalsCss, /--soda-sidebar-width: 14rem/);
 });
 
-check("6: lower panels side-by-side on desktop", () => {
+check("6: Home V3 — ops + management + lower rows", () => {
+  assert.match(founderHome, /soda-founder-ops-row/);
+  assert.match(founderHome, /soda-founder-mgmt-row/);
   assert.match(founderHome, /soda-founder-lower-panels/);
-  assert.match(founderHome, /lg:grid-cols-2/);
-  assert.match(founderHome, /FounderNeedsDecision/);
-  assert.match(founderHome, /FounderCompanyUpdates/);
+  assert.match(founderHome, /lg:grid-cols-3/);
 });
 
 check("7: route motion ~650ms total", () => {

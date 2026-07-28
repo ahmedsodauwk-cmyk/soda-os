@@ -24,8 +24,7 @@ const read = (rel: string) => readFileSync(path.join(root, rel), "utf8");
 
 const founderHome = read("components/dashboard/founder-home-stream.tsx");
 const founderHeader = read("components/dashboard/founder-command-header.tsx");
-const founderActions = read("components/dashboard/founder-home-actions.tsx");
-const founderFolders = read("components/dashboard/founder-folder-grid.tsx");
+const quickActions = read("components/dashboard/founder-quick-actions-panel.tsx");
 const companyUpdates = read("components/dashboard/founder-company-updates.tsx");
 const routeTransition = read("components/layout/route-transition.tsx");
 const shellFrame = read("components/layout/shell-frame.tsx");
@@ -34,39 +33,32 @@ const navSource = read("lib/identity/nav.ts");
 
 console.log("verify-founder-home-mission\n");
 
-check("1: single action group component exists on Home", () => {
-  assert.match(founderHome, /FounderHomeActions/);
-  assert.match(founderActions, /Add Quotation/);
-  assert.match(founderActions, /OrderEntryActions/);
+check("1: single quick actions panel on Home (management row)", () => {
+  assert.match(founderHome, /FounderQuickActionsPanel/);
+  assert.match(quickActions, /New Quotation/);
+  assert.match(quickActions, /New Order/);
+  assert.match(quickActions, /New Client/);
+  assert.doesNotMatch(founderHome, /FounderHomeActions/);
   assert.doesNotMatch(founderHome, /FounderActionStrip/);
 });
 
-check("2: header has no duplicate action buttons", () => {
+check("2: header has no duplicate action buttons or inline clock", () => {
   assert.doesNotMatch(founderHeader, /New Order/);
   assert.doesNotMatch(founderHeader, /Add Client/);
-  assert.match(founderHeader, /soda-founder-clock/);
+  assert.doesNotMatch(founderHeader, /soda-founder-clock/);
 });
 
-check("3: folder grid covers required destinations (no SODA Brain)", () => {
-  for (const href of [
-    "/orders",
-    "/clients",
-    "/quotations",
-    "/calendar",
-    "/people",
-    "/finance",
-    "/connect",
-    "/notifications",
-  ]) {
-    assert.match(founderFolders, new RegExp(`href: "${href}"`));
-  }
-  assert.doesNotMatch(founderFolders, /\/brain/);
-  assert.match(founderFolders, /ArrowRight/);
+check("3: Home V3 panels — KPI, ops, management, lower", () => {
+  assert.match(founderHome, /FounderKpiRow/);
+  assert.match(founderHome, /FounderFollowUpOrders/);
+  assert.match(founderHome, /SodaLiveFeed/);
+  assert.match(founderHome, /CompanyPulse/);
+  assert.doesNotMatch(founderHome, /FounderFolderGrid/);
 });
 
-check("4: Studio Activity replaced by Latest Company Updates", () => {
+check("4: Latest Updates panel (not Studio Activity)", () => {
   assert.match(founderHome, /FounderCompanyUpdates/);
-  assert.match(companyUpdates, /Latest Company Updates/);
+  assert.match(companyUpdates, /Latest Updates/);
   assert.doesNotMatch(founderHome, /FounderStudioActivity/);
   assert.match(founderHome, /soda-founder-lower-panels/);
 });
@@ -133,8 +125,8 @@ check("13: hover and press durations in V2 range", () => {
   assert.ok(v2Motion.pressMs >= 120 && v2Motion.pressMs <= 160);
 });
 
-check("14: Add Quotation links to existing flow", () => {
-  assert.match(founderActions, /\/quotations\/new/);
+check("14: New Quotation links to existing flow", () => {
+  assert.match(quickActions, /\/quotations\/new/);
 });
 
 check("15: brain rail in shell (not sidebar)", () => {

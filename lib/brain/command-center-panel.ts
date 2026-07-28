@@ -45,7 +45,7 @@ export async function loadCommandCenterBrainPanel(): Promise<CommandCenterBrainP
 
     const focusFromAttention = [...snapshot.attention]
       .sort((a, b) => priorityScore(b.severity) - priorityScore(a.severity))
-      .slice(0, 3)
+      .slice(0, 4)
       .map((item) => ({
         id: item.id,
         title: item.title,
@@ -55,9 +55,9 @@ export async function loadCommandCenterBrainPanel(): Promise<CommandCenterBrainP
       }));
 
     const focusFromSchedule: BrainPanelFocusItem[] = [];
-    if (focusFromAttention.length < 3) {
+    if (focusFromAttention.length < 4) {
       for (const shoot of snapshot.schedule.todayShoots) {
-        if (focusFromSchedule.length + focusFromAttention.length >= 3) break;
+        if (focusFromSchedule.length + focusFromAttention.length >= 4) break;
         focusFromSchedule.push({
           id: `shoot-${shoot.id}`,
           title: shoot.title,
@@ -67,13 +67,22 @@ export async function loadCommandCenterBrainPanel(): Promise<CommandCenterBrainP
       }
     }
 
-    const focus = [...focusFromAttention, ...focusFromSchedule].slice(0, 3);
+    const focus = [...focusFromAttention, ...focusFromSchedule].slice(0, 4);
 
     const insights: BrainPanelInsightItem[] = [];
+    const seenInsightKeys = new Set<string>();
+    const pushInsight = (item: BrainPanelInsightItem) => {
+      const key = `${item.label}:${item.value}`;
+      if (seenInsightKeys.has(key)) return;
+      if (insights.length >= 3) return;
+      seenInsightKeys.add(key);
+      insights.push(item);
+    };
+
     const { kpis, financial } = snapshot;
 
     if (kpis.activeOrders > 0) {
-      insights.push({
+      pushInsight({
         id: "active-orders",
         label: "Active orders",
         value: String(kpis.activeOrders),
@@ -81,7 +90,7 @@ export async function loadCommandCenterBrainPanel(): Promise<CommandCenterBrainP
       });
     }
     if (financial.outstanding > 0) {
-      insights.push({
+      pushInsight({
         id: "outstanding",
         label: "Outstanding",
         value: formatPrice(financial.outstanding),
@@ -89,7 +98,7 @@ export async function loadCommandCenterBrainPanel(): Promise<CommandCenterBrainP
       });
     }
     if (kpis.upcomingShoots > 0) {
-      insights.push({
+      pushInsight({
         id: "upcoming-shoots",
         label: "Upcoming shoots",
         value: String(kpis.upcomingShoots),
@@ -103,7 +112,7 @@ export async function loadCommandCenterBrainPanel(): Promise<CommandCenterBrainP
       for (const line of panel.lines) {
         if (insights.length >= 3) break;
         if (line.value === "0") continue;
-        insights.push({
+        pushInsight({
           id: `${panel.key}-${line.label}`,
           label: line.label,
           value: line.value,
@@ -118,7 +127,7 @@ export async function loadCommandCenterBrainPanel(): Promise<CommandCenterBrainP
         if (insights.length >= 3) break;
         const title = entry.title?.trim() || entry.body.slice(0, 48);
         if (!title) continue;
-        insights.push({
+        pushInsight({
           id: `brain-${entry.id}`,
           label: "Brain note",
           value: title,

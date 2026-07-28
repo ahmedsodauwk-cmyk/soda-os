@@ -1,7 +1,5 @@
 "use client";
 
-import { useEffect, useState } from "react";
-
 import { SodaLanguage } from "@/components/brand/soda-language";
 import {
   buildHeroOperationalLines,
@@ -14,47 +12,12 @@ interface FounderCommandHeaderProps {
   operatorName?: string | null;
 }
 
-function useLocalNow(): Date {
-  const [now, setNow] = useState(() => new Date(0));
-
-  useEffect(() => {
-    const boot = window.setTimeout(() => setNow(new Date()), 0);
-    const id = window.setInterval(() => setNow(new Date()), 1_000);
-    return () => {
-      window.clearTimeout(boot);
-      window.clearInterval(id);
-    };
-  }, []);
-
-  return now;
-}
-
-function formatEnglishDate(now: Date): string {
-  return new Intl.DateTimeFormat("en-GB", {
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  }).format(now);
-}
-
-function formatEnglishTime(now: Date): string {
-  return new Intl.DateTimeFormat("en-GB", {
-    hour: "numeric",
-    minute: "2-digit",
-    hour12: true,
-  }).format(now);
-}
-
-/** Founder header — Arabic greeting anchor, SODA Language, English date/time below. */
+/** Founder greeting — Arabic anchor + operational lines only (no clock, no actions). */
 export function FounderCommandHeader({
   dashboard,
   operatorName,
 }: FounderCommandHeaderProps) {
-  const now = useLocalNow();
-  const hydrated = now.getTime() !== 0;
-  const clock = hydrated ? now : new Date();
-  const greeting = getHeroGreeting(clock, operatorName);
+  const greeting = getHeroGreeting(new Date(), operatorName);
   const lines = buildHeroOperationalLines(dashboard);
   const summary = lines[0]?.text ?? null;
 
@@ -63,39 +26,19 @@ export function FounderCommandHeader({
       aria-labelledby="founder-command-greeting"
       className="soda-founder-header min-w-0 flex-1 space-y-1"
     >
-      <div className="space-y-1">
-        <h1
-          id="founder-command-greeting"
-          lang="ar"
-          dir="rtl"
-          className="soda-founder-greeting font-ar min-w-0 font-bold leading-tight tracking-tight text-foreground"
-          suppressHydrationWarning
-        >
-          {greeting}
-        </h1>
-        {summary ? (
-          <SodaLanguage size="header" className="max-w-2xl">
-            {summary}
-          </SodaLanguage>
-        ) : null}
-        <div
-          aria-label="Date and time"
-          className="soda-founder-clock pt-0.5 text-left"
-        >
-          <p
-            className="text-sm font-medium text-muted-foreground"
-            suppressHydrationWarning
-          >
-            {formatEnglishDate(clock)}
-          </p>
-          <p
-            className="font-mono text-[15px] font-semibold tabular-nums text-soda-pink"
-            suppressHydrationWarning
-          >
-            {formatEnglishTime(clock)}
-          </p>
-        </div>
-      </div>
+      <h1
+        id="founder-command-greeting"
+        lang="ar"
+        dir="rtl"
+        className="soda-founder-greeting font-ar min-w-0 font-bold leading-tight tracking-tight text-foreground"
+      >
+        {greeting}
+      </h1>
+      {summary ? (
+        <SodaLanguage size="header" className="max-w-2xl">
+          {summary}
+        </SodaLanguage>
+      ) : null}
     </header>
   );
 }
