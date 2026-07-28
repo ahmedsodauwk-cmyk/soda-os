@@ -21,6 +21,7 @@ const read = (rel: string) => readFileSync(path.join(root, rel), "utf8");
 const founderHome = read("components/dashboard/founder-home-stream.tsx");
 const founderHeader = read("components/dashboard/founder-command-header.tsx");
 const founderKpi = read("components/dashboard/founder-kpi-row.tsx");
+const financialOverview = read("components/dashboard/financial-overview.tsx");
 const brainPanel = read("lib/brain/command-center-panel.ts");
 const repository = read("lib/dashboard/repository.ts");
 const globalsCss = read("app/globals.css");
@@ -91,11 +92,26 @@ check("9: clock card CSS token", () => {
   assert.match(globalsCss, /soda-founder-hero-row/);
 });
 
-check("10: sidebar untouched — w-56 rail", () => {
+check("10: financial summary — responsive 2×2 metric grid, LTR currency", () => {
+  assert.match(financialOverview, /@container\/metrics/);
+  assert.match(financialOverview, /grid-cols-2/);
+  assert.match(financialOverview, /max-\[15rem\]:grid-cols-1/);
+  assert.match(financialOverview, /\[52rem\]\/metrics:grid-cols-4/);
+  assert.match(financialOverview, /dir="ltr"/);
+  assert.match(financialOverview, /unicodeBidi: "isolate"/);
+  assert.match(financialOverview, /whitespace-nowrap/);
+  assert.match(financialOverview, /min-w-0/);
+  assert.match(financialOverview, /tabular-nums/);
+  assert.match(globalsCss, /soda-financial-metric-amount/);
+  assert.match(globalsCss, /clamp\(/);
+  assert.doesNotMatch(financialOverview, /lg:grid-cols-4/);
+});
+
+check("11: sidebar untouched — w-56 rail", () => {
   const sidebar = read("components/layout/sidebar.tsx");
   assert.match(sidebar, /w-56/);
   assert.match(sidebar, /soda-nav-pill-active/);
 });
 
-console.log(`\n${passed}/10 PASS`);
-if (passed !== 10) process.exit(1);
+console.log(`\n${passed}/11 PASS`);
+if (passed !== 11) process.exit(1);

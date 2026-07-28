@@ -1387,6 +1387,19 @@
   transform: none;
 }
 
+/* Financial Summary — metric grid (container-query responsive) */
+.soda-financial-summary {
+  overflow: visible;
+}
+
+.soda-financial-metrics-grid {
+  container-type: inline-size;
+}
+
+.soda-financial-metric-amount {
+  font-size: clamp(0.6875rem, 4.25cqi + 0.35rem, 1.125rem);
+}
+
 /* Three-column shell — sidebar | main | brain rail */
 .soda-shell-3col {
   --soda-sidebar-width: 14rem;

@@ -22,9 +22,21 @@ import type {
   FinancialOverview,
   MonthlyRevenuePoint,
 } from "@/lib/dashboard/types";
-import { DASHBOARD_SECTION_COPY, HUMAN_LAYER } from "@/lib/brand";
+import { DASHBOARD_SECTION_COPY } from "@/lib/brand";
 import { dashboardHref } from "@/lib/identity/navigation";
 import { formatPrice } from "@/lib/orders/utils";
+import { cn } from "@/lib/utils";
+
+/** Concise Arabic — one line per metric (Financial Summary cards only). */
+const METRIC_ARABIC: Record<
+  "Revenue" | "Outstanding" | "Deposits" | "Remaining",
+  string
+> = {
+  Revenue: "التحصيل الفعلي",
+  Outstanding: "مستحقات معلقة",
+  Deposits: "العربونات المحصّلة",
+  Remaining: "الباقي على الحساب",
+};
 
 interface FinancialOverviewCardProps {
   financial: FinancialOverview;
@@ -50,30 +62,45 @@ function ChartTooltip({
   );
 }
 
+type MetricLabel = keyof typeof METRIC_ARABIC;
+
 function Metric({
   label,
   value,
-  layerHint,
   href,
+  highlight,
 }: {
-  label: string;
+  label: MetricLabel;
   value: string;
-  layerHint: string;
   href: string;
+  highlight?: boolean;
 }) {
   return (
     <Link
       href={href}
-      className="cursor-pointer rounded-lg border border-primary/15 bg-primary/[0.05] px-3 py-2.5 transition-colors hover:border-soda-pink/40 hover:bg-soda-pink/[0.07] first:border-soda-pink/25 first:bg-soda-pink/[0.06]"
+      className={cn(
+        "soda-financial-metric flex min-h-[5.25rem] min-w-0 flex-col justify-between gap-1.5 rounded-lg border px-2.5 py-2 transition-colors sm:px-3 sm:py-2.5",
+        "border-primary/15 bg-primary/[0.05] hover:border-soda-pink/40 hover:bg-soda-pink/[0.07]",
+        highlight && "border-soda-pink/25 bg-soda-pink/[0.06]"
+      )}
     >
-      <p className="text-xs text-muted-foreground">{label}</p>
+      <div className="min-w-0 space-y-0.5">
+        <p className="text-xs font-semibold leading-tight text-foreground">
+          {label}
+        </p>
+        <p
+          className="font-ar text-[10px] leading-snug text-muted-foreground sm:text-[11px]"
+          dir="rtl"
+          lang="ar"
+        >
+          {METRIC_ARABIC[label]}
+        </p>
+      </div>
       <p
-        className="font-ar mt-0.5 text-[11px] leading-[1.7] text-muted-foreground"
-        dir="rtl"
+        className="soda-financial-metric-amount min-w-0 font-mono font-bold leading-none tracking-tight tabular-nums whitespace-nowrap"
+        dir="ltr"
+        style={{ unicodeBidi: "isolate" }}
       >
-        {layerHint}
-      </p>
-      <p className="mt-0.5 font-mono text-lg font-semibold tracking-tight tabular-nums">
         {value}
       </p>
     </Link>
@@ -90,7 +117,7 @@ export default function FinancialOverviewCard({
   }));
 
   return (
-    <Card className="soda-cc-card h-full">
+    <Card className="soda-cc-card soda-financial-summary h-full min-w-0">
       <CardHeader>
         <CardTitle>
           <Link
@@ -107,32 +134,31 @@ export default function FinancialOverviewCard({
           {DASHBOARD_SECTION_COPY.financial.description}
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
-          <Metric
-            label="Revenue"
-            value={formatPrice(financial.revenue)}
-            layerHint={HUMAN_LAYER.revenue}
-            href={dashboardHref("revenue")}
-          />
-          <Metric
-            label="Outstanding"
-            value={formatPrice(financial.outstanding)}
-            layerHint={HUMAN_LAYER.outstanding}
-            href={dashboardHref("outstanding")}
-          />
-          <Metric
-            label="Deposits"
-            value={formatPrice(financial.deposits)}
-            layerHint={HUMAN_LAYER.deposits}
-            href={dashboardHref("deposits")}
-          />
-          <Metric
-            label="Remaining"
-            value={formatPrice(financial.remainingBalance)}
-            layerHint={HUMAN_LAYER.remaining}
-            href={dashboardHref("remaining")}
-          />
+      <CardContent className="min-w-0 space-y-4">
+        <div className="@container/metrics min-w-0">
+          <div className="soda-financial-metrics-grid grid min-w-0 auto-rows-fr grid-cols-2 gap-2 max-[15rem]:grid-cols-1 @[52rem]/metrics:grid-cols-4">
+            <Metric
+              label="Revenue"
+              value={formatPrice(financial.revenue)}
+              href={dashboardHref("revenue")}
+              highlight
+            />
+            <Metric
+              label="Outstanding"
+              value={formatPrice(financial.outstanding)}
+              href={dashboardHref("outstanding")}
+            />
+            <Metric
+              label="Deposits"
+              value={formatPrice(financial.deposits)}
+              href={dashboardHref("deposits")}
+            />
+            <Metric
+              label="Remaining"
+              value={formatPrice(financial.remainingBalance)}
+              href={dashboardHref("remaining")}
+            />
+          </div>
         </div>
 
         <Link href={dashboardHref("revenue")} className="block h-48">
