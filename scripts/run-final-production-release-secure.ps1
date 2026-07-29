@@ -226,19 +226,19 @@ function Run-Phase2-MigrationReconciliation {
     $script:RlsResult = "PASS"
   }
   elseif ($rlsExit -eq 3) {
-    $script:RlsResult = "FAIL (fixture defect — 000034 not rolled back)"
-    Write-Host "  Probe fixture defect (e.g. 23503 FK) — NOT an RLS failure; 000034 rollback skipped." -ForegroundColor Red
-    throw "RLS probe fixture defect — fix verifier, do not rollback migration"
+    $script:RlsResult = "FAIL (fixture defect - 000034 not rolled back)"
+    Write-Host "  Probe fixture defect (e.g. 23503 FK) - NOT an RLS failure; 000034 rollback skipped." -ForegroundColor Red
+    throw "RLS probe fixture defect - fix verifier, do not rollback migration"
   }
   else {
-    Write-Host "  RLS denial detected (42501) — rolling back 000034..." -ForegroundColor Red
+    Write-Host "  RLS denial detected (42501) - rolling back 000034..." -ForegroundColor Red
     try {
       Invoke-Tsx -ScriptArgs @("scripts/apply-founder-only-rls-secure.ts", "--rollback") -Label "rollback 000034"
     }
     catch {
       Write-Host "  Rollback command failed - manual intervention required." -ForegroundColor Red
     }
-    $script:RlsResult = "FAIL (RLS denial — rolled back)"
+    $script:RlsResult = "FAIL (RLS denial - rolled back)"
     throw "RLS assertions failed (authorization denial)"
   }
 
