@@ -98,6 +98,110 @@ function Invoke-Tsx {
   return $code
 }
 
+function Parse-RlsProbeStructuredResult {
+  param([System.Collections.IEnumerable]$OutputLines)
+  $marker = "SODA_RLS_PROBE_RESULT_JSON:"
+  $lines = @($OutputLines)
+  for ($i = $lines.Length - 1; $i -ge 0; $i--) {
+    $line = [string]$lines[$i]
+    if ($line.StartsWith($marker)) {
+      $jsonText = $line.Substring($marker.Length)
+      return ($jsonText | ConvertFrom-Json)
+    }
+  }
+  return $null
+}
+
+function Invoke-RlsLiveProbes {
+  param(
+    [string]$Migration034AppliedThisRun
+  )
+  Write-Host "  > npx tsx scripts/verify-founder-only-rls-live.ts" -ForegroundColor DarkGray
+  $probeOutput = & npx tsx scripts/verify-founder-only-rls-live.ts 2>&1
+  $probeExit = $LASTEXITCODE
+  if ($null -eq $probeExit) { $probeExit = 1 }
+  $probeOutput | ForEach-Object { Write-Host $_ }
+
+  $structured = Parse-RlsProbeStructuredResult -OutputLines $probeOutput
+  if ($null -eq $structured) {
+    throw "founder-only RLS live probes failed - structured JSON result missing"
+  }
+
+  $classifiedExit = [int]$structured.exitCode
+  if ($classifiedExit -ne $probeExit) {
+    Write-Host "  WARNING  probe exit code ($probeExit) differs from structured exitCode ($classifiedExit); using structured result." -ForegroundColor Yellow
+  }
+
+  if ($structured.status -eq "pass") {
+    if ($classifiedExit -ne 0) {
+      throw "founder-only RLS live probes reported pass but exitCode=$classifiedExit"
+    }
+    return $structured
+  }
+
+  Write-Host ""
+  Write-Host "  RLS probe failure summary:" -ForegroundColor Red
+  if ($structured.failedProbeId) {
+    Write-Host "    failedProbeId: $($structured.failedProbeId)" -ForegroundColor Red
+  }
+  if ($structured.table) {
+    Write-Host "    table: $($structured.table)" -ForegroundColor Red
+  }
+  if ($structured.operation) {
+    Write-Host "    operation: $($structured.operation)" -ForegroundColor Red
+  }
+  if ($structured.stage) {
+    Write-Host "    stage: $($structured.stage)" -ForegroundColor Red
+  }
+  if ($structured.sqlState) {
+    Write-Host "    sqlState: $($structured.sqlState)" -ForegroundColor Red
+  }
+  Write-Host "    governedBy000034: $($structured.governedBy000034)" -ForegroundColor Red
+  Write-Host "    cleanupCompleted: $($structured.cleanupCompleted)" -ForegroundColor Red
+  Write-Host "    migrationRollbackRecommended: $($structured.migrationRollbackRecommended)" -ForegroundColor Red
+
+  if ($structured.sr02InsertGap -eq $true) {
+    $script:RlsResult = "FAIL (SR-02 INSERT security gap - 000034 not rolled back)"
+    throw "SR-02 INSERT security gap detected - stop before merge"
+  }
+
+  if ($classifiedExit -eq 3) {
+    $script:RlsResult = "FAIL (fixture/identity defect - 000034 not rolled back)"
+    Write-Host "  Probe fixture or identity defect - NOT an RLS policy failure; 000034 rollback skipped." -ForegroundColor Red
+    throw "RLS probe fixture or identity defect - fix verifier, do not rollback migration"
+  }
+
+  $shouldRollback = $false
+  if (
+    $Migration034AppliedThisRun -eq "applied this run" -and
+    $structured.cleanupCompleted -eq $true -and
+    $structured.migrationRollbackRecommended -eq $true -and
+    $structured.governedBy000034 -eq $true
+  ) {
+    $shouldRollback = $true
+  }
+
+  if ($shouldRollback) {
+    Write-Host "  Founder UPDATE/DELETE governed by 000034 failed after correct setup - rolling back 000034..." -ForegroundColor Red
+    try {
+      Invoke-Tsx -ScriptArgs @("scripts/apply-founder-only-rls-secure.ts", "--rollback") -Label "rollback 000034"
+    }
+    catch {
+      Write-Host "  Rollback command failed - manual intervention required." -ForegroundColor Red
+    }
+    $script:RlsResult = "FAIL (founder mutation denied - 000034 rolled back)"
+    throw "RLS assertions failed (founder UPDATE/DELETE denied by 000034)"
+  }
+
+  if ($classifiedExit -eq 2) {
+    $script:RlsResult = "FAIL (exit 2 but rollback not recommended - 000034 kept)"
+    throw "RLS probe exit 2 without migration rollback recommendation - fix verifier classification"
+  }
+
+  $script:RlsResult = "FAIL (exit $classifiedExit)"
+  throw "founder-only RLS live probes failed (exit $classifiedExit)"
+}
+
 function Run-Phase0-Baseline {
   Write-Host ""
   Write-Host "=== Phase 0: Baseline ===" -ForegroundColor Cyan
@@ -221,26 +325,8 @@ function Run-Phase2-MigrationReconciliation {
     $script:Migration034Applied = "skipped (catalog policies match)"
   }
 
-  $rlsExit = Invoke-Tsx -ScriptArgs @("scripts/verify-founder-only-rls-live.ts") -Label "founder-only RLS live probes" -AllowedExitCodes @(0, 2, 3)
-  if ($rlsExit -eq 0) {
-    $script:RlsResult = "PASS"
-  }
-  elseif ($rlsExit -eq 3) {
-    $script:RlsResult = "FAIL (fixture defect - 000034 not rolled back)"
-    Write-Host "  Probe fixture defect (e.g. 23503 FK) - NOT an RLS failure; 000034 rollback skipped." -ForegroundColor Red
-    throw "RLS probe fixture defect - fix verifier, do not rollback migration"
-  }
-  else {
-    Write-Host "  RLS denial detected (42501) - rolling back 000034..." -ForegroundColor Red
-    try {
-      Invoke-Tsx -ScriptArgs @("scripts/apply-founder-only-rls-secure.ts", "--rollback") -Label "rollback 000034"
-    }
-    catch {
-      Write-Host "  Rollback command failed - manual intervention required." -ForegroundColor Red
-    }
-    $script:RlsResult = "FAIL (RLS denial - rolled back)"
-    throw "RLS assertions failed (authorization denial)"
-  }
+  $null = Invoke-RlsLiveProbes -Migration034AppliedThisRun $script:Migration034Applied
+  $script:RlsResult = "PASS"
 
   Write-Host "PASS  migration reconciliation (000033 not applied)" -ForegroundColor Green
 }
