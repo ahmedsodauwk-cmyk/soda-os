@@ -3,11 +3,20 @@
  * Transaction-safe — all mutation probes rolled back; disposable fixtures only.
  * Reads DATABASE_URL from process env only.
  *
+ * Fixture model (every UPDATE/DELETE probe):
+ *   1. BEGIN
+ *   2. Privileged insert (no SET LOCAL role authenticated)
+ *   3. Confirm fixture exists
+ *   4. SET LOCAL authenticated + jwt.claim.sub for operation under test
+ *   5. Execute operation; assert row count or RLS denial
+ *   6. ROLLBACK
+ *   7. Confirm no fixture survives
+ *
  * Exit codes:
  *   0 — all probes passed
- *   1 — unexpected error
- *   2 — RLS denial (42501) — runner may rollback 000034
- *   3 — test fixture defect (e.g. 23503 FK) — do NOT rollback migration
+ *   1 — unexpected error or SR-02 INSERT security gap
+ *   2 — RLS denial (42501) during operation under test — runner may rollback 000034
+ *   3 — test fixture defect (e.g. 23503 FK, 42501 during privileged setup) — do NOT rollback migration
  *
  * Run: npx tsx scripts/verify-founder-only-rls-live.ts
  */
@@ -38,6 +47,11 @@ const SQLSTATE_RLS_DENIAL = "42501";
 const SQLSTATE_FK_VIOLATION = "23503";
 const SQLSTATE_UNIQUE_VIOLATION = "23505";
 
+const SR02_INSERT_POLICY_FIX = `DROP POLICY IF EXISTS sr01_clients_insert ON public.clients;
+CREATE POLICY sr01_clients_insert ON public.clients
+  FOR INSERT TO authenticated
+  WITH CHECK (public.soda_is_domain_founder());`;
+
 function disposableClientMarker(): string {
   const suffix = `${Date.now()}-${randomBytes(4).toString("hex")}`;
   return `SODA_RLS_TEST_${suffix}`;
@@ -60,6 +74,26 @@ function isRlsDenial(err: unknown): boolean {
   return /permission denied|42501/i.test(msg);
 }
 
+function exitFixtureDefect(message: string): never {
+  console.error(`FAIL  fixture defect: ${message}`);
+  process.exit(RLS_PROBE_EXIT_FIXTURE_DEFECT);
+}
+
+function exitRlsFail(message: string): never {
+  console.error(`FAIL  ${message}`);
+  process.exit(RLS_PROBE_EXIT_RLS_FAIL);
+}
+
+function exitInsertSecurityGap(level: string): never {
+  console.error(
+    `FAIL  SR-02 security gap: ${level} INSERT clients allowed by RLS — stop before merge`
+  );
+  console.error("  Expected: non-Founder direct INSERT denied at RLS layer.");
+  console.error("  Smallest additive fix (apply separately, not in this verifier):");
+  console.error(`  ${SR02_INSERT_POLICY_FIX.split("\n").join("\n  ")}`);
+  process.exit(1);
+}
+
 async function setRole(
   client: import("pg").Client,
   userId: string
@@ -68,18 +102,59 @@ async function setRole(
   await client.query("SET LOCAL role authenticated");
 }
 
-async function insertDisposableClient(
+/** Privileged fixture insert — must run BEFORE setRole/authenticated JWT. */
+async function insertDisposableClientPrivileged(
   client: import("pg").Client,
-  founderId: string,
   clientId: string,
   marker: string
 ): Promise<void> {
-  await setRole(client, founderId);
-  await client.query(
-    `INSERT INTO public.clients (id, type, segment, name, phone, is_active)
-     VALUES ($1, 'individual', 'wedding', $2, '0000000000', true)`,
-    [clientId, marker]
+  try {
+    await client.query(
+      `INSERT INTO public.clients (id, type, segment, name, phone, is_active)
+       VALUES ($1, 'individual', 'wedding', $2, '0000000000', true)`,
+      [clientId, marker]
+    );
+  } catch (err) {
+    const code = pgSqlState(err);
+    if (code === SQLSTATE_RLS_DENIAL || isRlsDenial(err)) {
+      exitFixtureDefect(
+        `${SQLSTATE_RLS_DENIAL} during privileged fixture setup — DATABASE_URL role cannot bypass RLS for fixture seeding`
+      );
+    }
+    if (code === SQLSTATE_FK_VIOLATION) {
+      exitFixtureDefect(
+        `${SQLSTATE_FK_VIOLATION}: disposable client fixture has dependency defect`
+      );
+    }
+    if (code === SQLSTATE_UNIQUE_VIOLATION) {
+      exitFixtureDefect(
+        `${SQLSTATE_UNIQUE_VIOLATION}: disposable client id collision`
+      );
+    }
+    throw err;
+  }
+}
+
+async function confirmFixtureExists(
+  client: import("pg").Client,
+  clientId: string
+): Promise<void> {
+  const r = await client.query<{ n: string }>(
+    "SELECT count(*)::text AS n FROM public.clients WHERE id = $1",
+    [clientId]
   );
+  assert.equal(r.rows[0]?.n, "1", "fixture must exist before role switch");
+}
+
+async function assertNoFixtureSurvives(
+  client: import("pg").Client,
+  clientId: string
+): Promise<void> {
+  const ghost = await client.query<{ n: string }>(
+    "SELECT count(*)::text AS n FROM public.clients WHERE id = $1",
+    [clientId]
+  );
+  assert.equal(ghost.rows[0]?.n, "0", "fixture must not survive rollback");
 }
 
 function policyIsFounderOnly(qual: string | null, withCheck: string | null): boolean {
@@ -231,14 +306,15 @@ async function main(): Promise<void> {
     });
 
     await liveCheck(
-      "founder: DELETE disposable client (rolled back, no production rows)",
+      "founder: DELETE disposable client allowed (rolled back)",
       async () => {
         const clientId = disposableClientId();
         const marker = clientId;
 
         await client.query("BEGIN");
         try {
-          await insertDisposableClient(client, founderId, clientId, marker);
+          await insertDisposableClientPrivileged(client, clientId, marker);
+          await confirmFixtureExists(client, clientId);
 
           await setRole(client, founderId);
           const r = await client.query(
@@ -249,33 +325,21 @@ async function main(): Promise<void> {
         } catch (err) {
           const code = pgSqlState(err);
           if (code === SQLSTATE_FK_VIOLATION) {
-            console.error(
-              `FAIL  fixture defect (${SQLSTATE_FK_VIOLATION}): disposable client has dependents — probe design error`
+            exitFixtureDefect(
+              `${SQLSTATE_FK_VIOLATION}: disposable client has dependents — probe design error`
             );
-            process.exit(RLS_PROBE_EXIT_FIXTURE_DEFECT);
           }
           if (code === SQLSTATE_RLS_DENIAL || isRlsDenial(err)) {
-            console.error(
-              `FAIL  founder DELETE denied (${SQLSTATE_RLS_DENIAL}) — RLS lockdown not effective`
+            exitRlsFail(
+              `founder DELETE denied (${SQLSTATE_RLS_DENIAL}) — RLS lockdown not effective`
             );
-            process.exit(RLS_PROBE_EXIT_RLS_FAIL);
-          }
-          if (code === SQLSTATE_UNIQUE_VIOLATION) {
-            console.error(
-              `FAIL  fixture defect (${SQLSTATE_UNIQUE_VIOLATION}): disposable client id collision`
-            );
-            process.exit(RLS_PROBE_EXIT_FIXTURE_DEFECT);
           }
           throw err;
         } finally {
           await client.query("ROLLBACK");
         }
 
-        const ghost = await client.query<{ n: string }>(
-          "SELECT count(*)::text AS n FROM public.clients WHERE id = $1",
-          [clientId]
-        );
-        assert.equal(ghost.rows[0]?.n, "0");
+        await assertNoFixtureSurvives(client, clientId);
       }
     );
 
@@ -290,16 +354,25 @@ async function main(): Promise<void> {
 
           await client.query("BEGIN");
           try {
-            await insertDisposableClient(client, founderId, clientId, marker);
+            await insertDisposableClientPrivileged(client, clientId, marker);
+            await confirmFixtureExists(client, clientId);
+
             await setRole(client, amId);
-            const r = await client.query(
-              `DELETE FROM public.clients WHERE id = $1`,
-              [clientId]
-            );
-            assert.equal(r.rowCount, 0);
+            try {
+              const r = await client.query(
+                `DELETE FROM public.clients WHERE id = $1`,
+                [clientId]
+              );
+              assert.equal(r.rowCount, 0);
+            } catch (err) {
+              if (isRlsDenial(err)) return;
+              throw err;
+            }
           } finally {
             await client.query("ROLLBACK");
           }
+
+          await assertNoFixtureSurvives(client, clientId);
         }
       );
 
@@ -311,16 +384,25 @@ async function main(): Promise<void> {
 
           await client.query("BEGIN");
           try {
-            await insertDisposableClient(client, founderId, clientId, marker);
+            await insertDisposableClientPrivileged(client, clientId, marker);
+            await confirmFixtureExists(client, clientId);
+
             await setRole(client, amId);
-            const r = await client.query(
-              `UPDATE public.clients SET notes = 'rls-probe' WHERE id = $1`,
-              [clientId]
-            );
-            assert.equal(r.rowCount, 0);
+            try {
+              const r = await client.query(
+                `UPDATE public.clients SET notes = 'rls-probe' WHERE id = $1`,
+                [clientId]
+              );
+              assert.equal(r.rowCount, 0);
+            } catch (err) {
+              if (isRlsDenial(err)) return;
+              throw err;
+            }
           } finally {
             await client.query("ROLLBACK");
           }
+
+          await assertNoFixtureSurvives(client, clientId);
         }
       );
     } else {
@@ -356,35 +438,73 @@ async function main(): Promise<void> {
       );
     }
 
-    await liveCheck("non-founder INSERT clients still allowed (rolled back)", async () => {
-      const probeId = byLevel.get("account_manager") ?? byLevel.get("team_leader");
-      if (!probeId) {
-        console.log("SKIP  INSERT probe — no AM/TL profile");
-        return;
-      }
+    await liveCheck(
+      "founder: INSERT client permitted via protected path (rolled back)",
+      async () => {
+        const insertId = disposableClientId();
 
-      const insertId = disposableClientId();
-      await client.query("BEGIN");
-      try {
-        await setRole(client, probeId);
+        await client.query("BEGIN");
         try {
+          await setRole(client, founderId);
           await client.query(
             `INSERT INTO public.clients (id, type, segment, name, phone, is_active)
              VALUES ($1, 'individual', 'wedding', $2, '0000000000', true)`,
             [insertId, insertId]
           );
-        } catch (e) {
-          const code = pgSqlState(e);
-          if (code === SQLSTATE_UNIQUE_VIOLATION) return;
-          throw e;
+          await confirmFixtureExists(client, insertId);
+        } catch (err) {
+          if (isRlsDenial(err)) {
+            exitRlsFail(
+              `founder INSERT denied (${SQLSTATE_RLS_DENIAL}) — founder create path blocked`
+            );
+          }
+          throw err;
+        } finally {
+          await client.query("ROLLBACK");
         }
-      } finally {
-        await client.query("ROLLBACK");
+
+        await assertNoFixtureSurvives(client, insertId);
       }
-    });
+    );
+
+    for (const level of NON_FOUNDER_LEVELS) {
+      const uid = byLevel.get(level);
+      if (!uid) {
+        console.log(`SKIP  ${level}: INSERT probe — no active profile`);
+        continue;
+      }
+
+      await liveCheck(`${level}: INSERT client denied (SR-02)`, async () => {
+        const insertId = disposableClientId();
+
+        await client.query("BEGIN");
+        try {
+          await setRole(client, uid);
+          try {
+            await client.query(
+              `INSERT INTO public.clients (id, type, segment, name, phone, is_active)
+               VALUES ($1, 'individual', 'wedding', $2, '0000000000', true)`,
+              [insertId, insertId]
+            );
+            exitInsertSecurityGap(level);
+          } catch (err) {
+            if (isRlsDenial(err)) return;
+            const code = pgSqlState(err);
+            if (code === SQLSTATE_UNIQUE_VIOLATION) return;
+            throw err;
+          }
+        } finally {
+          await client.query("ROLLBACK");
+        }
+
+        await assertNoFixtureSurvives(client, insertId);
+      });
+    }
   });
 
   console.log(`\n  AM verification: ${amVerificationMethod ?? "not run"}`);
+  console.log(`  fixture seeding: privileged insert before role switch`);
+  console.log(`  SR-02 INSERT: non-Founder denial required (denial = PASS)`);
   console.log(`  no production business rows modified (all probes rolled back)`);
   console.log(`\n${passed} live RLS probes passed.`);
 }
