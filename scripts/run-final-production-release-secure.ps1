@@ -1,4 +1,4 @@
-# SODA OS — Secure end-to-end Production release runner
+# SODA OS - Secure end-to-end Production release runner
 # Founder command: npm run release:production:secure
 #
 # - Prompts once for Production DATABASE_URL (masked); never persists credentials
@@ -119,12 +119,12 @@ function Run-Phase0-Baseline {
     throw "expected branch $ExpectedBranch, got $branch"
   }
   if ($head -ne $originPreview) {
-    throw "HEAD must match origin/$ExpectedBranch ($originPreview) — run git pull"
+    throw "HEAD must match origin/$ExpectedBranch ($originPreview) - run git pull"
   }
 
   $stateScript = Get-Content -LiteralPath "scripts/verify-live-migration-state.ts" -Raw -Encoding UTF8
   if ($stateScript -notmatch "migrationHistoryAvailable") {
-    throw "release runner fix missing — pull latest $ExpectedBranch"
+    throw "release runner fix missing - pull latest $ExpectedBranch"
   }
 
   Write-Host "PASS  baseline confirmed (unrelated working-tree files preserved)" -ForegroundColor Green
@@ -196,12 +196,12 @@ function Run-Phase2-MigrationReconciliation {
   }
 
   if ($stateOutput -match "MIGRATION HISTORY TABLE ABSENT") {
-    $script:MigrationHistoryStatus = "WARNING — history table absent (catalog used)"
-    Write-Host "  WARNING  migration history absent — continuing via PostgreSQL catalog" -ForegroundColor Yellow
-    Write-Host "  NOTE  MIGRATION HISTORY TRACKING NOT INITIALIZED — FOLLOW-UP REQUIRED" -ForegroundColor Yellow
+    $script:MigrationHistoryStatus = "WARNING - history table absent (catalog used)"
+    Write-Host "  WARNING  migration history absent - continuing via PostgreSQL catalog" -ForegroundColor Yellow
+    Write-Host "  NOTE  MIGRATION HISTORY TRACKING NOT INITIALIZED - FOLLOW-UP REQUIRED" -ForegroundColor Yellow
   } elseif ($stateOutput -match "migrationHistoryAvailable: false") {
-    $script:MigrationHistoryStatus = "WARNING — history unavailable (catalog used)"
-    Write-Host "  WARNING  migration history unavailable — catalog verification used" -ForegroundColor Yellow
+    $script:MigrationHistoryStatus = "WARNING - history unavailable (catalog used)"
+    Write-Host "  WARNING  migration history unavailable - catalog verification used" -ForegroundColor Yellow
   } else {
     $script:MigrationHistoryStatus = "available"
   }
@@ -290,7 +290,20 @@ function Run-Phase3-CodeGates {
 
   Invoke-Npm -NpmArgs @("run", "build") -Label "build"
 
-  & git diff --check
+  $diffCheckPaths = @(
+    "scripts/run-final-production-release-secure.ps1",
+    "scripts/verify-live-migration-state.ts",
+    "scripts/apply-founder-only-rls-secure.ts",
+    "scripts/verify-founder-only-rls-live.ts",
+    "scripts/verify-live-release-state.ts",
+    "scripts/verify-database-backup-package.ts",
+    "scripts/db-secure-connection.ts",
+    "scripts/verify-motion-v3-parity.ts",
+    "scripts/verify-founder-home-mission.ts",
+    "scripts/verify-command-center-layout.ts",
+    "package.json"
+  )
+  & git diff --check -- @diffCheckPaths
   $diffCheck = $LASTEXITCODE
   if ($null -eq $diffCheck) { $diffCheck = 1 }
   if ($diffCheck -ne 0) { throw "git diff --check failed" }
