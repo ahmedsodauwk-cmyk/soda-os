@@ -1,12 +1,19 @@
 /**
  * Live RLS probes for founder-only UPDATE/DELETE lockdown (000034).
- * Transaction-safe — all mutation probes rolled back.
+ * Transaction-safe — all mutation probes rolled back; disposable fixtures only.
  * Reads DATABASE_URL from process env only.
+ *
+ * Exit codes:
+ *   0 — all probes passed
+ *   1 — unexpected error
+ *   2 — RLS denial (42501) — runner may rollback 000034
+ *   3 — test fixture defect (e.g. 23503 FK) — do NOT rollback migration
  *
  * Run: npx tsx scripts/verify-founder-only-rls-live.ts
  */
 
 import assert from "node:assert/strict";
+import { randomBytes } from "node:crypto";
 
 import {
   maskDatabaseUrl,
@@ -23,6 +30,36 @@ const NON_FOUNDER_LEVELS: AccessLevel[] = [
   "team",
 ];
 
+/** Runner exit codes for classification-aware rollback. */
+export const RLS_PROBE_EXIT_RLS_FAIL = 2;
+export const RLS_PROBE_EXIT_FIXTURE_DEFECT = 3;
+
+const SQLSTATE_RLS_DENIAL = "42501";
+const SQLSTATE_FK_VIOLATION = "23503";
+const SQLSTATE_UNIQUE_VIOLATION = "23505";
+
+function disposableClientMarker(): string {
+  const suffix = `${Date.now()}-${randomBytes(4).toString("hex")}`;
+  return `SODA_RLS_TEST_${suffix}`;
+}
+
+function disposableClientId(): string {
+  return disposableClientMarker();
+}
+
+function pgSqlState(err: unknown): string | undefined {
+  if (typeof err !== "object" || err === null) return undefined;
+  const code = (err as { code?: string }).code;
+  return typeof code === "string" ? code : undefined;
+}
+
+function isRlsDenial(err: unknown): boolean {
+  const code = pgSqlState(err);
+  if (code === SQLSTATE_RLS_DENIAL) return true;
+  const msg = err instanceof Error ? err.message : String(err);
+  return /permission denied|42501/i.test(msg);
+}
+
 async function setRole(
   client: import("pg").Client,
   userId: string
@@ -31,12 +68,35 @@ async function setRole(
   await client.query("SET LOCAL role authenticated");
 }
 
+async function insertDisposableClient(
+  client: import("pg").Client,
+  founderId: string,
+  clientId: string,
+  marker: string
+): Promise<void> {
+  await setRole(client, founderId);
+  await client.query(
+    `INSERT INTO public.clients (id, type, segment, name, phone, is_active)
+     VALUES ($1, 'individual', 'wedding', $2, '0000000000', true)`,
+    [clientId, marker]
+  );
+}
+
+function policyIsFounderOnly(qual: string | null, withCheck: string | null): boolean {
+  const text = `${qual ?? ""} ${withCheck ?? ""}`;
+  if (!/soda_is_domain_founder\s*\(\s*\)/i.test(text)) return false;
+  if (/soda_can_access_/i.test(text)) return false;
+  if (/soda_profile_access_level/i.test(text)) return false;
+  return true;
+}
+
 async function main(): Promise<void> {
   const dbUrl = requireDatabaseUrl();
   console.log("verify-founder-only-rls-live\n");
   console.log(`  database: ${maskDatabaseUrl(dbUrl)}\n`);
 
   let passed = 0;
+  let amVerificationMethod: string | null = null;
 
   await withPg(dbUrl, async (client) => {
     async function liveCheck(
@@ -79,11 +139,6 @@ async function main(): Promise<void> {
       console.error("FAIL  no orders row for UPDATE probe");
       process.exit(1);
     }
-
-    const clientRow = await client.query<{ id: string }>(
-      `SELECT id FROM public.clients ORDER BY created_at DESC NULLS LAST LIMIT 1`
-    );
-    const clientId = clientRow.rows[0]?.id;
 
     await liveCheck("founder: SELECT orders succeeds", async () => {
       await client.query("BEGIN");
@@ -175,56 +230,152 @@ async function main(): Promise<void> {
       }
     });
 
-    if (clientId) {
-      await liveCheck("founder: DELETE client probe rolled back", async () => {
-        const countBefore = await client.query<{ n: string }>(
-          "SELECT count(*)::text AS n FROM public.clients WHERE id = $1",
-          [clientId]
-        );
-        const n0 = countBefore.rows[0]?.n ?? "0";
+    await liveCheck(
+      "founder: DELETE disposable client (rolled back, no production rows)",
+      async () => {
+        const clientId = disposableClientId();
+        const marker = clientId;
 
         await client.query("BEGIN");
         try {
+          await insertDisposableClient(client, founderId, clientId, marker);
+
           await setRole(client, founderId);
           const r = await client.query(
             `DELETE FROM public.clients WHERE id = $1`,
             [clientId]
           );
           assert.equal(r.rowCount, 1);
+        } catch (err) {
+          const code = pgSqlState(err);
+          if (code === SQLSTATE_FK_VIOLATION) {
+            console.error(
+              `FAIL  fixture defect (${SQLSTATE_FK_VIOLATION}): disposable client has dependents — probe design error`
+            );
+            process.exit(RLS_PROBE_EXIT_FIXTURE_DEFECT);
+          }
+          if (code === SQLSTATE_RLS_DENIAL || isRlsDenial(err)) {
+            console.error(
+              `FAIL  founder DELETE denied (${SQLSTATE_RLS_DENIAL}) — RLS lockdown not effective`
+            );
+            process.exit(RLS_PROBE_EXIT_RLS_FAIL);
+          }
+          if (code === SQLSTATE_UNIQUE_VIOLATION) {
+            console.error(
+              `FAIL  fixture defect (${SQLSTATE_UNIQUE_VIOLATION}): disposable client id collision`
+            );
+            process.exit(RLS_PROBE_EXIT_FIXTURE_DEFECT);
+          }
+          throw err;
         } finally {
           await client.query("ROLLBACK");
         }
 
-        const countAfter = await client.query<{ n: string }>(
+        const ghost = await client.query<{ n: string }>(
           "SELECT count(*)::text AS n FROM public.clients WHERE id = $1",
           [clientId]
         );
-        assert.equal(countAfter.rows[0]?.n, n0);
-      });
+        assert.equal(ghost.rows[0]?.n, "0");
+      }
+    );
+
+    const amId = byLevel.get("account_manager");
+    if (amId) {
+      amVerificationMethod = "live account_manager profile probes";
+      await liveCheck(
+        "account_manager: DELETE disposable client denied (0 rows, rolled back)",
+        async () => {
+          const clientId = disposableClientId();
+          const marker = clientId;
+
+          await client.query("BEGIN");
+          try {
+            await insertDisposableClient(client, founderId, clientId, marker);
+            await setRole(client, amId);
+            const r = await client.query(
+              `DELETE FROM public.clients WHERE id = $1`,
+              [clientId]
+            );
+            assert.equal(r.rowCount, 0);
+          } finally {
+            await client.query("ROLLBACK");
+          }
+        }
+      );
+
+      await liveCheck(
+        "account_manager: UPDATE disposable client denied (0 rows, rolled back)",
+        async () => {
+          const clientId = disposableClientId();
+          const marker = clientId;
+
+          await client.query("BEGIN");
+          try {
+            await insertDisposableClient(client, founderId, clientId, marker);
+            await setRole(client, amId);
+            const r = await client.query(
+              `UPDATE public.clients SET notes = 'rls-probe' WHERE id = $1`,
+              [clientId]
+            );
+            assert.equal(r.rowCount, 0);
+          } finally {
+            await client.query("ROLLBACK");
+          }
+        }
+      );
+    } else {
+      amVerificationMethod = "structural catalog proof (no active AM profile)";
+      await liveCheck(
+        "account_manager: clients UPDATE/DELETE policies founder-only (catalog)",
+        async () => {
+          const policies = await client.query<{
+            policyname: string;
+            qual: string | null;
+            with_check: string | null;
+          }>(
+            `SELECT policyname, qual, with_check
+             FROM pg_policies
+             WHERE schemaname = 'public'
+               AND tablename = 'clients'
+               AND policyname = ANY($1::text[])`,
+            [["sr01_clients_update", "sr01_clients_delete"]]
+          );
+
+          const found = new Map(
+            policies.rows.map((r) => [r.policyname, r])
+          );
+          for (const name of ["sr01_clients_update", "sr01_clients_delete"]) {
+            const row = found.get(name);
+            assert.ok(row, `missing policy ${name} on public.clients`);
+            assert.ok(
+              policyIsFounderOnly(row.qual, row.with_check),
+              `${name} is not founder-only in catalog`
+            );
+          }
+        }
+      );
     }
 
     await liveCheck("non-founder INSERT clients still allowed (rolled back)", async () => {
-      const amId = byLevel.get("account_manager") ?? byLevel.get("team_leader");
-      if (!amId) {
+      const probeId = byLevel.get("account_manager") ?? byLevel.get("team_leader");
+      if (!probeId) {
         console.log("SKIP  INSERT probe — no AM/TL profile");
         return;
       }
 
-      const probeId = `rls-insert-probe-${Date.now()}`;
+      const insertId = disposableClientId();
       await client.query("BEGIN");
       try {
-        await setRole(client, amId);
+        await setRole(client, probeId);
         try {
           await client.query(
-            `INSERT INTO public.clients (id, type, segment, name)
-             VALUES ($1, 'individual', 'wedding', 'RLS Insert Probe')`,
-            [probeId]
+            `INSERT INTO public.clients (id, type, segment, name, phone, is_active)
+             VALUES ($1, 'individual', 'wedding', $2, '0000000000', true)`,
+            [insertId, insertId]
           );
         } catch (e) {
-          const msg = e instanceof Error ? e.message : String(e);
-          if (/duplicate key|23505/i.test(msg)) {
-            return;
-          }
+          const code = pgSqlState(e);
+          if (code === SQLSTATE_UNIQUE_VIOLATION) return;
           throw e;
         }
       } finally {
@@ -233,11 +384,21 @@ async function main(): Promise<void> {
     });
   });
 
+  console.log(`\n  AM verification: ${amVerificationMethod ?? "not run"}`);
+  console.log(`  no production business rows modified (all probes rolled back)`);
   console.log(`\n${passed} live RLS probes passed.`);
 }
 
 main().catch((err: unknown) => {
+  const code = pgSqlState(err);
   const msg = err instanceof Error ? err.message : String(err);
   console.error(`\nFAIL  ${redactSecrets(msg)}`);
+  if (code === SQLSTATE_RLS_DENIAL || isRlsDenial(err)) {
+    process.exit(RLS_PROBE_EXIT_RLS_FAIL);
+  }
+  if (code === SQLSTATE_FK_VIOLATION) {
+    console.error(`FAIL  fixture defect (${SQLSTATE_FK_VIOLATION}) — not an RLS failure`);
+    process.exit(RLS_PROBE_EXIT_FIXTURE_DEFECT);
+  }
   process.exit(1);
 });

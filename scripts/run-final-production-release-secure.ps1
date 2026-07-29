@@ -221,20 +221,25 @@ function Run-Phase2-MigrationReconciliation {
     $script:Migration034Applied = "skipped (catalog policies match)"
   }
 
-  try {
-    Invoke-Tsx -ScriptArgs @("scripts/verify-founder-only-rls-live.ts") -Label "founder-only RLS live probes"
+  $rlsExit = Invoke-Tsx -ScriptArgs @("scripts/verify-founder-only-rls-live.ts") -Label "founder-only RLS live probes" -AllowedExitCodes @(0, 2, 3)
+  if ($rlsExit -eq 0) {
     $script:RlsResult = "PASS"
   }
-  catch {
-    Write-Host "  RLS assertions failed - rolling back 000034..." -ForegroundColor Red
+  elseif ($rlsExit -eq 3) {
+    $script:RlsResult = "FAIL (fixture defect — 000034 not rolled back)"
+    Write-Host "  Probe fixture defect (e.g. 23503 FK) — NOT an RLS failure; 000034 rollback skipped." -ForegroundColor Red
+    throw "RLS probe fixture defect — fix verifier, do not rollback migration"
+  }
+  else {
+    Write-Host "  RLS denial detected (42501) — rolling back 000034..." -ForegroundColor Red
     try {
       Invoke-Tsx -ScriptArgs @("scripts/apply-founder-only-rls-secure.ts", "--rollback") -Label "rollback 000034"
     }
     catch {
       Write-Host "  Rollback command failed - manual intervention required." -ForegroundColor Red
     }
-    $script:RlsResult = "FAIL (rolled back)"
-    throw "RLS assertions failed"
+    $script:RlsResult = "FAIL (RLS denial — rolled back)"
+    throw "RLS assertions failed (authorization denial)"
   }
 
   Write-Host "PASS  migration reconciliation (000033 not applied)" -ForegroundColor Green
