@@ -8,7 +8,20 @@ import type { Order } from "@/lib/orders/types";
 import type { AccessLevel } from "@/lib/identity/access-levels";
 import { isFounderAccess } from "@/lib/identity/access-levels";
 
-/** Fields safe to show on authorized order detail for non-Founder. */
+/**
+ * Fields safe to show on authorized order detail for non-Founder.
+ * Server-only — never pass full Client to the browser for non-Founder.
+ *
+ * Whitelist (exact):
+ * - displayName (from order.clientName)
+ * - projectType (from order.projectType)
+ * - segmentLabel (Commercial | Wedding — derived server-side when Founder-only client row available)
+ * - shootDate (from order.shootDate)
+ * - location (from order.location)
+ * - whatsapp (from order.whatsapp)
+ *
+ * Excluded: id, email, phone, notes, contacts, finance, history, timeline, other orders.
+ */
 export type OrderClientSnapshot = {
   displayName: string;
   projectType: string;
@@ -37,6 +50,12 @@ export function mayLinkToClientProfile(level: AccessLevel): boolean {
   return isFounderAccess(level);
 }
 
+function segmentFromProjectType(projectType: string): string | undefined {
+  if (projectType === "Commercial") return "Commercial";
+  if (projectType === "Wedding" || projectType === "Engagement") return "Wedding";
+  return undefined;
+}
+
 function segmentLabel(segment: Client["segment"] | undefined): string | undefined {
   if (!segment) return undefined;
   if (segment === "commercial") return "Commercial";
@@ -62,6 +81,9 @@ export function orderClientSnapshot(
 
   if (client?.segment) {
     snapshot.segmentLabel = segmentLabel(client.segment);
+  } else {
+    const fromOrder = segmentFromProjectType(order.projectType);
+    if (fromOrder) snapshot.segmentLabel = fromOrder;
   }
 
   return snapshot;

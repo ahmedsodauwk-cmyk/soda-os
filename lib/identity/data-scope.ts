@@ -35,11 +35,8 @@ function norm(s: string | null | undefined): string {
   return (s ?? "").trim().toLowerCase();
 }
 
-function isCommercialOrder(order: Order, clientsById: Map<string, Client>): boolean {
-  if (order.projectType === "Commercial") return true;
-  const clientId = order.clientId;
-  if (!clientId) return false;
-  return clientsById.get(clientId)?.segment === "commercial";
+function isCommercialOrder(order: Order): boolean {
+  return order.projectType === "Commercial";
 }
 
 /** Crew ids that share squad/assignment work with the operator. */
@@ -73,7 +70,8 @@ export function buildDataScope(
   session: SodaSession,
   input: {
     orders: readonly Order[];
-    clients: readonly Client[];
+    /** Founder-only — non-Founder scopes orders without loading Client rows. */
+    clients?: readonly Client[];
   }
 ): DataScope {
   const accessLevel = session.profile.accessLevel;
@@ -92,7 +90,6 @@ export function buildDataScope(
     };
   }
 
-  const clientsById = new Map(input.clients.map((c) => [c.id, c]));
   const orderIds = new Set<string>();
   const clientIds = new Set<string>();
   const personIds = new Set<string>();
@@ -109,14 +106,12 @@ export function buildDataScope(
     }
 
     for (const order of input.orders) {
-      const commercial = isCommercialOrder(order, clientsById);
+      const commercial = isCommercialOrder(order);
       const clientMatch =
         !!order.clientId && relatedFromQuotes.has(order.clientId);
       if (!commercial && !clientMatch) continue;
       orderIds.add(order.id);
-      if (order.clientId) clientIds.add(order.clientId);
     }
-    for (const id of relatedFromQuotes) clientIds.add(id);
   } else if (accessLevel === "team_leader") {
     if (!personId) {
       // No crew link → honest empty scope (never company-wide).
@@ -134,7 +129,6 @@ export function buildDataScope(
     for (const order of input.orders) {
       if (!orderTouchesTeam(order, team)) continue;
       orderIds.add(order.id);
-      if (order.clientId) clientIds.add(order.clientId);
     }
   } else {
     // team
@@ -152,7 +146,6 @@ export function buildDataScope(
     for (const order of input.orders) {
       if (!orderTouchesPerson(order, personId)) continue;
       orderIds.add(order.id);
-      if (order.clientId) clientIds.add(order.clientId);
     }
   }
 

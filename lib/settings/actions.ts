@@ -61,6 +61,7 @@ export async function updateMyProfileAction(input: {
     });
     revalidatePath("/settings/profile");
     revalidatePath("/settings");
+    revalidatePath("/", "layout");
     revalidatePath(`/people/${personId}`);
     return { ok: true, message: "Profile updated." };
   } catch (err) {

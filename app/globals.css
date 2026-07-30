@@ -1859,3 +1859,30 @@
   transform: translateY(-1px) scale(0.995);
   transition-duration: var(--soda-duration-press);
 }
+
+/* User reduced-motion preference (overrides OS when set in Preferences) */
+html.soda-reduce-motion .soda-live-fade-enter,
+html.soda-reduce-motion .soda-page-enter,
+html.soda-reduce-motion .soda-route-enter,
+html.soda-reduce-motion .soda-route-enter-active,
+html.soda-reduce-motion .soda-route-exit,
+html.soda-reduce-motion .soda-stagger-children > *,
+html.soda-reduce-motion .soda-mark-pulse,
+html.soda-reduce-motion .soda-splash-fade,
+html.soda-reduce-motion .soda-loading-viewport,
+html.soda-reduce-motion .soda-login-brand,
+html.soda-reduce-motion .soda-atmosphere::before,
+html.soda-reduce-motion .soda-atmosphere::after {
+  animation: none !important;
+  transform: none !important;
+  filter: none !important;
+  transition: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html.soda-full-motion .soda-page-enter,
+  html.soda-full-motion .soda-route-enter,
+  html.soda-full-motion .soda-route-enter-active {
+    animation: soda-page-enter 420ms var(--soda-ease) both;
+  }
+}

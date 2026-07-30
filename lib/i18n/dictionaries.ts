@@ -118,6 +118,53 @@ export type Dictionary = {
     usernameOrEmail: string;
     twoFactorPlaceholder: string;
     phoneRecoveryBlocked: string;
+    profileDesc: string;
+    profileNoPerson: string;
+    profileCrewLink: string;
+    displayName: string;
+    saveProfile: string;
+    profileSaved: string;
+    profileSaveFailed: string;
+    profilePhotoUpload: string;
+    profilePhotoRemove: string;
+    profilePhotoPreview: string;
+    profilePhotoInitials: string;
+    profilePhotoMimeError: string;
+    profilePhotoSizeError: string;
+    profilePhotoCropError: string;
+    username: string;
+    emailReadOnly: string;
+    twoFactorUnavailable: string;
+    twoFactorExplanation: string;
+    phoneLoginBlocked: string;
+    phoneLoginExplanation: string;
+    smsRecoveryBlocked: string;
+    scopeDesc: string;
+    accessLevel: string;
+    jobTitleDisplay: string;
+    permissions: string;
+    scopeFootnote: string;
+    languageTitle: string;
+    languageDesc: string;
+    appearanceTitle: string;
+    appearanceDesc: string;
+    motionTitle: string;
+    motionDesc: string;
+    motionSystem: string;
+    motionReduce: string;
+    motionFull: string;
+    notificationsDesc: string;
+    openNotifications: string;
+    accountDesc: string;
+    systemCompanyEmail: string;
+    systemAuthority: string;
+    systemAuthorityDesc: string;
+    systemBackup: string;
+    systemBackupDesc: string;
+    systemInvite: string;
+    systemInviteDesc: string;
+    openAuthority: string;
+    openBackup: string;
   };
   quickActions: {
     newQuotation: string;
@@ -281,6 +328,54 @@ const en: Dictionary = {
     usernameOrEmail: "Username or email",
     twoFactorPlaceholder: "Two-factor authentication — coming soon",
     phoneRecoveryBlocked: "Phone recovery requires SMS configuration (not enabled)",
+    profileDesc: "Personal identity — photo and display name. Job title is Founder-managed.",
+    profileNoPerson: "No crew profile linked. Ask Founder to link your login to a crew record.",
+    profileCrewLink: "Full crew workspace (Founder view)",
+    displayName: "Display name",
+    saveProfile: "Save profile",
+    profileSaved: "Profile updated.",
+    profileSaveFailed: "Save failed.",
+    profilePhotoUpload: "Upload photo",
+    profilePhotoRemove: "Remove photo",
+    profilePhotoPreview: "Photo preview",
+    profilePhotoInitials: "Initials fallback when no photo",
+    profilePhotoMimeError: "Only JPEG, PNG, or WebP images are allowed.",
+    profilePhotoSizeError: "Image must be 2 MB or smaller.",
+    profilePhotoCropError: "Could not process image.",
+    username: "Username",
+    emailReadOnly: "Email is managed by Auth — contact Founder for account email changes.",
+    twoFactorUnavailable: "Two-factor authentication unavailable",
+    twoFactorExplanation: "2FA is not implemented in this release. Password + email login is supported.",
+    phoneLoginBlocked: "Phone login not supported",
+    phoneLoginExplanation:
+      "Login accepts username or email only. Supabase Auth has no verified phone identifier or E.164 resolver configured.",
+    smsRecoveryBlocked: "SMS recovery not supported",
+    scopeDesc: "Read-only — access level, role, and permissions.",
+    accessLevel: "Access Level",
+    jobTitleDisplay: "Job title (display)",
+    permissions: "Permissions",
+    scopeFootnote: "No client directory here — order assignments define your work scope.",
+    languageTitle: "Language",
+    languageDesc: "English · العربية — saved on this device",
+    appearanceTitle: "Appearance",
+    appearanceDesc: "Light · Dark · System",
+    motionTitle: "Motion",
+    motionDesc: "User preference overrides system reduced-motion when set",
+    motionSystem: "System",
+    motionReduce: "Reduce motion",
+    motionFull: "Full motion",
+    notificationsDesc: "In-app notification center",
+    openNotifications: "Open Notifications →",
+    accountDesc: "Auth-owned credentials.",
+    systemCompanyEmail: "Company email domain",
+    systemAuthority: "Authority Center",
+    systemAuthorityDesc: "Manage accounts, roles, and permissions.",
+    systemBackup: "Backup Center",
+    systemBackupDesc: "Founder-only recoverability",
+    systemInvite: "Invite user (email)",
+    systemInviteDesc: "Prefer Create Login Account in Crew Workspace.",
+    openAuthority: "Open Authority Center →",
+    openBackup: "Open Backup Center →",
   },
   quickActions: {
     newQuotation: "+ New Quotation",
@@ -444,6 +539,54 @@ const ar: Dictionary = {
     usernameOrEmail: "اسم المستخدم أو البريد",
     twoFactorPlaceholder: "المصادقة الثنائية — قريباً",
     phoneRecoveryBlocked: "استعادة الهاتف تتطلب إعداد الرسائل (غير مفعّل)",
+    profileDesc: "الهوية الشخصية — الصورة واسم العرض. المسمى الوظيفي يُدار من المؤسس.",
+    profileNoPerson: "لا يوجد ملف فريق مرتبط. اطلب من المؤسس ربط حسابك بسجل الفريق.",
+    profileCrewLink: "مساحة الفريق الكاملة (عرض المؤسس)",
+    displayName: "اسم العرض",
+    saveProfile: "حفظ الملف",
+    profileSaved: "تم تحديث الملف.",
+    profileSaveFailed: "فشل الحفظ.",
+    profilePhotoUpload: "رفع صورة",
+    profilePhotoRemove: "إزالة الصورة",
+    profilePhotoPreview: "معاينة الصورة",
+    profilePhotoInitials: "الأحرف الأولى عند عدم وجود صورة",
+    profilePhotoMimeError: "يُسمح فقط بصور JPEG أو PNG أو WebP.",
+    profilePhotoSizeError: "يجب ألا يتجاوز حجم الصورة 2 ميجابايت.",
+    profilePhotoCropError: "تعذّر معالجة الصورة.",
+    username: "اسم المستخدم",
+    emailReadOnly: "البريد يُدار عبر Auth — تواصل مع المؤسس لتغيير بريد الحساب.",
+    twoFactorUnavailable: "المصادقة الثنائية غير متاحة",
+    twoFactorExplanation: "المصادقة الثنائية غير مفعّلة. تسجيل الدخول بالبريد وكلمة السر مدعوم.",
+    phoneLoginBlocked: "تسجيل الدخول بالهاتف غير مدعوم",
+    phoneLoginExplanation:
+      "تسجيل الدخول باسم المستخدم أو البريد فقط. لا يوجد معرّف هاتف موثّق أو محوّل E.164 في Auth.",
+    smsRecoveryBlocked: "استعادة عبر SMS غير مدعومة",
+    scopeDesc: "للقراءة فقط — مستوى الوصول والدور والصلاحيات.",
+    accessLevel: "مستوى الوصول",
+    jobTitleDisplay: "المسمى الوظيفي (عرض)",
+    permissions: "الصلاحيات",
+    scopeFootnote: "لا يوجد دليل عملاء هنا — نطاق عملك يُحدده الأوردرات المعيّنة.",
+    languageTitle: "اللغة",
+    languageDesc: "English · العربية — تُحفظ على هذا الجهاز",
+    appearanceTitle: "المظهر",
+    appearanceDesc: "فاتح · داكن · النظام",
+    motionTitle: "الحركة",
+    motionDesc: "تفضيل المستخدم يتجاوز إعداد النظام عند التعيين",
+    motionSystem: "النظام",
+    motionReduce: "تقليل الحركة",
+    motionFull: "حركة كاملة",
+    notificationsDesc: "مركز التنبيهات داخل التطبيق",
+    openNotifications: "فتح التنبيهات ←",
+    accountDesc: "بيانات اعتماد Auth.",
+    systemCompanyEmail: "نطاق بريد الشركة",
+    systemAuthority: "مركز الصلاحيات",
+    systemAuthorityDesc: "إدارة الحسابات والأدوار والصلاحيات.",
+    systemBackup: "مركز النسخ الاحتياطي",
+    systemBackupDesc: "للمؤسس فقط",
+    systemInvite: "دعوة مستخدم (بريد)",
+    systemInviteDesc: "يُفضّل إنشاء حساب من مساحة الفريق.",
+    openAuthority: "فتح مركز الصلاحيات ←",
+    openBackup: "فتح مركز النسخ الاحتياطي ←",
   },
   quickActions: {
     newQuotation: "+ عرض سعر",

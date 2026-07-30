@@ -1,7 +1,7 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { AppShell } from "@/components/layout/app-shell";
+import { AccountSecurityPanel } from "@/components/settings/account-security-panel";
 import { SettingsHubNav } from "@/components/settings/settings-hub-nav";
 import {
   Card,
@@ -10,6 +10,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { getRequestDictionary } from "@/lib/i18n/server";
 import { can } from "@/lib/identity/permissions";
 import { resolveSessionForApp } from "@/lib/identity/session";
 
@@ -19,6 +20,7 @@ export default async function SettingsAccountPage() {
   const session = await resolveSessionForApp();
   if (!session) redirect("/login");
 
+  const { dict } = await getRequestDictionary();
   const showSystem = can(session.profile.accessLevel, "settings.users");
 
   return (
@@ -31,32 +33,14 @@ export default async function SettingsAccountPage() {
         <SettingsHubNav showSystem={showSystem} />
         <Card className="soda-cc-card">
           <CardHeader>
-            <CardTitle>Account &amp; Security</CardTitle>
-            <CardDescription>
-              Auth-owned credentials. Email and phone changes go through Supabase Auth (Founder Authority Center for provisioning).
-            </CardDescription>
+            <CardTitle>{dict.settings.accountSecurity}</CardTitle>
+            <CardDescription>{dict.settings.accountDesc}</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-3 text-sm">
-            <p>
-              <span className="text-muted-foreground">Username · </span>
-              {session.profile.username ?? "—"}
-            </p>
-            <p>
-              <span className="text-muted-foreground">Email · </span>
-              {session.profile.email}
-            </p>
-            <p className="text-xs text-muted-foreground">
-              Email is managed by Auth — not editable here. Contact Founder for account email changes.
-            </p>
-            <Link
-              href="/settings/password"
-              className="inline-block text-soda-pink hover:underline"
-            >
-              Change password
-            </Link>
-            <p className="text-xs text-muted-foreground">
-              Two-factor authentication — coming soon (placeholder only).
-            </p>
+          <CardContent>
+            <AccountSecurityPanel
+              username={session.profile.username}
+              email={session.profile.email}
+            />
           </CardContent>
         </Card>
       </div>

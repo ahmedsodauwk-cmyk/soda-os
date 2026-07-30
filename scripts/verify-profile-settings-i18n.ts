@@ -34,7 +34,7 @@ check("1 settings personal permission in all levels", () => {
 
 check("2 personal settings routes in module-access", () => {
   assert.match(moduleAccess, /pathname\.startsWith\("\/settings"\)/);
-  assert.match(moduleAccess, /\/settings\/profile/);
+  assert.ok(readRepo("app/(shell)/settings/profile/page.tsx"));
 });
 
 check("3 non-founder blocked from /clients paths", () => {
@@ -81,6 +81,18 @@ check("10 migration scaffold with rollback", () => {
       "supabase/migrations/rollback/20260730000035_client_privacy_non_founder_rollback.sql"
     )
   );
+  assert.ok(readRepo("supabase/migrations/20260730000036_profile_avatars_storage.sql"));
+});
+
+check("11 migration 000035 denies all non-Founder", () => {
+  const sql = readRepo("supabase/migrations/20260730000035_client_privacy_non_founder.sql");
+  assert.doesNotMatch(sql, /account_manager/);
+  assert.match(sql, /RETURN false;/);
+});
+
+check("12 avatar upload module", () => {
+  assert.ok(readRepo("lib/avatars/upload-client.ts"));
+  assert.ok(readRepo("lib/avatars/crop.ts"));
 });
 
 console.log(`\n${passed} checks passed.`);

@@ -126,6 +126,10 @@ export function canAccessPath(level: AccessLevel, pathname: string): boolean {
     return isFounderAccess(level);
   }
 
+  if (pathname.startsWith("/orders/commercial")) {
+    return isFounderAccess(level);
+  }
+
   return prefixes.some((p) => prefixAllows(pathname, p));
 }
 

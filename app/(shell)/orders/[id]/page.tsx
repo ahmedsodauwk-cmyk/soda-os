@@ -64,7 +64,9 @@ export default async function OrderWorkspacePage({ params }: OrderPageProps) {
     notFound();
   }
 
-  const view = getOrderOperatingView(id);
+  const view = getOrderOperatingView(id, undefined, {
+    accessLevel: session?.profile.accessLevel,
+  });
   const peopleById = Object.fromEntries(getPeople().map((p) => [p.id, p]));
   const files = getFilesByOrder(id);
   const equipment = getEquipmentAssignmentsByOrder(id).map((a) => ({

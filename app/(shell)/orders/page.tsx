@@ -33,7 +33,9 @@ export default async function OrdersPage() {
 
   const scope = buildDataScope(session, {
     orders: getOrders(),
-    clients: getClients(),
+    ...(session.profile.accessLevel === "founder"
+      ? { clients: getClients() }
+      : {}),
   });
   const scoped = scopeOrders(getOrders(), scope);
   const allowedOrderIds =

@@ -11,6 +11,9 @@ import {
 } from "@/lib/assignments/repository";
 import { getClientById } from "@/lib/clients/repository";
 import type { Client } from "@/lib/clients/types";
+import type { OrderClientSnapshot } from "@/lib/clients/privacy";
+import { orderClientSnapshot } from "@/lib/clients/privacy";
+import { isFounderAccess, type AccessLevel } from "@/lib/identity/access-levels";
 import {
   calculateClientOutstandingBalance,
   calculateClientPaid,
@@ -107,7 +110,10 @@ export interface CrewOperatingView {
 export interface OrderOperatingView {
   orderId: string;
   order: Order | undefined;
+  /** Full Client row — Founder only. */
   client: Client | undefined;
+  /** Whitelisted order-context client summary — non-Founder authorized viewers. */
+  clientSnapshot: OrderClientSnapshot | undefined;
   project: Project | undefined;
   assignments: OrderAssignment[];
   payments: Payment[];
@@ -286,10 +292,18 @@ export function getCrewOperatingView(
 /** Order command center — compose client/project/team/finance without new engines. */
 export function getOrderOperatingView(
   orderId: string,
-  currency: Currency = DEFAULT_CURRENCY
+  currency: Currency = DEFAULT_CURRENCY,
+  options?: { accessLevel?: AccessLevel }
 ): OrderOperatingView {
   const order = getOrders().find((o) => o.id === orderId);
-  const client = order?.clientId ? getClientById(order.clientId) : undefined;
+  const level = options?.accessLevel;
+  const founder = level ? isFounderAccess(level) : true;
+  const client =
+    founder && order?.clientId ? getClientById(order.clientId) : undefined;
+  const clientSnapshot =
+    order && level && !founder
+      ? orderClientSnapshot(order)
+      : undefined;
   const project = order?.projectId
     ? getProjectById(order.projectId)
     : undefined;
@@ -317,6 +331,7 @@ export function getOrderOperatingView(
     orderId,
     order,
     client,
+    clientSnapshot,
     project,
     assignments,
     payments,

@@ -14,6 +14,11 @@ import {
   parseTheme,
   themeBootScript,
 } from "@/lib/theme/config";
+import {
+  REDUCED_MOTION_COOKIE,
+  parseReducedMotion,
+} from "@/lib/preferences/config";
+import { reducedMotionBootScript } from "@/lib/preferences/reduced-motion-boot";
 import { SODA_LOGO, sodaBrandUrl } from "@/lib/brand/logo";
 import "./globals.css";
 
@@ -101,6 +106,7 @@ export default async function RootLayout({
   const jar = await cookies();
   const locale = parseLocale(jar.get(LOCALE_COOKIE)?.value) || DEFAULT_LOCALE;
   const theme = parseTheme(jar.get(THEME_COOKIE)?.value);
+  const reducedMotion = parseReducedMotion(jar.get(REDUCED_MOTION_COOKIE)?.value);
   const dir = locale === "ar" ? "rtl" : "ltr";
 
   return (
@@ -108,11 +114,15 @@ export default async function RootLayout({
       lang={locale}
       dir={dir}
       className={`${outfit.variable} ${geistMono.variable} ${alexandria.variable} h-full antialiased`}
+      data-soda-reduced-motion={reducedMotion}
       suppressHydrationWarning
     >
       <head>
         <script
           dangerouslySetInnerHTML={{ __html: themeBootScript() }}
+        />
+        <script
+          dangerouslySetInnerHTML={{ __html: reducedMotionBootScript() }}
         />
       </head>
       <body className={`${outfit.className} flex min-h-full flex-col`}>
