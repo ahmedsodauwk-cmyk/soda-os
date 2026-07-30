@@ -1116,24 +1116,36 @@
   animation: soda-brand-fade 0.7s var(--soda-ease) both;
 }
 
-/* Splash / boot */
-.soda-splash {
-  background:
-    radial-gradient(
-      ellipse 45% 40% at 50% 45%,
-      color-mix(in srgb, #29194a 70%, transparent) 0%,
-      transparent 70%
-    ),
-    linear-gradient(180deg, #05040a 0%, #120b22 55%, #1a1030 100%);
+/* Splash / boot — transparent shell on SODA page canvas */
+.soda-loading-viewport {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  min-height: 100dvh;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: var(--background);
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  padding-left: env(safe-area-inset-left, 0px);
 }
 
-.soda-splash-glow {
-  background: radial-gradient(
-    circle at 50% 48%,
-    color-mix(in srgb, #ffffff 10%, transparent) 0%,
-    color-mix(in srgb, #29194a 35%, transparent) 28%,
-    transparent 62%
-  );
+.soda-logo-mark-home {
+  width: clamp(2.25rem, 5.5vw, 3rem) !important;
+  height: clamp(2.25rem, 5.5vw, 3rem) !important;
+  max-width: clamp(2.25rem, 5.5vw, 3rem) !important;
+  max-height: clamp(2.25rem, 5.5vw, 3rem) !important;
+}
+
+.soda-logo-mark-splash {
+  width: clamp(7.5rem, 24vw, 12.5rem) !important;
+  height: clamp(7.5rem, 24vw, 12.5rem) !important;
+  max-width: clamp(7.5rem, 24vw, 12.5rem) !important;
+  max-height: clamp(7.5rem, 24vw, 12.5rem) !important;
 }
 
 .soda-splash-fade {
@@ -1185,6 +1197,7 @@
   .soda-stagger-children > *,
   .soda-mark-pulse,
   .soda-splash-fade,
+  .soda-loading-viewport,
   .soda-login-brand,
   .soda-atmosphere::before,
   .soda-atmosphere::after,

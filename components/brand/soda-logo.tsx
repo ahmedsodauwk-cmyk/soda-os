@@ -29,8 +29,14 @@ export function SodaLogo({
   const config = SODA_LOGO_PLACEMENTS[placement];
   const size = config.size;
   const withWord = showWord ?? config.showWord ?? false;
-  const priority = placement === "sidebar" || placement === "login";
+  const priority =
+    placement === "sidebar" ||
+    placement === "home" ||
+    placement === "login" ||
+    placement === "splash";
   const wordMode = config.wordMode ?? "studio";
+  const responsiveMark =
+    placement === "splash" || placement === "home";
 
   return (
     <div
@@ -49,9 +55,14 @@ export function SodaLogo({
         className={cn(
           "aspect-square shrink-0 object-contain object-center",
           placement === "empty" && "opacity-40",
+          responsiveMark && `soda-logo-mark-${placement}`,
           interactive && "soda-logo-mark transition-[filter] duration-300"
         )}
-        style={{ width: size, height: size, maxWidth: size, maxHeight: size }}
+        style={
+          responsiveMark
+            ? undefined
+            : { width: size, height: size, maxWidth: size, maxHeight: size }
+        }
         draggable={false}
       />
       {withWord ? (

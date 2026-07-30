@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils";
+import { PageAtmosphere } from "@/components/brand/page-atmosphere";
 import { SodaLogo } from "@/components/brand/soda-logo";
 import { SODA_LOGO } from "@/lib/brand/logo";
 
@@ -10,8 +11,8 @@ interface SodaSplashProps {
 }
 
 /**
- * Premium boot / splash — dark + deep purple, soft glow, micro fade.
- * No spinner. No bounce. Subtle mark pulse only.
+ * Premium boot / splash — SODA page background, transparent mark shell.
+ * No spinner. Subtle opacity pulse only (prefers-reduced-motion safe).
  */
 export function SodaSplash({
   className,
@@ -20,25 +21,22 @@ export function SodaSplash({
 }: SodaSplashProps) {
   return (
     <div
-      className={cn(
-        "soda-splash fixed inset-0 z-[100] flex flex-col items-center justify-center gap-6",
-        className
-      )}
+      className={cn("soda-loading-viewport", className)}
       role="status"
       aria-live="polite"
       aria-label={label ?? "SODA is starting"}
     >
-      <div className="soda-splash-glow pointer-events-none absolute inset-0" aria-hidden />
-      <div className="soda-splash-fade relative flex flex-col items-center gap-5">
+      <PageAtmosphere section="home" />
+      <div className="soda-splash-fade relative z-[1] flex flex-col items-center gap-5 px-4">
         <div className="soda-mark-pulse">
           <SodaLogo placement="splash" showWord={false} interactive={false} />
         </div>
         {showWord ? (
           <div className="space-y-1.5 text-center">
-            <p className="font-heading text-xl font-semibold tracking-[0.2em] text-white">
+            <p className="font-heading text-xl font-semibold tracking-[0.2em] text-foreground sm:text-2xl">
               {SODA_LOGO.productName}
             </p>
-            <p className="text-[11px] tracking-[0.16em] text-white/50 uppercase">
+            <p className="text-[11px] tracking-[0.16em] text-muted-foreground uppercase">
               {SODA_LOGO.systemTagline}
             </p>
           </div>

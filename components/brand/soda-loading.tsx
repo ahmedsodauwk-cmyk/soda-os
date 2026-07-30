@@ -50,9 +50,9 @@ export function SodaLoading({
 
   return (
     <div className={className}>
-      <SodaSplash showWord label={message} />
+      <SodaSplash showWord={false} label={message} />
       <p
-        className="pointer-events-none fixed inset-x-0 bottom-[max(2.5rem,env(safe-area-inset-bottom))] z-[101] text-center font-ar text-sm tracking-wide text-white/55"
+        className="pointer-events-none fixed inset-x-0 bottom-[max(2.5rem,env(safe-area-inset-bottom))] z-[101] text-center font-ar text-sm tracking-wide text-muted-foreground"
         dir="rtl"
         aria-hidden
       >

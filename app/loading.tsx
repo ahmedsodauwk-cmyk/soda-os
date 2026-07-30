@@ -1,5 +1,6 @@
 import { SodaLoading } from "@/components/brand/soda-loading";
 
+/** Full-viewport branded loader during hard refresh / root segment suspense. */
 export default function RootLoading() {
-  return <SodaLoading inline messageKey="default" />;
+  return <SodaLoading messageKey="default" />;
 }

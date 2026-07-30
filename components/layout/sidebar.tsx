@@ -319,6 +319,8 @@ export function SidebarContent({
   onToggleCollapse,
 }: SidebarContentProps) {
   const pathname = usePathname();
+  const isHome = pathname === "/";
+  const logoPlacement = isHome ? "home" : "sidebar";
   const t = operationalT;
   const [pending, startTransition] = useTransition();
 
@@ -351,9 +353,9 @@ export function SidebarContent({
         )}
       >
         {collapsed ? (
-          <SodaLogo placement="sidebar" interactive showWord={false} />
+          <SodaLogo placement={logoPlacement} interactive showWord={false} />
         ) : (
-          <SodaLogo placement="sidebar" interactive />
+          <SodaLogo placement={logoPlacement} interactive />
         )}
         {onToggleCollapse ? (
           <button

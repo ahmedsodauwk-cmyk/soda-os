@@ -35,8 +35,10 @@ export const SODA_LOGO = {
 /** Recommended display sizes by placement (never upscale past source clarity) */
 export const SODA_LOGO_SIZES = {
   sidebar: 32,
+  /** Home Command Center — larger mark in sidebar rail */
+  home: 48,
   favicon: 32,
-  splash: 88,
+  splash: 160,
   login: 96,
   document: 48,
   about: 64,
@@ -45,6 +47,7 @@ export const SODA_LOGO_SIZES = {
 
 export type SodaLogoPlacement =
   | "sidebar"
+  | "home"
   | "favicon"
   | "splash"
   | "login"
@@ -68,6 +71,13 @@ export const SODA_LOGO_PLACEMENTS: Record<
   sidebar: {
     src: SODA_LOGO.src,
     size: SODA_LOGO_SIZES.sidebar,
+    showWord: true,
+    wordMode: "studio",
+    preserveSquare: true,
+  },
+  home: {
+    src: SODA_LOGO.src,
+    size: SODA_LOGO_SIZES.home,
     showWord: true,
     wordMode: "studio",
     preserveSquare: true,
