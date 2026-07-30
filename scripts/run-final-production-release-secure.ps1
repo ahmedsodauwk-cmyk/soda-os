@@ -8,7 +8,11 @@
 $ErrorActionPreference = "Stop"
 
 $ExpectedBranch = "feature/unified-profile-settings-i18n"
-$ExpectedHeadPrefix = "4fd924e"
+$RequiredAncestorCommits = @(
+  "87f1622",
+  "2c5585c",
+  "4fd924e"
+)
 $ProductionUrl = "https://soda-os.vercel.app"
 
 $BackupZip = $null
@@ -234,8 +238,14 @@ function Run-Phase0-Baseline {
   if ($branch -ne $ExpectedBranch) {
     throw "expected branch $ExpectedBranch, got $branch"
   }
-  if (-not $head.StartsWith($ExpectedHeadPrefix)) {
-    throw "HEAD must include logo parity commit $ExpectedHeadPrefix (got $head)"
+  foreach ($required in $RequiredAncestorCommits) {
+    & git merge-base --is-ancestor $required HEAD
+    $ancestorOk = $LASTEXITCODE
+    if ($null -eq $ancestorOk) { $ancestorOk = 1 }
+    if ($ancestorOk -ne 0) {
+      throw "HEAD must contain required commit $required (got $head)"
+    }
+    Write-Host "PASS  required commit $required is ancestor of HEAD" -ForegroundColor Green
   }
 
   $dirty = (& git status --porcelain)
