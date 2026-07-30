@@ -43,6 +43,8 @@ const PERSONAL_BRAIN_TABLES = [
   "personal_brain_chat_messages",
 ] as const;
 
+const EXPECTED_035_IDENTITY_ARGS = "p_client_id text";
+
 function runStaticChecks(): void {
   const sql035 = readFileSync(resolve(process.cwd(), MIGRATION_035_FILE), "utf8");
   const sql036 = readFileSync(resolve(process.cwd(), MIGRATION_036_FILE), "utf8");
@@ -56,11 +58,117 @@ function runStaticChecks(): void {
   console.log("PASS  static migration SQL files OK");
 }
 
-function clientPrivacyMatchesCatalog(prosrc: string): boolean {
-  if (!/soda_can_access_client/i.test(prosrc)) return false;
-  if (/account_manager/i.test(prosrc)) return false;
-  if (/team_leader/i.test(prosrc)) return false;
-  return /RETURN false;/i.test(prosrc);
+function stripSqlComments(sql: string): string {
+  return sql
+    .replace(/--[^\n]*/g, "")
+    .replace(/\/\*[\s\S]*?\*\//g, "");
+}
+
+type ClientPrivacyCatalogRow = {
+  prosecdef: boolean;
+  proconfig: string[] | null;
+  identity_args: string;
+  def: string;
+  prosrc: string;
+};
+
+function clientPrivacyMatchesCatalog(row: ClientPrivacyCatalogRow | undefined): {
+  ok: true;
+} | {
+  ok: false;
+  fail: string;
+} {
+  if (!row) {
+    return {
+      ok: false,
+      fail: "FAIL verify 000035 function: public.soda_can_access_client not found",
+    };
+  }
+
+  if (row.identity_args !== EXPECTED_035_IDENTITY_ARGS) {
+    return {
+      ok: false,
+      fail: `FAIL verify 000035 function: argument signature mismatch (expected ${EXPECTED_035_IDENTITY_ARGS}, got ${row.identity_args})`,
+    };
+  }
+
+  const def = row.def;
+  if (!/SECURITY DEFINER/i.test(def)) {
+    return {
+      ok: false,
+      fail: "FAIL verify 000035 function: missing SECURITY DEFINER",
+    };
+  }
+  if (!row.prosecdef) {
+    return {
+      ok: false,
+      fail: "FAIL verify 000035 function: prosecdef is false",
+    };
+  }
+
+  const config = row.proconfig ?? [];
+  const searchPathOk =
+    config.some((c) => /^search_path=public$/i.test(c)) ||
+    /SET\s+search_path\s*=\s*public/i.test(def);
+  if (!searchPathOk) {
+    return {
+      ok: false,
+      fail: "FAIL verify 000035 function: search_path must include public",
+    };
+  }
+
+  const rowSecurityOk =
+    config.some((c) => /^row_security=off$/i.test(c)) ||
+    /SET\s+row_security\s*=\s*off/i.test(def);
+  if (!rowSecurityOk) {
+    return {
+      ok: false,
+      fail: "FAIL verify 000035 function: row_security must be off",
+    };
+  }
+
+  const body = stripSqlComments(row.prosrc).toLowerCase();
+  if (!/auth\.uid\(\)\s+is\s+null/.test(body)) {
+    return {
+      ok: false,
+      fail: "FAIL verify 000035 function: missing auth.uid() IS NULL guard",
+    };
+  }
+  if (!/if\s+auth\.uid\(\)\s+is\s+null\s+then[\s\S]*?return\s+false/.test(body)) {
+    return {
+      ok: false,
+      fail: "FAIL verify 000035 function: unauthenticated must RETURN false",
+    };
+  }
+
+  if (!/soda_is_domain_founder\s*\(\)/.test(body)) {
+    return {
+      ok: false,
+      fail: "FAIL verify 000035 function: missing soda_is_domain_founder() check",
+    };
+  }
+  if (!/soda_is_domain_founder\s*\(\)[\s\S]*?return\s+true/.test(body)) {
+    return {
+      ok: false,
+      fail: "FAIL verify 000035 function: Founder path must RETURN true",
+    };
+  }
+
+  if (!/return\s+false\s*;?\s*end\s*;?\s*$/i.test(body.trim())) {
+    return {
+      ok: false,
+      fail: "FAIL verify 000035 function: non-Founder fallback must RETURN false",
+    };
+  }
+
+  if (/account_manager|team_leader/.test(body)) {
+    return {
+      ok: false,
+      fail: "FAIL verify 000035 function: AM/TL allowance detected in function body",
+    };
+  }
+
+  return { ok: true };
 }
 
 async function main(): Promise<void> {
@@ -78,6 +186,8 @@ async function main(): Promise<void> {
 
   runStaticChecks();
 
+  let exitCode = 0;
+
   await withPg(dbUrl, async (client) => {
     const brain = await client.query<{ exists: boolean }>(
       `SELECT EXISTS (
@@ -91,24 +201,34 @@ async function main(): Promise<void> {
     );
     if (brain.rows[0]?.exists === true) {
       console.error("\nFAIL  000033 Personal Brain tables present — abort.");
-      process.exit(11);
+      exitCode = 11;
+      return;
     }
 
-    const fn = await client.query<{ prosrc: string }>(
-      `SELECT p.prosrc
+    console.log("RUN  verify 000035 function");
+    const fn = await client.query<ClientPrivacyCatalogRow>(
+      `SELECT
+         p.prosecdef,
+         p.proconfig,
+         pg_get_function_identity_arguments(p.oid) AS identity_args,
+         pg_get_functiondef(p.oid) AS def,
+         p.prosrc
        FROM pg_proc p
        JOIN pg_namespace n ON n.oid = p.pronamespace
-       WHERE n.nspname = 'public' AND p.proname = 'soda_can_access_client'
-       LIMIT 1`
+       WHERE n.nspname = 'public'
+         AND p.proname = 'soda_can_access_client'
+         AND pg_get_function_identity_arguments(p.oid) = $1
+       LIMIT 1`,
+      [EXPECTED_035_IDENTITY_ARGS]
     );
-    const prosrc = fn.rows[0]?.prosrc ?? "";
-    const privacyOk = clientPrivacyMatchesCatalog(prosrc);
-
-    if (!privacyOk) {
+    const privacyCheck = clientPrivacyMatchesCatalog(fn.rows[0]);
+    if (!privacyCheck.ok) {
+      console.log(privacyCheck.fail);
       console.log("\nACTION  Apply 000035 required (soda_can_access_client mismatch).");
-      process.exit(10);
+      exitCode = 10;
+      return;
     }
-    console.log("\nPASS  000035 client privacy function matches catalog.");
+    console.log("PASS verify 000035 function");
 
     const bucket = await client.query<{ exists: boolean }>(
       `SELECT EXISTS (
@@ -117,7 +237,8 @@ async function main(): Promise<void> {
     );
     if (bucket.rows[0]?.exists !== true) {
       console.log("\nACTION  Apply 000036 required (profile-avatars bucket missing).");
-      process.exit(12);
+      exitCode = 12;
+      return;
     }
 
     for (const pol of AVATAR_POLICIES) {
@@ -134,7 +255,8 @@ async function main(): Promise<void> {
       );
       if (r.rows[0]?.exists !== true) {
         console.log(`\nACTION  Apply 000036 required (policy ${pol} missing).`);
-        process.exit(12);
+        exitCode = 12;
+        return;
       }
     }
 
@@ -151,13 +273,15 @@ async function main(): Promise<void> {
     const withCheck = insertPol.rows[0]?.with_check ?? "";
     if (!/auth\.uid\(\)/i.test(withCheck) || !/foldername/i.test(withCheck)) {
       console.log("\nACTION  Apply 000036 required (ownership policy mismatch).");
-      process.exit(12);
+      exitCode = 12;
+      return;
     }
 
     console.log("\nPASS  000036 profile-avatars bucket and policies match catalog.");
     console.log("\nPASS  profile-settings migrations reconciled — skip reapply.");
-    process.exit(0);
   });
+
+  process.exit(exitCode);
 }
 
 main().catch((err: unknown) => {
