@@ -10,6 +10,7 @@ import {
 import {
   assertOrderAccess,
   isClientIdInScope,
+  requireFounderMutationAccess,
   requirePermission,
 } from "@/lib/domain/mutation-auth";
 import {
@@ -68,11 +69,11 @@ export async function createInvoiceAction(
 export async function createDeliveryAction(
   input: Omit<OrderDelivery, "id"> & { id?: string }
 ): Promise<DomainActionResult<OrderDelivery>> {
+  const gate = await requireFounderMutationAccess();
+  if (!gate.ok) return actionError(gate.error);
+
   const access = await assertInvoiceProjectAccess(input.projectId);
   if (!access.ok) return actionError(access.error);
-
-  const orderGate = await assertOrderAccess(input.orderId, "orders.edit");
-  if (!orderGate.ok) return actionError(orderGate.error);
 
   try {
     const delivery = await createDelivery(input);

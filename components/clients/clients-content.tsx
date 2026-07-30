@@ -30,6 +30,7 @@ import {
 } from "@/lib/clients/types";
 import { filterClients, formatClientType } from "@/lib/clients/utils";
 import { filterClientsByScopeIds } from "@/lib/identity/data-scope";
+import { useCanFounderMutateExisting } from "@/lib/identity/use-founder-mutation";
 
 export function ClientsContent({
   initialClients,
@@ -39,6 +40,7 @@ export function ClientsContent({
   allowedClientIds?: string[] | null;
 }) {
   const router = useRouter();
+  const canMutateExisting = useCanFounderMutateExisting();
   const [clients, setClients] = useState(
     () =>
       initialClients ??
@@ -136,15 +138,15 @@ export function ClientsContent({
         <CardContent className="p-4">
           <ClientsTable
             clients={filteredClients}
-            onEdit={setEditing}
-            onDelete={handleDeleteClient}
+            onEdit={canMutateExisting ? setEditing : undefined}
+            onDelete={canMutateExisting ? handleDeleteClient : undefined}
           />
         </CardContent>
       </Card>
 
       <EditClientDialog
         client={editing}
-        open={!!editing}
+        open={!!editing && canMutateExisting}
         onOpenChange={(open) => {
           if (!open) setEditing(null);
         }}

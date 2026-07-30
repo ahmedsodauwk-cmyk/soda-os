@@ -24,11 +24,9 @@ import {
 import { getFilesByOrder, refreshFiles } from "@/lib/files/repository";
 import {
   can,
-  canEditOrderFinance,
-  canEditOps,
   canSeeCompanyFinance,
-  canUpdateOrderStatus,
 } from "@/lib/identity/permissions";
+import { canFounderMutateExisting } from "@/lib/identity/access-levels";
 import { resolveSessionForApp } from "@/lib/identity/session";
 import { getOrderOperatingView } from "@/lib/integration";
 import { refreshInvoices } from "@/lib/invoices/repository";
@@ -81,26 +79,19 @@ export default async function OrderWorkspacePage({ params }: OrderPageProps) {
 
   // Fail closed: no session / unresolved access → no ops/finance capabilities.
   const level = session?.profile.accessLevel;
+  const canMutate = level ? canFounderMutateExisting(level) : false;
   const seeMoney = level
-    ? canSeeCompanyFinance(level) || canEditOrderFinance(level)
+    ? canSeeCompanyFinance(level) || can(level, "orders.finance")
     : false;
   const capabilities = {
-    canEdit: level ? canEditOps(level) : false,
-    canEditFinance: level ? canEditOrderFinance(level) : false,
-    canUpdateStatus: level ? canUpdateOrderStatus(level) : false,
-    crewStatusOnly: level
-      ? can(level, "orders.status") && !can(level, "orders.edit")
-      : false,
-    canCollectPayment: level
-      ? canEditOrderFinance(level) ||
-        can(level, "finance.edit") ||
-        can(level, "finance.view")
-      : false,
-    canAddExpense: level
-      ? canEditOps(level) || can(level, "finance.view")
-      : false,
+    canEdit: canMutate,
+    canEditFinance: canMutate,
+    canUpdateStatus: canMutate,
+    crewStatusOnly: false,
+    canCollectPayment: canMutate,
+    canAddExpense: canMutate,
     canSeeFullMoney: seeMoney,
-    canAssignCrew: level ? canEditOps(level) : false,
+    canAssignCrew: canMutate,
   };
 
   const content = (

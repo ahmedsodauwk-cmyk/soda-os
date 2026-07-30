@@ -7,7 +7,10 @@ import {
   sanitizeActionError,
   type DomainActionResult,
 } from "@/lib/domain/types";
-import { assertOrderAccess } from "@/lib/domain/mutation-auth";
+import {
+  assertOrderAccess,
+  requireFounderMutationAccess,
+} from "@/lib/domain/mutation-auth";
 import {
   createPayment,
   deletePayment,
@@ -48,7 +51,7 @@ export async function updatePaymentAction(
   const orderId = patch.orderId ?? existing?.orderId;
   if (!orderId) return actionError("Payment not found.");
 
-  const gate = await assertOrderAccess(orderId, "payments.edit");
+  const gate = await requireFounderMutationAccess();
   if (!gate.ok) return actionError(gate.error);
 
   try {
@@ -63,9 +66,9 @@ export async function updatePaymentAction(
 
 export async function deletePaymentAction(
   paymentId: string,
-  orderId: string
+  _orderId: string
 ): Promise<DomainActionResult> {
-  const gate = await assertOrderAccess(orderId, "payments.edit");
+  const gate = await requireFounderMutationAccess();
   if (!gate.ok) return actionError(gate.error);
 
   try {

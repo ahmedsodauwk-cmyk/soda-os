@@ -253,6 +253,14 @@ export function isFounderAccess(level: AccessLevel): boolean {
   return level === "founder";
 }
 
+/** UI + server: only Founder may mutate existing records. */
+export function canFounderMutateExisting(
+  level: AccessLevel | string | null | undefined
+): boolean {
+  const parsed = parseAccessLevel(level);
+  return parsed !== null && isFounderAccess(parsed);
+}
+
 /** Roles that historically meant Authority operators — for display mapping only. */
 export function sodaRoleSuggestsFounderAccess(role: SodaRole): boolean {
   return role === "owner" || role === "founder" || role === "admin";

@@ -39,7 +39,10 @@ export function ShellFrame({
     <NotificationLiveProvider userId={user?.userId} initial={notifications}>
       <main
         data-soda-section={section}
-        className="soda-brand-wash soda-shell-3col relative flex min-h-screen bg-transparent"
+        className={cn(
+          "soda-brand-wash relative flex min-h-screen bg-transparent",
+          showBrainRail ? "soda-shell-3col" : "soda-shell-2col"
+        )}
       >
         <PageAtmosphere section={section} />
         <Sidebar user={user} />

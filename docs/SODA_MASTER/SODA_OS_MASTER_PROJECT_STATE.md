@@ -48,7 +48,9 @@ Before major auth / identity / DB / migrations / RLS / finance / production-data
 
 Parallel: **H1–H5 Production Apply** — H1 migration **repaired** **2026-07-27**; Production apply **pending** Founder retry via secure launcher.
 
-**Personal Brain** — migration scaffold in source (`20260728000033`); UI **disabled** (`isPersonalBrainUiEnabled() === false`); **NOT applied** on Production.
+**Personal Brain** — **DEFERRED BY FOUNDER — NOT PART OF CURRENT RELEASE**. Migration scaffold in source (`20260728000033`); UI **disabled** (`isPersonalBrainUiEnabled() === false`); **NOT applied** on Production. Non-Founder shell has **no** brain rail, placeholder, or reserved gutter.
+
+**Global role-aware Home (Preview)** — `global-role-home-preview` branch; scoped V3 Home for Account Manager / Team Leader / Team; Personal Brain scope lock applied **2026-07-28** — **PENDING FOUNDER REVIEW** (Preview only; Production unchanged).
 
 ---
 
@@ -60,7 +62,7 @@ Parallel: **H1–H5 Production Apply** — H1 migration **repaired** **2026-07-2
 4. Production credentials must **never** be stored in source / Git / logs / manifests / ZIPs
 5. Restore drill script added (`scripts/restore-drill-disposable.ts`); SR-01 disposable rehearsal remains prior Gate 4 evidence on same backup
 6. Non-Founder Production manual checks **not** assumed passed
-7. **Personal Brain** migration **pending** — scaffold only; do not apply on Production without explicit Founder instruction
+7. **Personal Brain** — **DEFERRED BY FOUNDER — NOT PART OF CURRENT RELEASE** — scaffold only; do not apply migration `20260728000033` on Production without explicit Founder instruction; no non-Founder Brain UI
 
 ---
 
@@ -558,7 +560,7 @@ Founder manual viewport / screenshot capture still recommended (`docs/screenshot
 | **Production alias** | https://soda-os.vercel.app |
 | **Production commit (post-push)** | `2017e78` on `origin/main` |
 | **Vercel deployment ID** | **Unconfirmed** — CLI TLS error; HTTP smoke **PASS** (`/login` **200**) |
-| **Personal Brain migration** | **NOT applied** on Production (scaffold in source only) |
+| **Personal Brain migration** | **NOT applied** on Production — **DEFERRED BY FOUNDER — NOT PART OF CURRENT RELEASE** (scaffold in source only) |
 
 **Interaction changes:**
 

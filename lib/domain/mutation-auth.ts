@@ -52,6 +52,20 @@ export async function requireFounder(): Promise<AuthGate> {
   return { ok: true, session, scope };
 }
 
+/**
+ * Canonical guard for UPDATE/DELETE/status/archive/cancel/restore/reassign on
+ * existing records. Trusted server session only — never browser role hints.
+ */
+export async function requireFounderMutationAccess(): Promise<AuthGate> {
+  const session = await resolveSessionForApp();
+  if (!session) return { ok: false, error: "Unauthorized." };
+  if (!isFounderAccess(session.profile.accessLevel)) {
+    return { ok: false, error: "Forbidden. Founder-only mutation." };
+  }
+  const scope = await buildServerDataScope(session);
+  return { ok: true, session, scope };
+}
+
 export async function buildServerDataScope(
   session: SodaSession
 ): Promise<DataScope> {

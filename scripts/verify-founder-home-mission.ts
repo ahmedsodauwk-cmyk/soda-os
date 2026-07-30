@@ -7,7 +7,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import path from "node:path";
 
-import { v2Motion } from "../lib/visual/v2";
+import { motionV3 } from "../lib/visual/motion";
 import { NAV_ITEMS, SIDEBAR_FOUNDER_HIDDEN_ME_KEYS } from "../lib/identity/nav";
 import { isPersonalBrainUiEnabled } from "../lib/personal-brain/feature-flag";
 
@@ -109,10 +109,21 @@ check("10: brain isolation — personal brain UI disabled", () => {
   assert.equal(isPersonalBrainUiEnabled(), false);
 });
 
-check("11: Motion route timing ~650ms total", () => {
-  assert.equal(v2Motion.routeExitMs + v2Motion.routeEnterMs, 650);
-  assert.match(routeTransition, /v2Motion\.routeExitMs/);
-  assert.match(globalsCss, /translateX/);
+function cssToken(name: string, ms: number): void {
+  assert.match(
+    globalsCss,
+    new RegExp(`--${name}:\\s*${ms}ms`),
+    `globals.css missing --${name}: ${ms}ms`
+  );
+}
+
+check("11: Motion V3 route timing ~820ms total", () => {
+  assert.equal(motionV3.routeTotalMs, 820);
+  assert.equal(motionV3.routeExitMs + motionV3.routeEnterMs, motionV3.routeTotalMs);
+  assert.match(routeTransition, /motionV3\.routeExitMs/);
+  assert.match(routeTransition, /motionV3\.routeEnterMs/);
+  cssToken("soda-duration-route-exit", motionV3.routeExitMs);
+  cssToken("soda-duration-route", motionV3.routeEnterMs);
 });
 
 check("12: prefers-reduced-motion in globals", () => {
@@ -120,9 +131,11 @@ check("12: prefers-reduced-motion in globals", () => {
   assert.match(globalsCss, /soda-fade-only/);
 });
 
-check("13: hover and press durations in V2 range", () => {
-  assert.ok(v2Motion.hoverMs >= 220 && v2Motion.hoverMs <= 300);
-  assert.ok(v2Motion.pressMs >= 120 && v2Motion.pressMs <= 160);
+check("13: card hover and press durations (Motion V3 token parity)", () => {
+  assert.equal(motionV3.cardHoverMs, 260);
+  assert.equal(motionV3.cardPressMs, 140);
+  cssToken("soda-duration-hover", motionV3.cardHoverMs);
+  cssToken("soda-duration-press", motionV3.cardPressMs);
 });
 
 check("14: New Quotation links to existing flow", () => {
@@ -135,5 +148,21 @@ check("15: brain rail in shell (not sidebar)", () => {
   assert.match(navSource, /"nav.brain"/);
 });
 
-console.log(`\n${passed}/15 PASS`);
-if (passed !== 15) process.exit(1);
+check("16: Motion V3 motion.ts ↔ globals.css token parity", () => {
+  cssToken("soda-duration-sidebar-pill", motionV3.sidebarIndicatorMs);
+  cssToken("soda-duration-my-workspace", motionV3.myWorkspaceMs);
+  cssToken("soda-duration-hero", motionV3.heroTransitionMs);
+  cssToken("soda-duration-creation-order", motionV3.creationOrderMs);
+  cssToken("soda-duration-creation-order-close", motionV3.creationOrderCloseMs);
+  cssToken("soda-duration-creation-quotation", motionV3.creationQuotationMs);
+  cssToken("soda-duration-creation-client", motionV3.creationClientMs);
+  cssToken("soda-duration-creation-client-close", motionV3.creationClientCloseMs);
+  assert.match(
+    globalsCss,
+    /--soda-ease:\s*cubic-bezier\(0\.22,\s*1,\s*0\.36,\s*1\)/
+  );
+  assert.equal(motionV3.ease, "cubic-bezier(0.22, 1, 0.36, 1)");
+});
+
+console.log(`\n${passed}/16 PASS`);
+if (passed !== 16) process.exit(1);

@@ -17,12 +17,16 @@ import { cn } from "@/lib/utils";
 interface FounderRecentActivityProps {
   orders: RecentOrderRow[];
   limit?: number;
+  title?: string;
+  description?: string;
 }
 
 /** Screenful 2 — recent orders when live data exists. */
 export function FounderRecentActivity({
   orders,
   limit = 5,
+  title = "Recent Orders",
+  description,
 }: FounderRecentActivityProps) {
   const visible = orders.slice(0, limit);
   const remaining = Math.max(0, orders.length - visible.length);
@@ -32,11 +36,19 @@ export function FounderRecentActivity({
       <Card className="soda-founder-panel soda-cc-card h-full min-w-0">
         <CardHeader className="px-3 py-2.5 pb-1.5">
           <SodaSectionHeader
-            title="Recent Orders"
+            title={title}
             layer="recentOrders"
             as="h2"
             size="card"
           />
+          {description ? (
+            <p
+              className="font-ar mt-1 text-sm text-muted-foreground"
+              dir="rtl"
+            >
+              {description}
+            </p>
+          ) : null}
         </CardHeader>
         <CardContent className="px-3 pb-2.5 pt-0">
           <SodaEmptyState
@@ -54,7 +66,7 @@ export function FounderRecentActivity({
     <Card className="soda-founder-panel soda-cc-card h-full min-w-0">
       <CardHeader className="flex-row items-start justify-between space-y-0 px-3 py-2.5 pb-1.5">
         <SodaSectionHeader
-          title="Recent Orders"
+          title={title}
           layer="recentOrders"
           as="h2"
           size="card"

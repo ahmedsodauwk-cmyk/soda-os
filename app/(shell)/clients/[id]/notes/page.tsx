@@ -6,7 +6,7 @@ import { ClientNotesEditor } from "@/components/clients/client-notes-editor";
 import { ClientWorkspaceSectionPage } from "@/components/clients/client-workspace-section";
 import { getClientNotes } from "@/lib/clients/aggregators";
 import { refreshClients } from "@/lib/clients/repository";
-import { can } from "@/lib/identity/permissions";
+import { canFounderMutateExisting } from "@/lib/identity/access-levels";
 import { resolveSessionForApp } from "@/lib/identity/session";
 
 export const dynamic = "force-dynamic";
@@ -23,7 +23,7 @@ export default async function ClientNotesPage({
   if (!notes) notFound();
 
   const canEdit = session
-    ? can(session.profile.accessLevel, "clients.edit")
+    ? canFounderMutateExisting(session.profile.accessLevel)
     : false;
 
   const content = (

@@ -7,7 +7,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import path from "node:path";
 
-import { v2Motion } from "../lib/visual/v2";
+import { motionV3 } from "../lib/visual/motion";
 
 let passed = 0;
 
@@ -28,8 +28,10 @@ const founderHome = read("components/dashboard/founder-home-stream.tsx");
 
 console.log("verify-command-center-layout\n");
 
-check("1: three-column shell frame with brain rail", () => {
+check("1: shell frame — 3col Founder brain rail, 2col otherwise", () => {
   assert.match(shellFrame, /soda-shell-3col/);
+  assert.match(shellFrame, /soda-shell-2col/);
+  assert.match(shellFrame, /showBrainRail/);
   assert.match(shellFrame, /SodaBrainPanelClient/);
   assert.match(shellFrame, /variant="rail"/);
 });
@@ -50,6 +52,7 @@ check("4: brain rail width ~280px (17.5rem)", () => {
 
 check("5: sidebar width token 14rem (w-56)", () => {
   assert.match(globalsCss, /--soda-sidebar-width: 14rem/);
+  assert.match(globalsCss, /\.soda-shell-2col/);
 });
 
 check("6: Home V3 — ops + management + lower rows", () => {
@@ -59,8 +62,9 @@ check("6: Home V3 — ops + management + lower rows", () => {
   assert.match(founderHome, /lg:grid-cols-3/);
 });
 
-check("7: route motion ~820ms total", () => {
-  assert.equal(v2Motion.routeExitMs + v2Motion.routeEnterMs, 820);
+check("7: Motion V3 route ~820ms total", () => {
+  assert.equal(motionV3.routeTotalMs, 820);
+  assert.equal(motionV3.routeExitMs + motionV3.routeEnterMs, motionV3.routeTotalMs);
 });
 
 check("8: horizontal route keyframes", () => {

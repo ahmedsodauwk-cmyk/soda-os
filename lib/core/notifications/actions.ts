@@ -19,6 +19,7 @@ import type {
   NotificationRecord,
 } from "@/lib/core/types";
 import { resolveSessionForApp } from "@/lib/identity/session";
+import { requireFounderMutationAccess } from "@/lib/domain/mutation-auth";
 
 export type CrewDecisionResult =
   | { ok: true; status: "confirmed" | "cancelled" }
@@ -109,9 +110,21 @@ async function persistStatus(
   return { ok: true, ids: targets.map((t) => t.id), status };
 }
 
+async function requireFounderLifecycle(): Promise<
+  | { ok: true; userId: string; items: NotificationRecord[] }
+  | { ok: false; error: string }
+> {
+  const gate = await requireFounderMutationAccess();
+  if (!gate.ok) return { ok: false, error: gate.error };
+  const items = await loadNotificationsForSession(gate.session);
+  return { ok: true, userId: gate.session.userId, items };
+}
+
 export async function confirmCrewAssignment(
   assignmentId: string
 ): Promise<CrewDecisionResult> {
+  const founder = await requireFounderMutationAccess();
+  if (!founder.ok) return { ok: false, error: founder.error };
   const id = assignmentId?.trim();
   if (!id) return { ok: false, error: "تعيين غير موجود" };
   try {
@@ -151,6 +164,8 @@ export async function confirmCrewAssignment(
 export async function declineCrewAssignment(
   assignmentId: string
 ): Promise<CrewDecisionResult> {
+  const founder = await requireFounderMutationAccess();
+  if (!founder.ok) return { ok: false, error: founder.error };
   const id = assignmentId?.trim();
   if (!id) return { ok: false, error: "تعيين غير موجود" };
   try {
@@ -189,7 +204,7 @@ export async function declineCrewAssignment(
 export async function markNotificationsReadAction(
   ids: string[]
 ): Promise<LifecycleResult> {
-  const loaded = await requireSessionNotifications();
+  const loaded = await requireFounderLifecycle();
   if (!loaded.ok) return loaded;
   const unique = [...new Set(ids.filter(Boolean))];
   if (unique.length === 0) return { ok: false, error: "مفيش تنبيهات" };
@@ -199,7 +214,7 @@ export async function markNotificationsReadAction(
 }
 
 export async function markAllNotificationsReadAction(): Promise<LifecycleResult> {
-  const loaded = await requireSessionNotifications();
+  const loaded = await requireFounderLifecycle();
   if (!loaded.ok) return loaded;
   const unread = loaded.items.filter((n) => n.status === "unread");
   if (unread.length === 0) {
@@ -217,7 +232,7 @@ export async function markAllNotificationsReadAction(): Promise<LifecycleResult>
 export async function acknowledgeNotificationAction(
   id: string
 ): Promise<LifecycleResult> {
-  const loaded = await requireSessionNotifications();
+  const loaded = await requireFounderLifecycle();
   if (!loaded.ok) return loaded;
   return persistStatus(loaded.userId, loaded.items, [id], "acknowledged", {
     note: "اتأكد",
@@ -228,7 +243,7 @@ export async function acknowledgeNotificationAction(
 export async function completeNotificationAction(
   id: string
 ): Promise<LifecycleResult> {
-  const loaded = await requireSessionNotifications();
+  const loaded = await requireFounderLifecycle();
   if (!loaded.ok) return loaded;
   return persistStatus(loaded.userId, loaded.items, [id], "completed", {
     note: "خلصت",
@@ -239,7 +254,7 @@ export async function completeNotificationAction(
 export async function dismissNotificationAction(
   id: string
 ): Promise<LifecycleResult> {
-  const loaded = await requireSessionNotifications();
+  const loaded = await requireFounderLifecycle();
   if (!loaded.ok) return loaded;
   const at = new Date().toISOString();
   return persistStatus(loaded.userId, loaded.items, [id], "completed", {
@@ -252,7 +267,7 @@ export async function dismissNotificationAction(
 export async function archiveNotificationAction(
   id: string
 ): Promise<LifecycleResult> {
-  const loaded = await requireSessionNotifications();
+  const loaded = await requireFounderLifecycle();
   if (!loaded.ok) return loaded;
   const at = new Date().toISOString();
   return persistStatus(loaded.userId, loaded.items, [id], "completed", {

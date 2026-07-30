@@ -9,6 +9,7 @@ import {
 } from "@/lib/domain/types";
 import {
   isClientIdInScope,
+  requireFounderMutationAccess,
   requirePermission,
 } from "@/lib/domain/mutation-auth";
 import {
@@ -84,7 +85,10 @@ export async function updateQuotationAction(
   patch: Parameters<typeof updateQuotation>[1],
   meta?: Parameters<typeof updateQuotation>[2]
 ): Promise<DomainActionResult<Quotation | null>> {
-  const access = await assertQuotationAccess(quotationId, "quotations.edit");
+  const gate = await requireFounderMutationAccess();
+  if (!gate.ok) return actionError(gate.error);
+
+  const access = await assertQuotationAccess(quotationId, "quotations.view");
   if (!access.ok) return actionError(access.error);
 
   try {
@@ -100,7 +104,10 @@ export async function updateQuotationAction(
 export async function deleteQuotationAction(
   quotationId: string
 ): Promise<DomainActionResult> {
-  const access = await assertQuotationAccess(quotationId, "quotations.edit");
+  const gate = await requireFounderMutationAccess();
+  if (!gate.ok) return actionError(gate.error);
+
+  const access = await assertQuotationAccess(quotationId, "quotations.view");
   if (!access.ok) return actionError(access.error);
 
   try {
@@ -117,7 +124,10 @@ export async function moveQuotationStageAction(
   quotationId: string,
   stage: PipelineStage
 ): Promise<DomainActionResult<Quotation | null>> {
-  const access = await assertQuotationAccess(quotationId, "quotations.edit");
+  const gate = await requireFounderMutationAccess();
+  if (!gate.ok) return actionError(gate.error);
+
+  const access = await assertQuotationAccess(quotationId, "quotations.view");
   if (!access.ok) return actionError(access.error);
 
   try {
@@ -135,7 +145,10 @@ export async function setQuotationApprovalStatusAction(
   status: ApprovalStatus,
   editedBy?: string
 ): Promise<DomainActionResult<Quotation | null>> {
-  const access = await assertQuotationAccess(quotationId, "quotations.edit");
+  const gate = await requireFounderMutationAccess();
+  if (!gate.ok) return actionError(gate.error);
+
+  const access = await assertQuotationAccess(quotationId, "quotations.view");
   if (!access.ok) return actionError(access.error);
 
   try {
@@ -156,7 +169,10 @@ export async function markDepositReceivedAction(
   quotationId: string,
   editedBy?: string
 ): Promise<DomainActionResult<Quotation | null>> {
-  const access = await assertQuotationAccess(quotationId, "quotations.edit");
+  const gate = await requireFounderMutationAccess();
+  if (!gate.ok) return actionError(gate.error);
+
+  const access = await assertQuotationAccess(quotationId, "quotations.view");
   if (!access.ok) return actionError(access.error);
 
   try {
@@ -174,7 +190,10 @@ export async function restoreQuotationVersionAction(
   versionNumber: number,
   editedBy?: string
 ): Promise<DomainActionResult<Quotation | null>> {
-  const access = await assertQuotationAccess(quotationId, "quotations.edit");
+  const gate = await requireFounderMutationAccess();
+  if (!gate.ok) return actionError(gate.error);
+
+  const access = await assertQuotationAccess(quotationId, "quotations.view");
   if (!access.ok) return actionError(access.error);
 
   try {

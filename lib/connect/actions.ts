@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 
 import { canAsync } from "@/lib/identity/permission-service";
 import { resolveSessionForApp } from "@/lib/identity/session";
+import { requireFounderMutationAccess } from "@/lib/domain/mutation-auth";
 import {
   attachFilesToMessage,
   bootstrapTeamChatRoster,
@@ -175,6 +176,8 @@ export async function editConnectMessageAction(input: {
   messageId: string;
   body: string;
 }): Promise<{ ok: boolean; error?: string }> {
+  const founder = await requireFounderMutationAccess();
+  if (!founder.ok) return { ok: false, error: founder.error };
   const gate = await requireConnect(true);
   if (!gate.ok) return gate;
   const r = await editMessage(input.messageId, gate.userId, input.body.trim());
@@ -186,6 +189,8 @@ export async function deleteConnectMessageAction(input: {
   messageId: string;
   scope: "me" | "everyone";
 }): Promise<{ ok: boolean; error?: string }> {
+  const founder = await requireFounderMutationAccess();
+  if (!founder.ok) return { ok: false, error: founder.error };
   const gate = await requireConnect(true);
   if (!gate.ok) return gate;
   const r =
@@ -200,6 +205,8 @@ export async function reactConnectMessageAction(input: {
   messageId: string;
   emoji: ConnectReactionEmoji;
 }): Promise<{ ok: boolean; error?: string }> {
+  const founder = await requireFounderMutationAccess();
+  if (!founder.ok) return { ok: false, error: founder.error };
   const gate = await requireConnect(true);
   if (!gate.ok) return gate;
   return toggleReaction({
@@ -212,6 +219,8 @@ export async function reactConnectMessageAction(input: {
 export async function starConnectMessageAction(input: {
   messageId: string;
 }): Promise<{ ok: boolean; error?: string }> {
+  const founder = await requireFounderMutationAccess();
+  if (!founder.ok) return { ok: false, error: founder.error };
   const gate = await requireConnect();
   if (!gate.ok) return gate;
   return toggleStar(input.messageId, gate.userId);
@@ -221,6 +230,8 @@ export async function pinConnectMessageAction(input: {
   conversationId: string;
   messageId: string | null;
 }): Promise<{ ok: boolean; error?: string }> {
+  const founder = await requireFounderMutationAccess();
+  if (!founder.ok) return { ok: false, error: founder.error };
   const gate = await requireConnect(true);
   if (!gate.ok) return gate;
   const r = await pinMessage(
@@ -235,6 +246,8 @@ export async function pinConnectMessageAction(input: {
 export async function markConnectReadAction(input: {
   conversationId: string;
 }): Promise<{ ok: boolean; error?: string }> {
+  const founder = await requireFounderMutationAccess();
+  if (!founder.ok) return { ok: false, error: founder.error };
   const gate = await requireConnect();
   if (!gate.ok) return gate;
   await markConversationRead(input.conversationId, gate.userId);
@@ -247,6 +260,8 @@ export async function setConnectPresenceAction(input: {
   activity?: ConnectPresence["activity"];
   activityConversationId?: string | null;
 }): Promise<{ ok: boolean; error?: string; presence?: ConnectPresence | null }> {
+  const founder = await requireFounderMutationAccess();
+  if (!founder.ok) return { ok: false, error: founder.error };
   const gate = await requireConnect();
   if (!gate.ok) return gate;
   const presence = await upsertPresence({

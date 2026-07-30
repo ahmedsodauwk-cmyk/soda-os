@@ -7,7 +7,7 @@ import {
   sanitizeActionError,
   type DomainActionResult,
 } from "@/lib/domain/types";
-import { requirePermission } from "@/lib/domain/mutation-auth";
+import { requireFounderMutationAccess, requirePermission } from "@/lib/domain/mutation-auth";
 import {
   assignEquipmentToPerson,
   createEquipment,
@@ -47,7 +47,7 @@ export async function updateEquipmentAction(
   id: string,
   patch: Partial<NewEquipmentInput> & { status?: EquipmentStatus }
 ): Promise<DomainActionResult<EquipmentItem>> {
-  const gate = await requirePermission("equipment.edit");
+  const gate = await requireFounderMutationAccess();
   if (!gate.ok) return actionError(gate.error);
 
   try {
@@ -63,7 +63,7 @@ export async function updateEquipmentAction(
 export async function deleteEquipmentAction(
   id: string
 ): Promise<DomainActionResult> {
-  const gate = await requirePermission("equipment.edit");
+  const gate = await requireFounderMutationAccess();
   if (!gate.ok) return actionError(gate.error);
 
   try {
@@ -80,7 +80,7 @@ export async function assignEquipmentToPersonAction(
   equipmentId: string,
   personId: string
 ): Promise<DomainActionResult> {
-  const gate = await requirePermission("equipment.edit");
+  const gate = await requireFounderMutationAccess();
   if (!gate.ok) return actionError(gate.error);
 
   try {
