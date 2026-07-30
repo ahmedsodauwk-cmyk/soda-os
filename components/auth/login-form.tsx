@@ -49,7 +49,7 @@ export function LoginForm() {
         <form className="space-y-4" action={formAction} aria-label="Sign in">
           <div className="space-y-2">
             <Label htmlFor="email" className="text-white/70">
-              Username or email
+              {t("settings.usernameOrEmail")}
             </Label>
             <Input
               id="email"

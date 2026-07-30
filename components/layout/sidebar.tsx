@@ -458,7 +458,7 @@ export function SidebarContent({
               <DropdownMenuItem
                 className="cursor-pointer"
                 nativeButton={false}
-                render={<Link href="/settings" />}
+                render={<Link href="/settings/profile" />}
               >
                 <Settings />
                 {t("common.myAccount")}

@@ -32,7 +32,7 @@ export default async function ChangePasswordPage({
       layer="settings"
       session={session}
     >
-      {!forced ? <BackLink href="/settings" label="Settings" /> : null}
+      {!forced ? <BackLink href="/settings/account" label="Account" /> : null}
       <Card className="soda-cc-card max-w-lg">
         <CardHeader>
           <CardTitle>

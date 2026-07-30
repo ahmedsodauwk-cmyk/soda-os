@@ -58,6 +58,7 @@ export interface OrderCapabilities {
   canAddExpense?: boolean;
   canSeeFullMoney?: boolean;
   canAssignCrew?: boolean;
+  canLinkToClientProfile?: boolean;
 }
 
 interface OrderCommandCenterProps {
@@ -372,7 +373,7 @@ export function OrderCommandCenter({
 
           {/* Quiet depth links */}
           <div className="mt-4 flex flex-wrap gap-3 border-t border-border/50 pt-3 text-xs text-muted-foreground">
-            {order.clientId ? (
+            {order.clientId && capsIn.canLinkToClientProfile ? (
               <Link
                 href={`/clients/${order.clientId}`}
                 className="hover:text-soda-pink"

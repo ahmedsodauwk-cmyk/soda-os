@@ -4,6 +4,7 @@
  */
 
 import type { AccessLevel } from "@/lib/identity/access-levels";
+import { isFounderAccess } from "@/lib/identity/access-levels";
 
 /** Exact nav hrefs allowed per Access Level (Personal Workspace handled via /me). */
 const NAV_HREFS: Record<AccessLevel, ReadonlySet<string> | "all"> = {
@@ -14,7 +15,6 @@ const NAV_HREFS: Record<AccessLevel, ReadonlySet<string> | "all"> = {
     "/orders",
     "/projects",
     "/commercial",
-    "/clients",
     "/people",
     "/calendar",
     "/connect",
@@ -33,7 +33,7 @@ const NAV_HREFS: Record<AccessLevel, ReadonlySet<string> | "all"> = {
 
 /**
  * Path prefixes allowed for deep links / RoleGate denial.
- * Personal password change always allowed when signed in.
+ * Personal settings + password always allowed when signed in.
  */
 const PATH_PREFIXES: Record<AccessLevel, readonly string[] | "all"> = {
   founder: "all",
@@ -44,7 +44,6 @@ const PATH_PREFIXES: Record<AccessLevel, readonly string[] | "all"> = {
     "/projects",
     "/commercial",
     "/workspaces",
-    "/clients",
     "/people",
     "/crew",
     "/calendar",
@@ -53,7 +52,7 @@ const PATH_PREFIXES: Record<AccessLevel, readonly string[] | "all"> = {
     "/me",
     "/schedule",
     "/attention",
-    "/settings/password",
+    "/settings",
   ],
   team_leader: [
     "/",
@@ -65,7 +64,7 @@ const PATH_PREFIXES: Record<AccessLevel, readonly string[] | "all"> = {
     "/notifications",
     "/me",
     "/schedule",
-    "/settings/password",
+    "/settings",
   ],
   team: [
     "/",
@@ -74,7 +73,7 @@ const PATH_PREFIXES: Record<AccessLevel, readonly string[] | "all"> = {
     "/connect",
     "/notifications",
     "/me",
-    "/settings/password",
+    "/settings",
   ],
 };
 
@@ -91,6 +90,8 @@ export function isNavHrefAllowed(
   const allowed = NAV_HREFS[level];
   if (allowed === "all") return true;
   if (href.startsWith("/me/") || href === "/me") return true;
+  if (href === "/settings" || href.startsWith("/settings/")) return true;
+  if (href.startsWith("/clients")) return isFounderAccess(level);
   return allowed.has(href);
 }
 
@@ -99,7 +100,7 @@ export function canAccessPath(level: AccessLevel, pathname: string): boolean {
   const prefixes = PATH_PREFIXES[level];
   if (prefixes === "all") return true;
   if (!pathname || pathname === "") return true;
-  // Always allow auth chrome + public meta.
+
   if (
     pathname === "/login" ||
     pathname === "/forgot-password" ||
@@ -108,7 +109,23 @@ export function canAccessPath(level: AccessLevel, pathname: string): boolean {
   ) {
     return true;
   }
-  if (pathname.startsWith("/settings/password")) return true;
+
+  if (pathname.startsWith("/settings")) {
+    if (
+      pathname.startsWith("/settings/system") ||
+      pathname.startsWith("/settings/authority") ||
+      pathname.startsWith("/settings/backup") ||
+      pathname.startsWith("/settings/permissions")
+    ) {
+      return isFounderAccess(level) || level === "account_manager";
+    }
+    return true;
+  }
+
+  if (pathname.startsWith("/clients")) {
+    return isFounderAccess(level);
+  }
+
   return prefixes.some((p) => prefixAllows(pathname, p));
 }
 

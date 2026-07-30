@@ -26,7 +26,7 @@ import {
   can,
   canSeeCompanyFinance,
 } from "@/lib/identity/permissions";
-import { canFounderMutateExisting } from "@/lib/identity/access-levels";
+import { canFounderMutateExisting, isFounderAccess } from "@/lib/identity/access-levels";
 import { resolveSessionForApp } from "@/lib/identity/session";
 import { getOrderOperatingView } from "@/lib/integration";
 import { refreshInvoices } from "@/lib/invoices/repository";
@@ -92,6 +92,7 @@ export default async function OrderWorkspacePage({ params }: OrderPageProps) {
     canAddExpense: canMutate,
     canSeeFullMoney: seeMoney,
     canAssignCrew: canMutate,
+    canLinkToClientProfile: level ? isFounderAccess(level) : false,
   };
 
   const content = (

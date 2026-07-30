@@ -333,7 +333,7 @@ export const NAV_ITEMS: NavItem[] = [
     titleKey: "nav.settings",
     href: "/settings",
     icon: Settings,
-    anyOf: ["settings.view"],
+    anyOf: ["settings.personal", "settings.view"],
     workspace: "me",
   },
 ];
@@ -383,6 +383,9 @@ export function navForAccessLevel(
     granted instanceof Set ? granted : new Set(granted as readonly string[]);
 
   let items = NAV_ITEMS.filter((item) => {
+    if (item.href.startsWith("/clients")) {
+      return level === "founder" && setHasAny(set, item.anyOf);
+    }
     // SODA Brain — Founder only (permission seed optional until migration applied)
     if (item.accent === "brain" || item.href === "/brain") {
       return level === "founder";

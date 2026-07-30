@@ -94,6 +94,7 @@ const ALL: Permission[] = [
   "social.edit",
   "content.publish",
   "settings.view",
+  "settings.personal",
   "settings.users",
   "notifications.view",
   "me.wallet",
@@ -108,6 +109,7 @@ const ALL: Permission[] = [
   "brain.edit",
   "connect.view",
   "connect.send",
+  "settings.personal",
 ];
 
 /** Account Manager — quotes/orders/clients/commercial/calendar/assign; no Authority/Finance/Settings. */
@@ -131,6 +133,7 @@ const ACCOUNT_MANAGER: Permission[] = [
   "notifications.view",
   "connect.view",
   "connect.send",
+  "settings.personal",
 ];
 
 /** Team Leader — orders, assign, crew workspace, calendar; no Authority/Finance/user creation. */
@@ -174,6 +177,7 @@ const TEAM: Permission[] = [
   "me.briefs",
   "me.dress_code",
   "me.performance",
+  "settings.personal",
 ];
 
 /** Hardcoded Access Level → permission sets (DB templates preferred when present). */

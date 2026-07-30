@@ -50,6 +50,7 @@ export const PERMISSIONS = [
   "social.edit",
   "content.publish",
   "settings.view",
+  "settings.personal",
   "settings.users",
   "notifications.view",
   "me.wallet",

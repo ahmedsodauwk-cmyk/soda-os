@@ -108,6 +108,17 @@ export type Dictionary = {
     firstOwnerSetup: string;
     search: string;
   };
+  settings: {
+    hubTitle: string;
+    myProfile: string;
+    accountSecurity: string;
+    myScope: string;
+    myPreferences: string;
+    systemSettings: string;
+    usernameOrEmail: string;
+    twoFactorPlaceholder: string;
+    phoneRecoveryBlocked: string;
+  };
   quickActions: {
     newQuotation: string;
     createOrder: string;
@@ -260,6 +271,17 @@ const en: Dictionary = {
     firstOwnerSetup: "First owner setup",
     search: "Search",
   },
+  settings: {
+    hubTitle: "Account settings",
+    myProfile: "My Profile",
+    accountSecurity: "Account & Security",
+    myScope: "My Scope",
+    myPreferences: "My Preferences",
+    systemSettings: "System Settings",
+    usernameOrEmail: "Username or email",
+    twoFactorPlaceholder: "Two-factor authentication — coming soon",
+    phoneRecoveryBlocked: "Phone recovery requires SMS configuration (not enabled)",
+  },
   quickActions: {
     newQuotation: "+ New Quotation",
     createOrder: "+ New Order",
@@ -411,6 +433,17 @@ const ar: Dictionary = {
     forgotPassword: "نسيت كلمة السر؟",
     firstOwnerSetup: "إعداد المالك الأول",
     search: "بحث",
+  },
+  settings: {
+    hubTitle: "إعدادات الحساب",
+    myProfile: "ملفي الشخصي",
+    accountSecurity: "الحساب والأمان",
+    myScope: "نطاقي",
+    myPreferences: "تفضيلاتي",
+    systemSettings: "إعدادات النظام",
+    usernameOrEmail: "اسم المستخدم أو البريد",
+    twoFactorPlaceholder: "المصادقة الثنائية — قريباً",
+    phoneRecoveryBlocked: "استعادة الهاتف تتطلب إعداد الرسائل (غير مفعّل)",
   },
   quickActions: {
     newQuotation: "+ عرض سعر",
