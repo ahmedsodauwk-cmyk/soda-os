@@ -64,7 +64,26 @@ Permission Impact:
 
 When role scope is unspecified, ask: *"Should this change apply to Founder only, all eligible users, or selected Access Levels?"* — do not assume Founder-only because the Founder reported the issue.
 
-**2026-07-30 — Global logo parity (GLOBAL_VISUAL):** AppShell sidebar + mobile nav use unified `sidebar` placement (48px responsive clamp) for all authenticated roles on all routes; refresh loader uses transparent full-viewport splash; `assetVersion` **06.3.4** for cache bust. Branch `feature/unified-profile-settings-i18n` — **PENDING FOUNDER REVIEW** (not merged).
+**2026-07-30 — Global logo parity (GLOBAL_VISUAL):** AppShell sidebar + mobile nav use unified `sidebar` placement (48px responsive clamp) for all authenticated roles on all routes; refresh loader uses transparent full-viewport splash; `assetVersion` **06.3.4** for cache bust. Branch `feature/unified-profile-settings-i18n` @ `4fd924e` — **CODE GATES PASS — PRODUCTION RELEASE BLOCKED** (interactive `DATABASE_URL` required for backup/migrations).
+
+---
+
+## RELEASE ATTEMPT — Profile Settings / Client Privacy / Avatars (2026-07-30)
+
+| Field | Value |
+|--------|--------|
+| **Status** | **BLOCKED — Founder must run secure release locally** |
+| **Branch** | `feature/unified-profile-settings-i18n` @ `4fd924e` |
+| **Stage 1 code gates** | **PASS** — typecheck, 19 verifiers, build, `git diff --check` |
+| **Stage 1 backup** | **NOT RUN** — agent shell non-interactive (`stdin` redirected) |
+| **Migration 000035** | **NOT applied** — client privacy function ready |
+| **Migration 000036** | **NOT applied** — profile-avatars storage ready |
+| **Merge to main** | **NOT done** — blocked on backup/migrations |
+| **Production deploy** | **NOT done** |
+| **Stage 2 localization** | **NOT STARTED** — blocked until Stage 1 success |
+| **Runner** | `npm run release:production:secure` (updated for this mission) |
+
+**Founder action:** In interactive PowerShell from worktree `C:\Users\ahmed\soda-os-worktree-profile-settings-i18n`, commit release tooling if uncommitted, then run `npm run release:production:secure` and paste Production `DATABASE_URL` when prompted.
 
 ---
 

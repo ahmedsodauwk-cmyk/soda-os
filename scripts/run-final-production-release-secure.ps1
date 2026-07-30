@@ -7,18 +7,21 @@
 
 $ErrorActionPreference = "Stop"
 
-$ExpectedBranch = "global-role-home-preview"
+$ExpectedBranch = "feature/unified-profile-settings-i18n"
+$ExpectedHeadPrefix = "4fd924e"
 $ProductionUrl = "https://soda-os.vercel.app"
 
-$BackupZip = "D:\SODA OS\Database\SODA_Database_2026-07-28_080153.zip"
-$BackupManifest = "D:\SODA OS\Database\SODA_Database_2026-07-28_080153.manifest.json"
-$BackupDigest = "sha256:14e2c564514407255b3d128f790354fc571f3f477cac518ceeaf1ef9a299f592"
+$BackupZip = $null
+$BackupManifest = $null
+$BackupDigest = $null
 
 $FailedPhase = $null
 $MergeCommit = $null
 $DeployId = $null
 $DocCommit = $null
 $Migration034Applied = "skipped"
+$Migration035Applied = "skipped"
+$Migration036Applied = "skipped"
 $Migration033Applied = "not applied"
 $MigrationHistoryStatus = "not checked"
 $RlsResult = "not run"
@@ -211,32 +214,80 @@ function Run-Phase0-Baseline {
 
   $branch = (& git branch --show-current).Trim()
   $head = (& git rev-parse HEAD).Trim()
-  $originPreview = (& git rev-parse "origin/$ExpectedBranch").Trim()
   $originMain = (& git rev-parse origin/main).Trim()
+  $originFeature = $null
+  try {
+    $originFeature = (& git rev-parse "origin/$ExpectedBranch" 2>$null).Trim()
+  } catch {
+    $originFeature = $null
+  }
 
   Write-Host "  branch:          $branch"
   Write-Host "  HEAD:            $head"
-  Write-Host "  origin/$ExpectedBranch`: $originPreview"
+  if ($originFeature) {
+    Write-Host "  origin/$ExpectedBranch`: $originFeature"
+  } else {
+    Write-Host "  origin/$ExpectedBranch`: (not on remote yet)"
+  }
   Write-Host "  origin/main:     $originMain"
 
   if ($branch -ne $ExpectedBranch) {
     throw "expected branch $ExpectedBranch, got $branch"
   }
-  if ($head -ne $originPreview) {
-    throw "HEAD must match origin/$ExpectedBranch ($originPreview) - run git pull"
+  if (-not $head.StartsWith($ExpectedHeadPrefix)) {
+    throw "HEAD must include logo parity commit $ExpectedHeadPrefix (got $head)"
   }
 
-  $stateScript = Get-Content -LiteralPath "scripts/verify-live-migration-state.ts" -Raw -Encoding UTF8
-  if ($stateScript -notmatch "migrationHistoryAvailable") {
-    throw "release runner fix missing - pull latest $ExpectedBranch"
+  $dirty = (& git status --porcelain)
+  if ($dirty) {
+    throw "working tree must be clean before release"
   }
 
-  Write-Host "PASS  baseline confirmed (unrelated working-tree files preserved)" -ForegroundColor Green
+  if (-not (Test-Path -LiteralPath "scripts/verify-profile-settings-migration-state.ts")) {
+    throw "profile-settings migration verifier missing - pull latest $ExpectedBranch"
+  }
+
+  Write-Host "PASS  baseline confirmed" -ForegroundColor Green
 }
 
-function Run-Phase1-BackupVerify {
+function Parse-BackupOutput {
+  param([System.Collections.IEnumerable]$OutputLines)
+  $zip = $null
+  $manifest = $null
+  $digest = $null
+  foreach ($line in $OutputLines) {
+    $text = [string]$line
+    if ($text -match '^\s*zip:\s+(.+)$') { $zip = $Matches[1].Trim() }
+    if ($text -match '^\s*manifest:\s+(.+)$') { $manifest = $Matches[1].Trim() }
+    if ($text -match '^\s*digest:\s+(.+)$') { $digest = $Matches[1].Trim() }
+  }
+  return @{ Zip = $zip; Manifest = $manifest; Digest = $digest }
+}
+
+function Run-Phase1-FreshBackup {
+  param([string]$DbUrlPlain)
+
   Write-Host ""
-  Write-Host "=== Phase 1: Backup verification ===" -ForegroundColor Cyan
+  Write-Host "=== Phase 1: Fresh Production backup ===" -ForegroundColor Cyan
+
+  $env:DATABASE_URL = $DbUrlPlain
+  Write-Host "  > npm run backup:database" -ForegroundColor DarkGray
+  $backupOutput = & npm run backup:database 2>&1
+  $backupCode = $LASTEXITCODE
+  if ($null -eq $backupCode) { $backupCode = 1 }
+  $backupOutput | ForEach-Object { Write-Host $_ }
+  if ($backupCode -ne 0) {
+    throw "fresh Production backup failed (exit $backupCode)"
+  }
+
+  $parsed = Parse-BackupOutput -OutputLines $backupOutput
+  if (-not $parsed.Zip -or -not $parsed.Manifest -or -not $parsed.Digest) {
+    throw "backup output missing zip/manifest/digest paths"
+  }
+
+  $script:BackupZip = $parsed.Zip
+  $script:BackupManifest = $parsed.Manifest
+  $script:BackupDigest = $parsed.Digest
 
   Invoke-Tsx -ScriptArgs @(
     "scripts/verify-database-backup-package.ts",
@@ -245,9 +296,9 @@ function Run-Phase1-BackupVerify {
     "--digest", $BackupDigest,
     "--mode", "pg_dump",
     "--min-tables", "84"
-  ) -Label "backup verification"
+  ) -Label "backup package verification"
 
-  Write-Host "PASS  existing backup verified (no new backup created)" -ForegroundColor Green
+  Write-Host "PASS  fresh Production backup verified" -ForegroundColor Green
 }
 
 function Prompt-DatabaseUrl {
@@ -328,7 +379,42 @@ function Run-Phase2-MigrationReconciliation {
   $null = Invoke-RlsLiveProbes -Migration034AppliedThisRun $script:Migration034Applied
   $script:RlsResult = "PASS"
 
-  Write-Host "PASS  migration reconciliation (000033 not applied)" -ForegroundColor Green
+  $profileOutput = & npx tsx scripts/verify-profile-settings-migration-state.ts 2>&1
+  $profileCode = $LASTEXITCODE
+  if ($null -eq $profileCode) { $profileCode = 1 }
+  $profileOutput | ForEach-Object { Write-Host $_ }
+
+  if ($profileCode -eq 11) {
+    throw "000033 Personal Brain foundation present on Production - aborting"
+  }
+  if ($profileCode -notin @(0, 10, 12)) {
+    throw "profile-settings migration state failed (exit $profileCode)"
+  }
+
+  if ($profileCode -eq 10) {
+    Write-Host "  Applying migration 000035 (client privacy)..." -ForegroundColor Yellow
+    Invoke-Tsx -ScriptArgs @("scripts/apply-client-privacy-secure.ts") -Label "apply 000035"
+    $script:Migration035Applied = "applied this run"
+    $profileCode = Invoke-Tsx -ScriptArgs @("scripts/verify-profile-settings-migration-state.ts") -Label "verify 000035" -AllowedExitCodes @(0, 12)
+    if ($profileCode -eq 10) {
+      Write-Host "  Rolling back 000035 (policy unsafe)..." -ForegroundColor Red
+      Invoke-Tsx -ScriptArgs @("scripts/apply-client-privacy-secure.ts", "--rollback") -Label "rollback 000035"
+      throw "000035 client privacy verification failed after apply"
+    }
+  } else {
+    $script:Migration035Applied = "skipped (catalog match)"
+  }
+
+  if ($profileCode -eq 12) {
+    Write-Host "  Applying migration 000036 (profile-avatars storage)..." -ForegroundColor Yellow
+    Invoke-Tsx -ScriptArgs @("scripts/apply-profile-avatars-secure.ts") -Label "apply 000036"
+    $script:Migration036Applied = "applied this run"
+    Invoke-Tsx -ScriptArgs @("scripts/verify-profile-settings-migration-state.ts") -Label "verify 000036" -AllowedExitCodes @(0)
+  } else {
+    $script:Migration036Applied = "skipped (catalog match)"
+  }
+
+  Write-Host "PASS  migration reconciliation (000033 not applied; 000035/000036 OK)" -ForegroundColor Green
 }
 
 function Run-Phase3-CodeGates {
@@ -340,16 +426,23 @@ function Run-Phase3-CodeGates {
   $eslintFiles = @(
     "scripts/run-final-production-release-secure.ps1",
     "scripts/verify-live-migration-state.ts",
+    "scripts/verify-profile-settings-migration-state.ts",
     "scripts/apply-founder-only-rls-secure.ts",
+    "scripts/apply-client-privacy-secure.ts",
+    "scripts/apply-profile-avatars-secure.ts",
     "scripts/verify-founder-only-rls-live.ts",
     "scripts/verify-live-release-state.ts",
     "scripts/verify-database-backup-package.ts",
     "scripts/db-secure-connection.ts",
     "scripts/verify-motion-v3-parity.ts",
     "lib/domain/mutation-auth.ts",
+    "lib/clients/privacy.ts",
+    "lib/avatars/config.ts",
     "components/orders/orders-content.tsx",
     "components/dashboard/role-aware-home-stream.tsx",
-    "supabase/migrations/20260728000034_founder_only_update_delete.sql"
+    "supabase/migrations/20260728000034_founder_only_update_delete.sql",
+    "supabase/migrations/20260730000035_client_privacy_non_founder.sql",
+    "supabase/migrations/20260730000036_profile_avatars_storage.sql"
   )
   Write-Host "  > eslint (release files)" -ForegroundColor DarkGray
   & npx eslint @eslintFiles
@@ -358,6 +451,7 @@ function Run-Phase3-CodeGates {
   if ($eslintCode -ne 0) { throw "ESLint failed (exit $eslintCode)" }
 
   Invoke-Tsx -ScriptArgs @("scripts/verify-live-migration-state.ts", "--static") -Label "live migration state (static)"
+  Invoke-Tsx -ScriptArgs @("scripts/verify-profile-settings-migration-state.ts", "--static") -Label "profile-settings migration (static)"
 
   $verifyScripts = @(
     "scripts/verify-founder-mutation-lockdown.ts",
@@ -373,7 +467,10 @@ function Run-Phase3-CodeGates {
     "scripts/verify-sr02-authz.ts",
     "scripts/verify-auth-strict.ts",
     "scripts/verify-backup-home-resilience.ts",
-    "scripts/verify-orders-action-menu.ts"
+    "scripts/verify-orders-action-menu.ts",
+    "scripts/verify-profile-settings-i18n.ts",
+    "scripts/verify-client-privacy.ts",
+    "scripts/verify-i18n-hardcoded.ts"
   )
   foreach ($script in $verifyScripts) {
     Invoke-Tsx -ScriptArgs @($script) -Label $script
@@ -415,7 +512,7 @@ function Run-Phase4-SafeMerge {
   & git pull --ff-only origin main
   if ($LASTEXITCODE -ne 0) { throw "pull main failed" }
 
-  & git merge --no-ff $ExpectedBranch -m "Merge ${ExpectedBranch}: global role home + founder-only mutation lockdown."
+  & git merge --no-ff $ExpectedBranch -m "Merge ${ExpectedBranch}: unified profile/settings, client privacy, avatars, i18n."
   if ($LASTEXITCODE -ne 0) { throw "merge failed" }
 
   $script:MergeCommit = (& git rev-parse HEAD).Trim()
@@ -490,19 +587,20 @@ function Run-Phase7-Documentation {
   $stamp = (Get-Date).ToString("yyyy-MM-dd")
   $short = $ReleaseCommit.Substring(0, 7)
 
-  if ($content -notmatch "GLOBAL SODA EXPERIENCE") {
+  if ($content -notmatch "PROFILE SETTINGS I18N PRODUCTION RELEASE") {
     $insert = @(
       ""
       "---"
       ""
-      "## RELEASE - Global SODA Experience ($stamp)"
+      "## RELEASE - Profile Settings / Client Privacy / Avatars ($stamp)"
       ""
       "| Field | Value |"
       "|--------|--------|"
-      "| **Status** | **PRODUCTION RELEASED - GLOBAL SODA EXPERIENCE ACTIVE - MANUAL ROLE CHECK PENDING** |"
+      "| **Status** | **PRODUCTION RELEASED - PROFILE SETTINGS ACTIVE - MANUAL ROLE CHECK PENDING** |"
       "| **Branch merged** | ``$ExpectedBranch`` -> ``main`` |"
       "| **Merge commit** | ``$ReleaseCommit`` ($short) |"
-      "| **Migration 000034** | Applied on Production (founder-only UPDATE/DELETE RLS) |"
+      "| **Migration 000035** | Client privacy (non-Founder denied client SELECT) |"
+      "| **Migration 000036** | profile-avatars storage bucket + ownership policies |"
       "| **Migration 000033** | **NOT applied** - Personal Brain UI disabled |"
       "| **Production** | $ProductionUrl |"
       '| **Runner** | ``npm run release:production:secure`` |'
@@ -515,7 +613,7 @@ function Run-Phase7-Documentation {
   & git add $docPath
   if ($LASTEXITCODE -ne 0) { throw "git add doc failed" }
 
-  & git commit -m "docs: record global SODA experience production release ($short)."
+  & git commit -m "docs: record profile settings production release ($short)."
   if ($LASTEXITCODE -ne 0) {
     Write-Host "  no doc changes to commit (already recorded)" -ForegroundColor DarkGray
   } else {
@@ -547,10 +645,10 @@ try {
   Write-Host "Credentials are never displayed, logged, or written to disk." -ForegroundColor DarkGray
 
   Run-Phase0-Baseline
-  Run-Phase1-BackupVerify
 
   if ($canPromptDb) {
     $dbUrlPlain = Prompt-DatabaseUrl
+    Run-Phase1-FreshBackup -DbUrlPlain $dbUrlPlain
     Run-Phase2-MigrationReconciliation -DbUrlPlain $dbUrlPlain
     $phase2Done = $true
 
@@ -560,12 +658,12 @@ try {
     Run-Phase6-SmokeTest
     Run-Phase7-Documentation -ReleaseCommit $MergeCommit
 
-    $FinalStatus = "PRODUCTION RELEASED - GLOBAL SODA EXPERIENCE ACTIVE - MANUAL ROLE CHECK PENDING"
+    $FinalStatus = "PRODUCTION RELEASED - PROFILE SETTINGS ACTIVE - MANUAL ROLE CHECK PENDING"
   } else {
     Run-Phase3-CodeGates
     $FinalStatus = "BLOCKED"
     Write-Host ""
-    Write-Host "Phases 0, 1, 3 completed. Phases 2, 4-7 require interactive DATABASE_URL prompt." -ForegroundColor Yellow
+    Write-Host "Phase 0 + 3 completed. Phases 1-2, 4-7 require interactive DATABASE_URL prompt." -ForegroundColor Yellow
     Write-Host 'Founder must run locally: npm run release:production:secure' -ForegroundColor Yellow
   }
 }
@@ -589,9 +687,11 @@ Write-Host "========== RELEASE REPORT ==========" -ForegroundColor Cyan
 Write-Host "FINAL STATUS: $FinalStatus"
 if ($FailedPhase) { Write-Host "Failed phase: $FailedPhase" }
 Write-Host "Runner: scripts/run-final-production-release-secure.ps1"
-Write-Host "Backup ZIP: verified existing ($BackupZip)"
+if ($BackupZip) { Write-Host "Backup ZIP: $BackupZip" } else { Write-Host "Backup ZIP: (not created - blocked)" }
 Write-Host "000033: $Migration033Applied"
 Write-Host "000034: $Migration034Applied"
+Write-Host "000035: $Migration035Applied"
+Write-Host "000036: $Migration036Applied"
 Write-Host "Migration history: $MigrationHistoryStatus"
 Write-Host "RLS live probes: $RlsResult"
 if ($MergeCommit) { Write-Host "Merge commit: $MergeCommit" }
