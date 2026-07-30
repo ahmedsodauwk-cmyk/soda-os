@@ -29,14 +29,13 @@ export const SODA_LOGO = {
   /** Full product lockup for docs / metadata */
   fullName: "SODA VISUALS",
   /** Asset revision — busts browser/PWA icon cache */
-  assetVersion: "06.3.3",
+  assetVersion: "06.3.4",
 } as const;
 
 /** Recommended display sizes by placement (never upscale past source clarity) */
 export const SODA_LOGO_SIZES = {
-  sidebar: 32,
-  /** Home Command Center — larger mark in sidebar rail */
-  home: 48,
+  /** AppShell sidebar + mobile nav — global chrome mark (all roles) */
+  sidebar: 48,
   favicon: 32,
   splash: 160,
   login: 96,
@@ -47,7 +46,6 @@ export const SODA_LOGO_SIZES = {
 
 export type SodaLogoPlacement =
   | "sidebar"
-  | "home"
   | "favicon"
   | "splash"
   | "login"
@@ -71,13 +69,6 @@ export const SODA_LOGO_PLACEMENTS: Record<
   sidebar: {
     src: SODA_LOGO.src,
     size: SODA_LOGO_SIZES.sidebar,
-    showWord: true,
-    wordMode: "studio",
-    preserveSquare: true,
-  },
-  home: {
-    src: SODA_LOGO.src,
-    size: SODA_LOGO_SIZES.home,
     showWord: true,
     wordMode: "studio",
     preserveSquare: true,

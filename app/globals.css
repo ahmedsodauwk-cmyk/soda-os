@@ -1134,7 +1134,8 @@
   padding-left: env(safe-area-inset-left, 0px);
 }
 
-.soda-logo-mark-home {
+/* AppShell chrome — sidebar + mobile nav (all roles, all routes) */
+.soda-logo-mark-sidebar {
   width: clamp(2.25rem, 5.5vw, 3rem) !important;
   height: clamp(2.25rem, 5.5vw, 3rem) !important;
   max-width: clamp(2.25rem, 5.5vw, 3rem) !important;

@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 import {
   SODA_LOGO,
   SODA_LOGO_PLACEMENTS,
+  sodaBrandUrl,
   type SodaLogoPlacement,
 } from "@/lib/brand/logo";
 
@@ -31,12 +32,10 @@ export function SodaLogo({
   const withWord = showWord ?? config.showWord ?? false;
   const priority =
     placement === "sidebar" ||
-    placement === "home" ||
     placement === "login" ||
     placement === "splash";
   const wordMode = config.wordMode ?? "studio";
-  const responsiveMark =
-    placement === "splash" || placement === "home";
+  const responsiveMark = placement === "splash" || placement === "sidebar";
 
   return (
     <div
@@ -47,7 +46,7 @@ export function SodaLogo({
       )}
     >
       <Image
-        src={config.src}
+        src={sodaBrandUrl(config.src)}
         alt={SODA_LOGO.alt}
         width={size}
         height={size}

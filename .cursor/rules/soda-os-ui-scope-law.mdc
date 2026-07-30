@@ -1,0 +1,74 @@
+---
+description: SODA OS UI Scope Law — classify every UI change before implementation
+alwaysApply: true
+---
+
+# SODA OS UI SCOPE LAW
+
+Before implementing any UI, UX, visual, layout, navigation, responsive, motion, or interaction request, classify it as exactly one of:
+
+1. **GLOBAL_VISUAL**
+2. **ROLE_SPECIFIC**
+3. **PERMISSION_GATED**
+4. **SELECTED_ROLES**
+
+## GLOBAL_VISUAL
+
+Examples: logo, typography, shared colors, shared spacing, global responsive behavior, shared loading screens, shared AppShell styling, shared motion tokens, common form styling, common dialog styling.
+
+**Law:**
+
+- Implement once in shared components or shared design tokens.
+- Apply to every eligible user who sees the shared surface.
+- Verify Founder, Account Manager, Team Leader, and Team.
+- Verify desktop and mobile.
+- Do not implement only inside Founder-specific components.
+- Do not duplicate the implementation per role.
+
+## ROLE_SPECIFIC
+
+Examples: Founder Brain rail, Founder financial command cards, role-specific Home information.
+
+**Law:**
+
+- Apply only to the intended role.
+- Preserve other roles.
+- Do not move role-specific content into global shared components.
+
+## PERMISSION_GATED
+
+Examples: Create, Edit, Delete, Finance access, Client access, status changes, System Settings.
+
+**Law:**
+
+- UI visibility must follow explicit approved permissions.
+- Server-side authorization must enforce the same rule.
+- Hidden UI alone is not security.
+- Job Title never grants authority.
+
+## SELECTED_ROLES
+
+**Law:**
+
+- State the exact selected Access Levels.
+- Verify each selected role.
+- Preserve every role that is not selected.
+
+## MANDATORY SCOPE CONFIRMATION
+
+Before editing any future UI request, the coding agent must print:
+
+```
+UI Scope Classification:
+Affected Roles:
+Affected Devices:
+Shared Components:
+Role-Specific Components:
+Permission Impact:
+```
+
+When the Founder request does not explicitly define the role scope, stop before editing and ask:
+
+> "Should this change apply to Founder only, all eligible users, or selected Access Levels?"
+
+Do not silently assume Founder-only merely because the Founder reported the issue from his account.

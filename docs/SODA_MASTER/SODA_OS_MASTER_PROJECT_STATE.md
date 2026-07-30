@@ -5,8 +5,8 @@
 
 | Field | Value |
 |--------|--------|
-| **Document version** | `1.1.3` |
-| **Last updated** | `2026-07-28` |
+| **Document version** | `1.1.4` |
+| **Last updated** | `2026-07-30` |
 | **Product** | SODA OS |
 | **Company** | SODA VISUALS |
 | **Application version** | `0.1.0` (`package.json`) |
@@ -37,6 +37,34 @@ Before major auth / identity / DB / migrations / RLS / finance / production-data
 6. Update **this same file**
 7. Commit and push
 8. Never declare **SUCCESS** from `dry_validate` / anon / incomplete fallback only
+
+---
+
+## SODA OS UI SCOPE LAW
+
+Permanent product law — also codified in `.cursor/rules/soda-os-ui-scope-law.mdc`.
+
+Before implementing any UI, UX, visual, layout, navigation, responsive, motion, or interaction request, classify it as exactly one of:
+
+1. **GLOBAL_VISUAL** — logo, typography, shared colors, spacing, responsive behavior, loading screens, AppShell styling, motion tokens, common form/dialog styling. Implement once in shared components or tokens; apply to every eligible user on the shared surface; verify Founder, Account Manager, Team Leader, and Team on desktop and mobile; never Founder-only in shared chrome.
+2. **ROLE_SPECIFIC** — Founder Brain rail, Founder financial cards, role-specific Home data. Apply only to the intended role; do not move into global shared components.
+3. **PERMISSION_GATED** — Create, Edit, Delete, Finance, Client access, status changes, System Settings. UI visibility follows approved permissions; server enforces the same rule; hidden UI alone is not security; Job Title never grants authority.
+4. **SELECTED_ROLES** — state exact Access Levels; verify each; preserve unselected roles.
+
+**Mandatory scope confirmation** before UI edits:
+
+```
+UI Scope Classification:
+Affected Roles:
+Affected Devices:
+Shared Components:
+Role-Specific Components:
+Permission Impact:
+```
+
+When role scope is unspecified, ask: *"Should this change apply to Founder only, all eligible users, or selected Access Levels?"* — do not assume Founder-only because the Founder reported the issue.
+
+**2026-07-30 — Global logo parity (GLOBAL_VISUAL):** AppShell sidebar + mobile nav use unified `sidebar` placement (48px responsive clamp) for all authenticated roles on all routes; refresh loader uses transparent full-viewport splash; `assetVersion` **06.3.4** for cache bust. Branch `feature/unified-profile-settings-i18n` — **PENDING FOUNDER REVIEW** (not merged).
 
 ---
 
@@ -321,6 +349,11 @@ These decisions remain in force. Detail lives in the dedicated SoT chapters — 
 ---
 
 ## CHANGE LOG
+
+### v1.1.4 — 2026-07-30 (UI Scope Law + global logo parity)
+
+- Add **SODA OS UI SCOPE LAW** to Master doc + `.cursor/rules/soda-os-ui-scope-law.mdc`
+- **Global logo parity (GLOBAL_VISUAL):** unified AppShell `sidebar` placement (48px responsive clamp) for all authenticated roles on all routes; remove pathname-only `home` placement; refresh loader transparent full-viewport splash; `assetVersion` **06.3.4** — branch `feature/unified-profile-settings-i18n` — **PENDING FOUNDER REVIEW** (not merged)
 
 ### v1.1.2 — 2026-07-28 (P0 Founder Home crash recovery)
 
